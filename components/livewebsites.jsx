@@ -1,5 +1,5 @@
 const { useState, useEffect, useRef } = React;
-const { Reveal, Eyebrow, Tag, CountUp, Marquee, useMouseTilt, useScrollProgress } = window.__QD;
+const { Reveal, Eyebrow, Tag, Marquee } = window.__QD;
 
 const liveWebsiteProjects = [
   {
@@ -116,7 +116,7 @@ const BrowserShell = ({ project, tiltX, tiltY, isCompact }) => {
       <div style={{ position: 'absolute', inset: '-4% 10% auto', height: 160, background: 'radial-gradient(circle,rgba(166,240,79,0.26),transparent 72%)', filter: 'blur(26px)', pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', inset: 'auto 12% -8%', height: 140, background: 'radial-gradient(circle,rgba(166,240,79,0.18),transparent 72%)', filter: 'blur(34px)', pointerEvents: 'none' }} />
 
-      <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 28, border: '1px solid rgba(244,241,234,0.12)', background: 'rgba(13,14,17,0.88)', boxShadow: '0 28px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04), 0 0 0 1px rgba(166,240,79,0.08)' }}>
+      <div style={{ position: 'relative', overflow: 'hidden', overflowAnchor: 'none', borderRadius: 28, border: '1px solid rgba(244,241,234,0.12)', background: 'rgba(13,14,17,0.88)', boxShadow: '0 28px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04), 0 0 0 1px rgba(166,240,79,0.08)' }}>
         <div className="qd-liveweb-glow" style={{ pointerEvents: 'none' }} />
 
         <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', borderBottom: '1px solid rgba(244,241,234,0.08)', background: 'linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01))' }}>
@@ -133,7 +133,7 @@ const BrowserShell = ({ project, tiltX, tiltY, isCompact }) => {
           </div>
         </div>
 
-        <div className="qd-live-browser" style={{ position: 'relative', zIndex: 2, height: isCompact ? 520 : 'clamp(420px, 42vw, 640px)', minHeight: isCompact ? 520 : 620, background: 'var(--obsidian)', overflow: 'hidden' }}>
+        <div className="qd-live-browser" style={{ position: 'relative', zIndex: 2, height: isCompact ? 520 : 620, minHeight: isCompact ? 520 : 620, maxHeight: isCompact ? 520 : 620, background: 'var(--obsidian)', overflow: 'hidden', overflowAnchor: 'none' }}>
           <BrowserFallback project={project} visible={!loaded && !failed} overlay={false} />
           <iframe
             src={project.url}
@@ -166,18 +166,14 @@ const BrowserShell = ({ project, tiltX, tiltY, isCompact }) => {
 
 const LiveWebsiteCard = ({ project, index, isMobile }) => {
   const ref = useRef(null);
-  const mouse = useMouseTilt(ref);
-  const [hover, setHover] = useState(false);
-  const tiltX = hover ? -mouse.y * 6 : 0;
-  const tiltY = hover ? mouse.x * 8 : 0;
+  const tiltX = 0;
+  const tiltY = 0;
 
   return (
     <Reveal delay={index * 140} lift={56} duration={1100}>
       <div
         ref={ref}
         className="qd-lift qd-liveweb-card qd-live-card"
-        onMouseEnter={() => setHover(true)}
-        onMouseLeave={() => setHover(false)}
         style={{
           position: 'relative',
           display: 'grid',
@@ -187,6 +183,7 @@ const LiveWebsiteCard = ({ project, index, isMobile }) => {
           minHeight: isMobile ? 'auto' : 760,
           borderRadius: 28,
           overflow: 'hidden',
+          overflowAnchor: 'none',
           border: '1px solid rgba(244,241,234,0.1)',
           background: 'linear-gradient(180deg,rgba(28,30,36,0.9),rgba(10,11,13,0.96))',
           boxShadow: '0 22px 70px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.04)',
@@ -283,7 +280,6 @@ const LiveWebsiteCard = ({ project, index, isMobile }) => {
 
 const LiveWebsites = () => {
   const sectionRef = useRef(null);
-  const scroll = useScrollProgress(sectionRef);
   const isMobile = useViewportFlag();
 
   return (
@@ -344,9 +340,9 @@ const LiveWebsites = () => {
         }
       `}</style>
 
-      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: 0.26, backgroundImage: 'linear-gradient(rgba(244,241,234,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(244,241,234,0.03) 1px,transparent 1px)', backgroundSize: '68px 68px', transform: `translateY(${scroll * 34}px)` }} />
-      <div style={{ position: 'absolute', top: -40, left: '-8%', width: '40%', height: 420, background: 'radial-gradient(circle,rgba(166,240,79,0.14),transparent 72%)', filter: 'blur(36px)', transform: `translateY(${scroll * -80}px)` }} />
-      <div style={{ position: 'absolute', right: '-10%', bottom: 40, width: '38%', height: 360, background: 'radial-gradient(circle,rgba(166,240,79,0.12),transparent 68%)', filter: 'blur(42px)', transform: `translateY(${scroll * 90}px)` }} />
+      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: 0.26, backgroundImage: 'linear-gradient(rgba(244,241,234,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(244,241,234,0.03) 1px,transparent 1px)', backgroundSize: '68px 68px' }} />
+      <div style={{ position: 'absolute', top: -40, left: '-8%', width: '40%', height: 420, background: 'radial-gradient(circle,rgba(166,240,79,0.14),transparent 72%)', filter: 'blur(36px)' }} />
+      <div style={{ position: 'absolute', right: '-10%', bottom: 40, width: '38%', height: 360, background: 'radial-gradient(circle,rgba(166,240,79,0.12),transparent 68%)', filter: 'blur(42px)' }} />
 
       <div style={{ position: 'absolute', top: 130, left: 0, right: 0, opacity: 0.08, pointerEvents: 'none' }}>
         <Marquee speed={36}>
@@ -375,7 +371,7 @@ const LiveWebsites = () => {
         <Reveal delay={120} lift={28}>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,minmax(0,1fr))', gap: 16, marginBottom: 32 }}>
             <div style={{ padding: '20px 18px', borderRadius: 18, border: '1px solid rgba(244,241,234,0.08)', background: 'rgba(255,255,255,0.02)' }}>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 42, lineHeight: 1, color: 'var(--acid)' }}><CountUp end={2} /></div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 42, lineHeight: 1, color: 'var(--acid)' }}>2</div>
               <div className="qd-eyebrow" style={{ marginTop: 8 }}>live client deployments</div>
             </div>
             <div style={{ padding: '20px 18px', borderRadius: 18, border: '1px solid rgba(244,241,234,0.08)', background: 'rgba(255,255,255,0.02)' }}>
