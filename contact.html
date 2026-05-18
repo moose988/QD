@@ -511,6 +511,31 @@
       text-transform: uppercase;
     }
 
+    .qd-submit-alert {
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(229, 75, 75, 0.32);
+      background: linear-gradient(180deg, rgba(229, 75, 75, 0.16), rgba(229, 75, 75, 0.08));
+      color: #ffd4d4;
+      box-shadow: inset 0 0 0 1px rgba(229, 75, 75, 0.08);
+    }
+
+    .qd-submit-alert strong {
+      display: block;
+      margin-bottom: 4px;
+      font-family: var(--font-display);
+      font-size: 15px;
+      color: var(--fg1);
+    }
+
+    .qd-btn[disabled] {
+      opacity: 0.62;
+      cursor: wait;
+      pointer-events: none;
+      box-shadow: none !important;
+    }
+
     .qd-color-picker {
       display: grid;
       gap: 16px;
@@ -1656,6 +1681,21 @@
 </head>
 <body class="qd-contact-page">
   <div id="qd-contact-root"></div>
+  <script type="module">
+    import { db } from './firebase.js';
+    import {
+      addDoc,
+      collection,
+      serverTimestamp
+    } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+    window.QDFirebase = {
+      db,
+      addDoc,
+      collection,
+      serverTimestamp
+    };
+  </script>
   <script type="text/babel">
     const { useEffect, useMemo, useState } = React;
 
@@ -1688,6 +1728,9 @@
         successMessage: 'We received your project details and will review the best solution for your business.',
         successHome: 'Return home',
         reviewHint: 'You can submit now or return to any step for edits.',
+        sending: 'Sending...',
+        submitErrorTitle: 'Submission failed',
+        submitErrorMessage: 'We could not send your request right now. Please try again in a moment.',
         addColor: 'Add color',
         suggestedColors: 'Suggested colors',
         selectedPalette: 'Selected palette',
@@ -1700,6 +1743,8 @@
         requiredNote: 'Complete the required fields in this section before continuing.',
         placeholders: {
           businessName: 'QD Real Estate',
+          businessEmail: 'name@business.com',
+          businessPhone: '+971 5X XXX XXXX',
           industry: 'Real estate, hospitality, clinic, retail...',
           businessDescription: 'Describe your business in a few lines.',
           socialLinks: 'Instagram, LinkedIn, Facebook, TikTok...',
@@ -1759,6 +1804,9 @@
         successMessage: 'تم استلام تفاصيل مشروعك وسنراجع أفضل حل مناسب لعملك.',
         successHome: 'العودة للرئيسية',
         reviewHint: 'يمكنك الإرسال الآن أو العودة لأي خطوة لإجراء تعديلات.',
+        sending: 'جاري الإرسال...',
+        submitErrorTitle: 'تعذر الإرسال',
+        submitErrorMessage: 'تعذر إرسال طلبك الآن. يرجى المحاولة مرة أخرى بعد قليل.',
         addColor: 'إضافة اللون',
         suggestedColors: 'ألوان مقترحة',
         selectedPalette: 'لوحة الألوان المختارة',
@@ -1771,6 +1819,8 @@
         requiredNote: 'أكمل الحقول المطلوبة في هذا القسم قبل المتابعة.',
         placeholders: {
           businessName: 'QD Real Estate',
+          businessEmail: 'name@business.com',
+          businessPhone: '+971 5X XXX XXXX',
           industry: 'عقارات، ضيافة، عيادة، تجارة...',
           businessDescription: 'صف نشاطك التجاري باختصار.',
           socialLinks: 'إنستغرام، لينكدإن، فيسبوك، تيك توك...',
@@ -1810,6 +1860,16 @@
         type: 'text',
         label: { en: 'Business name', ar: 'اسم النشاط التجاري' },
         placeholderKey: 'businessName'
+      },
+      businessEmail: {
+        type: 'email',
+        label: { en: 'Business contact email', ar: 'البريد الإلكتروني للتواصل' },
+        placeholderKey: 'businessEmail'
+      },
+      businessPhone: {
+        type: 'tel',
+        label: { en: 'Business phone number', ar: 'رقم الهاتف للتواصل' },
+        placeholderKey: 'businessPhone'
       },
       industry: {
         type: 'text',
@@ -2262,7 +2322,7 @@
     };
 
     const steps = [
-      { id: 'business', title: { en: 'Business Information', ar: 'معلومات النشاط التجاري' }, fields: ['businessName', 'industry', 'businessDescription', 'socialLinks'] },
+      { id: 'business', title: { en: 'Business Information', ar: 'معلومات النشاط التجاري' }, fields: ['businessName', 'businessEmail', 'businessPhone', 'industry', 'businessDescription', 'socialLinks'] },
       { id: 'goals', title: { en: 'Website Goals', ar: 'أهداف الموقع الإلكتروني' }, fields: ['mainPurpose', 'visitorAction', 'idealCustomer'] },
       { id: 'branding', title: { en: 'Branding & Design', ar: 'العلامة التجارية والتصميم' }, fields: ['hasLogo', 'hasBrandAssets', 'preferredColors', 'colorsToAvoid', 'preferredStyle'] },
       { id: 'content', title: { en: 'Website Pages & Content', ar: 'صفحات الموقع والمحتوى' }, fields: ['neededPages', 'productCount', 'contentReadiness', 'legalPages'] },
@@ -2327,6 +2387,10 @@
         }
         return true;
       }
+      if (field.type === 'email') {
+        const emailValue = typeof value === 'string' ? value.trim() : '';
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue);
+      }
       return typeof value === 'string' ? value.trim().length > 0 : Boolean(value);
     };
 
@@ -2364,6 +2428,8 @@
       const [language, setLanguage] = useState(() => localStorage.getItem(LANGUAGE_STORAGE_KEY) || 'en');
       const [currentStep, setCurrentStep] = useState(0);
       const [submitted, setSubmitted] = useState(false);
+      const [isSubmitting, setIsSubmitting] = useState(false);
+      const [submitError, setSubmitError] = useState('');
       const [showStepValidation, setShowStepValidation] = useState(false);
       const [activeColor, setActiveColor] = useState('#A6F04F');
       const [hexInput, setHexInput] = useState('#A6F04F');
@@ -2592,7 +2658,9 @@
         return value;
       };
 
-      const submitQuestionnaire = () => {
+      const submitQuestionnaire = async () => {
+        if (isSubmitting) return;
+
         const allRequiredComplete = steps
           .filter((step) => step.id !== 'review')
           .every((step) => {
@@ -2612,18 +2680,60 @@
           return;
         }
 
-        const payload = {
-          language,
-          submittedAt: new Date().toISOString(),
-          answers: formData
-        };
+        setIsSubmitting(true);
+        setSubmitError('');
 
-        console.log('QD Project Questionnaire:', payload);
-        setSubmitted(true);
+        try {
+          if (!window.QDFirebase) {
+            throw new Error('Firebase is not initialized. Check firebase.js.');
+          }
 
-        setTimeout(() => {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }, 50);
+          const { db, addDoc, collection, serverTimestamp } = window.QDFirebase;
+
+          const payload = {
+            language,
+            submittedAt: new Date().toISOString(),
+            createdAt: serverTimestamp(),
+            status: 'New',
+            priority: 'Normal',
+            notes: '',
+            answers: formData,
+            businessName: formData.businessName?.trim() || '',
+            businessEmail: formData.businessEmail?.trim() || '',
+            businessPhone: formData.businessPhone?.trim() || '',
+            industry: formData.industry?.trim() || '',
+            budgetRange: formData.budgetRange?.trim() || '',
+            launchDate: formData.launchDate || '',
+            urgency: formData.urgency || '',
+            supportLevel: formData.supportLevel || '',
+            businessDescription: formData.businessDescription?.trim() || '',
+            socialLinks: formData.socialLinks?.trim() || '',
+            selectedMainPurpose: getFieldSummary({ id: 'mainPurpose', ...fieldCatalog.mainPurpose }),
+            selectedRequiredFeatures: getFieldSummary({ id: 'requiredFeatures', ...fieldCatalog.requiredFeatures }),
+            selectedOptionalServices: getFieldSummary({ id: 'optionalServices', ...fieldCatalog.optionalServices }),
+            ...formData
+          };
+
+          const docRef = await addDoc(collection(db, 'projectSubmissions'), payload);
+
+          console.log('QD Project Questionnaire saved to Firestore:', {
+            id: docRef.id,
+            businessName: payload.businessName,
+            businessEmail: payload.businessEmail,
+            status: payload.status
+          });
+
+          setSubmitted(true);
+
+          setTimeout(() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }, 50);
+        } catch (error) {
+          console.error('QD Project Questionnaire submission failed:', error);
+          setSubmitError(error?.message || locale.submitErrorMessage);
+        } finally {
+          setIsSubmitting(false);
+        }
       };
 
       const renderField = (field) => {
@@ -2648,8 +2758,9 @@
         const missing = showStepValidation && required && !isFieldAnswered(field, formData) && !otherOnlyMissing;
         const requiredLabel = required ? locale.required : locale.optional;
 
-        if (field.type === 'text' || field.type === 'date') {
+        if (field.type === 'text' || field.type === 'date' || field.type === 'email' || field.type === 'tel') {
           const supportsPaste = pasteFieldIds.has(field.id);
+          const inputType = field.type === 'date' ? 'date' : field.type;
 
           return (
             <div key={field.id} className={`${fieldClass} ${missing ? 'is-error' : ''}`}>
@@ -2664,11 +2775,11 @@
                 <input
                   id={field.id}
                   className={`qd-input ${missing ? 'is-error' : ''}`}
-                  type={field.type === 'date' ? 'date' : 'text'}
+                  type={inputType}
                   value={formData[field.id]}
                   placeholder={placeholder}
                   required={required}
-                  inputMode={field.id === 'budgetRange' ? 'numeric' : undefined}
+                  inputMode={field.id === 'budgetRange' ? 'numeric' : field.type === 'tel' ? 'tel' : field.type === 'email' ? 'email' : undefined}
                   pattern={field.id === 'budgetRange' ? '[0-9]*' : undefined}
                   onChange={(event) => updateField(field.id, event.target.value)}
                 />
@@ -3131,7 +3242,7 @@
         return (
           <div className="qd-contact-shell">
             <header className="qd-contact-header">
-              <a href="/" className="qd-logo-lockup">
+              <a href="index.html" className="qd-logo-lockup">
                 <img src="assets/qd-logo.jpeg" alt="QD Systems" />
                 <div>
                   <div className="qd-eyebrow">{locale.eyebrow}</div>
@@ -3139,7 +3250,7 @@
                 </div>
               </a>
               <div className="qd-contact-actions">
-                <a href="/" className="qd-back-link">← {locale.backHome}</a>
+                <a href="index.html" className="qd-back-link">← {locale.backHome}</a>
                 <div className="qd-language-toggle">
                   {['en', 'ar'].map((code) => (
                     <button key={code} type="button" className={language === code ? 'is-active' : ''} onClick={() => setLanguage(code)}>
@@ -3170,7 +3281,7 @@
               </p>
 
               <div className="qd-success-actions">
-                <a href="/" className="qd-btn qd-btn-primary qd-btn-md">
+                <a href="index.html" className="qd-btn qd-btn-primary qd-btn-md">
                   {language === 'ar' ? 'العودة للرئيسية' : 'Return home'}
                 </a>
 
@@ -3197,7 +3308,7 @@
       return (
         <div className="qd-contact-shell">
           <header className="qd-contact-header">
-            <a href="/" className="qd-logo-lockup">
+            <a href="index.html" className="qd-logo-lockup">
               <img src="assets/qd-logo.jpeg" alt="QD Systems" />
               <div>
                 <div className="qd-eyebrow">{locale.eyebrow}</div>
@@ -3205,7 +3316,7 @@
               </div>
             </a>
             <div className="qd-contact-actions">
-              <a href="/" className="qd-back-link">← {locale.backHome}</a>
+              <a href="index.html" className="qd-back-link">← {locale.backHome}</a>
               <div className="qd-language-toggle">
                 {['en', 'ar'].map((code) => (
                   <button key={code} type="button" className={language === code ? 'is-active' : ''} onClick={() => setLanguage(code)}>
@@ -3291,14 +3402,20 @@
                         {locale.next}
                       </button>
                     ) : (
-                      <button type="button" className="qd-btn qd-btn-primary qd-btn-md" onClick={submitQuestionnaire}>
-                        {locale.submit}
+                      <button type="button" className="qd-btn qd-btn-primary qd-btn-md" onClick={submitQuestionnaire} disabled={isSubmitting}>
+                        {isSubmitting ? locale.sending : locale.submit}
                       </button>
                     )}
                   </div>
                 </div>
                 {showStepValidation && activeStep.id !== 'review' && (
                   <div className="qd-validation-note">{locale.requiredNote}</div>
+                )}
+                {submitError && (
+                  <div className="qd-submit-alert" role="alert" aria-live="polite">
+                    <strong>{locale.submitErrorTitle}</strong>
+                    <span>{submitError}</span>
+                  </div>
                 )}
               </div>
             </div>

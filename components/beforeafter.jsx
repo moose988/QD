@@ -176,7 +176,7 @@ const BeforeAfter = () => {
     const element = wrapRef.current;
     if (!element || hasInteracted || introStartedRef.current) return undefined;
 
-    const isMobile = window.matchMedia('(max-width: 720px)').matches;
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
     if (isMobile) return undefined;
 
     const observer = new IntersectionObserver((entries) => {

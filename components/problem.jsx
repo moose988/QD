@@ -1,5 +1,5 @@
 const { useState, useEffect, useRef } = React;
-const { Eyebrow, useInView, useMouseTilt, useScrollProgress } = window.__QD;
+const { Eyebrow, useInView, useMouseTilt, useScrollProgress, useViewportFlag, usePrefersReducedMotion } = window.__QD;
 
 const StrikeWord = ({ children, delay=0 }) => {
   const ref = useRef(null);
@@ -36,32 +36,35 @@ const PainRow = ({ p, index }) => {
   const seen = useInView(ref, 0.3);
   const mouse = useMouseTilt(ref);
   const [hover, setHover] = useState(false);
-  const tiltX = hover ? -mouse.y*4 : 0;
-  const tiltY = hover ?  mouse.x*6 : 0;
+  const isMobile = useViewportFlag(760);
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const interactive = !isMobile && !prefersReducedMotion;
+  const tiltX = interactive && hover ? -mouse.y*4 : 0;
+  const tiltY = interactive && hover ?  mouse.x*6 : 0;
   return (
     <div ref={ref} className="qd-problem-row" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
       style={{ display:'grid',gridTemplateColumns:'80px 1fr 80px 1fr',gap:32,padding:'44px 32px',alignItems:'center',position:'relative',
         opacity:seen?1:0,
-        transform:seen?`perspective(1400px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`:'perspective(1400px) rotateX(20deg) translateY(60px) translateZ(-120px)',
-        transformStyle:'preserve-3d',
-        transition:`opacity 900ms cubic-bezier(0.22,1,0.36,1) ${index*140}ms,transform ${hover?180:900}ms cubic-bezier(0.22,1,0.36,1) ${hover?0:index*140}ms`,
-        background:hover?'linear-gradient(90deg,rgba(166,240,79,0.06),transparent 70%)':'transparent',
+        transform:seen?(interactive?`perspective(1400px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`:'none'):(interactive?'perspective(1400px) rotateX(20deg) translateY(60px) translateZ(-120px)':'translateY(24px)'),
+        transformStyle:interactive?'preserve-3d':'flat',
+        transition:`opacity ${interactive?900:420}ms cubic-bezier(0.22,1,0.36,1) ${interactive?index*140:Math.min(index*40,80)}ms,transform ${interactive?(hover?180:900):420}ms cubic-bezier(0.22,1,0.36,1) ${interactive?(hover?0:index*140):Math.min(index*40,80)}ms`,
+        background:hover && interactive?'linear-gradient(90deg,rgba(166,240,79,0.06),transparent 70%)':'transparent',
         borderTop:index===0?'1px solid var(--border-1)':'none',borderBottom:'1px solid var(--border-1)',
-        boxShadow:hover?'0 24px 48px rgba(0,0,0,0.4),inset 0 0 0 1px rgba(166,240,79,0.2)':'none' }}>
-      <div style={{ position:'absolute',left:0,top:0,bottom:0,width:3,background:'var(--acid)',boxShadow:'0 0 16px var(--acid)',transform:hover?'scaleY(1)':'scaleY(0)',transformOrigin:'top',transition:'transform 400ms cubic-bezier(0.65,0,0.35,1)' }} />
-      <div className="qd-problem-number" style={{ fontFamily:'var(--font-display)',fontSize:72,fontWeight:700,lineHeight:1,color:'transparent',WebkitTextStroke:hover?'1.5px var(--acid)':'1px var(--fg3)',letterSpacing:'-0.04em',transform:hover?'translateZ(60px) scale(1.12)':'translateZ(20px) scale(1)',transition:'transform 500ms cubic-bezier(0.34,1.56,0.64,1),-webkit-text-stroke 300ms ease',textShadow:hover?'0 0 32px rgba(166,240,79,0.5)':'none' }}>{p.n}</div>
-      <div style={{ fontFamily:'var(--font-display)',fontSize:24,lineHeight:1.3,fontWeight:500,color:hover?'var(--fg1)':'var(--fg2)',letterSpacing:'-0.01em',transform:hover?'translateZ(40px)':'translateZ(10px)',transition:'color 280ms ease,transform 500ms cubic-bezier(0.34,1.56,0.64,1)' }}>{p.pain}</div>
-      <div className="qd-problem-arrow" style={{ display:'grid',placeItems:'center',transform:hover?'translateZ(50px) scale(1.2)':'translateZ(20px) scale(1)',transition:'transform 500ms cubic-bezier(0.34,1.56,0.64,1)' }}><ConnectorArrow start={seen} /></div>
-      <div className="qd-problem-fix" style={{ fontFamily:'var(--font-display)',fontSize:24,lineHeight:1.3,fontWeight:500,color:'var(--fg1)',letterSpacing:'-0.01em',opacity:seen?1:0,transform:seen?(hover?'translateZ(40px) translateX(0)':'translateZ(10px)'):'translateZ(0) translateX(20px)',transition:`opacity 600ms ease ${index*140+900}ms,transform 500ms cubic-bezier(0.34,1.56,0.64,1)` }}>{p.fix}</div>
+        boxShadow:hover && interactive?'0 24px 48px rgba(0,0,0,0.4),inset 0 0 0 1px rgba(166,240,79,0.2)':'none' }}>
+      <div style={{ position:'absolute',left:0,top:0,bottom:0,width:3,background:'var(--acid)',boxShadow:'0 0 16px var(--acid)',transform:hover && interactive?'scaleY(1)':'scaleY(0)',transformOrigin:'top',transition:'transform 400ms cubic-bezier(0.65,0,0.35,1)' }} />
+      <div className="qd-problem-number" style={{ fontFamily:'var(--font-display)',fontSize:72,fontWeight:700,lineHeight:1,color:'transparent',WebkitTextStroke:hover && interactive?'1.5px var(--acid)':'1px var(--fg3)',letterSpacing:'-0.04em',transform:hover && interactive?'translateZ(60px) scale(1.12)':'translateZ(0) scale(1)',transition:'transform 500ms cubic-bezier(0.34,1.56,0.64,1),-webkit-text-stroke 300ms ease',textShadow:hover && interactive?'0 0 32px rgba(166,240,79,0.5)':'none' }}>{p.n}</div>
+      <div className="qd-problem-pain" style={{ fontFamily:'var(--font-display)',fontSize:24,lineHeight:1.3,fontWeight:500,color:hover && interactive?'var(--fg1)':'var(--fg2)',letterSpacing:'-0.01em',transform:hover && interactive?'translateZ(40px)':'translateZ(0)',transition:'color 280ms ease,transform 500ms cubic-bezier(0.34,1.56,0.64,1)' }}>{p.pain}</div>
+      <div className="qd-problem-arrow" style={{ display:'grid',placeItems:'center',transform:hover && interactive?'translateZ(50px) scale(1.2)':'translateZ(0) scale(1)',transition:'transform 500ms cubic-bezier(0.34,1.56,0.64,1)' }}><ConnectorArrow start={seen || isMobile} /></div>
+      <div className="qd-problem-fix" style={{ fontFamily:'var(--font-display)',fontSize:24,lineHeight:1.3,fontWeight:500,color:'var(--fg1)',letterSpacing:'-0.01em',opacity:seen?1:0,transform:seen?(hover && interactive?'translateZ(40px) translateX(0)':'translateZ(0)'):'translateZ(0) translateX(20px)',transition:`opacity ${interactive?600:320}ms ease ${interactive?index*140+900:Math.min(index*40+120,160)}ms,transform ${interactive?500:320}ms cubic-bezier(0.34,1.56,0.64,1)` }}>{p.fix}</div>
     </div>
   );
 };
 
 const Problem = () => {
   const pains = [
-    { n:'01', pain:'Hours lost copy-pasting between tools.',    fix:'One automation. 60-second sync.' },
-    { n:'02', pain:'A 6-month dev quote for a 2-week problem.', fix:'Same scope. 14 days. Fixed price.' },
-    { n:'03', pain:'SaaS that almost fits — at AED per seat.',  fix:'Custom. Owned. No seat tax.' },
+    { n:'01', pain:'Your business deserves better than a template.', fix:'Custom-built. Brand-first. Designed to convert.' },
+    { n:'02', pain:"People visit your site. They don't trust it.", fix:'Faster. Cleaner. Premium UX that feels credible.' },
+    { n:'03', pain:"You're running the business manually.", fix:'Booking systems. Automation. Live tracking.' },
   ];
   const sectionRef = useRef(null);
   const sp = useScrollProgress(sectionRef);
@@ -88,7 +91,7 @@ const Problem = () => {
           </div>
           <h2 style={{ marginTop:16,fontFamily:'var(--font-display)',fontSize:'clamp(40px,5.5vw,76px)',lineHeight:1,letterSpacing:'-0.03em',fontWeight:600,color:'var(--bone)' }}>
             <span style={{ display:'inline-block',opacity:headSeen?1:0,transform:headSeen?'perspective(800px) rotateX(0deg)':'perspective(800px) rotateX(-50deg) translateY(40px)',transformOrigin:'bottom',transition:'opacity 800ms ease 100ms,transform 900ms cubic-bezier(0.22,1,0.36,1) 100ms' }}>You don't need </span>
-            <span style={{ display:'inline-block',opacity:headSeen?1:0,transform:headSeen?'perspective(800px) rotateX(0deg)':'perspective(800px) rotateX(-50deg) translateY(40px)',transformOrigin:'bottom',transition:'opacity 800ms ease 280ms,transform 900ms cubic-bezier(0.22,1,0.36,1) 280ms' }}><StrikeWord delay={1100}>more software.</StrikeWord></span>
+            <span style={{ display:'inline-block',opacity:headSeen?1:0,transform:headSeen?'perspective(800px) rotateX(0deg)':'perspective(800px) rotateX(-50deg) translateY(40px)',transformOrigin:'bottom',transition:'opacity 800ms ease 280ms,transform 900ms cubic-bezier(0.22,1,0.36,1) 280ms' }}><StrikeWord delay={1100}>more complexity.</StrikeWord></span>
             <br />
             <span style={{ display:'inline-block',marginTop:8,opacity:headSeen?1:0,transform:headSeen?'perspective(800px) rotateX(0deg)':'perspective(800px) rotateX(-50deg) translateY(40px)',transformOrigin:'bottom',transition:'opacity 800ms ease 1500ms,transform 900ms cubic-bezier(0.22,1,0.36,1) 1500ms' }}>
               You need <span style={{ color:'var(--acid)',display:'inline-block',animation:headSeen?'qd-glow-pulse 2.4s ease-in-out 2200ms infinite':'none' }}>less friction.</span>
@@ -102,8 +105,8 @@ const Problem = () => {
 
         <div ref={reframeRef} style={{ marginTop:96,textAlign:'center',opacity:reframeSeen?1:0,transform:reframeSeen?'translateY(0)':'translateY(30px)',transition:'opacity 800ms ease,transform 800ms cubic-bezier(0.22,1,0.36,1)' }}>
           <div ref={reframeBox} style={{ fontFamily:'var(--font-display)',fontSize:'clamp(24px,2.6vw,36px)',lineHeight:1.3,fontWeight:500,letterSpacing:'-0.02em',maxWidth:880,margin:'0 auto',display:'inline-block',padding:'12px 8px',transformStyle:'preserve-3d',transform:`perspective(1000px) rotateX(${pillMouse.y*-3}deg) rotateY(${pillMouse.x*4}deg)`,transition:'transform 200ms ease-out',color:'var(--bone)' }}>
-            We close that gap in{' '}
-            <span style={{ color:'var(--obsidian)',background:'var(--acid)',padding:'2px 14px',display:'inline-block',borderRadius:4,transform:reframeSeen?`translate(${pillMouse.x*8}px,${pillMouse.y*6}px) scale(1) rotate(${pillMouse.x*2}deg)`:'translate(0,0) scale(0)',transition:reframeSeen?'transform 200ms ease-out':'transform 700ms cubic-bezier(0.34,1.56,0.64,1) 700ms',boxShadow:'0 8px 24px rgba(166,240,79,0.3)' }}>14 days.</span>
+            We make your online presence{' '}
+            <span style={{ color:'var(--obsidian)',background:'var(--acid)',padding:'2px 14px',display:'inline-block',borderRadius:4,transform:reframeSeen?`translate(${pillMouse.x*8}px,${pillMouse.y*6}px) scale(1) rotate(${pillMouse.x*2}deg)`:'translate(0,0) scale(0)',transition:reframeSeen?'transform 200ms ease-out':'transform 700ms cubic-bezier(0.34,1.56,0.64,1) 700ms',boxShadow:'0 8px 24px rgba(166,240,79,0.3)' }}>feel expensive.</span>
           </div>
         </div>
       </div>

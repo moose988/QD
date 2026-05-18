@@ -8,6 +8,27 @@ const projects = [
   { client:'Studio Onyx',        tag:'WEBSITE',  blurb:'Stripped six clicks down to one. Bounce dropped 60% on launch day.',          metric:8,   prefix:'',  suffix:'x', label:'faster checkout',       visual:'browser' },
 ];
 
+const WorkMarqueeStrip = ({ compact = false }) => (
+  <Reveal delay={compact ? 80 : 200} lift={24}>
+    <div style={{ marginTop: compact ? 0 : 80, paddingTop: compact ? 28 : 32, borderTop:'1px solid var(--border-2)' }}>
+      <Marquee speed={12} className="qd-work-marquee">
+        {['CHATBOTS','/','WEBSITES','/','TRACKING','/','CUSTOM SYSTEMS','/','INTEGRATIONS','/','AUTOMATIONS','/'].map((t,i)=>(
+          <span key={i} style={{ fontFamily:'var(--font-display)',fontWeight:700,fontSize:'clamp(64px,9vw,140px)',letterSpacing:'-0.04em',color:t==='/'?'var(--acid)':'transparent',WebkitTextStroke:t==='/'?'0':'1.5px var(--fg2)',padding:'0 32px',userSelect:'none' }}>{t}</span>
+        ))}
+      </Marquee>
+    </div>
+  </Reveal>
+);
+
+const WorkMarqueeOnly = () => (
+  <section className="qd-section qd-bridge-receive"
+    style={{ position:'relative',background:'var(--obsidian)',padding:'56px 40px 84px',borderTop:'1px solid var(--border-1)',zIndex:5,overflow:'hidden' }}>
+    <div style={{ maxWidth:1280,margin:'0 auto',position:'relative' }}>
+      <WorkMarqueeStrip compact />
+    </div>
+  </section>
+);
+
 const Work = () => (
   <section id="work" className="qd-section qd-bridge-receive" data-bridge="acid"
     style={{ position:'relative',background:'var(--obsidian)',padding:'200px 40px',borderTop:'1px solid var(--border-1)',zIndex:5,overflow:'hidden' }}>
@@ -15,7 +36,7 @@ const Work = () => (
       <div className="qd-work-head qd-mobile-stack" style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:60,alignItems:'flex-end',marginBottom:80 }}>
         <div className="qd-section-letter qd-mobile-no-rotate"><SectionLetter letter="D" /></div>
         <Reveal delay={120} lift={32}>
-          <Eyebrow color="var(--acid)">// 05 · SHIPPED</Eyebrow>
+          <Eyebrow color="var(--acid)">// 06 · SHIPPED</Eyebrow>
           <h2 style={{ fontFamily:'var(--font-display)',fontWeight:600,fontSize:'clamp(56px,8vw,120px)',letterSpacing:'-0.04em',lineHeight:0.92,margin:'12px 0 24px',color:'var(--bone)' }}>
             The work.<br/><em style={{ fontFamily:'var(--font-serif)',fontWeight:400,color:'var(--acid)' }}>Receipts only.</em>
           </h2>
@@ -55,16 +76,10 @@ const Work = () => (
         ))}
       </div>
 
-      <Reveal delay={200} lift={24}>
-        <div style={{ marginTop:80,paddingTop:32,borderTop:'1px solid var(--border-2)' }}>
-          <Marquee speed={45} className="qd-work-marquee">
-            {['CHATBOTS','/','WEBSITES','/','TRACKING','/','CUSTOM SYSTEMS','/','INTEGRATIONS','/','AUTOMATIONS','/'].map((t,i)=>(
-              <span key={i} style={{ fontFamily:'var(--font-display)',fontWeight:700,fontSize:'clamp(64px,9vw,140px)',letterSpacing:'-0.04em',color:t==='/'?'var(--acid)':'transparent',WebkitTextStroke:t==='/'?'0':'1.5px var(--fg2)',padding:'0 32px',userSelect:'none' }}>{t}</span>
-            ))}
-          </Marquee>
-        </div>
-      </Reveal>
+      <WorkMarqueeStrip />
     </div>
   </section>
 );
-window.__QD = { ...window.__QD, Work };
+
+// FULL WORK SECTION TEMPORARILY HIDDEN
+window.__QD = { ...window.__QD, Work, WorkMarqueeOnly };

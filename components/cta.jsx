@@ -9,21 +9,16 @@ const CTA = () => (
     <div style={{ maxWidth:1100,margin:'0 auto',position:'relative',zIndex:2,width:'100%' }}>
       <div className="qd-cta-grid" style={{ display:'grid',gridTemplateColumns:'1.2fr 1fr',gap:60,alignItems:'center' }}>
         <div>
-          <Reveal lift={24}><Eyebrow color="var(--obsidian)">// READY · BUILD MODE</Eyebrow></Reveal>
+          <Reveal lift={24}><Eyebrow color="var(--obsidian)">// 07 · BUILD MODE</Eyebrow></Reveal>
           <Reveal delay={120} lift={48} duration={1100}>
             <h2 style={{ fontFamily:'var(--font-display)',fontWeight:700,fontSize:'clamp(72px,10vw,156px)',letterSpacing:'-0.06em',lineHeight:0.88,margin:'24px 0',color:'var(--obsidian)' }}>
               Tell us<br/>the problem.
             </h2>
           </Reveal>
-          <Reveal delay={260} lift={24}>
-            <p style={{ fontFamily:'var(--font-body)',fontSize:22,color:'var(--obsidian)',opacity:0.7,maxWidth:520,marginBottom:40,lineHeight:1.4 }}>
-              One Slack message. Quote in 48 hours. Shipped in 14 days.
-            </p>
-          </Reveal>
           <Reveal delay={380} lift={24}>
             <div className="qd-cta-actions" style={{ display:'flex',gap:14 }}>
               <button className="qd-btn" style={{ background:'var(--obsidian)',color:'var(--acid)',border:'none',padding:'20px 36px',fontSize:16,borderRadius:6,cursor:'pointer',transition:'transform 200ms ease,box-shadow 200ms ease' }}
-                onClick={() => { window.location.href = '/contact'; }}
+                onClick={() => { window.location.href = 'contact.html'; }}
                 onMouseEnter={e=>{e.target.style.transform='translateY(-2px)';e.target.style.boxShadow='0 8px 24px rgba(0,0,0,0.3)';}}
                 onMouseLeave={e=>{e.target.style.transform='';e.target.style.boxShadow='';}}>START A BUILD →</button>
               <button className="qd-btn" style={{ background:'transparent',color:'var(--obsidian)',border:'1px solid var(--obsidian)',padding:'20px 36px',fontSize:16,borderRadius:6,cursor:'pointer',transition:'background 200ms ease' }}

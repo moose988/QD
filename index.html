@@ -58,10 +58,49 @@
 <script type="text/babel">
 const { useState, useEffect, useRef, useCallback, Children } = React;
 
+const MOBILE_BREAKPOINT = 760;
+
+const useViewportFlag = (breakpoint = MOBILE_BREAKPOINT) => {
+  const [matches, setMatches] = useState(() => window.innerWidth <= breakpoint);
+  useEffect(() => {
+    const media = window.matchMedia(`(max-width: ${breakpoint}px)`);
+    const update = () => setMatches(media.matches);
+    update();
+    if (media.addEventListener) media.addEventListener('change', update);
+    else media.addListener(update);
+    return () => {
+      if (media.removeEventListener) media.removeEventListener('change', update);
+      else media.removeListener(update);
+    };
+  }, [breakpoint]);
+  return matches;
+};
+
+const usePrefersReducedMotion = () => {
+  const [reduced, setReduced] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const update = () => setReduced(media.matches);
+    update();
+    if (media.addEventListener) media.addEventListener('change', update);
+    else media.addListener(update);
+    return () => {
+      if (media.removeEventListener) media.removeEventListener('change', update);
+      else media.removeListener(update);
+    };
+  }, []);
+  return reduced;
+};
+
 // ── Reveal ──────────────────────────────────────────────────
 const Reveal = ({ children, delay=0, lift=32, duration=800, once=true, as:Tag='div', style, ...rest }) => {
   const ref = useRef(null);
   const [shown, setShown] = useState(false);
+  const isMobile = useViewportFlag();
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const effectiveDelay = prefersReducedMotion ? 0 : (isMobile ? Math.min(delay, 80) : delay);
+  const effectiveLift = prefersReducedMotion ? 0 : (isMobile ? Math.min(lift, 18) : lift);
+  const effectiveDuration = prefersReducedMotion ? 1 : (isMobile ? Math.min(duration, 520) : duration);
   useEffect(() => {
     const el = ref.current; if (!el) return;
     const io = new IntersectionObserver(entries => {
@@ -69,16 +108,16 @@ const Reveal = ({ children, delay=0, lift=32, duration=800, once=true, as:Tag='d
         if (e.isIntersecting) { setShown(true); if (once) io.unobserve(e.target); }
         else if (!once) setShown(false);
       });
-    }, { threshold: 0.15, rootMargin: '0px 0px -10% 0px' });
+    }, { threshold: isMobile ? 0.08 : 0.15, rootMargin: isMobile ? '0px 0px -4% 0px' : '0px 0px -10% 0px' });
     io.observe(el); return () => io.disconnect();
-  }, [once]);
+  }, [isMobile, once]);
   return (
     <Tag ref={ref} style={{
       ...style,
       opacity: shown ? 1 : 0,
-      transform: shown ? 'translateY(0)' : `translateY(${lift}px)`,
-      transition: `opacity ${duration}ms cubic-bezier(0.22,1,0.36,1) ${delay}ms, transform ${duration}ms cubic-bezier(0.22,1,0.36,1) ${delay}ms`,
-      willChange: 'opacity, transform',
+      transform: shown ? 'translateY(0)' : `translateY(${effectiveLift}px)`,
+      transition: `opacity ${effectiveDuration}ms cubic-bezier(0.22,1,0.36,1) ${effectiveDelay}ms, transform ${effectiveDuration}ms cubic-bezier(0.22,1,0.36,1) ${effectiveDelay}ms`,
+      willChange: shown ? 'auto' : 'opacity, transform',
     }} {...rest}>{children}</Tag>
   );
 };
@@ -130,6 +169,8 @@ const useMouseTilt = (ref) => {
   const [m, setM] = useState({ x:0, y:0 });
   useEffect(() => {
     const el = ref.current; if (!el) return;
+    const disableTilt = window.matchMedia('(hover: none), (pointer: coarse), (max-width: 768px), (prefers-reduced-motion: reduce)').matches;
+    if (disableTilt) return;
     const onMove = e => {
       const r = el.getBoundingClientRect();
       setM({ x:((e.clientX-r.left)/r.width-0.5)*2, y:((e.clientY-r.top)/r.height-0.5)*2 });
@@ -156,7 +197,7 @@ const useScrollProgress = (ref) => {
   return p;
 };
 
-window.__QD = { Reveal, Stagger, Marquee, Eyebrow, Btn, Tag, useInView, useMouseTilt, useScrollProgress };
+window.__QD = { Reveal, Stagger, Marquee, Eyebrow, Btn, Tag, useInView, useMouseTilt, useScrollProgress, useViewportFlag, usePrefersReducedMotion };
 </script>
 
 <!-- ═══════════════════════════════════════════════════════════
@@ -191,11 +232,14 @@ const ChatbotWindow = () => {
 // ── DashboardMini ─────────────────────────────────────────
 const DashboardMini = () => {
   const [t, setT] = useState(0);
+  const isMobile = window.__QD.useViewportFlag(768);
+  const prefersReducedMotion = window.__QD.usePrefersReducedMotion();
   useEffect(() => {
+    if (isMobile || prefersReducedMotion) return;
     let raf; const start = performance.now();
     const loop = now => { setT((now-start)/1000); raf = requestAnimationFrame(loop); };
     raf = requestAnimationFrame(loop); return () => cancelAnimationFrame(raf);
-  }, []);
+  }, [isMobile, prefersReducedMotion]);
   const bars = [0,1,2,3,4,5,6,7].map(i => 30+Math.sin(t*0.8+i*0.5)*25+Math.cos(t*0.4+i)*15);
   return (
     <div style={{ background:'var(--obsidian-1)',border:'1px solid var(--border-2)',borderRadius:10,padding:14,minHeight:180,display:'flex',flexDirection:'column',gap:10 }}>
@@ -289,22 +333,35 @@ window.__QD = { ...window.__QD, ChatbotWindow, DashboardMini, CodeBlock, Browser
      NAV + FOOTER
 ═══════════════════════════════════════════════════════════ -->
 <script type="text/babel">
+const navLinks = [
+  { label:'Services', href:'#services' },
+  { label:'Live Systems', href:'#live-websites' },
+  { label:'Process', href:'#process' },
+  // WORK LINK TEMPORARILY DISABLED
+  // { label:'Work', href:'#work' },
+  { label:'Contact', href:'#contact' },
+];
+
 const Nav = () => (
   <nav className="qd-nav" style={{ position:'fixed',top:0,left:0,right:0,zIndex:100,padding:'20px 40px',display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(10,11,13,0.7)',backdropFilter:'blur(20px)',borderBottom:'1px solid var(--border-1)' }}>
-    <a href="/" className="qd-nav-logo" style={{ display:'flex',alignItems:'center',gap:10,textDecoration:'none',position:'relative' }}>
+    <a href="index.html" className="qd-nav-logo" style={{ display:'flex',alignItems:'center',gap:10,textDecoration:'none',position:'relative' }}>
       <span style={{ position:'relative',display:'inline-flex',height:36,width:36,borderRadius:8,overflow:'hidden',boxShadow:'0 0 0 1px var(--border-1)' }}>
         <img src="assets/qd-logo.jpeg" alt="QD Systems" className="qd-logo-img" style={{ height:'100%',width:'100%',objectFit:'cover',display:'block',filter:'contrast(1.08) brightness(1.05)' }} />
         <span className="qd-sheen" />
       </span>
+      <span className="qd-nav-lockup" style={{ display:'flex',flexDirection:'column',minWidth:0 }}>
+        <span className="qd-nav-name" style={{ fontFamily:'var(--font-display)',fontSize:15,fontWeight:600,letterSpacing:'0.08em',textTransform:'uppercase',lineHeight:1,color:'var(--bone)' }}>QD SYSTEMS</span>
+        <span className="qd-nav-subtitle" style={{ fontFamily:'var(--font-mono)',fontSize:9,letterSpacing:'0.22em',textTransform:'uppercase',lineHeight:1.2,color:'rgba(244,241,234,0.58)',marginTop:5,whiteSpace:'nowrap' }}>WEB · BRAND · DIGITAL SYSTEMS</span>
+      </span>
     </a>
     <div className="qd-nav-links qd-mobile-hide" style={{ display:'flex',alignItems:'center',gap:28 }}>
-      {['Services','Work','Process','Contact'].map(l => (
-        <a key={l} href={`#${l.toLowerCase()}`} style={{ fontFamily:'var(--font-display)',fontSize:14,fontWeight:500,color:'var(--fg2)',textDecoration:'none',transition:'color 200ms ease' }}
-          onMouseEnter={e=>e.target.style.color='var(--acid)'} onMouseLeave={e=>e.target.style.color='var(--fg2)'}>{l}</a>
+      {navLinks.map(({ label, href }) => (
+        <a key={label} href={href} style={{ fontFamily:'var(--font-display)',fontSize:14,fontWeight:500,color:'var(--fg2)',textDecoration:'none',transition:'color 200ms ease' }}
+          onMouseEnter={e=>e.target.style.color='var(--acid)'} onMouseLeave={e=>e.target.style.color='var(--fg2)'}>{label}</a>
       ))}
-      <Btn variant="primary" size="sm" icon="→" onClick={() => { window.location.href = '/contact'; }}>Build it</Btn>
+      <Btn variant="primary" size="sm" icon="→" onClick={() => { window.location.href = 'contact.html'; }}>Build it</Btn>
     </div>
-    <Btn variant="primary" size="sm" className="qd-nav-cta qd-mobile-only" icon="→" onClick={() => { window.location.href = '/contact'; }}>
+    <Btn variant="primary" size="sm" className="qd-nav-cta qd-mobile-only" icon="→" onClick={() => { window.location.href = 'contact.html'; }}>
       <>
         <span className="qd-desktop-label">Build it</span>
         <span className="qd-mobile-label">Build</span>
@@ -320,29 +377,40 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="qd-footer" style={{ padding:'64px 40px 32px',borderTop:'1px solid var(--border-1)',background:'var(--obsidian)' }}>
-      <div style={{ maxWidth:1280,margin:'0 auto' }}>
-      <div className="qd-footer-grid" style={{ display:'grid',gridTemplateColumns:'1fr auto',gap:40,marginBottom:48,alignItems:'start' }}>
-        <div className="qd-footer-brand">
-          <span style={{ position:'relative',display:'inline-flex',height:88,width:88,borderRadius:14,overflow:'hidden',boxShadow:'0 0 0 1px var(--border-1),0 12px 40px rgba(0,0,0,0.5)' }}>
-            <img src="assets/qd-logo.jpeg" alt="QD" style={{ height:'100%',width:'100%',objectFit:'cover',display:'block' }} />
-            <span className="qd-footer-logo-sheen" />
-          </span>
-        </div>
-        <div className="qd-footer-connect">
-          <div className="qd-eyebrow" style={{ marginBottom:14 }}>Connect</div>
-          <div className="qd-footer-social-list qd-footer-social">
-            {socials.map(({ label, url }) => (
-              <a key={label} href={url} target="_blank" rel="noreferrer" className="qd-footer-social-link">{label}</a>
-            ))}
+    <footer className="qd-footer">
+      <div className="qd-footer-inner">
+        <div className="qd-footer-top">
+          <a href="index.html" className="qd-footer-brand">
+            <span className="qd-footer-mark">
+              <img src="assets/qd-logo.jpeg" alt="QD Systems" className="qd-footer-mark-img" />
+              <span className="qd-footer-logo-sheen" />
+            </span>
+            <span className="qd-footer-brand-copy">
+              <span className="qd-footer-brand-name">QD SYSTEMS</span>
+              <span className="qd-footer-brand-sub">Digital systems studio</span>
+            </span>
+          </a>
+
+          <div className="qd-footer-links-wrap">
+            <nav className="qd-footer-links" aria-label="Footer navigation">
+              {navLinks.map(({ label, href }) => (
+                <a key={label} href={href} className="qd-footer-link">{label}</a>
+              ))}
+            </nav>
+            <div className="qd-footer-links qd-footer-socials" aria-label="Social links">
+              {socials.map(({ label, url }) => (
+                <a key={label} href={url} target="_blank" rel="noreferrer" className="qd-footer-link">{label}</a>
+              ))}
+            </div>
           </div>
         </div>
+
+        <div className="qd-footer-bottom">
+          <div className="qd-footer-meta">{'\u00A9 2026 QD Systems'}</div>
+          <div className="qd-footer-meta">Built in UAE</div>
+          <div className="qd-footer-meta">V2.0</div>
+        </div>
       </div>
-      <div className="qd-footer-meta qd-footer-bottom" style={{ borderTop:'1px solid var(--border-1)',paddingTop:24,display:'flex',justifyContent:'space-between',fontFamily:'var(--font-mono)',fontSize:11,color:'var(--fg3)',letterSpacing:'0.1em',textTransform:'uppercase' }}>
-        <div>© 2026 QD SYSTEMS · ALL SYSTEMS GO</div>
-        <div>V2.0 · BUILT IN UAE</div>
-      </div>
-    </div>
     </footer>
   );
 };
@@ -361,6 +429,8 @@ const easeOut   = x => 1-Math.pow(1-x,3);
 const Hero = () => {
   const [scroll, setScroll] = useState(0);
   const [t, setT] = useState(0);
+  const isMobile = window.__QD.useViewportFlag(768);
+  const prefersReducedMotion = window.__QD.usePrefersReducedMotion();
 
   useEffect(() => {
     const h = () => setScroll(Math.min(1, window.scrollY/(window.innerHeight*0.8)));
@@ -369,10 +439,11 @@ const Hero = () => {
   }, []);
 
   useEffect(() => {
+    if (isMobile || prefersReducedMotion) return;
     let raf; const start = performance.now();
     const loop = now => { setT((now-start)/1000); raf=requestAnimationFrame(loop); };
     raf = requestAnimationFrame(loop); return () => cancelAnimationFrame(raf);
-  }, []);
+  }, [isMobile, prefersReducedMotion]);
 
   const p = easeInOut(Math.max(0,Math.min(1,scroll/0.4)));
   const iry = Math.sin(t*0.4)*6, irx = Math.cos(t*0.3)*2;
@@ -424,8 +495,8 @@ const Hero = () => {
           Chatbots that close. Sites that convert. Tracking that holds. Built for owners, not committees.
         </p>
         <div className="qd-hero-actions" style={{ display:'flex',gap:14,marginTop:40 }}>
-          <Btn variant="primary" size="lg" icon="→" onClick={() => { window.location.href = '/contact'; }}>Build it</Btn>
-          <Btn variant="ghost" size="lg" icon="↗">See the work</Btn>
+          <Btn variant="primary" size="lg" icon="→" onClick={() => { window.location.href = 'contact.html'; }}>Build it</Btn>
+          <Btn variant="ghost" size="lg" icon="↗" onClick={() => { window.location.href = '#live-websites'; }}>See the work</Btn>
         </div>
         <div className="qd-hero-stats" style={{ marginTop:96,display:'grid',gridTemplateColumns:'repeat(3,1fr)',borderTop:'1px solid var(--border-1)',borderBottom:'1px solid var(--border-1)' }}>
           {[{n:'5–7d',l:'avg. build time'},{n:'99.9%',l:'uptime'},{n:'24/7',l:'support'}].map((s,i)=>(
@@ -462,7 +533,7 @@ window.__QD = { ...window.__QD, Hero };
      APP MOUNT
 ═══════════════════════════════════════════════════════════ -->
 <script type="text/babel">
-const { Nav, Footer, Hero, Problem, Services, BeforeAfter, Process, Work, LiveWebsites, CTA } = window.__QD;
+const { Nav, Footer, Hero, Problem, Services, BeforeAfter, Process, Work, WorkMarqueeOnly, LiveWebsites, CTA } = window.__QD;
 
 const App = () => (
   <>
@@ -470,10 +541,11 @@ const App = () => (
     <Hero />
     <Problem />
     <Services />
-    <BeforeAfter />
-    <Process />
-    <Work />
     <LiveWebsites />
+    <Process />
+    <WorkMarqueeOnly />
+    {/* WORK SECTION TEMPORARILY DISABLED */}
+    {/* <Work /> */}
     <CTA />
     <Footer />
   </>

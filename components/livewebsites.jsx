@@ -8,11 +8,11 @@ const liveWebsiteProjects = [
     name: 'Al Taj Al Malaki',
     tag: 'EVENT RENTALS',
     url: 'https://www.tajalmalaki.ae/',
-    domain: 'www.tajalmalaki.ae',
+    domain: 'tajalmalaki.ae',
     description: 'Luxury event rental platform with live order tracking, premium inventory browsing, and streamlined booking flows built for UAE events.',
     metrics: ['Real-time tracking', 'Mobile optimized', 'Firebase backend'],
     stack: ['Firebase', 'Tracking', 'Realtime', 'Inventory', 'Booking'],
-    cta: 'VISIT SITE →',
+    cta: 'VISIT SITE \u2192',
   },
   {
     id: '02',
@@ -24,17 +24,19 @@ const liveWebsiteProjects = [
     description: 'Luxury wedding and event presentation website focused on cinematic visuals, immersive storytelling, and premium lead generation.',
     metrics: ['Cinematic experience', 'High-end UI system', 'Conversion focused'],
     stack: ['Luxury UI', 'Motion', 'Responsive', 'Branding', 'Lead Gen'],
-    cta: 'VISIT SITE →',
+    cta: 'VISIT SITE \u2192',
   },
 ];
 
 const useViewportFlag = (breakpoint = 980) => {
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= breakpoint);
+
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth <= breakpoint);
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, [breakpoint]);
+
   return isMobile;
 };
 
@@ -87,7 +89,7 @@ const BrowserFallback = ({ project, visible, overlay }) => (
           cursor: 'pointer',
         }}
       >
-        Open live site →
+        {'Open live site \u2192'}
       </button>
     </div>
   </div>
@@ -252,7 +254,7 @@ const LiveWebsiteCard = ({ project, index, isMobile }) => {
               {project.cta}
             </button>
             <a
-              href="#work"
+              href="contact.html"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -270,7 +272,7 @@ const LiveWebsiteCard = ({ project, index, isMobile }) => {
                 textTransform: 'uppercase',
               }}
             >
-              CASE STUDY ↗
+              {'START A BUILD \u2192'}
             </a>
           </div>
         </div>
@@ -359,7 +361,7 @@ const LiveWebsites = () => {
       <div style={{ maxWidth: 1320, margin: '0 auto', position: 'relative' }}>
         <Reveal lift={32}>
           <div style={{ maxWidth: 920, marginBottom: 72 }}>
-            <Eyebrow color="var(--acid)">// 06 · LIVE SYSTEMS</Eyebrow>
+            <Eyebrow color="var(--acid)">{'// 04 \u00b7 LIVE SYSTEMS'}</Eyebrow>
             <h2 style={{ margin: '16px 0 18px', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'clamp(56px,8vw,118px)', lineHeight: 0.92, letterSpacing: '-0.05em', color: 'var(--bone)' }}>
               Running in the real world.<br />
               <em style={{ fontFamily: 'var(--font-serif)', fontWeight: 400, color: 'var(--acid)' }}>Not mockups.</em>
