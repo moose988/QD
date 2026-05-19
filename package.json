@@ -1,0 +1,26 @@
+{
+  "name": "qd-web",
+  "version": "1.0.0",
+  "description": "QD Systems website + AI chatbot",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build:kb": "node scripts/build-kb.mjs",
+    "scrape:site": "node scripts/scrape-site.mjs",
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "@xenova/transformers": "^2.17.2",
+    "dotenv": "^16.4.5",
+    "firebase-admin": "^12.7.0",
+    "groq-sdk": "^0.7.0"
+  },
+  "devDependencies": {
+    "cheerio": "^1.0.0",
+    "playwright": "^1.49.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

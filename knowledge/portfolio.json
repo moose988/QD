@@ -1,0 +1,38 @@
+{
+  "projects": [
+    {
+      "id": "taj-al-malaki",
+      "name": "Al Taj Al Malaki",
+      "category": "Event Rentals",
+      "category_ar": "تأجير فعاليات",
+      "url": "https://www.tajalmalaki.ae/",
+      "domain": "tajalmalaki.ae",
+      "market": "UAE",
+      "description_en": "Luxury event rental platform with live order tracking, premium inventory browsing, and streamlined booking flows built for UAE events. Customers can browse premium inventory, place rental orders, and track them in real time.",
+      "description_ar": "منصة فاخرة لتأجير الفعاليات مع تتبع مباشر للطلبات وتصفح راقٍ للمخزون ومسارات حجز مبسطة مهيأة لسوق الإمارات. يستطيع العملاء تصفح المخزون الفاخر، وضع طلبات الإيجار، ومتابعتها مباشرة.",
+      "what_we_built_en": "Custom Firebase backend for real-time order tracking, mobile-optimized booking UI, premium inventory catalogue, customer-facing dashboard.",
+      "what_we_built_ar": "خلفية Firebase مخصصة لتتبع الطلبات المباشر، واجهة حجز محسّنة للجوال، كتالوج مخزون فاخر، لوحة عملاء.",
+      "stack": ["Firebase", "Realtime tracking", "Mobile-first responsive", "Inventory system", "Booking flows"],
+      "highlights": ["Real-time order tracking", "Mobile optimized", "Firebase backend"],
+      "status": "Live"
+    },
+    {
+      "id": "evo-creation",
+      "name": "Evo Creation",
+      "category": "Luxury Events",
+      "category_ar": "فعاليات فاخرة",
+      "url": "https://evocreation.ae/",
+      "domain": "evocreation.ae",
+      "market": "UAE",
+      "description_en": "Luxury wedding and event presentation website focused on cinematic visuals, immersive storytelling, and premium lead generation. Designed to make high-budget clients feel the brand before they ever speak to the team.",
+      "description_ar": "موقع عرض فاخر للأعراس والفعاليات يركز على الصور السينمائية والسرد البصري وتوليد عملاء راقٍ. مصمم ليجعل العملاء أصحاب الميزانيات العالية يحسّون بالعلامة قبل أن يتحدثوا مع الفريق.",
+      "what_we_built_en": "Cinematic luxury UI system, motion-rich brand presentation, conversion-focused lead generation, fully responsive premium experience.",
+      "what_we_built_ar": "نظام واجهة سينمائي فاخر، عرض علامة غني بالحركة، توليد عملاء موجه للتحويل، تجربة فاخرة متجاوبة بالكامل.",
+      "stack": ["Luxury UI system", "Motion design", "Responsive", "Brand-first", "Lead generation"],
+      "highlights": ["Cinematic experience", "High-end UI system", "Conversion focused"],
+      "status": "Live"
+    }
+  ],
+  "summary_en": "We currently have 2 live client deployments serving real customers in the UAE market. Both are customer-facing systems running 24/7. More projects in production — ask us for current availability.",
+  "summary_ar": "لدينا حالياً مشروعان حيّان لعملاء يخدمان عملاء حقيقيين في السوق الإماراتي. كلاهما أنظمة تواجه العملاء وتعمل على مدار الساعة. مشاريع أخرى قيد التنفيذ — اسألنا عن التوفر الحالي."
+}

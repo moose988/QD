@@ -1226,6 +1226,7 @@ const renderAppShell = (content) => {
           <div class="qd-admin-topbar-actions">
             <a class="qd-admin-link" href="index.html" target="_blank" rel="noreferrer noopener">Home</a>
             <a class="qd-admin-link" href="contact.html" target="_blank" rel="noreferrer noopener">Contact Form</a>
+            <a class="qd-admin-link" href="chat-admin.html">Chat Leads</a>
             ${userBadge}
             ${state.user ? '<button class="qd-btn qd-btn-ghost qd-btn-sm" type="button" data-action="logout">Logout</button>' : ''}
           </div>
