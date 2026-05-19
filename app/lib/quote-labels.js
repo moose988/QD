@@ -1,0 +1,61 @@
+// Static UI labels for the public quote page and the admin drawer.
+// User-content fields (line item names, terms, etc.) come from the quote doc, NOT this dictionary.
+
+export const LABELS = {
+  en: {
+    quotation: 'QUOTATION',
+    quoteNumber: 'Quote',
+    issued: 'Issued',
+    valid: 'Valid',
+    days: 'days',
+    preparedFor: 'PREPARED FOR',
+    service: 'Service',
+    qty: 'Qty',
+    unit: 'Unit (AED)',
+    total: 'Total',
+    subtotal: 'Subtotal',
+    vat: 'VAT',
+    grandTotal: 'Total (AED)',
+    pagesIncluded: 'PAGES YOU’LL GET',
+    payment: 'Payment',
+    timeline: 'Timeline',
+    excludes: 'Excludes',
+    unlock: 'Unlock',
+    passcodePrompt: 'Enter the passcode shared with you',
+    incorrectPasscode: 'Incorrect passcode',
+    quoteNotFound: 'Quote not found. Double-check the link, or WhatsApp +971 50 534 9907.',
+    expired: 'This quote has expired. Contact us for an updated offer.',
+    print: 'Print',
+    questions: 'Questions? WhatsApp +971 50 534 9907',
+  },
+  ar: {
+    quotation: 'عرض سعر',
+    quoteNumber: 'رقم العرض',
+    issued: 'الإصدار',
+    valid: 'صالح لمدة',
+    days: 'يوم',
+    preparedFor: 'مُعدّ لـ',
+    service: 'الخدمة',
+    qty: 'الكمية',
+    unit: 'السعر (درهم)',
+    total: 'الإجمالي',
+    subtotal: 'المجموع الفرعي',
+    vat: 'ضريبة القيمة المضافة',
+    grandTotal: 'الإجمالي (درهم)',
+    pagesIncluded: 'الصفحات المشمولة',
+    payment: 'الدفع',
+    timeline: 'المدة',
+    excludes: 'لا يشمل',
+    unlock: 'فتح',
+    passcodePrompt: 'أدخل الرمز المرسل إليك',
+    incorrectPasscode: 'الرمز غير صحيح',
+    quoteNotFound: 'العرض غير موجود. تأكد من الرابط أو راسلنا على واتساب +971 50 534 9907.',
+    expired: 'انتهت صلاحية هذا العرض. تواصل معنا للحصول على عرض محدّث.',
+    print: 'طباعة',
+    questions: 'استفسار؟ واتساب +971 50 534 9907',
+  },
+};
+
+export function L(lang, key) {
+  return (LABELS[lang] && LABELS[lang][key]) || LABELS.en[key] || key;
+}
