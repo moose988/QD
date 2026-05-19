@@ -58,6 +58,75 @@
 <script type="text/babel">
 const { useState, useEffect, useRef, useCallback, Children } = React;
 
+const HOMEPAGE_COPY = {
+  en: {
+    nav: {
+      links: [
+        { label: 'Services', href: '#services' },
+        { label: 'Live Systems', href: '#live-websites' },
+        { label: 'Process', href: '#process' },
+        { label: 'Contact', href: '#contact' },
+      ],
+      brandSubtitle: 'WEB · BRAND · DIGITAL SYSTEMS',
+      build: 'Build it',
+      buildShort: 'Build'
+    },
+    footer: {
+      studio: 'Digital systems studio',
+      builtIn: 'Built in UAE'
+    },
+    hero: {
+      eyebrow: '// SYSTEM ONLINE · 2026',
+      titleLead: 'Tell us the problem.',
+      titleAccent: 'We ship',
+      titleTail: 'the',
+      titleEmphasis: 'system',
+      subtitle: 'Chatbots that close. Sites that convert. Tracking that holds. Built for owners, not committees.',
+      primaryCta: 'Build it',
+      secondaryCta: 'See the work',
+      stats: [
+        { n: '5–7d', l: 'avg. build time' },
+        { n: '99.9%', l: 'uptime' },
+        { n: '24/7', l: 'support' }
+      ],
+      scroll: 'SCROLL'
+    }
+  },
+  ar: {
+    nav: {
+      links: [
+        { label: 'الخدمات', href: '#services' },
+        { label: 'أنظمة مباشرة', href: '#live-websites' },
+        { label: 'آلية العمل', href: '#process' },
+        { label: 'تواصل', href: '#contact' },
+      ],
+      brandSubtitle: 'WEB · BRAND · DIGITAL SYSTEMS',
+      build: 'ابدأ الآن',
+      buildShort: 'ابدأ'
+    },
+    footer: {
+      studio: 'استوديو أنظمة رقمية',
+      builtIn: 'صُنع في الإمارات'
+    },
+    hero: {
+      eyebrow: '// النظام يعمل · 2026',
+      titleLead: 'قل لنا المشكلة.',
+      titleAccent: 'ونحن نبني',
+      titleTail: 'لك',
+      titleEmphasis: 'النظام',
+      subtitle: 'شات بوت ينجز. مواقع تحوّل. وأنظمة متابعة تثبت نفسها. مبنية لأصحاب الأعمال، لا للجان.',
+      primaryCta: 'ابدأ الآن',
+      secondaryCta: 'شاهد الأعمال',
+      stats: [
+        { n: '5–7d', l: 'متوسط التنفيذ' },
+        { n: '99.9%', l: 'الاستقرار' },
+        { n: '24/7', l: 'الدعم' }
+      ],
+      scroll: 'تابع'
+    }
+  }
+};
+
 const MOBILE_BREAKPOINT = 760;
 
 const useViewportFlag = (breakpoint = MOBILE_BREAKPOINT) => {
@@ -197,7 +266,7 @@ const useScrollProgress = (ref) => {
   return p;
 };
 
-window.__QD = { Reveal, Stagger, Marquee, Eyebrow, Btn, Tag, useInView, useMouseTilt, useScrollProgress, useViewportFlag, usePrefersReducedMotion };
+window.__QD = { Reveal, Stagger, Marquee, Eyebrow, Btn, Tag, useInView, useMouseTilt, useScrollProgress, useViewportFlag, usePrefersReducedMotion, HOMEPAGE_COPY };
 </script>
 
 <!-- ═══════════════════════════════════════════════════════════
@@ -344,7 +413,7 @@ const navLinks = [
 
 const Nav = () => (
   <nav className="qd-nav" style={{ position:'fixed',top:0,left:0,right:0,zIndex:100,padding:'20px 40px',display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(10,11,13,0.7)',backdropFilter:'blur(20px)',borderBottom:'1px solid var(--border-1)' }}>
-    <a href="index.html" className="qd-nav-logo" style={{ display:'flex',alignItems:'center',gap:10,textDecoration:'none',position:'relative' }}>
+    <a href="index.html" className="qd-nav-logo qd-brand-ltr" dir="ltr" style={{ display:'flex',alignItems:'center',gap:10,textDecoration:'none',position:'relative' }}>
       <span style={{ position:'relative',display:'inline-flex',height:36,width:36,borderRadius:8,overflow:'hidden',boxShadow:'0 0 0 1px var(--border-1)' }}>
         <img src="assets/qd-logo.jpeg" alt="QD Systems" className="qd-logo-img" style={{ height:'100%',width:'100%',objectFit:'cover',display:'block',filter:'contrast(1.08) brightness(1.05)' }} />
         <span className="qd-sheen" />
@@ -359,9 +428,9 @@ const Nav = () => (
         <a key={label} href={href} style={{ fontFamily:'var(--font-display)',fontSize:14,fontWeight:500,color:'var(--fg2)',textDecoration:'none',transition:'color 200ms ease' }}
           onMouseEnter={e=>e.target.style.color='var(--acid)'} onMouseLeave={e=>e.target.style.color='var(--fg2)'}>{label}</a>
       ))}
-      <Btn variant="primary" size="sm" icon="→" onClick={() => { window.location.href = 'contact.html'; }}>Build it</Btn>
+      <Btn variant="primary" size="sm" icon="→" onClick={() => { window.location.href = window.__QD.getContactHref(); }}>Build it</Btn>
     </div>
-    <Btn variant="primary" size="sm" className="qd-nav-cta qd-mobile-only" icon="→" onClick={() => { window.location.href = 'contact.html'; }}>
+    <Btn variant="primary" size="sm" className="qd-nav-cta qd-mobile-only" icon="→" onClick={() => { window.location.href = window.__QD.getContactHref(); }}>
       <>
         <span className="qd-desktop-label">Build it</span>
         <span className="qd-mobile-label">Build</span>
@@ -471,7 +540,7 @@ const Hero = () => {
     <section className="qd-hero-section" style={{ position:'relative',minHeight:'100vh',paddingTop:80,overflow:'hidden',perspective:2000,background:'var(--obsidian)' }}>
       {/* Ambient QD wordmark */}
       <div className="qd-hero-ambient" style={{ position:'fixed',inset:0,zIndex:0,pointerEvents:'none',display:'grid',placeItems:'center',transformStyle:'preserve-3d' }}>
-        <div className="qd-hero-ambient-wordmark" style={{ display:'flex',alignItems:'center',gap:'0.02em',filter:`drop-shadow(0 0 ${30+p*60}px rgba(166,240,79,${0.18+p*0.35}))` }}>
+        <div className="qd-hero-ambient-wordmark qd-brand-ltr" dir="ltr" style={{ display:'flex',alignItems:'center',gap:'0.02em',filter:`drop-shadow(0 0 ${30+p*60}px rgba(166,240,79,${0.18+p*0.35}))` }}>
           <div style={L(sideAlpha,{ transform:`translateX(-${sideOff}vw) rotateY(${ry-10}deg) rotateX(${rx}deg)` })}>Q</div>
           <div style={L(qAlpha,{ transform:`rotateY(${ry}deg) rotateX(${rx}deg) scale(${qScale})`,opacity:qFade,WebkitTextStroke:`${1.5+p*4}px rgba(166,240,79,${qAlpha})` })}>D</div>
         </div>
@@ -495,7 +564,7 @@ const Hero = () => {
           Chatbots that close. Sites that convert. Tracking that holds. Built for owners, not committees.
         </p>
         <div className="qd-hero-actions" style={{ display:'flex',gap:14,marginTop:40 }}>
-          <Btn variant="primary" size="lg" icon="→" onClick={() => { window.location.href = 'contact.html'; }}>Build it</Btn>
+          <Btn variant="primary" size="lg" icon="→" onClick={() => { window.location.href = window.__QD.getContactHref(); }}>Build it</Btn>
           <Btn variant="ghost" size="lg" icon="↗" onClick={() => { window.location.href = '#live-websites'; }}>See the work</Btn>
         </div>
         <div className="qd-hero-stats" style={{ marginTop:96,display:'grid',gridTemplateColumns:'repeat(3,1fr)',borderTop:'1px solid var(--border-1)',borderBottom:'1px solid var(--border-1)' }}>
@@ -516,6 +585,140 @@ const Hero = () => {
   );
 };
 window.__QD = { ...window.__QD, Hero };
+window.__QD.HomepageNav = ({ language, setLanguage }) => {
+  const navCopy = window.__QD.HOMEPAGE_COPY[language].nav;
+  return (
+    <nav className="qd-nav" style={{ position:'fixed',top:0,left:0,right:0,zIndex:100,padding:'20px 40px',display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(10,11,13,0.7)',backdropFilter:'blur(20px)',borderBottom:'1px solid var(--border-1)' }}>
+      <a href="index.html" className="qd-nav-logo qd-brand-ltr" dir="ltr" style={{ display:'flex',alignItems:'center',gap:10,textDecoration:'none',position:'relative' }}>
+        <span style={{ position:'relative',display:'inline-flex',height:36,width:36,borderRadius:8,overflow:'hidden',boxShadow:'0 0 0 1px var(--border-1)' }}>
+          <img src="assets/qd-logo.jpeg" alt="QD Systems" className="qd-logo-img" style={{ height:'100%',width:'100%',objectFit:'cover',display:'block',filter:'contrast(1.08) brightness(1.05)' }} />
+          <span className="qd-sheen" />
+        </span>
+        <span className="qd-nav-lockup" style={{ display:'flex',flexDirection:'column',minWidth:0 }}>
+          <span className="qd-nav-name" style={{ fontFamily:'var(--font-display)',fontSize:15,fontWeight:600,letterSpacing:'0.08em',textTransform:'uppercase',lineHeight:1,color:'var(--bone)' }}>QD SYSTEMS</span>
+          <span className="qd-nav-subtitle" style={{ fontFamily:'var(--font-mono)',fontSize:9,letterSpacing:'0.22em',textTransform:'uppercase',lineHeight:1.2,color:'rgba(244,241,234,0.58)',marginTop:5,whiteSpace:'nowrap' }}>{navCopy.brandSubtitle}</span>
+        </span>
+      </a>
+      <div className="qd-nav-links qd-mobile-hide" style={{ display:'flex',alignItems:'center',gap:28 }}>
+        {navCopy.links.map(({ label, href }) => (
+          <a key={label} href={href} style={{ fontFamily:'var(--font-display)',fontSize:14,fontWeight:500,color:'var(--fg2)',textDecoration:'none',transition:'color 200ms ease' }} onMouseEnter={e=>e.target.style.color='var(--acid)'} onMouseLeave={e=>e.target.style.color='var(--fg2)'}>{label}</a>
+        ))}
+        <div className="qd-lang-toggle" role="group" aria-label={language === 'ar' ? 'تبديل اللغة' : 'Language switcher'}>
+          {['en', 'ar'].map((code) => (
+            <button key={code} type="button" className={`qd-lang-toggle-btn ${language === code ? 'is-active' : ''}`} onClick={() => setLanguage(code)}>{code.toUpperCase()}</button>
+          ))}
+        </div>
+        <Btn variant="primary" size="sm" icon="→" onClick={() => { window.location.href = window.__QD.getContactHref(); }}>{navCopy.build}</Btn>
+      </div>
+      <div className="qd-nav-mobile-actions qd-mobile-only">
+        <div className="qd-lang-toggle" role="group" aria-label={language === 'ar' ? 'تبديل اللغة' : 'Language switcher'}>
+          {['en', 'ar'].map((code) => (
+            <button key={code} type="button" className={`qd-lang-toggle-btn ${language === code ? 'is-active' : ''}`} onClick={() => setLanguage(code)}>{code.toUpperCase()}</button>
+          ))}
+        </div>
+        <Btn variant="primary" size="sm" className="qd-nav-cta" icon="→" onClick={() => { window.location.href = window.__QD.getContactHref(); }}>
+          <span>{navCopy.buildShort}</span>
+        </Btn>
+      </div>
+    </nav>
+  );
+};
+window.__QD.HomepageHero = ({ language }) => {
+  const copy = window.__QD.HOMEPAGE_COPY[language].hero;
+  const [scroll, setScroll] = useState(0);
+  const [t, setT] = useState(0);
+  const isMobile = window.__QD.useViewportFlag(768);
+  const prefersReducedMotion = window.__QD.usePrefersReducedMotion();
+  useEffect(() => {
+    const h = () => setScroll(Math.min(1, window.scrollY/(window.innerHeight*0.8)));
+    window.addEventListener('scroll', h, { passive:true }); h();
+    return () => window.removeEventListener('scroll', h);
+  }, []);
+  useEffect(() => {
+    if (isMobile || prefersReducedMotion) return;
+    let raf; const start = performance.now();
+    const loop = now => { setT((now-start)/1000); raf=requestAnimationFrame(loop); };
+    raf = requestAnimationFrame(loop); return () => cancelAnimationFrame(raf);
+  }, [isMobile, prefersReducedMotion]);
+  const p = easeInOut(Math.max(0,Math.min(1,scroll/0.4)));
+  const iry = Math.sin(t*0.4)*6, irx = Math.cos(t*0.3)*2;
+  const ry = iry+p*6, rx = irx-p*4;
+  const sideAlpha = 0.28*(1-easeIn(p));
+  const sideOff = easeIn(p)*80;
+  const qScale = 1+easeIn(p)*24;
+  const qAlpha = 0.32+p*0.55;
+  const qFade = p<0.7?1:Math.max(0,1-Math.pow((p-0.7)/0.3,1.4));
+  const washA = p<0.6?0:Math.min(1,(p-0.6)/0.25);
+  const washF = p<0.9?1:Math.max(0,1-(p-0.9)*10);
+  const cOp = 1-easeIn(Math.min(1,scroll*1.6));
+  const cLift = -easeOut(Math.min(1,scroll*2))*80;
+  const L = (alpha, extra={}) => ({
+    fontFamily:'var(--font-display)',fontWeight:700,fontSize:'clamp(220px,30vw,460px)',letterSpacing:'-0.06em',lineHeight:0.85,color:'transparent',
+    WebkitTextStroke:`1.5px rgba(166,240,79,${alpha})`,transition:'transform 600ms cubic-bezier(0.22,1,0.36,1)',willChange:'transform,opacity',userSelect:'none',...extra,
+  });
+  return (
+    <section className="qd-hero-section" style={{ position:'relative',minHeight:'100vh',paddingTop:80,overflow:'hidden',perspective:2000,background:'var(--obsidian)' }}>
+      <div className="qd-hero-ambient" style={{ position:'fixed',inset:0,zIndex:0,pointerEvents:'none',display:'grid',placeItems:'center',transformStyle:'preserve-3d' }}>
+        <div className="qd-hero-ambient-wordmark qd-brand-ltr" dir="ltr" style={{ display:'flex',alignItems:'center',gap:'0.02em',filter:`drop-shadow(0 0 ${30+p*60}px rgba(166,240,79,${0.18+p*0.35}))` }}>
+          <div style={L(sideAlpha,{ transform:`translateX(-${sideOff}vw) rotateY(${ry-10}deg) rotateX(${rx}deg)` })}>Q</div>
+          <div style={L(qAlpha,{ transform:`rotateY(${ry}deg) rotateX(${rx}deg) scale(${qScale})`,opacity:qFade,WebkitTextStroke:`${1.5+p*4}px rgba(166,240,79,${qAlpha})` })}>D</div>
+        </div>
+      </div>
+      <div style={{ position:'fixed',inset:0,zIndex:1,pointerEvents:'none',background:`radial-gradient(circle at center,rgba(166,240,79,${0.7*washA*washF}) 0%,rgba(166,240,79,${0.4*washA*washF}) 30%,rgba(11,11,12,${washA*washF*0.95}) 70%,rgba(11,11,12,0) 100%)`,opacity:washA*washF,mixBlendMode:'screen' }} />
+      <div style={{ position:'fixed',inset:0,zIndex:1,pointerEvents:'none',background:'var(--obsidian)',opacity:p<0.85?0:Math.min(1,(p-0.85)/0.1)*(1-Math.max(0,(p-0.95)*10)) }} />
+      <div className="qd-hero-wrap" style={{ position:'relative',zIndex:2,maxWidth:1280,margin:'0 auto',padding:'120px 40px 60px',opacity:cOp,transform:`translateY(${cLift}px)`,transition:'opacity 400ms ease-out' }}>
+        <div style={{ display:'flex',alignItems:'center',gap:12,marginBottom:24 }}>
+          <span style={{ width:8,height:8,background:'var(--acid)',borderRadius:2,boxShadow:'0 0 12px var(--acid)',animation:'qd-pulse 1.6s ease-in-out infinite',display:'inline-block' }} />
+          <Eyebrow color="var(--acid)">{copy.eyebrow}</Eyebrow>
+        </div>
+        <h1 className="qd-hero-title" style={{ fontFamily:'var(--font-display)',fontSize:'clamp(48px,8vw,112px)',fontWeight:600,letterSpacing:'-0.04em',lineHeight:0.95,margin:0,maxWidth:1100,color:'var(--bone)' }}>
+          {copy.titleLead}<br/><span style={{ color:'var(--acid)' }}>{copy.titleAccent}</span> {copy.titleTail} <em style={{ fontFamily:'var(--font-serif)',fontWeight:400 }}>{copy.titleEmphasis}</em>.
+        </h1>
+        <p className="qd-hero-subtitle" style={{ fontFamily:'var(--font-body)',fontSize:22,color:'var(--fg2)',maxWidth:580,marginTop:32,lineHeight:1.4 }}>{copy.subtitle}</p>
+        <div className="qd-hero-actions" style={{ display:'flex',gap:14,marginTop:40 }}>
+          <Btn variant="primary" size="lg" icon="→" onClick={() => { window.location.href = window.__QD.getContactHref(); }}>{copy.primaryCta}</Btn>
+          <Btn variant="ghost" size="lg" icon="↗" onClick={() => { window.location.href = '#live-websites'; }}>{copy.secondaryCta}</Btn>
+        </div>
+        <div className="qd-hero-stats" style={{ marginTop:96,display:'grid',gridTemplateColumns:'repeat(3,1fr)',borderTop:'1px solid var(--border-1)',borderBottom:'1px solid var(--border-1)' }}>
+          {copy.stats.map((s,i)=>(<div key={i} style={{ padding:'24px 20px',borderLeft:i===0?'none':'1px solid var(--border-1)' }}><div style={{ fontFamily:'var(--font-display)',fontWeight:600,fontSize:36,letterSpacing:'-0.02em',color:'var(--bone)' }}>{s.n}</div><div className="qd-eyebrow" style={{ marginTop:6 }}>{s.l}</div></div>))}
+        </div>
+      </div>
+      <div className="qd-hero-scroll-hint" style={{ position:'fixed',bottom:32,left:'50%',transform:'translateX(-50%)',zIndex:3,fontFamily:'var(--font-mono)',fontSize:11,letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--fg3)',opacity:Math.max(0,1-scroll*5),display:'flex',alignItems:'center',gap:10,pointerEvents:'none' }}>
+        <span style={{ width:24,height:1,background:'var(--fg3)',display:'inline-block' }} />{copy.scroll}<span style={{ width:24,height:1,background:'var(--fg3)',display:'inline-block' }} />
+      </div>
+    </section>
+  );
+};
+window.__QD.HomepageFooter = ({ language }) => {
+  const navCopy = window.__QD.HOMEPAGE_COPY[language].nav;
+  const footerCopy = window.__QD.HOMEPAGE_COPY[language].footer;
+  const socials = [{ label:'Instagram', url:'https://instagram.com/qdsystems' }, { label:'TikTok', url:'https://tiktok.com/@qdsystems' }];
+  return (
+    <footer className="qd-footer">
+      <div className="qd-footer-inner">
+        <div className="qd-footer-top">
+          <a href="index.html" className="qd-footer-brand qd-brand-ltr" dir="ltr">
+            <span className="qd-footer-mark"><img src="assets/qd-logo.jpeg" alt="QD Systems" className="qd-footer-mark-img" /><span className="qd-footer-logo-sheen" /></span>
+            <span className="qd-footer-brand-copy"><span className="qd-footer-brand-name">QD SYSTEMS</span><span className="qd-footer-brand-sub">{footerCopy.studio}</span></span>
+          </a>
+          <div className="qd-footer-links-wrap">
+            <nav className="qd-footer-links" aria-label="Footer navigation">
+              {navCopy.links.map(({ label, href }) => <a key={label} href={href} className="qd-footer-link">{label}</a>)}
+            </nav>
+            <div className="qd-footer-links qd-footer-socials" aria-label="Social links">
+              {socials.map(({ label, url }) => <a key={label} href={url} target="_blank" rel="noreferrer" className="qd-footer-link">{label}</a>)}
+            </div>
+          </div>
+        </div>
+        <div className="qd-footer-bottom">
+          <div className="qd-footer-meta" dir="ltr">{'\u00A9 2026 QD Systems'}</div>
+          <div className="qd-footer-meta">{footerCopy.builtIn}</div>
+          <div className="qd-footer-meta">V2.0</div>
+        </div>
+      </div>
+    </footer>
+  );
+};
 </script>
 
 <!-- ═══════════════════════════════════════════════════════════
@@ -533,23 +736,49 @@ window.__QD = { ...window.__QD, Hero };
      APP MOUNT
 ═══════════════════════════════════════════════════════════ -->
 <script type="text/babel">
-const { Nav, Footer, Hero, Problem, Services, BeforeAfter, Process, Work, WorkMarqueeOnly, LiveWebsites, CTA } = window.__QD;
+const { HomepageNav, HomepageFooter, HomepageHero, Problem, Services, BeforeAfter, Process, Work, WorkMarqueeOnly, LiveWebsites, CTA } = window.__QD;
 
-const App = () => (
-  <>
-    <Nav />
-    <Hero />
-    <Problem />
-    <Services />
-    <LiveWebsites />
-    <Process />
-    <WorkMarqueeOnly />
-    {/* WORK SECTION TEMPORARILY DISABLED */}
-    {/* <Work /> */}
-    <CTA />
-    <Footer />
-  </>
-);
+window.__QD.LANGUAGE_STORAGE_KEY = 'qdLang';
+window.__QD.getSavedLanguage = () => {
+  const savedLanguage = localStorage.getItem(window.__QD.LANGUAGE_STORAGE_KEY);
+  return savedLanguage === 'ar' || savedLanguage === 'en' ? savedLanguage : 'en';
+};
+window.__QD.applyLanguageDocumentState = (language) => {
+  const normalizedLanguage = language === 'ar' ? 'ar' : 'en';
+  const direction = normalizedLanguage === 'ar' ? 'rtl' : 'ltr';
+  document.documentElement.lang = normalizedLanguage;
+  document.documentElement.dir = direction;
+  document.body.classList.toggle('qd-lang-ar', normalizedLanguage === 'ar');
+  document.body.classList.toggle('qd-lang-en', normalizedLanguage !== 'ar');
+};
+window.__QD.getContactHref = () => `contact.html?lang=${window.__QD.getSavedLanguage()}`;
+
+window.__QD.applyLanguageDocumentState(window.__QD.getSavedLanguage());
+
+const App = () => {
+  const [language, setLanguage] = useState(() => window.__QD.getSavedLanguage());
+
+  useEffect(() => {
+    localStorage.setItem(window.__QD.LANGUAGE_STORAGE_KEY, language);
+    window.__QD.applyLanguageDocumentState(language);
+  }, [language]);
+
+  return (
+    <>
+      <HomepageNav language={language} setLanguage={setLanguage} />
+      <HomepageHero language={language} />
+      <Problem language={language} />
+      <Services language={language} />
+      <LiveWebsites language={language} />
+      <Process language={language} />
+      <WorkMarqueeOnly language={language} />
+      {/* WORK SECTION TEMPORARILY DISABLED */}
+      {/* <Work language={language} /> */}
+      <CTA language={language} />
+      <HomepageFooter language={language} />
+    </>
+  );
+};
 
 ReactDOM.createRoot(document.getElementById('qd-root')).render(<App />);
 </script>

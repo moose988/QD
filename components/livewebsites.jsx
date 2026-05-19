@@ -1,32 +1,92 @@
 const { useState, useEffect, useRef } = React;
 const { Reveal, Eyebrow, Tag, Marquee } = window.__QD;
 
-const liveWebsiteProjects = [
-  {
-    id: '01',
-    client: 'Al Taj Al Malaki',
-    name: 'Al Taj Al Malaki',
-    tag: 'EVENT RENTALS',
-    url: 'https://www.tajalmalaki.ae/',
-    domain: 'tajalmalaki.ae',
-    description: 'Luxury event rental platform with live order tracking, premium inventory browsing, and streamlined booking flows built for UAE events.',
-    metrics: ['Real-time tracking', 'Mobile optimized', 'Firebase backend'],
-    stack: ['Firebase', 'Tracking', 'Realtime', 'Inventory', 'Booking'],
-    cta: 'VISIT SITE \u2192',
+const liveCopy = {
+  en: {
+    live: 'LIVE',
+    fallbackTitle: 'Live preview unavailable.',
+    fallbackBody: 'Open the site in a new tab.',
+    fallbackCta: 'Open live site ->',
+    visitCta: 'VISIT SITE ->',
+    buildCta: 'START A BUILD ->',
+    marquee: ['LIVE SYSTEMS', '/', 'REAL DEPLOYMENTS', '/', 'TRAFFIC', '/', 'CUSTOMERS', '/', 'LIVE SYSTEMS', '/'],
+    eyebrow: '// 04 · LIVE SYSTEMS',
+    titleA: 'Running in the real world.',
+    titleB: 'Not mockups.',
+    intro: 'Real businesses. Real traffic. Real customers using systems we designed and shipped.',
+    stats: [
+      { n: '2', l: 'live client deployments' },
+      { n: '24/7', l: 'customer-facing systems' },
+      { n: 'UAE', l: 'brands running live now' }
+    ],
+    projects: [
+      {
+        id: '01',
+        client: 'Al Taj Al Malaki',
+        name: 'Al Taj Al Malaki',
+        tag: 'EVENT RENTALS',
+        url: 'https://www.tajalmalaki.ae/',
+        domain: 'tajalmalaki.ae',
+        description: 'Luxury event rental platform with live order tracking, premium inventory browsing, and streamlined booking flows built for UAE events.',
+        metrics: ['Real-time tracking', 'Mobile optimized', 'Firebase backend'],
+        stack: ['Firebase', 'Tracking', 'Realtime', 'Inventory', 'Booking']
+      },
+      {
+        id: '02',
+        client: 'Evo Creation',
+        name: 'Evo Creation',
+        tag: 'LUXURY EVENTS',
+        url: 'https://evocreation.ae/',
+        domain: 'evocreation.ae',
+        description: 'Luxury wedding and event presentation website focused on cinematic visuals, immersive storytelling, and premium lead generation.',
+        metrics: ['Cinematic experience', 'High-end UI system', 'Conversion focused'],
+        stack: ['Luxury UI', 'Motion', 'Responsive', 'Branding', 'Lead Gen']
+      },
+    ]
   },
-  {
-    id: '02',
-    client: 'Evo Creation',
-    name: 'Evo Creation',
-    tag: 'LUXURY EVENTS',
-    url: 'https://evocreation.ae/',
-    domain: 'evocreation.ae',
-    description: 'Luxury wedding and event presentation website focused on cinematic visuals, immersive storytelling, and premium lead generation.',
-    metrics: ['Cinematic experience', 'High-end UI system', 'Conversion focused'],
-    stack: ['Luxury UI', 'Motion', 'Responsive', 'Branding', 'Lead Gen'],
-    cta: 'VISIT SITE \u2192',
-  },
-];
+  ar: {
+    live: 'مباشر',
+    fallbackTitle: 'المعاينة المباشرة غير متاحة.',
+    fallbackBody: 'افتح الموقع في تبويب جديد.',
+    fallbackCta: 'افتح الموقع ->',
+    visitCta: 'زيارة الموقع ->',
+    buildCta: 'ابدأ مشروعك ->',
+    marquee: ['أنظمة مباشرة', '/', 'مشاريع منشورة', '/', 'زيارات', '/', 'عملاء', '/', 'أنظمة مباشرة', '/'],
+    eyebrow: '// 04 · أنظمة مباشرة',
+    titleA: 'تعمل في العالم الحقيقي.',
+    titleB: 'وليست مجرد عرض.',
+    intro: 'أنشطة حقيقية. زيارات حقيقية. وعملاء حقيقيون يستخدمون أنظمة صممناها ونفذناها.',
+    stats: [
+      { n: '2', l: 'مشاريع مباشرة للعملاء' },
+      { n: '24/7', l: 'أنظمة تواجه العملاء' },
+      { n: 'UAE', l: 'علامات تعمل الآن' }
+    ],
+    projects: [
+      {
+        id: '01',
+        client: 'Al Taj Al Malaki',
+        name: 'Al Taj Al Malaki',
+        tag: 'تأجير فعاليات',
+        url: 'https://www.tajalmalaki.ae/',
+        domain: 'tajalmalaki.ae',
+        description: 'منصة فاخرة لتأجير الفعاليات مع تتبع مباشر للطلبات وتصفح راقٍ للمخزون ومسارات حجز مبسطة مهيأة لسوق الإمارات.',
+        metrics: ['تتبع مباشر', 'مهيأ للجوال', 'خلفية Firebase'],
+        stack: ['Firebase', 'تتبع', 'مباشر', 'مخزون', 'حجوزات']
+      },
+      {
+        id: '02',
+        client: 'Evo Creation',
+        name: 'Evo Creation',
+        tag: 'فعاليات فاخرة',
+        url: 'https://evocreation.ae/',
+        domain: 'evocreation.ae',
+        description: 'موقع عرض فاخر للأعراس والفعاليات يركز على الصور السينمائية والسرد البصري وتجربة توليد عملاء راقية.',
+        metrics: ['تجربة سينمائية', 'نظام واجهة فاخر', 'موجه للتحويل'],
+        stack: ['واجهة فاخرة', 'حركة', 'متجاوب', 'هوية', 'عملاء محتملون']
+      },
+    ]
+  }
+};
 
 const useViewportFlag = (breakpoint = 980) => {
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= breakpoint);
@@ -40,14 +100,14 @@ const useViewportFlag = (breakpoint = 980) => {
   return isMobile;
 };
 
-const LiveIndicator = () => (
+const LiveIndicator = ({ text }) => (
   <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 999, border: '1px solid rgba(166,240,79,0.26)', background: 'rgba(166,240,79,0.08)', backdropFilter: 'blur(14px)' }}>
     <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--acid)', boxShadow: '0 0 18px rgba(166,240,79,0.9)', animation: 'qd-pulse 1.4s ease-in-out infinite' }} />
-    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.18em', color: 'var(--acid)' }}>LIVE</span>
+    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.18em', color: 'var(--acid)' }}>{text}</span>
   </div>
 );
 
-const BrowserFallback = ({ project, visible, overlay }) => (
+const BrowserFallback = ({ project, visible, overlay, copy }) => (
   <div
     style={{
       position: 'absolute',
@@ -65,10 +125,10 @@ const BrowserFallback = ({ project, visible, overlay }) => (
   >
     <div style={{ maxWidth: 360 }}>
       <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 26, lineHeight: 1, letterSpacing: '-0.03em', color: 'var(--bone)' }}>
-        Live preview unavailable.
+        {copy.fallbackTitle}
       </div>
       <p style={{ marginTop: 12, fontFamily: 'var(--font-body)', fontSize: 15, lineHeight: 1.6, color: 'var(--fg2)' }}>
-        Open the site in a new tab.
+        {copy.fallbackBody}
       </p>
       <button
         type="button"
@@ -89,13 +149,13 @@ const BrowserFallback = ({ project, visible, overlay }) => (
           cursor: 'pointer',
         }}
       >
-        {'Open live site \u2192'}
+        {copy.fallbackCta}
       </button>
     </div>
   </div>
 );
 
-const BrowserShell = ({ project, tiltX, tiltY, isCompact }) => {
+const BrowserShell = ({ project, tiltX, tiltY, isCompact, copy }) => {
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
   const timeoutRef = useRef(null);
@@ -126,15 +186,15 @@ const BrowserShell = ({ project, tiltX, tiltY, isCompact }) => {
             ))}
           </div>
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, padding: '8px 12px', borderRadius: 999, background: 'rgba(244,241,234,0.04)', border: '1px solid rgba(244,241,234,0.06)' }}>
-            <LiveIndicator />
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.08em', color: 'var(--fg2)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <LiveIndicator text={copy.live} />
+            <span dir="ltr" style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.08em', color: 'var(--fg2)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {project.domain}
             </span>
           </div>
         </div>
 
         <div className="qd-live-browser" style={{ position: 'relative', zIndex: 2, height: isCompact ? 520 : 620, minHeight: isCompact ? 520 : 620, maxHeight: isCompact ? 520 : 620, background: 'var(--obsidian)', overflow: 'hidden', overflowAnchor: 'none' }}>
-          <BrowserFallback project={project} visible={!loaded && !failed} overlay={false} />
+          <BrowserFallback project={project} visible={!loaded && !failed} overlay={false} copy={copy} />
           <iframe
             src={project.url}
             title={project.client}
@@ -157,14 +217,14 @@ const BrowserShell = ({ project, tiltX, tiltY, isCompact }) => {
               transition: 'opacity 320ms ease',
             }}
           />
-          <BrowserFallback project={project} visible={failed} overlay />
+          <BrowserFallback project={project} visible={failed} overlay copy={copy} />
         </div>
       </div>
     </div>
   );
 };
 
-const LiveWebsiteCard = ({ project, index, isMobile }) => {
+const LiveWebsiteCard = ({ project, index, isMobile, copy }) => {
   const ref = useRef(null);
   const tiltX = 0;
   const tiltY = 0;
@@ -193,7 +253,7 @@ const LiveWebsiteCard = ({ project, index, isMobile }) => {
         <div className="qd-liveweb-reflection" />
 
         <div style={{ position: 'relative', zIndex: 2, order: 0 }}>
-          <BrowserShell project={project} tiltX={tiltX} tiltY={tiltY} isCompact={isMobile} />
+          <BrowserShell project={project} tiltX={tiltX} tiltY={tiltY} isCompact={isMobile} copy={copy} />
         </div>
 
         <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', gap: 18 }}>
@@ -248,10 +308,10 @@ const LiveWebsiteCard = ({ project, index, isMobile }) => {
                 cursor: 'pointer',
               }}
             >
-              {project.cta}
+              {copy.visitCta}
             </button>
             <a
-              href="contact.html"
+              href={window.__QD.getContactHref()}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -269,7 +329,7 @@ const LiveWebsiteCard = ({ project, index, isMobile }) => {
                 textTransform: 'uppercase',
               }}
             >
-              {'START A BUILD \u2192'}
+              {copy.buildCta}
             </a>
           </div>
         </div>
@@ -278,9 +338,10 @@ const LiveWebsiteCard = ({ project, index, isMobile }) => {
   );
 };
 
-const LiveWebsites = () => {
+const LiveWebsites = ({ language = 'en' }) => {
   const sectionRef = useRef(null);
   const isMobile = useViewportFlag();
+  const copy = liveCopy[language] || liveCopy.en;
 
   return (
     <section
@@ -346,7 +407,7 @@ const LiveWebsites = () => {
 
       <div style={{ position: 'absolute', top: 130, left: 0, right: 0, opacity: 0.08, pointerEvents: 'none' }}>
         <Marquee speed={36}>
-          {['LIVE SYSTEMS', '/', 'REAL DEPLOYMENTS', '/', 'TRAFFIC', '/', 'CUSTOMERS', '/', 'LIVE SYSTEMS', '/'].map((item, index) => (
+          {copy.marquee.map((item, index) => (
             <span key={index} style={{ padding: '0 28px', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'clamp(68px,9vw,140px)', letterSpacing: '-0.05em', color: item === '/' ? 'var(--acid)' : 'transparent', WebkitTextStroke: item === '/' ? '0' : '1px rgba(244,241,234,0.18)' }}>
               {item}
             </span>
@@ -357,37 +418,31 @@ const LiveWebsites = () => {
       <div style={{ maxWidth: 1320, margin: '0 auto', position: 'relative' }}>
         <Reveal lift={32}>
           <div style={{ maxWidth: 920, marginBottom: 72 }}>
-            <Eyebrow color="var(--acid)">{'// 04 \u00b7 LIVE SYSTEMS'}</Eyebrow>
+            <Eyebrow color="var(--acid)">{copy.eyebrow}</Eyebrow>
             <h2 style={{ margin: '16px 0 18px', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'clamp(56px,8vw,118px)', lineHeight: 0.92, letterSpacing: '-0.05em', color: 'var(--bone)' }}>
-              Running in the real world.<br />
-              <em style={{ fontFamily: 'var(--font-serif)', fontWeight: 400, color: 'var(--acid)' }}>Not mockups.</em>
+              {copy.titleA}<br />
+              <em style={{ fontFamily: 'var(--font-serif)', fontWeight: 400, color: 'var(--acid)' }}>{copy.titleB}</em>
             </h2>
             <p style={{ maxWidth: 720, fontFamily: 'var(--font-body)', fontSize: 19, lineHeight: 1.6, color: 'var(--fg2)' }}>
-              Real businesses. Real traffic. Real customers using systems we designed and shipped.
+              {copy.intro}
             </p>
           </div>
         </Reveal>
 
         <Reveal delay={120} lift={28}>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,minmax(0,1fr))', gap: 16, marginBottom: 32 }}>
-            <div style={{ padding: '20px 18px', borderRadius: 18, border: '1px solid rgba(244,241,234,0.08)', background: 'rgba(255,255,255,0.02)' }}>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 42, lineHeight: 1, color: 'var(--acid)' }}>2</div>
-              <div className="qd-eyebrow" style={{ marginTop: 8 }}>live client deployments</div>
-            </div>
-            <div style={{ padding: '20px 18px', borderRadius: 18, border: '1px solid rgba(244,241,234,0.08)', background: 'rgba(255,255,255,0.02)' }}>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 42, lineHeight: 1, color: 'var(--acid)' }}>24/7</div>
-              <div className="qd-eyebrow" style={{ marginTop: 8 }}>customer-facing systems</div>
-            </div>
-            <div style={{ padding: '20px 18px', borderRadius: 18, border: '1px solid rgba(244,241,234,0.08)', background: 'rgba(255,255,255,0.02)' }}>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 42, lineHeight: 1, color: 'var(--acid)' }}>UAE</div>
-              <div className="qd-eyebrow" style={{ marginTop: 8 }}>brands running live now</div>
-            </div>
+            {copy.stats.map((stat) => (
+              <div key={stat.l} style={{ padding: '20px 18px', borderRadius: 18, border: '1px solid rgba(244,241,234,0.08)', background: 'rgba(255,255,255,0.02)' }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 42, lineHeight: 1, color: 'var(--acid)' }}>{stat.n}</div>
+                <div className="qd-eyebrow" style={{ marginTop: 8 }}>{stat.l}</div>
+              </div>
+            ))}
           </div>
         </Reveal>
 
         <div style={{ display: 'grid', gap: 28 }}>
-          {liveWebsiteProjects.map((project, index) => (
-            <LiveWebsiteCard key={project.name} project={project} index={index} isMobile={isMobile} />
+          {copy.projects.map((project, index) => (
+            <LiveWebsiteCard key={project.name} project={project} index={index} isMobile={isMobile} copy={copy} />
           ))}
         </div>
       </div>

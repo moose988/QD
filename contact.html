@@ -589,6 +589,16 @@
       animation: qd-contact-rise 260ms var(--ease-out);
     }
 
+    .qd-profile-panel.is-error {
+      border-color: rgba(229, 75, 75, 0.52);
+      box-shadow:
+        inset 0 0 0 1px rgba(229, 75, 75, 0.16),
+        0 0 28px rgba(229, 75, 75, 0.08);
+      background:
+        linear-gradient(180deg, rgba(229, 75, 75, 0.08), rgba(255, 255, 255, 0.02)),
+        rgba(10, 11, 13, 0.78);
+    }
+
     .qd-profile-launch-card {
       display: grid;
       gap: 14px;
@@ -639,14 +649,28 @@
       line-height: 1.5;
     }
 
-    .qd-budget-labels {
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-    }
-
     .qd-segmented-grid {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
+    }
+
+    .qd-profile-chip-grid {
+      gap: 10px;
+    }
+
+    .qd-profile-chip {
+      min-height: 46px;
+      padding-inline: 16px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015)),
+        rgba(12, 13, 16, 0.94);
+    }
+
+    .qd-profile-chip.is-active {
+      background:
+        linear-gradient(180deg, rgba(166, 240, 79, 0.18), rgba(166, 240, 79, 0.1)),
+        rgba(12, 13, 16, 0.98);
     }
 
     .qd-segmented-chip {
@@ -1937,10 +1961,6 @@
         grid-template-columns: 1fr;
       }
 
-      .qd-budget-labels {
-        grid-template-columns: 1fr;
-      }
-
       .qd-nav-row,
       .qd-nav-cluster {
         flex-direction: column;
@@ -1998,7 +2018,29 @@
   <script type="text/babel">
     const { useEffect, useMemo, useState } = React;
 
-    const LANGUAGE_STORAGE_KEY = 'qd-contact-language';
+    const LANGUAGE_STORAGE_KEY = 'qdLang';
+    const VALID_LANGUAGES = new Set(['en', 'ar']);
+    const getInitialLanguage = () => {
+      const params = new URLSearchParams(window.location.search);
+      const urlLang = params.get('lang');
+      const savedLang = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+      if (VALID_LANGUAGES.has(urlLang)) return urlLang;
+      if (VALID_LANGUAGES.has(savedLang)) return savedLang;
+      return 'en';
+    };
+    const applyLanguageDocumentState = (language) => {
+      const normalizedLanguage = language === 'ar' ? 'ar' : 'en';
+      const direction = normalizedLanguage === 'ar' ? 'rtl' : 'ltr';
+      document.documentElement.lang = normalizedLanguage;
+      document.documentElement.dir = direction;
+      document.body.dir = direction;
+      document.body.classList.toggle('qd-lang-ar', normalizedLanguage === 'ar');
+      document.body.classList.toggle('qd-lang-en', normalizedLanguage !== 'ar');
+    };
+
+    const initialLanguage = getInitialLanguage();
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, initialLanguage);
+    applyLanguageDocumentState(initialLanguage);
 
     const text = {
       en: {
@@ -2044,7 +2086,6 @@
         phoneInvalid: 'Please enter a valid phone number.',
         emailInvalid: 'Please enter a valid email.',
         actionRequired: 'Add at least one visitor action.',
-        budgetRequired: 'Please select a budget level.',
         addAction: 'Add',
         actionInputHint: 'Press Enter or Add to build your action list.',
         actionListTitle: 'Visitor actions',
@@ -2055,8 +2096,6 @@
         customerBudgetLevel: 'Spending profile',
         customerNotes: 'Extra customer details',
         customerProfileSummary: 'Ideal customer profile',
-        budgetLevelTitle: 'Budget level',
-        budgetSliderHint: 'Choose the investment range that best matches this project.',
         placeholders: {
           businessName: 'QD Real Estate',
           businessEmail: 'name@business.com',
@@ -2069,7 +2108,6 @@
           colorsToAvoid: 'Mention any colors you do not want us to use.',
           languagesNeeded: 'English, Arabic, French...',
           customFeatures: 'List any custom features, flows, or integrations.',
-          budgetRange: 'Choose your preferred budget level.',
           goalOther: 'Tell us another website goal.'
         },
         stepDescriptions: {
@@ -2077,7 +2115,6 @@
           goals: 'Define what the website should do and who it should reach.',
           branding: 'Share your existing visual identity, preferred colors, and content readiness.',
           features: 'List the integrations, languages, and custom functionality your build needs.',
-          budget: 'Set the investment range for this build.',
           support: 'Set expectations for post-launch care and support.',
         }
       },
@@ -2124,7 +2161,6 @@
         phoneInvalid: 'يرجى إدخال رقم هاتف صحيح.',
         emailInvalid: 'يرجى إدخال بريد إلكتروني صحيح.',
         actionRequired: 'يرجى إضافة إجراء واحد على الأقل للزوار.',
-        budgetRequired: 'يرجى اختيار مستوى الميزانية.',
         addAction: 'إضافة',
         actionInputHint: 'اضغط Enter أو إضافة لبناء قائمة الإجراءات.',
         actionListTitle: 'إجراءات الزوار',
@@ -2135,8 +2171,6 @@
         customerBudgetLevel: 'القدرة الشرائية',
         customerNotes: 'تفاصيل إضافية عن العميل',
         customerProfileSummary: 'ملف العميل المثالي',
-        budgetLevelTitle: 'مستوى الميزانية',
-        budgetSliderHint: 'اختر نطاق الاستثمار الأقرب لهذا المشروع.',
         placeholders: {
           businessName: 'QD Real Estate',
           businessEmail: 'name@business.com',
@@ -2149,7 +2183,6 @@
           colorsToAvoid: 'اذكر أي ألوان لا تريد استخدامها في التصميم.',
           languagesNeeded: 'العربية، الإنجليزية، الفرنسية...',
           customFeatures: 'اذكر أي وظائف أو تدفقات أو تكاملات مخصصة.',
-          budgetRange: 'اختر مستوى الميزانية المناسب.',
           goalOther: 'اذكر هدفاً آخر للموقع.'
         },
         stepDescriptions: {
@@ -2157,7 +2190,6 @@
           goals: 'حدد ما الذي يجب أن يحققه الموقع ومن هو الجمهور الذي يجب أن يخاطبه.',
           branding: 'شارك هويتك الحالية وألوانك المفضلة ومدى جاهزية المحتوى.',
           features: 'اذكر التكاملات، واللغات، والوظائف المخصصة التي يحتاجها المشروع.',
-          budget: 'حدد نطاق الاستثمار المناسب لهذا المشروع.',
           support: 'حدد مستوى الرعاية والدعم الذي تفضله بعد الإطلاق.',
         }
       }
@@ -2216,8 +2248,8 @@
         type: 'radio',
         label: { en: 'Do you already have a logo?', ar: 'هل لديك شعار بالفعل؟' },
         options: [
-          { value: 'yes', label: { en: 'Yes', ar: 'نعم' } },
-          { value: 'no', label: { en: 'No', ar: 'لا' }, note: { en: 'We can design one for you (see Optional Services)', ar: 'يمكننا تصميم واحد لك (راجع الخدمات الاختيارية)' } }
+          { value: 'yes', label: { en: 'Yes', ar: 'نعم' }, note: { en: 'We will use it as the base of your visual identity.', ar: 'سنستخدمه كأساس لهويتك البصرية.' } },
+          { value: 'no', label: { en: 'No', ar: 'لا' }, note: { en: 'We can design around your brand direction.', ar: 'يمكننا التصميم بما يتماشى مع اتجاه علامتك التجارية.' } }
         ]
       },
       hasBrandAssets: {
@@ -2487,11 +2519,6 @@
         },
         placeholderKey: 'customFeatures'
       },
-      budgetRange: {
-        type: 'budgetSlider',
-        label: { en: 'Budget range', ar: 'نطاق الميزانية' },
-        placeholderKey: 'budgetRange'
-      },
       supportLevel: {
         type: 'radio',
         label: { en: 'Preferred support level after launch', ar: 'مستوى الدعم المفضل بعد الإطلاق' },
@@ -2507,22 +2534,14 @@
     const steps = [
       { id: 'business', title: { en: 'Business Information', ar: 'معلومات النشاط التجاري' }, fields: ['businessName', 'businessEmail', 'businessPhone', 'industry', 'businessDescription', 'socialLinks'] },
       { id: 'goals', title: { en: 'Goals & Ideal Customer', ar: 'الأهداف والعميل المثالي' }, fields: ['mainPurpose', 'idealCustomer'] },
-      { id: 'branding', title: { en: 'Branding', ar: 'الهوية البصرية' }, fields: ['hasLogo', 'hasBrandAssets', 'preferredColors', 'colorsToAvoid', 'contentReadiness'] },
+      { id: 'branding', title: { en: 'Branding', ar: 'الهوية البصرية' }, fields: ['hasLogo', 'contentReadiness', 'hasBrandAssets', 'preferredColors', 'colorsToAvoid'] },
       { id: 'features', title: { en: 'Features & Functionality', ar: 'المميزات والوظائف' }, fields: ['requiredFeatures', 'customFeatures'] },
-      { id: 'budget', title: { en: 'Budget', ar: 'الميزانية' }, fields: ['budgetRange'] },
       { id: 'support', title: { en: 'Maintenance & Support', ar: 'صيانة الموقع والدعم' }, fields: ['supportLevel'] },
       { id: 'review', title: { en: 'Review & Submit', ar: 'المراجعة والإرسال' }, fields: [] }
     ];
 
     const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const PHONE_REGEX = /^\+?\d{7,15}$/;
-    const budgetRangeOptions = [
-      { value: 1, label: { en: 'AED 1,000 – 3,000', ar: '1,000 - 3,000 درهم' } },
-      { value: 2, label: { en: 'AED 3,000 – 6,000', ar: '3,000 - 6,000 درهم' } },
-      { value: 3, label: { en: 'AED 6,000 – 12,000', ar: '6,000 - 12,000 درهم' } },
-      { value: 4, label: { en: 'AED 12,000 – 25,000', ar: '12,000 - 25,000 درهم' } },
-      { value: 5, label: { en: 'AED 25,000+', ar: '+25,000 درهم' } }
-    ];
     const idealCustomerAgeOptions = [
       { value: 'below_18', label: { en: 'Below 18', ar: 'أقل من 18' } },
       { value: '18-24', label: { en: '18–24', ar: '18-24' } },
@@ -2552,9 +2571,7 @@
       'idealCustomerAgeGroup',
       'idealCustomerGender',
       'idealCustomerBudgetLevel',
-      'idealCustomerNotes',
-      'budgetRangeValue',
-      'budgetRangeLabel'
+      'idealCustomerNotes'
     ];
 
     const getEmptyValue = (field) => {
@@ -2588,11 +2605,6 @@
       return `${hasPlus ? '+' : ''}${digits}`;
     };
 
-    const getBudgetRangeLabel = (value, language) => {
-      const match = budgetRangeOptions.find((option) => option.value === Number(value));
-      return match ? match.label[language] : '';
-    };
-
     const getOptionLabel = (options, value, language) => {
       const match = options.find((option) => option.value === value);
       return match ? match.label[language] : '';
@@ -2609,6 +2621,15 @@
       if (budgetLevel) parts.push(`${text[language].customerBudgetLevel}: ${budgetLevel}`);
       if (notes) parts.push(`${text[language].customerNotes}: ${notes}`);
       return parts;
+    };
+
+    const getIdealCustomerMissingKeys = (formData) => {
+      if (!formData.idealCustomerProfileStarted) return [];
+      const missing = [];
+      if (!formData.idealCustomerAgeGroup) missing.push('idealCustomerAgeGroup');
+      if (!formData.idealCustomerGender) missing.push('idealCustomerGender');
+      if (!formData.idealCustomerBudgetLevel) missing.push('idealCustomerBudgetLevel');
+      return missing;
     };
 
     const hasSelectionSupport = (formData) => (
@@ -2638,10 +2659,8 @@
         return Array.isArray(formData.visitorActions) && formData.visitorActions.length > 0;
       }
       if (field.type === 'customerProfile') {
-        return getIdealCustomerSummary(formData, 'en').length > 0 || getIdealCustomerSummary(formData, 'ar').length > 0;
-      }
-      if (field.type === 'budgetSlider') {
-        return Number.isInteger(Number(formData.budgetRangeValue)) && Number(formData.budgetRangeValue) > 0;
+        if (!formData.idealCustomerProfileStarted) return !isFieldRequired(field.id, formData);
+        return getIdealCustomerMissingKeys(formData).length === 0;
       }
       if (field.id === 'businessPhone') {
         const phoneValue = sanitizePhoneValue(value);
@@ -2675,10 +2694,6 @@
         return getIdealCustomerSummary(formData, 'en').length > 0 || Boolean(formData.idealCustomerProfileStarted);
       }
 
-      if (field.type === 'budgetSlider') {
-        return Number.isInteger(Number(formData.budgetRangeValue)) && Number(formData.budgetRangeValue) > 0;
-      }
-
       if (field.type === 'checkbox') {
         if (Array.isArray(value) && value.length > 0) return true;
 
@@ -2697,7 +2712,7 @@
     };
 
     const App = () => {
-      const [language, setLanguage] = useState(() => localStorage.getItem(LANGUAGE_STORAGE_KEY) || 'en');
+      const [language, setLanguage] = useState(() => initialLanguage);
       const [currentStep, setCurrentStep] = useState(0);
       const [submitted, setSubmitted] = useState(false);
       const [isSubmitting, setIsSubmitting] = useState(false);
@@ -2724,8 +2739,6 @@
         initial.idealCustomerGender = '';
         initial.idealCustomerBudgetLevel = '';
         initial.idealCustomerNotes = '';
-        initial.budgetRangeValue = '';
-        initial.budgetRangeLabel = '';
         return initial;
       });
 
@@ -2808,9 +2821,7 @@
 
       useEffect(() => {
         localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
-        document.documentElement.lang = language === 'ar' ? 'ar' : 'en';
-        document.documentElement.dir = direction;
-        document.body.dir = direction;
+        applyLanguageDocumentState(language);
       }, [direction, language]);
 
       const activeStepFields = useMemo(() => (
@@ -2872,23 +2883,6 @@
         setShowStepValidation(false);
       };
 
-      const updateBudgetRange = (value) => {
-        const budgetRangeLabel = getBudgetRangeLabel(value, language);
-        setFormData((prev) => ({
-          ...prev,
-          budgetRange: budgetRangeLabel,
-          budgetRangeLabel,
-          budgetRangeValue: String(value)
-        }));
-        setErrors((prev) => {
-          if (!prev.budgetRange) return prev;
-          const nextErrors = { ...prev };
-          delete nextErrors.budgetRange;
-          return nextErrors;
-        });
-        setShowStepValidation(false);
-      };
-
       const scrollToInvalidField = (fieldId) => {
         const el = document.querySelector(`[data-field-id="${fieldId}"]`) || document.getElementById(fieldId);
         if (!el) return;
@@ -2931,8 +2925,9 @@
             return;
           }
 
-          if (field.type === 'budgetSlider') {
-            if (required && !formData.budgetRangeValue) registerError(field.id, locale.budgetRequired);
+          if (field.type === 'customerProfile') {
+            const missingKeys = getIdealCustomerMissingKeys(formData);
+            missingKeys.forEach((missingFieldId) => registerError(missingFieldId, locale.missingField));
             return;
           }
 
@@ -3049,9 +3044,6 @@
         }
         if (field.type === 'customerProfile') {
           return getIdealCustomerSummary(formData, language).join('\n');
-        }
-        if (field.type === 'budgetSlider') {
-          return getBudgetRangeLabel(formData.budgetRangeValue, language) || formData.budgetRangeLabel;
         }
       if (field.type === 'checkbox') {
         if (!Array.isArray(value) || value.length === 0) return '';
@@ -3206,7 +3198,6 @@
 
           const { db, addDoc, collection, serverTimestamp } = window.QDFirebase;
           const cleanedPhone = sanitizePhoneValue(formData.businessPhone || '');
-          const budgetRange = getBudgetRangeLabel(formData.budgetRangeValue, language) || formData.budgetRangeLabel;
           const selectionSupport = hasSelectionSupport(formData)
             ? (language === 'ar' ? 'غير متأكد — اقترحوا النظام المناسب' : 'Not sure — recommend the right stack')
             : '';
@@ -3214,9 +3205,6 @@
             ...buildSubmissionAnswers(),
             businessEmail: formData.businessEmail?.trim() || '',
             businessPhone: cleanedPhone,
-            budgetRange,
-            budgetRangeLabel: budgetRange,
-            budgetRangeValue: formData.budgetRangeValue || '',
             idealCustomer: getIdealCustomerSummary(formData, language).join('\n'),
             selectionSupport
           };
@@ -3237,9 +3225,6 @@
             idealCustomerGender: formData.idealCustomerGender || '',
             idealCustomerBudgetLevel: formData.idealCustomerBudgetLevel || '',
             idealCustomerNotes: formData.idealCustomerNotes?.trim() || '',
-            budgetRange,
-            budgetRangeLabel: budgetRange,
-            budgetRangeValue: formData.budgetRangeValue || '',
             selectionSupport,
             supportLevel: formData.supportLevel || '',
             businessDescription: formData.businessDescription?.trim() || '',
@@ -3274,7 +3259,7 @@
       const renderField = (field) => {
         const placeholder = field.placeholderKey ? locale.placeholders[field.placeholderKey] : '';
         const note = field.note ? field.note[language] : '';
-        const fieldClass = field.type === 'textarea' || field.type === 'checkbox' || field.type === 'radio' || field.type === 'colorPalette' || field.type === 'counter' || field.type === 'bulletList' || field.type === 'customerProfile' || field.type === 'budgetSlider' ? 'qd-field is-full' : 'qd-field';
+        const fieldClass = field.type === 'textarea' || field.type === 'checkbox' || field.type === 'radio' || field.type === 'colorPalette' || field.type === 'counter' || field.type === 'bulletList' || field.type === 'customerProfile' ? 'qd-field is-full' : 'qd-field';
         const required = isFieldRequired(field.id, formData);
         const selectedValue = formData[field.id];
         const selectedOtherOption = field.options?.find((option) => (
@@ -3344,8 +3329,10 @@
 
         if (field.type === 'customerProfile') {
           const profileStarted = Boolean(formData.idealCustomerProfileStarted);
-          const ageIndex = Math.max(0, idealCustomerAgeOptions.findIndex((option) => option.value === formData.idealCustomerAgeGroup));
           const budgetIndex = Math.max(0, idealCustomerBudgetOptions.findIndex((option) => option.value === formData.idealCustomerBudgetLevel));
+          const ageMissing = Boolean(errors.idealCustomerAgeGroup);
+          const genderMissing = Boolean(errors.idealCustomerGender);
+          const budgetMissing = Boolean(errors.idealCustomerBudgetLevel);
 
           return (
             <div key={field.id} data-field-id={field.id} className={`${fieldClass} ${missing ? 'is-error' : ''}`}>
@@ -3368,26 +3355,27 @@
                 </div>
               ) : (
                 <div className="qd-profile-builder">
-                  <div className="qd-profile-panel">
+                  <div data-field-id="idealCustomerAgeGroup" className={`qd-profile-panel ${ageMissing ? 'is-error' : ''}`}>
                     <div className="qd-profile-meta">
                       <strong>{locale.customerAgeGroup}</strong>
-                      <span>{getOptionLabel(idealCustomerAgeOptions, formData.idealCustomerAgeGroup || idealCustomerAgeOptions[ageIndex]?.value, language)}</span>
+                      <span>{getOptionLabel(idealCustomerAgeOptions, formData.idealCustomerAgeGroup, language) || locale.required}</span>
                     </div>
-                    <input
-                      className="qd-range-input"
-                      type="range"
-                      min="0"
-                      max={idealCustomerAgeOptions.length - 1}
-                      step="1"
-                      value={ageIndex}
-                      onChange={(event) => updateField('idealCustomerAgeGroup', idealCustomerAgeOptions[Number(event.target.value)].value)}
-                    />
-                    <div className="qd-range-labels">
-                      {idealCustomerAgeOptions.map((option) => <span key={option.value}>{option.label[language]}</span>)}
+                    <div className="qd-segmented-grid qd-profile-chip-grid">
+                      {idealCustomerAgeOptions.map((option) => (
+                        <button
+                          key={option.value}
+                          type="button"
+                          className={`qd-segmented-chip qd-profile-chip ${formData.idealCustomerAgeGroup === option.value ? 'is-active' : ''}`}
+                          onClick={() => updateField('idealCustomerAgeGroup', option.value)}
+                        >
+                          {option.label[language]}
+                        </button>
+                      ))}
                     </div>
+                    {ageMissing && <div className="qd-error-text">{errors.idealCustomerAgeGroup}</div>}
                   </div>
 
-                  <div className="qd-profile-panel">
+                  <div data-field-id="idealCustomerGender" className={`qd-profile-panel ${genderMissing ? 'is-error' : ''}`}>
                     <div className="qd-profile-meta">
                       <strong>{locale.customerGender}</strong>
                     </div>
@@ -3403,12 +3391,13 @@
                         </button>
                       ))}
                     </div>
+                    {genderMissing && <div className="qd-error-text">{errors.idealCustomerGender}</div>}
                   </div>
 
-                  <div className="qd-profile-panel">
+                  <div data-field-id="idealCustomerBudgetLevel" className={`qd-profile-panel ${budgetMissing ? 'is-error' : ''}`}>
                     <div className="qd-profile-meta">
                       <strong>{locale.customerBudgetLevel}</strong>
-                      <span>{getOptionLabel(idealCustomerBudgetOptions, formData.idealCustomerBudgetLevel || idealCustomerBudgetOptions[budgetIndex]?.value, language)}</span>
+                      <span>{getOptionLabel(idealCustomerBudgetOptions, formData.idealCustomerBudgetLevel, language) || locale.required}</span>
                     </div>
                     <input
                       className="qd-range-input"
@@ -3422,6 +3411,7 @@
                     <div className="qd-range-labels">
                       {idealCustomerBudgetOptions.map((option) => <span key={option.value}>{option.label[language]}</span>)}
                     </div>
+                    {budgetMissing && <div className="qd-error-text">{errors.idealCustomerBudgetLevel}</div>}
                   </div>
 
                   <div className="qd-profile-panel">
@@ -3436,43 +3426,6 @@
                   </div>
                 </div>
               )}
-            </div>
-          );
-        }
-
-        if (field.type === 'budgetSlider') {
-          const budgetValue = Number(formData.budgetRangeValue || 0);
-          const activeBudget = getBudgetRangeLabel(budgetValue, language);
-
-          return (
-            <div key={field.id} data-field-id={field.id} className={`${fieldClass} ${missing ? 'is-error' : ''}`}>
-              <div className="qd-label-row">
-                <div className="qd-field-label">{field.label[language]}</div>
-                <span className={`qd-required-pill ${required ? '' : 'is-optional'} ${missing ? 'is-error' : ''}`}>
-                  {requiredLabel}
-                </span>
-              </div>
-              <div className="qd-profile-panel qd-budget-panel">
-                <div className="qd-profile-meta">
-                  <strong>{locale.budgetLevelTitle}</strong>
-                  <span>{activeBudget || placeholder}</span>
-                </div>
-                <div className="qd-field-note">{locale.budgetSliderHint}</div>
-                <input
-                  id={field.id}
-                  className="qd-range-input"
-                  type="range"
-                  min="1"
-                  max={budgetRangeOptions.length}
-                  step="1"
-                  value={budgetValue || 1}
-                  onChange={(event) => updateBudgetRange(Number(event.target.value))}
-                />
-                <div className="qd-range-labels qd-budget-labels">
-                  {budgetRangeOptions.map((option) => <span key={option.value}>{option.label[language]}</span>)}
-                </div>
-              </div>
-              {fieldError && <div className="qd-error-text">{fieldError}</div>}
             </div>
           );
         }

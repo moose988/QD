@@ -1,6 +1,37 @@
 const { useState, useEffect, useRef } = React;
 const { Eyebrow, useInView, useMouseTilt, useScrollProgress, useViewportFlag, usePrefersReducedMotion } = window.__QD;
 
+const problemCopy = {
+  en: {
+    eyebrow: '// 02 · SOUND FAMILIAR?',
+    headA: "You don't need ",
+    strike: 'more complexity.',
+    headB: 'You need ',
+    headC: 'less friction.',
+    reframeA: 'We make your online presence',
+    reframeB: 'feel expensive.',
+    pains: [
+      { n:'01', pain:'Your business deserves better than a template.', fix:'Custom-built. Brand-first. Designed to convert.' },
+      { n:'02', pain:"People visit your site. They don't trust it.", fix:'Faster. Cleaner. Premium UX that feels credible.' },
+      { n:'03', pain:"You're running the business manually.", fix:'Booking systems. Automation. Live tracking.' },
+    ]
+  },
+  ar: {
+    eyebrow: '// 02 · هل يبدو هذا مألوفاً؟',
+    headA: 'أنت لا تحتاج إلى ',
+    strike: 'تعقيد أكثر.',
+    headB: 'أنت تحتاج إلى ',
+    headC: 'احتكاك أقل.',
+    reframeA: 'نحن نجعل حضورك الرقمي',
+    reframeB: 'يبدو بمستوى فاخر.',
+    pains: [
+      { n:'01', pain:'نشاطك التجاري يستحق أكثر من قالب جاهز.', fix:'بناء مخصص. علامة أولاً. وتجربة مصممة للتحويل.' },
+      { n:'02', pain:'الناس يزورون موقعك لكنهم لا يثقون به.', fix:'أسرع. أنظف. وتجربة فاخرة تعزز المصداقية.' },
+      { n:'03', pain:'أنت تدير العمل يدوياً أكثر مما يجب.', fix:'أنظمة حجز. أتمتة. ومتابعة مباشرة.' },
+    ]
+  }
+};
+
 const StrikeWord = ({ children, delay=0 }) => {
   const ref = useRef(null);
   const seen = useInView(ref);
@@ -60,12 +91,9 @@ const PainRow = ({ p, index }) => {
   );
 };
 
-const Problem = () => {
-  const pains = [
-    { n:'01', pain:'Your business deserves better than a template.', fix:'Custom-built. Brand-first. Designed to convert.' },
-    { n:'02', pain:"People visit your site. They don't trust it.", fix:'Faster. Cleaner. Premium UX that feels credible.' },
-    { n:'03', pain:"You're running the business manually.", fix:'Booking systems. Automation. Live tracking.' },
-  ];
+const Problem = ({ language = 'en' }) => {
+  const copy = problemCopy[language] || problemCopy.en;
+  const pains = copy.pains;
   const sectionRef = useRef(null);
   const sp = useScrollProgress(sectionRef);
   const headRef = useRef(null);
@@ -87,14 +115,14 @@ const Problem = () => {
       <div style={{ maxWidth:1280,margin:'0 auto',position:'relative',transformStyle:'preserve-3d' }}>
         <div ref={headRef} style={{ marginBottom:80,maxWidth:920,perspective:1200 }}>
           <div style={{ opacity:headSeen?1:0,transform:headSeen?'translateY(0)':'translateY(20px)',transition:'opacity 600ms ease,transform 600ms cubic-bezier(0.22,1,0.36,1)' }}>
-            <Eyebrow color="var(--acid)">// 02 · SOUND FAMILIAR?</Eyebrow>
+            <Eyebrow color="var(--acid)">{copy.eyebrow}</Eyebrow>
           </div>
           <h2 style={{ marginTop:16,fontFamily:'var(--font-display)',fontSize:'clamp(40px,5.5vw,76px)',lineHeight:1,letterSpacing:'-0.03em',fontWeight:600,color:'var(--bone)' }}>
-            <span style={{ display:'inline-block',opacity:headSeen?1:0,transform:headSeen?'perspective(800px) rotateX(0deg)':'perspective(800px) rotateX(-50deg) translateY(40px)',transformOrigin:'bottom',transition:'opacity 800ms ease 100ms,transform 900ms cubic-bezier(0.22,1,0.36,1) 100ms' }}>You don't need </span>
-            <span style={{ display:'inline-block',opacity:headSeen?1:0,transform:headSeen?'perspective(800px) rotateX(0deg)':'perspective(800px) rotateX(-50deg) translateY(40px)',transformOrigin:'bottom',transition:'opacity 800ms ease 280ms,transform 900ms cubic-bezier(0.22,1,0.36,1) 280ms' }}><StrikeWord delay={1100}>more complexity.</StrikeWord></span>
+            <span style={{ display:'inline-block',opacity:headSeen?1:0,transform:headSeen?'perspective(800px) rotateX(0deg)':'perspective(800px) rotateX(-50deg) translateY(40px)',transformOrigin:'bottom',transition:'opacity 800ms ease 100ms,transform 900ms cubic-bezier(0.22,1,0.36,1) 100ms' }}>{copy.headA}</span>
+            <span style={{ display:'inline-block',opacity:headSeen?1:0,transform:headSeen?'perspective(800px) rotateX(0deg)':'perspective(800px) rotateX(-50deg) translateY(40px)',transformOrigin:'bottom',transition:'opacity 800ms ease 280ms,transform 900ms cubic-bezier(0.22,1,0.36,1) 280ms' }}><StrikeWord delay={1100}>{copy.strike}</StrikeWord></span>
             <br />
             <span style={{ display:'inline-block',marginTop:8,opacity:headSeen?1:0,transform:headSeen?'perspective(800px) rotateX(0deg)':'perspective(800px) rotateX(-50deg) translateY(40px)',transformOrigin:'bottom',transition:'opacity 800ms ease 1500ms,transform 900ms cubic-bezier(0.22,1,0.36,1) 1500ms' }}>
-              You need <span style={{ color:'var(--acid)',display:'inline-block',animation:headSeen?'qd-glow-pulse 2.4s ease-in-out 2200ms infinite':'none' }}>less friction.</span>
+              {copy.headB} <span style={{ color:'var(--acid)',display:'inline-block',animation:headSeen?'qd-glow-pulse 2.4s ease-in-out 2200ms infinite':'none' }}>{copy.headC}</span>
             </span>
           </h2>
         </div>
@@ -105,12 +133,13 @@ const Problem = () => {
 
         <div ref={reframeRef} style={{ marginTop:96,textAlign:'center',opacity:reframeSeen?1:0,transform:reframeSeen?'translateY(0)':'translateY(30px)',transition:'opacity 800ms ease,transform 800ms cubic-bezier(0.22,1,0.36,1)' }}>
           <div ref={reframeBox} style={{ fontFamily:'var(--font-display)',fontSize:'clamp(24px,2.6vw,36px)',lineHeight:1.3,fontWeight:500,letterSpacing:'-0.02em',maxWidth:880,margin:'0 auto',display:'inline-block',padding:'12px 8px',transformStyle:'preserve-3d',transform:`perspective(1000px) rotateX(${pillMouse.y*-3}deg) rotateY(${pillMouse.x*4}deg)`,transition:'transform 200ms ease-out',color:'var(--bone)' }}>
-            We make your online presence{' '}
-            <span style={{ color:'var(--obsidian)',background:'var(--acid)',padding:'2px 14px',display:'inline-block',borderRadius:4,transform:reframeSeen?`translate(${pillMouse.x*8}px,${pillMouse.y*6}px) scale(1) rotate(${pillMouse.x*2}deg)`:'translate(0,0) scale(0)',transition:reframeSeen?'transform 200ms ease-out':'transform 700ms cubic-bezier(0.34,1.56,0.64,1) 700ms',boxShadow:'0 8px 24px rgba(166,240,79,0.3)' }}>feel expensive.</span>
+            {copy.reframeA}{' '}
+            <span style={{ color:'var(--obsidian)',background:'var(--acid)',padding:'2px 14px',display:'inline-block',borderRadius:4,transform:reframeSeen?`translate(${pillMouse.x*8}px,${pillMouse.y*6}px) scale(1) rotate(${pillMouse.x*2}deg)`:'translate(0,0) scale(0)',transition:reframeSeen?'transform 200ms ease-out':'transform 700ms cubic-bezier(0.34,1.56,0.64,1) 700ms',boxShadow:'0 8px 24px rgba(166,240,79,0.3)' }}>{copy.reframeB}</span>
           </div>
         </div>
       </div>
     </section>
   );
 };
+
 window.__QD = { ...window.__QD, Problem };
