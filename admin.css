@@ -1271,3 +1271,126 @@ body.qd-admin-page.qd-modal-open {
     grid-template-columns: 1fr;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   Quotation generator drawer (slides over the submission detail)
+   ═══════════════════════════════════════════════════════════════ */
+
+.qd-quote-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 200;
+  cursor: pointer;
+}
+.qd-quote-drawer {
+  position: fixed; top: 0; right: 0; bottom: 0;
+  width: min(680px, 92vw);
+  background: #ffffff;
+  z-index: 201;
+  box-shadow: -10px 0 32px rgba(0,0,0,0.16);
+  display: flex; flex-direction: column;
+  animation: qd-quote-slide-in 0.22s ease-out;
+  color: #1a1a1a;
+}
+@keyframes qd-quote-slide-in {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+.qd-quote-head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #fcfcfd;
+}
+.qd-quote-head h2 { margin: 0; font-size: 14px; font-weight: 600; color: #1a1a1a; letter-spacing: 0.2px; }
+.qd-quote-close {
+  background: none; border: none; font-size: 26px; line-height: 1;
+  color: #777; cursor: pointer; padding: 0 4px;
+}
+.qd-quote-close:hover { color: #1a1a1a; }
+.qd-quote-body { flex: 1; overflow-y: auto; padding: 16px 18px 4px; background: white; }
+.qd-quote-foot {
+  border-top: 1px solid #e5e7eb;
+  padding: 12px 18px;
+  display: flex; justify-content: flex-end; gap: 8px;
+  background: #fcfcfd;
+}
+.qd-quote-section-label {
+  font-size: 9px; font-weight: 700;
+  color: #888; letter-spacing: 1.5px;
+  margin: 14px 0 6px;
+}
+.qd-quote-body > .qd-quote-section-label:first-child { margin-top: 0; }
+.qd-quote-input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 3px;
+  font-size: 12px;
+  font-family: inherit;
+  background: white;
+  color: #1a1a1a;
+  box-sizing: border-box;
+}
+.qd-quote-input:focus { outline: 2px solid #0066cc; outline-offset: -1px; border-color: #0066cc; }
+.qd-quote-textarea { min-height: 60px; resize: vertical; line-height: 1.4; }
+.qd-quote-row { display: flex; gap: 8px; align-items: center; }
+.qd-quote-line-items { width: 100%; border-collapse: collapse; font-size: 12px; }
+.qd-quote-line-items th { padding: 4px; font-weight: 600; color: #666; letter-spacing: 0.4px; }
+.qd-quote-line-items td { padding: 3px; vertical-align: top; }
+.qd-quote-line-items .qd-quote-input { padding: 4px 6px; font-size: 11px; }
+.qd-quote-remove {
+  background: none; border: none; color: #c00;
+  font-size: 18px; line-height: 1; cursor: pointer; padding: 4px 6px;
+}
+.qd-quote-remove:hover { color: #800; }
+.qd-quote-totals {
+  background: #0066cc; color: white;
+  padding: 10px 14px; margin: 14px 0;
+  border-radius: 4px;
+}
+.qd-quote-totals-row { display: flex; justify-content: space-between; padding: 1px 0; font-size: 12px; }
+.qd-quote-totals-row.is-grand {
+  border-top: 1px solid rgba(255,255,255,0.3);
+  margin-top: 4px; padding-top: 6px;
+  font-weight: 700; font-size: 14px;
+}
+.qd-quote-meta-row {
+  display: flex; gap: 18px; flex-wrap: wrap;
+  font-size: 11px; color: #555;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.qd-quote-meta-row label { display: flex; gap: 6px; align-items: center; font-weight: 700; letter-spacing: 1.2px; color: #888; font-size: 9px; }
+.qd-quote-meta-row .qd-quote-input { width: auto; font-size: 12px; font-weight: normal; color: #1a1a1a; letter-spacing: 0; }
+.qd-quote-passcode {
+  font-family: ui-monospace, "SF Mono", monospace;
+  background: #fff7ed; color: #c2410c;
+  padding: 3px 8px; border-radius: 3px;
+  font-weight: 700; letter-spacing: 1.5px;
+  font-size: 13px;
+}
+.qd-quote-toast {
+  position: fixed; bottom: 24px; left: 50%;
+  transform: translateX(-50%);
+  background: #0a0a0a; color: white;
+  padding: 10px 22px; border-radius: 6px;
+  font-size: 13px;
+  z-index: 300;
+  animation: qd-quote-toast-in 0.2s ease-out;
+}
+@keyframes qd-quote-toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* Generic button variants used by the quote button */
+.qd-admin-action-secondary { background: white !important; border: 1px solid #d1d5db !important; color: #1a1a1a !important; }
+.qd-admin-action-secondary:hover { background: #f3f4f6 !important; }
+.qd-btn-with-dot::before {
+  content: '●';
+  color: #10b981;
+  margin-right: 6px;
+  font-size: 10px;
+  vertical-align: middle;
+}

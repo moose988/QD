@@ -37,6 +37,8 @@ import {
   serverTimestamp,
   updateDoc
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { CATALOG, catalogToLineItem } from '/app/lib/quote-catalog.js';
+import { computeTotals, formatAED } from '/app/lib/quote-totals.js';
 
 const root = document.getElementById('qd-admin-root');
 const allowedAdminEmails = null;
@@ -69,10 +71,14 @@ const state = {
     launchDate: 'all'
   },
   selectedId: null,
-  drawerDraft: null
+  drawerDraft: null,
+  quotesBySubmissionId: {},
+  quoteDrawer: { open: false, quote: null, dirty: false },
+  quoteToast: ''
 };
 
 let unsubscribeSnapshot = null;
+let unsubscribeQuotesSnapshot = null;
 let copyFeedbackTimeout = null;
 
 const fieldLabels = {
@@ -1134,6 +1140,7 @@ const renderDrawer = () => {
             ? `<a class="qd-btn qd-btn-sm qd-admin-action-call" href="${escapeHtml(callLink)}">Call</a>`
             : '<button class="qd-btn qd-btn-sm qd-admin-action-call is-disabled" type="button" disabled aria-disabled="true">Call</button>'}
           ${mailtoLink ? `<a class="qd-btn qd-btn-sm qd-admin-action-secondary" href="${escapeHtml(mailtoLink)}">Email</a>` : ''}
+          ${renderQuoteButton(submission)}
           <button class="qd-btn qd-btn-sm qd-admin-action-primary" type="button" data-action="copy-summary">Copy Summary</button>
           <button class="qd-btn qd-btn-sm qd-admin-action-danger" type="button" data-action="archive-submission">Archive</button>
         </div>
@@ -1235,6 +1242,7 @@ const renderAppShell = (content) => {
         ${content}
       </div>
       ${renderDrawer()}
+      ${renderQuoteDrawer()}
     </div>
   `;
 };
@@ -1538,6 +1546,55 @@ const handleDocumentClick = async (event) => {
 
   if (action === 'save-drawer') {
     await saveDrawer();
+    return;
+  }
+
+  if (action === 'generate-quote') {
+    await openQuoteFromSubmission(actionTarget.dataset.submissionId);
+    return;
+  }
+
+  if (action === 'open-quote') {
+    openQuoteByQuoteId(actionTarget.dataset.quoteId);
+    return;
+  }
+
+  if (action === 'close-quote-drawer') {
+    closeQuoteDrawer();
+    return;
+  }
+
+  if (action === 'quote-remove-line') {
+    const idx = Number(actionTarget.dataset.idx);
+    if (!state.quoteDrawer.quote) return;
+    state.quoteDrawer.quote.lineItems.splice(idx, 1);
+    state.quoteDrawer.dirty = true;
+    render();
+    return;
+  }
+
+  if (action === 'quote-add-custom-line') {
+    if (!state.quoteDrawer.quote) return;
+    state.quoteDrawer.quote.lineItems.push({
+      catalogKey: null,
+      name: { en: '', ar: '' },
+      description: { en: '', ar: '' },
+      qty: 1,
+      unitPrice: 0
+    });
+    state.quoteDrawer.dirty = true;
+    render();
+    return;
+  }
+
+  if (action === 'quote-save-draft') {
+    await saveQuoteDrawer({ markSent: false, copy: false });
+    return;
+  }
+
+  if (action === 'quote-save-and-copy') {
+    await saveQuoteDrawer({ markSent: true, copy: true });
+    return;
   }
 };
 
@@ -1556,6 +1613,14 @@ const handleDocumentInput = (event) => {
         nextInput.setSelectionRange(caret, caretEnd);
       }
     }
+    return;
+  }
+
+  const qfield = event.target.dataset.qfield;
+  const qline = event.target.dataset.qline;
+  if (qfield || qline) {
+    applyQuoteChange(qfield || qline, event.target.value);
+    updateQuoteTotalsPreview();
     return;
   }
 
@@ -1581,11 +1646,320 @@ document.addEventListener('input', (event) => {
   handleDocumentInput(event);
 });
 
-document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && state.selectedId) {
-    closeDrawer();
+document.addEventListener('change', (event) => {
+  if (event.target.dataset.qaction === 'add-from-catalog') {
+    const key = event.target.value;
+    if (!key || !state.quoteDrawer.quote) return;
+    const line = catalogToLineItem(key);
+    if (line) {
+      state.quoteDrawer.quote.lineItems.push(line);
+      state.quoteDrawer.dirty = true;
+      event.target.value = '';
+      render();
+    }
   }
 });
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') {
+    if (state.quoteDrawer.open) {
+      closeQuoteDrawer();
+      return;
+    }
+    if (state.selectedId) closeDrawer();
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// Quotation generator
+// ═══════════════════════════════════════════════════════════════
+
+const escAttr = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+const escTxt = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+const subscribeToQuotes = () => {
+  if (unsubscribeQuotesSnapshot) {
+    unsubscribeQuotesSnapshot();
+    unsubscribeQuotesSnapshot = null;
+  }
+  const quotesRef = collection(db, 'quotes');
+  unsubscribeQuotesSnapshot = onSnapshot(
+    quotesRef,
+    (snap) => {
+      const map = {};
+      snap.forEach((d) => {
+        const data = d.data();
+        if (data.submissionId) map[data.submissionId] = { id: d.id, ...data };
+      });
+      state.quotesBySubmissionId = map;
+      if (state.quoteDrawer.open && state.quoteDrawer.quote?.id) {
+        const fresh = Object.values(map).find((q) => q.id === state.quoteDrawer.quote.id);
+        if (fresh && !state.quoteDrawer.dirty) {
+          state.quoteDrawer.quote = { ...fresh, lineItems: [...(fresh.lineItems || [])] };
+        }
+      }
+      render();
+    },
+    (err) => {
+      console.warn('[quotes] snapshot error (likely Firestore rules deny):', err?.message || err);
+    }
+  );
+};
+
+const renderQuoteButton = (submission) => {
+  const q = state.quotesBySubmissionId[submission.id];
+  if (!q) {
+    return `<button class="qd-btn qd-btn-sm qd-admin-action-primary" type="button" data-action="generate-quote" data-submission-id="${escAttr(submission.id)}">+ Generate Quotation</button>`;
+  }
+  if (q.status === 'draft') {
+    return `<button class="qd-btn qd-btn-sm qd-admin-action-secondary" type="button" data-action="open-quote" data-quote-id="${escAttr(q.id)}">Edit Quote · ${escTxt(q.quoteNumber)}</button>`;
+  }
+  return `<button class="qd-btn qd-btn-sm qd-admin-action-secondary qd-btn-with-dot" type="button" data-action="open-quote" data-quote-id="${escAttr(q.id)}">View Quote · ${escTxt(q.quoteNumber)}</button>`;
+};
+
+const openQuoteFromSubmission = async (submissionId) => {
+  const existing = state.quotesBySubmissionId[submissionId];
+  if (existing) {
+    openQuoteDrawer(existing);
+    return;
+  }
+  try {
+    const user = auth.currentUser;
+    if (!user) { showToast('Not signed in.'); return; }
+    const token = await user.getIdToken();
+    const res = await fetch('/api/quote-create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ submissionId })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      // If quote already exists (409), open the existing one
+      if (res.status === 409 && err.existing) {
+        state.quotesBySubmissionId[submissionId] = err.existing;
+        openQuoteDrawer(err.existing);
+        return;
+      }
+      showToast(`Could not create: ${err.error || res.status}`);
+      return;
+    }
+    const created = await res.json();
+    state.quotesBySubmissionId[submissionId] = created;
+    openQuoteDrawer(created);
+  } catch (e) {
+    console.error('[quote-create] error:', e);
+    showToast(`Error: ${e.message}`);
+  }
+};
+
+const openQuoteByQuoteId = (quoteId) => {
+  const q = Object.values(state.quotesBySubmissionId).find((x) => x.id === quoteId);
+  if (!q) { showToast('Quote not found'); return; }
+  openQuoteDrawer(q);
+};
+
+const openQuoteDrawer = (quote) => {
+  state.quoteDrawer = {
+    open: true,
+    quote: { ...quote, lineItems: [...(quote.lineItems || [])] },
+    dirty: false
+  };
+  render();
+};
+
+const closeQuoteDrawer = ({ autosave = true } = {}) => {
+  if (autosave && state.quoteDrawer.dirty) {
+    saveQuoteDrawer({ markSent: false, copy: false, silent: true });
+  }
+  state.quoteDrawer = { open: false, quote: null, dirty: false };
+  render();
+};
+
+const applyQuoteChange = (path, value) => {
+  const q = state.quoteDrawer.quote;
+  if (!q) return;
+  const parts = path.split('.');
+  const isLine = /^\d+$/.test(parts[0]);
+  if (isLine) {
+    const idx = Number(parts[0]);
+    if (!q.lineItems[idx]) return;
+    let cur = q.lineItems[idx];
+    for (let i = 1; i < parts.length - 1; i++) {
+      if (cur[parts[i]] == null) cur[parts[i]] = {};
+      cur = cur[parts[i]];
+    }
+    const last = parts[parts.length - 1];
+    cur[last] = (last === 'qty' || last === 'unitPrice') ? Number(value) || 0 : value;
+  } else {
+    let cur = q;
+    for (let i = 0; i < parts.length - 1; i++) {
+      if (cur[parts[i]] == null) cur[parts[i]] = {};
+      cur = cur[parts[i]];
+    }
+    const last = parts[parts.length - 1];
+    cur[last] = (last === 'validDays' || last === 'vatPercent') ? Number(value) || 0 : value;
+  }
+  state.quoteDrawer.dirty = true;
+};
+
+const updateQuoteTotalsPreview = () => {
+  const q = state.quoteDrawer.quote;
+  if (!q) return;
+  const t = computeTotals(q.lineItems, q.vatPercent);
+  const preview = document.querySelector('#qd-quote-drawer .qd-quote-totals');
+  if (!preview) return;
+  preview.innerHTML = `
+    <div class="qd-quote-totals-row"><span>Subtotal</span><span>${formatAED(t.subtotal)}</span></div>
+    <div class="qd-quote-totals-row" style="opacity:0.85"><span>VAT ${q.vatPercent}%</span><span>${formatAED(t.vat)}</span></div>
+    <div class="qd-quote-totals-row is-grand"><span>Total AED</span><span>${formatAED(t.grandTotal)}</span></div>
+  `;
+};
+
+const saveQuoteDrawer = async ({ markSent = false, copy = false, silent = false } = {}) => {
+  const q = state.quoteDrawer.quote;
+  if (!q) return;
+  try {
+    const user = auth.currentUser;
+    if (!user) { if (!silent) showToast('Not signed in.'); return; }
+    const token = await user.getIdToken();
+    const updates = {
+      customer: q.customer,
+      lineItems: q.lineItems,
+      pages: q.pages,
+      terms: q.terms,
+      notes: q.notes,
+      validDays: q.validDays,
+      vatPercent: q.vatPercent,
+      language: q.language || 'en'
+    };
+    const res = await fetch('/api/quote-save', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ id: q.id, updates, markSent })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      if (!silent) showToast(`Save failed: ${err.error || res.status}`);
+      return;
+    }
+    state.quoteDrawer.dirty = false;
+    if (copy) {
+      const url = `${location.origin}/q/${q.id}`;
+      const text = `Your quotation from QD Systems:\n${url}\nPasscode: ${q._passcodePlain || '(check admin)'}`;
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast('Link copied — paste into WhatsApp.');
+      } catch {
+        prompt('Copy this link manually:', text);
+      }
+    } else if (!silent) {
+      showToast('Saved.');
+    }
+  } catch (e) {
+    console.error('[quote-save] error:', e);
+    if (!silent) showToast(`Error: ${e.message}`);
+  }
+};
+
+let toastTimeout = null;
+const showToast = (msg) => {
+  state.quoteToast = msg;
+  render();
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => {
+    state.quoteToast = '';
+    render();
+  }, 2600);
+};
+
+const renderQuoteDrawer = () => {
+  if (!state.quoteDrawer.open || !state.quoteDrawer.quote) {
+    return state.quoteToast ? `<div class="qd-quote-toast">${escTxt(state.quoteToast)}</div>` : '';
+  }
+  const q = state.quoteDrawer.quote;
+  const t = computeTotals(q.lineItems, q.vatPercent);
+  const statusLabel = q.status === 'active' ? 'View / Edit' : 'Edit';
+
+  return `
+    <div class="qd-quote-overlay" data-action="close-quote-drawer"></div>
+    <aside class="qd-quote-drawer" id="qd-quote-drawer" role="dialog" aria-modal="true" aria-label="Quote editor">
+      <header class="qd-quote-head">
+        <h2>${statusLabel} Quote · ${escTxt(q.quoteNumber)}</h2>
+        <button type="button" class="qd-quote-close" data-action="close-quote-drawer" aria-label="Close">×</button>
+      </header>
+
+      <div class="qd-quote-body">
+
+        <div class="qd-quote-section-label">CUSTOMER</div>
+        <input class="qd-quote-input" data-qfield="customer.businessName" value="${escAttr(q.customer?.businessName || '')}" placeholder="Business name">
+        <div class="qd-quote-row" style="margin-top:6px">
+          <input class="qd-quote-input" data-qfield="customer.email" value="${escAttr(q.customer?.email || '')}" placeholder="Email">
+          <input class="qd-quote-input" data-qfield="customer.phone" value="${escAttr(q.customer?.phone || '')}" placeholder="Phone">
+        </div>
+
+        <div class="qd-quote-section-label">LINE ITEMS</div>
+        <table class="qd-quote-line-items">
+          <thead>
+            <tr>
+              <th style="text-align:left">Service (EN)</th>
+              <th style="text-align:left">Service (AR)</th>
+              <th style="width:48px">Qty</th>
+              <th style="width:80px">Unit AED</th>
+              <th style="width:30px"></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${(q.lineItems || []).map((li, idx) => `
+              <tr>
+                <td><input class="qd-quote-input" data-qline="${idx}.name.en" value="${escAttr(li.name?.en || '')}"></td>
+                <td><input class="qd-quote-input" data-qline="${idx}.name.ar" value="${escAttr(li.name?.ar || '')}" dir="rtl"></td>
+                <td><input class="qd-quote-input" type="number" min="0" data-qline="${idx}.qty" value="${escAttr(li.qty ?? 1)}"></td>
+                <td><input class="qd-quote-input" type="number" min="0" data-qline="${idx}.unitPrice" value="${escAttr(li.unitPrice ?? 0)}"></td>
+                <td><button type="button" class="qd-quote-remove" data-action="quote-remove-line" data-idx="${idx}" aria-label="Remove">×</button></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <div class="qd-quote-row" style="margin-top:8px">
+          <select class="qd-quote-input qd-quote-catalog" data-qaction="add-from-catalog" style="flex:1">
+            <option value="">+ Add from catalog…</option>
+            ${CATALOG.map((c) => `<option value="${escAttr(c.key)}">${escTxt(c.name.en)} — AED ${c.defaultPrice}</option>`).join('')}
+          </select>
+          <button type="button" class="qd-btn qd-btn-sm qd-admin-action-secondary" data-action="quote-add-custom-line">+ Custom</button>
+        </div>
+
+        <div class="qd-quote-section-label">PAGES INCLUDED</div>
+        <input class="qd-quote-input" data-qfield="pages.en" value="${escAttr(q.pages?.en || '')}" placeholder="Home · About · Services · Contact">
+        <input class="qd-quote-input" style="margin-top:6px" data-qfield="pages.ar" value="${escAttr(q.pages?.ar || '')}" placeholder="الرئيسية · ..." dir="rtl">
+
+        <div class="qd-quote-totals">
+          <div class="qd-quote-totals-row"><span>Subtotal</span><span>${formatAED(t.subtotal)}</span></div>
+          <div class="qd-quote-totals-row" style="opacity:0.85"><span>VAT ${q.vatPercent}%</span><span>${formatAED(t.vat)}</span></div>
+          <div class="qd-quote-totals-row is-grand"><span>Total AED</span><span>${formatAED(t.grandTotal)}</span></div>
+        </div>
+
+        <div class="qd-quote-meta-row">
+          <label>VALID <input class="qd-quote-input" type="number" min="1" data-qfield="validDays" value="${escAttr(q.validDays ?? 30)}" style="width:54px"> days</label>
+          <label>VAT <input class="qd-quote-input" type="number" min="0" max="100" data-qfield="vatPercent" value="${escAttr(q.vatPercent ?? 5)}" style="width:48px"> %</label>
+          <label>CODE <span class="qd-quote-passcode">${escTxt(q._passcodePlain || '(hidden)')}</span></label>
+        </div>
+
+        <div class="qd-quote-section-label">TERMS (EN)</div>
+        <textarea class="qd-quote-input qd-quote-textarea" data-qfield="terms.en">${escTxt(q.terms?.en || '')}</textarea>
+        <div class="qd-quote-section-label">TERMS (AR)</div>
+        <textarea class="qd-quote-input qd-quote-textarea" data-qfield="terms.ar" dir="rtl">${escTxt(q.terms?.ar || '')}</textarea>
+
+      </div>
+
+      <footer class="qd-quote-foot">
+        <button type="button" class="qd-btn qd-btn-sm qd-admin-action-secondary" data-action="quote-save-draft">Save draft</button>
+        <button type="button" class="qd-btn qd-btn-sm qd-admin-action-primary" data-action="quote-save-and-copy">Save + Copy link</button>
+      </footer>
+    </aside>
+    ${state.quoteToast ? `<div class="qd-quote-toast">${escTxt(state.quoteToast)}</div>` : ''}
+  `;
+};
 
 await setPersistence(auth, browserLocalPersistence).catch(() => {});
 
@@ -1599,12 +1973,19 @@ onAuthStateChanged(auth, (user) => {
 
   if (user && isAllowedAdminUser(user)) {
     subscribeToSubmissions();
+    subscribeToQuotes();
   } else {
     if (unsubscribeSnapshot) {
       unsubscribeSnapshot();
       unsubscribeSnapshot = null;
     }
+    if (unsubscribeQuotesSnapshot) {
+      unsubscribeQuotesSnapshot();
+      unsubscribeQuotesSnapshot = null;
+    }
     state.submissions = [];
+    state.quotesBySubmissionId = {};
+    state.quoteDrawer = { open: false, quote: null, dirty: false };
     state.dataLoading = false;
   }
 
