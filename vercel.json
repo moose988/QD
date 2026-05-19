@@ -1,11 +1,14 @@
 {
   "cleanUrls": false,
   "trailingSlash": false,
+  "rewrites": [
+    { "source": "/q/(.*)", "destination": "/q/index.html" }
+  ],
   "functions": {
-    "api/chat.js": {
-      "memory": 1024,
-      "maxDuration": 30
-    }
+    "api/chat.js":         { "memory": 1024, "maxDuration": 30 },
+    "api/quote-create.js": { "memory": 512,  "maxDuration": 10 },
+    "api/quote-save.js":   { "memory": 512,  "maxDuration": 10 },
+    "api/quote-verify.js": { "memory": 512,  "maxDuration": 10 }
   },
   "headers": [
     {
