@@ -354,6 +354,13 @@ body.qd-admin-page.qd-modal-open {
   min-height: 240px;
 }
 
+.qd-admin-budget-value {
+  font-size: clamp(28px, 2.4vw, 40px) !important;
+  line-height: 0.98;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .qd-admin-stage-bars {
   display: grid;
   gap: 10px;
@@ -431,8 +438,10 @@ body.qd-admin-page.qd-modal-open {
   gap: 4px;
   padding: 10px 12px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.025);
-  border: 1px solid rgba(244, 241, 234, 0.05);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.04), rgba(166, 240, 79, 0.03) 55%, rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(244, 241, 234, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .qd-admin-budget-metric span {
@@ -445,8 +454,10 @@ body.qd-admin-page.qd-modal-open {
 
 .qd-admin-budget-metric strong {
   color: var(--fg1);
-  font-size: 14px;
-  line-height: 1.45;
+  font-size: clamp(16px, 1.4vw, 22px);
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .qd-admin-analytics-card h3,
@@ -499,7 +510,7 @@ body.qd-admin-page.qd-modal-open {
 
 .qd-admin-table-toolbar {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) repeat(2, minmax(180px, 0.35fr));
+  grid-template-columns: minmax(260px, 1.35fr) repeat(3, minmax(170px, 0.35fr));
   gap: 12px;
 }
 
@@ -510,7 +521,7 @@ body.qd-admin-page.qd-modal-open {
 
 .qd-admin-table {
   width: 100%;
-  min-width: 920px;
+  min-width: 1080px;
   border-collapse: collapse;
 }
 
@@ -832,20 +843,41 @@ body.qd-admin-page.qd-modal-open {
 .qd-admin-contact-card,
 .qd-admin-detail-block,
 .qd-admin-detail-item {
+  position: relative;
+  overflow: hidden;
   padding: 15px 16px;
   border-radius: 16px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.015)),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(166, 240, 79, 0.025) 45%, rgba(255, 255, 255, 0.02)),
     rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(244, 241, 234, 0.06);
-  transition: border-color 180ms var(--ease-out), transform 180ms var(--ease-out), box-shadow 180ms var(--ease-out);
+  border: 1px solid rgba(244, 241, 234, 0.1);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.075),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.015);
+  transition: border-color 180ms var(--ease-out), transform 180ms var(--ease-out), box-shadow 180ms var(--ease-out), background 180ms var(--ease-out);
+}
+
+.qd-admin-contact-card::before,
+.qd-admin-detail-block::before,
+.qd-admin-detail-item::before {
+  content: "";
+  position: absolute;
+  inset: 1px 1px auto 1px;
+  height: 40%;
+  border-radius: 15px 15px 22px 22px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0));
+  opacity: 0.8;
+  pointer-events: none;
 }
 
 .qd-admin-contact-card:hover,
 .qd-admin-detail-item:hover,
 .qd-admin-detail-block:hover {
-  border-color: rgba(166, 240, 79, 0.18);
-  box-shadow: inset 0 0 0 1px rgba(166, 240, 79, 0.05);
+  border-color: rgba(166, 240, 79, 0.28);
+  box-shadow:
+    0 0 28px rgba(166, 240, 79, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 0 0 1px rgba(166, 240, 79, 0.04);
 }
 
 .qd-admin-contact-card {
@@ -859,6 +891,14 @@ body.qd-admin-page.qd-modal-open {
   font-size: 15px;
   line-height: 1.5;
   overflow-wrap: anywhere;
+}
+
+.qd-admin-detail-item > strong {
+  position: relative;
+  z-index: 1;
+  color: rgba(244, 241, 234, 0.78);
+  font-size: 10px;
+  letter-spacing: 0.14em;
 }
 
 .qd-admin-actions {
@@ -875,6 +915,7 @@ body.qd-admin-page.qd-modal-open {
 
 .qd-admin-action-primary,
 .qd-admin-action-secondary,
+.qd-admin-action-call,
 .qd-admin-action-whatsapp,
 .qd-admin-action-danger {
   min-height: 48px;
@@ -896,6 +937,7 @@ body.qd-admin-page.qd-modal-open {
 
 .qd-admin-action-primary:hover,
 .qd-admin-action-secondary:hover,
+.qd-admin-action-call:hover,
 .qd-admin-action-whatsapp:hover,
 .qd-admin-action-danger:hover {
   transform: translateY(-1px);
@@ -903,6 +945,7 @@ body.qd-admin-page.qd-modal-open {
 
 .qd-admin-action-primary:active,
 .qd-admin-action-secondary:active,
+.qd-admin-action-call:active,
 .qd-admin-action-whatsapp:active,
 .qd-admin-action-danger:active {
   transform: translateY(0);
@@ -929,6 +972,32 @@ body.qd-admin-page.qd-modal-open {
 .qd-admin-action-secondary:hover {
   border-color: rgba(166, 240, 79, 0.2);
   color: var(--acid);
+}
+
+.qd-admin-action-call {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(166, 240, 79, 0.045) 45%, rgba(255, 255, 255, 0.03));
+  color: #ecf7d3;
+  border: 1px solid rgba(166, 240, 79, 0.2);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 18px rgba(166, 240, 79, 0.06);
+}
+
+.qd-admin-action-call:hover {
+  border-color: rgba(166, 240, 79, 0.32);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    0 0 28px rgba(166, 240, 79, 0.16);
+  color: var(--acid);
+}
+
+.qd-admin-action-call.is-disabled,
+.qd-admin-action-call[disabled] {
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--fg3);
+  border-color: rgba(244, 241, 234, 0.08);
+  box-shadow: none;
 }
 
 .qd-admin-action-whatsapp {
@@ -973,9 +1042,12 @@ body.qd-admin-page.qd-modal-open {
 }
 
 .qd-admin-detail-value {
+  position: relative;
+  z-index: 1;
   color: var(--fg1);
   font-size: 15px;
-  line-height: 1.55;
+  font-weight: 500;
+  line-height: 1.58;
   overflow-wrap: anywhere;
 }
 
@@ -995,6 +1067,23 @@ body.qd-admin-page.qd-modal-open {
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.qd-admin-drawer-group-head h3 {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: rgba(244, 241, 234, 0.78);
+}
+
+.qd-admin-drawer-group-head h3::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--acid);
+  box-shadow: 0 0 14px rgba(166, 240, 79, 0.28);
+  flex: 0 0 auto;
 }
 
 .qd-admin-detail-grid,

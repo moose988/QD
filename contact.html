@@ -314,7 +314,7 @@
     }
 
     .qd-step-shell {
-      min-height: 520px;
+      min-height: 420px;
       display: flex;
       flex-direction: column;
     }
@@ -509,6 +509,161 @@
       font-size: 11px;
       letter-spacing: 0.08em;
       text-transform: uppercase;
+    }
+
+    .qd-acid-action {
+      white-space: nowrap;
+    }
+
+    .qd-bullet-builder,
+    .qd-profile-builder {
+      display: grid;
+      gap: 14px;
+    }
+
+    .qd-bullet-input-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .qd-bullet-pill-wrap,
+    .qd-review-pill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .qd-bullet-pill,
+    .qd-review-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(166, 240, 79, 0.18);
+      background:
+        linear-gradient(180deg, rgba(166, 240, 79, 0.08), rgba(255, 255, 255, 0.02)),
+        rgba(10, 11, 13, 0.88);
+      color: var(--fg2);
+      box-shadow: inset 0 0 0 1px rgba(166, 240, 79, 0.04);
+    }
+
+    .qd-review-pill span,
+    .qd-bullet-pill span {
+      color: inherit;
+      font-size: inherit;
+      line-height: inherit;
+    }
+
+    .qd-bullet-pill button {
+      border: 0;
+      background: transparent;
+      color: var(--fg3);
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .qd-empty-pill-state {
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px dashed rgba(244, 241, 234, 0.12);
+      color: var(--fg3);
+      background: rgba(255, 255, 255, 0.02);
+      font-size: 13px;
+    }
+
+    .qd-profile-launch-card,
+    .qd-profile-panel {
+      padding: 18px;
+      border-radius: 20px;
+      border: 1px solid rgba(166, 240, 79, 0.18);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
+        rgba(10, 11, 13, 0.78);
+      box-shadow:
+        inset 0 0 0 1px rgba(166, 240, 79, 0.04),
+        0 0 30px rgba(166, 240, 79, 0.04);
+      animation: qd-contact-rise 260ms var(--ease-out);
+    }
+
+    .qd-profile-launch-card {
+      display: grid;
+      gap: 14px;
+      justify-items: start;
+    }
+
+    .qd-profile-launch-card p {
+      color: var(--fg2);
+      line-height: 1.6;
+    }
+
+    .qd-profile-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .qd-profile-meta strong {
+      color: var(--fg1);
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 500;
+    }
+
+    .qd-profile-meta span {
+      color: var(--acid);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .qd-range-input {
+      width: 100%;
+      accent-color: var(--acid);
+      cursor: pointer;
+    }
+
+    .qd-range-labels {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(56px, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+      color: var(--fg3);
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .qd-budget-labels {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    .qd-segmented-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .qd-segmented-chip {
+      border: 1px solid rgba(244, 241, 234, 0.1);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.025);
+      color: var(--fg2);
+      padding: 11px 14px;
+      cursor: pointer;
+      transition: border-color 180ms var(--ease-out), box-shadow 180ms var(--ease-out), background 180ms var(--ease-out), color 180ms var(--ease-out);
+    }
+
+    .qd-segmented-chip.is-active {
+      border-color: rgba(166, 240, 79, 0.62);
+      background: rgba(166, 240, 79, 0.12);
+      color: var(--fg1);
+      box-shadow: 0 0 22px rgba(166, 240, 79, 0.1);
     }
 
     .qd-submit-alert {
@@ -913,6 +1068,99 @@
       gap: 10px;
     }
 
+    .qd-selection-support-card {
+      position: relative;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 16px;
+      align-items: center;
+      padding: 18px;
+      border-radius: 22px;
+      border: 1px solid rgba(166, 240, 79, 0.22);
+      background:
+        radial-gradient(circle at top right, rgba(166, 240, 79, 0.12), transparent 45%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015)),
+        rgba(10, 11, 13, 0.78);
+      box-shadow:
+        inset 0 0 0 1px rgba(166, 240, 79, 0.05),
+        0 0 30px rgba(166, 240, 79, 0.05);
+      cursor: pointer;
+      transition: transform 180ms var(--ease-out), border-color 180ms var(--ease-out), box-shadow 180ms var(--ease-out), background 180ms var(--ease-out);
+    }
+
+    .qd-selection-support-card input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .qd-selection-support-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(166, 240, 79, 0.34);
+      box-shadow:
+        inset 0 0 0 1px rgba(166, 240, 79, 0.06),
+        0 18px 42px rgba(0,0,0,0.26);
+    }
+
+    .qd-selection-support-card.is-selected {
+      border-color: rgba(166, 240, 79, 0.62);
+      box-shadow:
+        inset 0 0 0 1px rgba(166, 240, 79, 0.12),
+        0 0 34px rgba(166, 240, 79, 0.12);
+      background:
+        radial-gradient(circle at top right, rgba(166, 240, 79, 0.18), transparent 45%),
+        linear-gradient(180deg, rgba(166, 240, 79, 0.08), rgba(255, 255, 255, 0.018)),
+        rgba(10, 11, 13, 0.82);
+    }
+
+    .qd-selection-support-badge {
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      font-family: var(--font-display);
+      font-size: 20px;
+      color: var(--acid);
+      background: rgba(166, 240, 79, 0.08);
+      border: 1px solid rgba(166, 240, 79, 0.22);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+
+    .qd-selection-support-card.is-selected .qd-selection-support-badge {
+      background: var(--acid);
+      color: var(--obsidian);
+      box-shadow: 0 0 22px rgba(166, 240, 79, 0.28);
+    }
+
+    .qd-selection-support-copy {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .qd-selection-support-copy span {
+      color: var(--acid);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .qd-selection-support-copy strong {
+      color: var(--fg1);
+      font-family: var(--font-display);
+      font-size: 22px;
+      letter-spacing: -0.02em;
+      line-height: 1.05;
+    }
+
+    .qd-selection-support-copy small {
+      color: var(--fg2);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
     .qd-module-followup {
       margin-top: -2px;
       padding: 14px;
@@ -1224,6 +1472,17 @@
       word-break: break-word;
     }
 
+    .qd-review-value {
+      color: var(--fg3);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .qd-review-stack {
+      display: grid;
+      gap: 6px;
+    }
+
     .qd-success-card {
       width: min(760px, 100%);
       margin: 56px auto 0;
@@ -1473,6 +1732,34 @@
       text-align: right;
     }
 
+    [dir="rtl"] .qd-selection-support-card {
+      direction: rtl;
+      grid-template-columns: minmax(0, 1fr) auto;
+      text-align: right;
+    }
+
+    [dir="rtl"] .qd-selection-support-copy {
+      text-align: right;
+    }
+
+    [dir="rtl"] .qd-profile-launch-card,
+    [dir="rtl"] .qd-profile-panel,
+    [dir="rtl"] .qd-review-item,
+    [dir="rtl"] .qd-review-value {
+      text-align: right;
+    }
+
+    [dir="rtl"] .qd-profile-meta,
+    [dir="rtl"] .qd-bullet-input-row,
+    [dir="rtl"] .qd-segmented-grid {
+      direction: rtl;
+    }
+
+    [dir="rtl"] .qd-bullet-pill,
+    [dir="rtl"] .qd-review-pill {
+      flex-direction: row-reverse;
+    }
+
     [dir="rtl"] .qd-module-card.is-selected {
       background:
         radial-gradient(circle at top right, rgba(166, 240, 79, 0.13), transparent 48%),
@@ -1593,12 +1880,20 @@
         grid-template-columns: 1fr;
       }
 
+      .qd-selection-support-card {
+        grid-template-columns: 1fr;
+      }
+
       .qd-module-group-head {
         align-items: start;
         flex-direction: column;
       }
 
       .qd-color-controls {
+        grid-template-columns: 1fr;
+      }
+
+      .qd-bullet-input-row {
         grid-template-columns: 1fr;
       }
 
@@ -1639,6 +1934,10 @@
       .qd-form-grid,
       .qd-options,
       .qd-summary-stats {
+        grid-template-columns: 1fr;
+      }
+
+      .qd-budget-labels {
         grid-template-columns: 1fr;
       }
 
@@ -1710,7 +2009,7 @@
         heroSubtitle: 'Tell us what you need. We’ll turn it into a system.',
         microcopy: 'Answer what you can. We’ll handle the rest.',
         sideTitle: 'Project intake',
-        sideBody: 'This walkthrough turns your goals, content, technical needs, and launch constraints into one clean project brief for the build team.',
+        sideBody: 'This walkthrough turns your goals, content, business systems, and support needs into one clean project brief for the build team.',
         stepLabel: 'Step',
         ofLabel: 'of',
         previous: 'Previous',
@@ -1741,6 +2040,23 @@
         missingField: 'This field is required.',
         missingFieldAr: 'هذا الحقل مطلوب.',
         requiredNote: 'Complete the required fields in this section before continuing.',
+        phoneRequired: 'Please enter your business phone number.',
+        phoneInvalid: 'Please enter a valid phone number.',
+        emailInvalid: 'Please enter a valid email.',
+        actionRequired: 'Add at least one visitor action.',
+        budgetRequired: 'Please select a budget level.',
+        addAction: 'Add',
+        actionInputHint: 'Press Enter or Add to build your action list.',
+        actionListTitle: 'Visitor actions',
+        startCustomerProfile: 'Start customer profile',
+        customerProfileIntro: 'Build a quick profile so we can shape the site around the right audience.',
+        customerAgeGroup: 'Age group',
+        customerGender: 'Audience type',
+        customerBudgetLevel: 'Spending profile',
+        customerNotes: 'Extra customer details',
+        customerProfileSummary: 'Ideal customer profile',
+        budgetLevelTitle: 'Budget level',
+        budgetSliderHint: 'Choose the investment range that best matches this project.',
         placeholders: {
           businessName: 'QD Real Estate',
           businessEmail: 'name@business.com',
@@ -1748,34 +2064,21 @@
           industry: 'Real estate, hospitality, clinic, retail...',
           businessDescription: 'Describe your business in a few lines.',
           socialLinks: 'Instagram, LinkedIn, Facebook, TikTok...',
-          visitorAction: 'Book a call, request a quote, buy a product...',
           idealCustomer: 'Who do you want the site to attract?',
-          brandAssets: 'Paste logo links, brand guide, font names, Pinterest/Behance references, or any existing brand notes.',
-          styleOther: 'Describe another style direction.',
+          idealCustomerNotes: 'Share any extra context about their needs, location, habits, or expectations.',
           colorsToAvoid: 'Mention any colors you do not want us to use.',
-          pagesOther: 'Any other pages you need?',
-          productCount: 'Approximate number of products or services.',
           languagesNeeded: 'English, Arabic, French...',
           customFeatures: 'List any custom features, flows, or integrations.',
-          budgetRange: 'Type your budget or range in AED.',
-          launchDate: 'Target launch date',
-          inspirationSites: 'Paste links to websites you like.',
-          competitors: 'Paste competitor names or website links.',
-          domainName: 'yourbrand.com',
-          existingWebsiteLink: 'https://yourwebsite.com',
+          budgetRange: 'Choose your preferred budget level.',
           goalOther: 'Tell us another website goal.'
         },
         stepDescriptions: {
           business: 'Website Project Questionnaire. Please fill in as much detail as possible. This helps us build the right solution for your business.',
-          goals: 'Define what the website should do, who it should reach, and what action matters most.',
-          branding: 'Share your existing visual identity or point us toward the direction you want.',
-          content: 'Map the pages, content readiness, and legal pages required for launch.',
+          goals: 'Define what the website should do and who it should reach.',
+          branding: 'Share your existing visual identity, preferred colors, and content readiness.',
           features: 'List the integrations, languages, and custom functionality your build needs.',
-          scope: 'Help us understand budget, timing, and how urgent the project is.',
-          competitors: 'Show us what you like and who you are competing with.',
-          technical: 'Tell us about your domain and whether an existing site is already live.',
+          budget: 'Set the investment range for this build.',
           support: 'Set expectations for post-launch care and support.',
-          services: 'Flag any adjacent services you want bundled into the project.'
         }
       },
       ar: {
@@ -1786,7 +2089,7 @@
         heroSubtitle: 'أخبرنا بما تحتاجه، وسنحوله إلى نظام جاهز.',
         microcopy: 'أجب على ما تستطيع، وسنتولى الباقي.',
         sideTitle: 'استقبال المشروع',
-        sideBody: 'هذا النموذج يجمع أهدافك، والمحتوى، والاحتياجات التقنية، ومتطلبات الإطلاق في موجز مشروع واضح لفريق التنفيذ.',
+        sideBody: 'هذا النموذج يجمع أهدافك، والمحتوى، وأنظمة العمل، واحتياجات الدعم في موجز مشروع واضح لفريق التنفيذ.',
         stepLabel: 'الخطوة',
         ofLabel: 'من',
         previous: 'السابق',
@@ -1817,6 +2120,23 @@
         missingField: 'هذا الحقل مطلوب.',
         missingFieldAr: 'هذا الحقل مطلوب.',
         requiredNote: 'أكمل الحقول المطلوبة في هذا القسم قبل المتابعة.',
+        phoneRequired: 'يرجى إدخال رقم الهاتف للتواصل.',
+        phoneInvalid: 'يرجى إدخال رقم هاتف صحيح.',
+        emailInvalid: 'يرجى إدخال بريد إلكتروني صحيح.',
+        actionRequired: 'يرجى إضافة إجراء واحد على الأقل للزوار.',
+        budgetRequired: 'يرجى اختيار مستوى الميزانية.',
+        addAction: 'إضافة',
+        actionInputHint: 'اضغط Enter أو إضافة لبناء قائمة الإجراءات.',
+        actionListTitle: 'إجراءات الزوار',
+        startCustomerProfile: 'ابدأ تحديد العميل المثالي',
+        customerProfileIntro: 'أنشئ ملفًا سريعًا للعميل حتى نصمم الموقع للجمهور المناسب.',
+        customerAgeGroup: 'الفئة العمرية',
+        customerGender: 'نوع الجمهور',
+        customerBudgetLevel: 'القدرة الشرائية',
+        customerNotes: 'تفاصيل إضافية عن العميل',
+        customerProfileSummary: 'ملف العميل المثالي',
+        budgetLevelTitle: 'مستوى الميزانية',
+        budgetSliderHint: 'اختر نطاق الاستثمار الأقرب لهذا المشروع.',
         placeholders: {
           businessName: 'QD Real Estate',
           businessEmail: 'name@business.com',
@@ -1824,33 +2144,21 @@
           industry: 'عقارات، ضيافة، عيادة، تجارة...',
           businessDescription: 'صف نشاطك التجاري باختصار.',
           socialLinks: 'إنستغرام، لينكدإن، فيسبوك، تيك توك...',
-          visitorAction: 'احجز مكالمة، اطلب عرض سعر، اشترِ منتجاً...',
           idealCustomer: 'من هو العميل الذي تريد أن يجذبه الموقع؟',
-          brandAssets: 'أضف روابط الشعار، دليل الهوية، أسماء الخطوط، مراجع Pinterest/Behance، أو أي ملاحظات عن العلامة الحالية.',
-          styleOther: 'اشرح أسلوباً آخر تفضله.',
+          idealCustomerNotes: 'أضف أي تفاصيل إضافية عن احتياجات العميل أو موقعه أو عاداته أو توقعاته.',
           colorsToAvoid: 'اذكر أي ألوان لا تريد استخدامها في التصميم.',
-          pagesOther: 'هل تحتاج صفحات أخرى؟',
-          productCount: 'عدد تقريبي للمنتجات أو الخدمات.',
           languagesNeeded: 'العربية، الإنجليزية، الفرنسية...',
           customFeatures: 'اذكر أي وظائف أو تدفقات أو تكاملات مخصصة.',
-          launchDate: 'تاريخ الإطلاق المستهدف',
-          inspirationSites: 'أضف روابط المواقع التي تعجبك.',
-          competitors: 'أضف أسماء المنافسين أو روابط مواقعهم.',
-          domainName: 'yourbrand.com',
-          existingWebsiteLink: 'https://yourwebsite.com',
+          budgetRange: 'اختر مستوى الميزانية المناسب.',
           goalOther: 'اذكر هدفاً آخر للموقع.'
         },
         stepDescriptions: {
           business: 'استبيان مشروع الموقع الإلكتروني. يرجى ملء أكبر قدر ممكن من التفاصيل. هذا يساعدنا على بناء الحل المناسب لعملك.',
-          goals: 'حدد ما الذي يجب أن يحققه الموقع، ومن الذي يجب أن يخاطبه، وما الإجراء الأهم المطلوب من الزائر.',
-          branding: 'شارك هويتك الحالية أو وجّهنا نحو الطابع الذي تريده.',
-          content: 'حدد الصفحات المطلوبة، وجهوزية المحتوى، والصفحات القانونية اللازمة للإطلاق.',
+          goals: 'حدد ما الذي يجب أن يحققه الموقع ومن هو الجمهور الذي يجب أن يخاطبه.',
+          branding: 'شارك هويتك الحالية وألوانك المفضلة ومدى جاهزية المحتوى.',
           features: 'اذكر التكاملات، واللغات، والوظائف المخصصة التي يحتاجها المشروع.',
-          scope: 'ساعدنا على فهم الميزانية، والتوقيت، ومدى استعجال المشروع.',
-          competitors: 'اعرض علينا المواقع التي تعجبك ومن تنافسهم.',
-          technical: 'أخبرنا عن الدومين وما إذا كان لديك موقع قائم حالياً.',
+          budget: 'حدد نطاق الاستثمار المناسب لهذا المشروع.',
           support: 'حدد مستوى الرعاية والدعم الذي تفضله بعد الإطلاق.',
-          services: 'أخبرنا بالخدمات الإضافية التي تريد ضمها للمشروع.'
         }
       }
     };
@@ -1899,13 +2207,8 @@
           { value: 'other', label: { en: 'Other', ar: 'أخرى' }, hasOtherText: true, otherPlaceholderKey: 'goalOther' }
         ]
       },
-      visitorAction: {
-        type: 'textarea',
-        label: { en: 'What is the main action you want visitors to take?', ar: 'ما الإجراء الرئيسي الذي تريد من الزوار اتخاذه؟' },
-        placeholderKey: 'visitorAction'
-      },
       idealCustomer: {
-        type: 'textarea',
+        type: 'customerProfile',
         label: { en: 'Who is your ideal customer?', ar: 'من هو عميلك المثالي؟' },
         placeholderKey: 'idealCustomer'
       },
@@ -1921,25 +2224,8 @@
         type: 'radio',
         label: { en: 'Do you already have brand colors and fonts?', ar: 'هل لديك ألوان وخطوط للعلامة التجارية؟' },
         options: [
-          { value: 'yes', label: { en: 'Yes', ar: 'نعم' }, note: { en: 'Please list them below', ar: 'يرجى إدراجها أدناه' } },
-          { value: 'no', label: { en: 'No', ar: 'لا' }, note: { en: 'Choose your preferred style', ar: 'اختر أسلوبك المفضل' } }
-        ]
-      },
-      brandAssets: {
-        type: 'textarea',
-        label: { en: 'Brand assets or references', ar: 'أصول أو مراجع العلامة التجارية' },
-        placeholderKey: 'brandAssets'
-      },
-      preferredStyle: {
-        type: 'checkbox',
-        label: { en: 'Preferred style (if no existing brand)', ar: 'الأسلوب المفضل (إذا لم تكن لديك علامة تجارية حالية)' },
-        options: [
-          { value: 'clean_simple', label: { en: 'Clean & simple', ar: 'نظيف وبسيط' } },
-          { value: 'dark_modern', label: { en: 'Dark & modern', ar: 'داكن وعصري' } },
-          { value: 'soft_calm', label: { en: 'Soft & calm', ar: 'ناعم وهادئ' } },
-          { value: 'bold_eye_catching', label: { en: 'Bold & eye-catching', ar: 'جريء ولافت للنظر' } },
-          { value: 'elegant_premium', label: { en: 'Elegant & premium', ar: 'أنيق وراقي' } },
-          { value: 'other', label: { en: 'Other', ar: 'أخرى' }, hasOtherText: true, otherPlaceholderKey: 'styleOther' }
+          { value: 'yes', label: { en: 'Yes', ar: 'نعم' }, note: { en: 'Great — we will build around them.', ar: 'ممتاز — سنبني التصميم اعتمادًا عليها.' } },
+          { value: 'no', label: { en: 'No', ar: 'لا' }, note: { en: 'We can help shape the visual direction.', ar: 'يمكننا مساعدتك في تحديد الاتجاه البصري.' } }
         ]
       },
       preferredColors: {
@@ -1951,45 +2237,14 @@
         label: { en: 'Colors to avoid', ar: 'ألوان يجب تجنبها' },
         placeholderKey: 'colorsToAvoid'
       },
-      neededPages: {
-        type: 'checkbox',
-        label: { en: 'Which pages do you need? (select all that apply)', ar: 'ما الصفحات التي تحتاجها؟ (اختر كل ما ينطبق)' },
-        options: [
-          { value: 'home', label: { en: 'Home', ar: 'الرئيسية' } },
-          { value: 'about', label: { en: 'About', ar: 'من نحن' } },
-          { value: 'services_products', label: { en: 'Services / Products', ar: 'الخدمات / المنتجات' } },
-          { value: 'pricing', label: { en: 'Pricing', ar: 'الأسعار' } },
-          { value: 'contact', label: { en: 'Contact', ar: 'تواصل معنا' } },
-          { value: 'gallery_portfolio', label: { en: 'Gallery / Portfolio', ar: 'المعرض / المحفظة' } },
-          { value: 'faq', label: { en: 'FAQ', ar: 'الأسئلة الشائعة' } },
-          { value: 'blog_news_offers', label: { en: 'Blog / News / Offers', ar: 'المدونة / الأخبار / العروض' } },
-          { value: 'other', label: { en: 'Other', ar: 'أخرى' }, hasOtherText: true, otherPlaceholderKey: 'pagesOther' }
-        ]
-      },
-      productCount: {
-        type: 'counter',
-        label: { en: 'How many products or services do you offer?', ar: 'كم عدد المنتجات أو الخدمات التي تقدمها؟' },
-        min: 0,
-        max: 999,
-        step: 1
-      },
       contentReadiness: {
         type: 'radio',
         label: { en: 'Do you already have content and images ready?', ar: 'هل لديك محتوى وصور جاهزة؟' },
         options: [
-          { value: 'yes_provide_everything', label: { en: 'Yes — I will provide everything', ar: 'نعم — سأوفر كل شيء' } },
-          { value: 'no_need_help', label: { en: 'No — I need help with content', ar: 'لا — أحتاج مساعدة في المحتوى' } },
-          { value: 'mix_of_both', label: { en: 'Mix of both', ar: 'مزيج من الاثنين' } }
-        ]
-      },
-      legalPages: {
-        type: 'checkbox',
-        label: { en: 'Are legal pages required?', ar: 'هل الصفحات القانونية مطلوبة؟' },
-        options: [
-          { value: 'privacy_policy', label: { en: 'Privacy Policy', ar: 'سياسة الخصوصية' } },
-          { value: 'terms_conditions', label: { en: 'Terms & Conditions', ar: 'الشروط والأحكام' } },
-          { value: 'not_sure', label: { en: 'Not sure', ar: 'غير متأكد' } },
-          { value: 'not_required', label: { en: 'Not required', ar: 'غير مطلوبة' } }
+          { value: 'yes_everything_ready', label: { en: 'Yes, everything is ready', ar: 'نعم، كل شيء جاهز' } },
+          { value: 'some_content_ready', label: { en: 'Some content is ready', ar: 'بعض المحتوى جاهز' } },
+          { value: 'need_help_with_content', label: { en: 'No, I need help with content', ar: 'لا، أحتاج مساعدة في المحتوى' } },
+          { value: 'not_sure_yet', label: { en: 'Not sure yet', ar: 'لست متأكدًا بعد' } }
         ]
       },
       requiredFeatures: {
@@ -2207,7 +2462,7 @@
             }
           },
           {
-            value: 'not_sure',
+            value: 'not_sure_recommend_stack',
             tier: 'helper',
             icon: '?',
             label: { en: 'Not sure — recommend the right stack', ar: 'غير متأكد — اقترحوا النظام المناسب' },
@@ -2233,67 +2488,9 @@
         placeholderKey: 'customFeatures'
       },
       budgetRange: {
-        type: 'text',
-        label: { en: 'Budget range', ar: 'النطاق الميزانية' },
+        type: 'budgetSlider',
+        label: { en: 'Budget range', ar: 'نطاق الميزانية' },
         placeholderKey: 'budgetRange'
-      },
-      launchDate: {
-        type: 'date',
-        label: { en: 'Target launch date', ar: 'تاريخ الإطلاق المستهدف' },
-        placeholderKey: 'launchDate'
-      },
-      urgency: {
-        type: 'radio',
-        label: { en: 'Urgency', ar: 'مدى الاستعجال' },
-        options: [
-          { value: 'flexible', label: { en: 'Flexible', ar: 'مرن' } },
-          { value: 'moderate', label: { en: 'Moderate', ar: 'متوسط' } },
-          { value: 'urgent', label: { en: 'Urgent', ar: 'عاجل' } }
-        ]
-      },
-      workedWithAgency: {
-        type: 'radio',
-        label: { en: 'Have you worked with a web agency before?', ar: 'هل سبق لك العمل مع وكالة ويب؟' },
-        options: [
-          { value: 'yes', label: { en: 'Yes', ar: 'نعم' } },
-          { value: 'no', label: { en: 'No', ar: 'لا' } }
-        ]
-      },
-      inspirationSites: {
-        type: 'textarea',
-        label: { en: 'Websites you like', ar: 'مواقع إلكترونية تعجبك' },
-        placeholderKey: 'inspirationSites'
-      },
-      competitors: {
-        type: 'textarea',
-        label: { en: 'Main competitors', ar: 'المنافسون الرئيسيون' },
-        placeholderKey: 'competitors'
-      },
-      hasDomain: {
-        type: 'radio',
-        label: { en: 'Do you have a domain? (e.g. yourname.com)', ar: 'هل لديك نطاق (دومين)؟ (مثال: yourname.com)' },
-        options: [
-          { value: 'yes', label: { en: 'Yes', ar: 'نعم' }, note: { en: 'Domain name', ar: 'اسم النطاق' } },
-          { value: 'no', label: { en: 'No', ar: 'لا' }, note: { en: 'We can register one for you', ar: 'يمكننا تسجيل واحد لك' } }
-        ]
-      },
-      domainName: {
-        type: 'textarea',
-        label: { en: 'Domain name', ar: 'اسم النطاق' },
-        placeholderKey: 'domainName'
-      },
-      hasExistingWebsite: {
-        type: 'radio',
-        label: { en: 'Existing website?', ar: 'هل لديك موقع إلكتروني حالي؟' },
-        options: [
-          { value: 'yes', label: { en: 'Yes', ar: 'نعم' }, note: { en: 'Link', ar: 'الرابط' } },
-          { value: 'no', label: { en: 'No', ar: 'لا' } }
-        ]
-      },
-      existingWebsiteLink: {
-        type: 'textarea',
-        label: { en: 'Existing website link', ar: 'الرابط' },
-        placeholderKey: 'existingWebsiteLink'
       },
       supportLevel: {
         type: 'radio',
@@ -2304,70 +2501,120 @@
           { value: 'regular_care', label: { en: 'Regular care', ar: 'رعاية منتظمة' }, note: { en: 'Weekly updates', ar: 'تحديثات أسبوعية' } },
           { value: 'full_support', label: { en: 'Full support', ar: 'دعم كامل' }, note: { en: 'We handle everything', ar: 'نتولى كل شيء' } }
         ]
-      },
-      optionalServices: {
-        type: 'checkbox',
-        label: { en: 'Are you interested in any of the following?', ar: 'هل أنت مهتم بأي مما يلي؟' },
-        options: [
-          { value: 'logo_design', label: { en: 'Logo design', ar: 'تصميم الشعار' } },
-          { value: 'social_media_setup_management', label: { en: 'Social media setup & management', ar: 'إعداد وسائل التواصل الاجتماعي وإدارتها' } },
-          { value: 'google_business_optimization', label: { en: 'Google Business optimization', ar: 'تحسين جوجل بزنس' } },
-          { value: 'product_photography', label: { en: 'Product photography', ar: 'تصوير المنتجات' } },
-          { value: 'content_writing', label: { en: 'Content writing', ar: 'كتابة المحتوى' } },
-          { value: 'paid_ads', label: { en: 'Paid ads', ar: 'الإعلانات المدفوعة' }, note: { en: 'Google / Meta', ar: 'جوجل / ميتا' } },
-          { value: 'promotional_videos', label: { en: 'Promotional videos', ar: 'مقاطع الفيديو الترويجية' } },
-          { value: 'multi_location_setup', label: { en: 'Multi-location setup', ar: 'إعداد متعدد المواقع' } }
-        ]
       }
     };
 
     const steps = [
       { id: 'business', title: { en: 'Business Information', ar: 'معلومات النشاط التجاري' }, fields: ['businessName', 'businessEmail', 'businessPhone', 'industry', 'businessDescription', 'socialLinks'] },
-      { id: 'goals', title: { en: 'Website Goals', ar: 'أهداف الموقع الإلكتروني' }, fields: ['mainPurpose', 'visitorAction', 'idealCustomer'] },
-      { id: 'branding', title: { en: 'Branding & Design', ar: 'العلامة التجارية والتصميم' }, fields: ['hasLogo', 'hasBrandAssets', 'preferredColors', 'colorsToAvoid', 'preferredStyle'] },
-      { id: 'content', title: { en: 'Website Pages & Content', ar: 'صفحات الموقع والمحتوى' }, fields: ['neededPages', 'productCount', 'contentReadiness', 'legalPages'] },
+      { id: 'goals', title: { en: 'Goals & Ideal Customer', ar: 'الأهداف والعميل المثالي' }, fields: ['mainPurpose', 'idealCustomer'] },
+      { id: 'branding', title: { en: 'Branding', ar: 'الهوية البصرية' }, fields: ['hasLogo', 'hasBrandAssets', 'preferredColors', 'colorsToAvoid', 'contentReadiness'] },
       { id: 'features', title: { en: 'Features & Functionality', ar: 'المميزات والوظائف' }, fields: ['requiredFeatures', 'customFeatures'] },
-      { id: 'scope', title: { en: 'Project Scope & Timeline', ar: 'نطاق المشروع والجدول الزمني' }, fields: ['budgetRange', 'launchDate', 'urgency', 'workedWithAgency'] },
-      { id: 'competitors', title: { en: 'Competitors & Inspiration', ar: 'المنافسون والإلهام' }, fields: ['inspirationSites', 'competitors'] },
-      { id: 'technical', title: { en: 'Technical Setup', ar: 'الإعداد التقني' }, fields: ['hasDomain', 'domainName', 'hasExistingWebsite', 'existingWebsiteLink'] },
+      { id: 'budget', title: { en: 'Budget', ar: 'الميزانية' }, fields: ['budgetRange'] },
       { id: 'support', title: { en: 'Maintenance & Support', ar: 'صيانة الموقع والدعم' }, fields: ['supportLevel'] },
-      { id: 'services', title: { en: 'Optional Services', ar: 'الخدمات الاختيارية' }, fields: ['optionalServices'] },
       { id: 'review', title: { en: 'Review & Submit', ar: 'المراجعة والإرسال' }, fields: [] }
     ];
 
+    const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const PHONE_REGEX = /^\+?\d{7,15}$/;
+    const budgetRangeOptions = [
+      { value: 1, label: { en: 'AED 1,000 – 3,000', ar: '1,000 - 3,000 درهم' } },
+      { value: 2, label: { en: 'AED 3,000 – 6,000', ar: '3,000 - 6,000 درهم' } },
+      { value: 3, label: { en: 'AED 6,000 – 12,000', ar: '6,000 - 12,000 درهم' } },
+      { value: 4, label: { en: 'AED 12,000 – 25,000', ar: '12,000 - 25,000 درهم' } },
+      { value: 5, label: { en: 'AED 25,000+', ar: '+25,000 درهم' } }
+    ];
+    const idealCustomerAgeOptions = [
+      { value: 'below_18', label: { en: 'Below 18', ar: 'أقل من 18' } },
+      { value: '18-24', label: { en: '18–24', ar: '18-24' } },
+      { value: '25-34', label: { en: '25–34', ar: '25-34' } },
+      { value: '35-44', label: { en: '35–44', ar: '35-44' } },
+      { value: '45-54', label: { en: '45–54', ar: '45-54' } },
+      { value: '55+', label: { en: '55+', ar: '+55' } }
+    ];
+    const idealCustomerGenderOptions = [
+      { value: 'any', label: { en: 'Any', ar: 'أي' } },
+      { value: 'mostly_men', label: { en: 'Mostly Men', ar: 'غالبًا رجال' } },
+      { value: 'mostly_women', label: { en: 'Mostly Women', ar: 'غالبًا نساء' } },
+      { value: 'families', label: { en: 'Families', ar: 'عائلات' } },
+      { value: 'businesses_b2b', label: { en: 'Businesses / B2B', ar: 'شركات / B2B' } }
+    ];
+    const idealCustomerBudgetOptions = [
+      { value: 'budget_conscious', label: { en: 'Budget-conscious', ar: 'حساس للسعر' } },
+      { value: 'mid_range', label: { en: 'Mid-range', ar: 'متوسط' } },
+      { value: 'premium', label: { en: 'Premium', ar: 'بريميوم' } },
+      { value: 'luxury_high_ticket', label: { en: 'Luxury / High-ticket', ar: 'فاخر / قيمة عالية' } }
+    ];
+    const persistedAnswerKeys = [
+      ...Object.keys(fieldCatalog),
+      'mainPurpose__other',
+      'requiredFeatures__multi_language_languages',
+      'idealCustomerProfileStarted',
+      'idealCustomerAgeGroup',
+      'idealCustomerGender',
+      'idealCustomerBudgetLevel',
+      'idealCustomerNotes',
+      'budgetRangeValue',
+      'budgetRangeLabel'
+    ];
+
     const getEmptyValue = (field) => {
-      if (field.type === 'checkbox' || field.type === 'colorPalette') return [];
+      if (field.type === 'checkbox' || field.type === 'colorPalette' || field.type === 'bulletList') return [];
       if (field.type === 'counter') return '';
       return '';
     };
     const optionalFieldIds = new Set([
       'socialLinks',
       'idealCustomer',
-      'brandAssets',
       'preferredColors',
       'colorsToAvoid',
-      'productCount',
       'languagesNeeded',
-      'customFeatures',
-      'inspirationSites',
-      'competitors',
-      'optionalServices'
+      'customFeatures'
     ]);
-    const embeddedFieldIds = new Set(['domainName', 'existingWebsiteLink']);
-    const pasteFieldIds = new Set(['inspirationSites', 'socialLinks']);
+    const embeddedFieldIds = new Set([]);
+    const pasteFieldIds = new Set(['socialLinks']);
 
-    const isVisibleField = (fieldId, formData) => {
-      if (fieldId === 'domainName') return formData.hasDomain === 'yes';
-      if (fieldId === 'existingWebsiteLink') return formData.hasExistingWebsite === 'yes';
-      return true;
-    };
+    const isVisibleField = () => true;
 
     const isFieldRequired = (fieldId, formData) => {
       if (!isVisibleField(fieldId, formData)) return false;
-      if (fieldId === 'domainName') return formData.hasDomain === 'yes';
-      if (fieldId === 'existingWebsiteLink') return formData.hasExistingWebsite === 'yes';
       return !optionalFieldIds.has(fieldId);
     };
+
+    const sanitizePhoneValue = (value) => {
+      if (!value) return '';
+      const trimmed = String(value).trim();
+      const hasPlus = trimmed.startsWith('+');
+      const digits = trimmed.replace(/\D+/g, '');
+      return `${hasPlus ? '+' : ''}${digits}`;
+    };
+
+    const getBudgetRangeLabel = (value, language) => {
+      const match = budgetRangeOptions.find((option) => option.value === Number(value));
+      return match ? match.label[language] : '';
+    };
+
+    const getOptionLabel = (options, value, language) => {
+      const match = options.find((option) => option.value === value);
+      return match ? match.label[language] : '';
+    };
+
+    const getIdealCustomerSummary = (formData, language) => {
+      const parts = [];
+      const ageGroup = getOptionLabel(idealCustomerAgeOptions, formData.idealCustomerAgeGroup, language);
+      const gender = getOptionLabel(idealCustomerGenderOptions, formData.idealCustomerGender, language);
+      const budgetLevel = getOptionLabel(idealCustomerBudgetOptions, formData.idealCustomerBudgetLevel, language);
+      const notes = formData.idealCustomerNotes?.trim();
+      if (ageGroup) parts.push(`${text[language].customerAgeGroup}: ${ageGroup}`);
+      if (gender) parts.push(`${text[language].customerGender}: ${gender}`);
+      if (budgetLevel) parts.push(`${text[language].customerBudgetLevel}: ${budgetLevel}`);
+      if (notes) parts.push(`${text[language].customerNotes}: ${notes}`);
+      return parts;
+    };
+
+    const hasSelectionSupport = (formData) => (
+      Array.isArray(formData.requiredFeatures) &&
+      formData.requiredFeatures.includes('not_sure_recommend_stack')
+    );
 
     const isFieldAnswered = (field, formData) => {
       if (!isVisibleField(field.id, formData)) return true;
@@ -2387,9 +2634,22 @@
         }
         return true;
       }
+      if (field.type === 'bulletList') {
+        return Array.isArray(formData.visitorActions) && formData.visitorActions.length > 0;
+      }
+      if (field.type === 'customerProfile') {
+        return getIdealCustomerSummary(formData, 'en').length > 0 || getIdealCustomerSummary(formData, 'ar').length > 0;
+      }
+      if (field.type === 'budgetSlider') {
+        return Number.isInteger(Number(formData.budgetRangeValue)) && Number(formData.budgetRangeValue) > 0;
+      }
+      if (field.id === 'businessPhone') {
+        const phoneValue = sanitizePhoneValue(value);
+        return PHONE_REGEX.test(phoneValue);
+      }
       if (field.type === 'email') {
         const emailValue = typeof value === 'string' ? value.trim() : '';
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue);
+        return EMAIL_REGEX.test(emailValue);
       }
       return typeof value === 'string' ? value.trim().length > 0 : Boolean(value);
     };
@@ -2405,6 +2665,18 @@
 
       if (field.type === 'colorPalette') {
         return Array.isArray(value) && value.length > 0;
+      }
+
+      if (field.type === 'bulletList') {
+        return Array.isArray(formData.visitorActions) && formData.visitorActions.length > 0;
+      }
+
+      if (field.type === 'customerProfile') {
+        return getIdealCustomerSummary(formData, 'en').length > 0 || Boolean(formData.idealCustomerProfileStarted);
+      }
+
+      if (field.type === 'budgetSlider') {
+        return Number.isInteger(Number(formData.budgetRangeValue)) && Number(formData.budgetRangeValue) > 0;
       }
 
       if (field.type === 'checkbox') {
@@ -2431,8 +2703,10 @@
       const [isSubmitting, setIsSubmitting] = useState(false);
       const [submitError, setSubmitError] = useState('');
       const [showStepValidation, setShowStepValidation] = useState(false);
+      const [errors, setErrors] = useState({});
       const [activeColor, setActiveColor] = useState('#A6F04F');
       const [hexInput, setHexInput] = useState('#A6F04F');
+      const [visitorActionDraft, setVisitorActionDraft] = useState('');
       const [formData, setFormData] = useState(() => {
         const initial = {};
         Object.entries(fieldCatalog).forEach(([key, field]) => {
@@ -2444,6 +2718,14 @@
           }
         });
         initial.requiredFeatures__multi_language_languages = '';
+        initial.visitorActions = [];
+        initial.idealCustomerProfileStarted = false;
+        initial.idealCustomerAgeGroup = '';
+        initial.idealCustomerGender = '';
+        initial.idealCustomerBudgetLevel = '';
+        initial.idealCustomerNotes = '';
+        initial.budgetRangeValue = '';
+        initial.budgetRangeLabel = '';
         return initial;
       });
 
@@ -2577,9 +2859,126 @@
       const progressPercent = totalAnswerableFields ? (answeredFieldsCount / totalAnswerableFields) * 100 : 0;
 
       const updateField = (fieldId, value) => {
-        const nextValue = fieldId === 'budgetRange' ? value.replace(/\D+/g, '') : value;
+        const nextValue = fieldId === 'businessPhone'
+          ? sanitizePhoneValue(value)
+          : value;
         setFormData((prev) => ({ ...prev, [fieldId]: nextValue }));
+        setErrors((prev) => {
+          if (!prev[fieldId]) return prev;
+          const nextErrors = { ...prev };
+          delete nextErrors[fieldId];
+          return nextErrors;
+        });
         setShowStepValidation(false);
+      };
+
+      const updateBudgetRange = (value) => {
+        const budgetRangeLabel = getBudgetRangeLabel(value, language);
+        setFormData((prev) => ({
+          ...prev,
+          budgetRange: budgetRangeLabel,
+          budgetRangeLabel,
+          budgetRangeValue: String(value)
+        }));
+        setErrors((prev) => {
+          if (!prev.budgetRange) return prev;
+          const nextErrors = { ...prev };
+          delete nextErrors.budgetRange;
+          return nextErrors;
+        });
+        setShowStepValidation(false);
+      };
+
+      const scrollToInvalidField = (fieldId) => {
+        const el = document.querySelector(`[data-field-id="${fieldId}"]`) || document.getElementById(fieldId);
+        if (!el) return;
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const input = el.querySelector('input, textarea, select, button') || el;
+        setTimeout(() => input.focus?.({ preventScroll: true }), 350);
+      };
+
+      const validateFields = (fields) => {
+        const nextErrors = {};
+        let firstInvalidFieldId = null;
+        const registerError = (fieldId, message) => {
+          if (!nextErrors[fieldId]) nextErrors[fieldId] = message;
+          if (!firstInvalidFieldId) firstInvalidFieldId = fieldId;
+        };
+
+        fields.forEach((field) => {
+          if (!isVisibleField(field.id, formData)) return;
+          const required = isFieldRequired(field.id, formData);
+          const value = formData[field.id];
+          const trimmed = typeof value === 'string' ? value.trim() : value;
+
+          if (field.id === 'businessEmail') {
+            if (required && !trimmed) registerError(field.id, locale.missingField);
+            else if (trimmed && !EMAIL_REGEX.test(trimmed)) registerError(field.id, locale.emailInvalid);
+            return;
+          }
+
+          if (field.id === 'businessPhone') {
+            const cleanedPhone = sanitizePhoneValue(trimmed || '');
+            if (required && !cleanedPhone) registerError(field.id, locale.phoneRequired);
+            else if (cleanedPhone && !PHONE_REGEX.test(cleanedPhone)) registerError(field.id, locale.phoneInvalid);
+            return;
+          }
+
+          if (field.type === 'bulletList') {
+            if (required && (!Array.isArray(formData.visitorActions) || formData.visitorActions.length === 0)) {
+              registerError(field.id, locale.actionRequired);
+            }
+            return;
+          }
+
+          if (field.type === 'budgetSlider') {
+            if (required && !formData.budgetRangeValue) registerError(field.id, locale.budgetRequired);
+            return;
+          }
+
+          if (field.type === 'checkbox') {
+            if (required && (!Array.isArray(value) || value.length === 0)) {
+              registerError(field.id, locale.missingField);
+              return;
+            }
+            if (field.id === 'requiredFeatures' && Array.isArray(value) && value.includes('multi_language') && !formData.requiredFeatures__multi_language_languages?.trim()) {
+              registerError('requiredFeatures__multi_language_languages', locale.missingLanguages);
+            }
+            const selectedOtherOption = field.options?.find((option) => option.hasOtherText && Array.isArray(value) && value.includes(option.value));
+            if (selectedOtherOption && !formData[`${field.id}__other`]?.trim()) {
+              registerError(`${field.id}__other`, locale.missingField);
+            }
+            return;
+          }
+
+          if (field.type === 'radio') {
+            if (required && !value) registerError(field.id, locale.missingField);
+            if (field.id === 'hasDomain' && value === 'yes' && !formData.domainName?.trim()) {
+              registerError('domainName', locale.missingField);
+            }
+            if (field.id === 'hasExistingWebsite' && value === 'yes' && !formData.existingWebsiteLink?.trim()) {
+              registerError('existingWebsiteLink', locale.missingField);
+            }
+            return;
+          }
+
+          if (field.type === 'counter') {
+            if (required && (value === '' || value === null || value === undefined)) {
+              registerError(field.id, locale.missingField);
+            }
+            return;
+          }
+
+          if (required && !trimmed) {
+            registerError(field.id, locale.missingField);
+          }
+        });
+
+        return {
+          valid: Object.keys(nextErrors).length === 0,
+          errors: nextErrors,
+          firstInvalidFieldId
+        };
       };
 
       const toggleCheckbox = (fieldId, value) => {
@@ -2598,6 +2997,12 @@
           }
           return { ...prev, [fieldId]: next };
         });
+        setErrors((prev) => {
+          const nextErrors = { ...prev };
+          delete nextErrors[fieldId];
+          if (fieldId === 'requiredFeatures') delete nextErrors.requiredFeatures__multi_language_languages;
+          return nextErrors;
+        });
         setShowStepValidation(false);
       };
 
@@ -2605,16 +3010,21 @@
         if (index <= currentStep || stepCompletion[index]) {
           setCurrentStep(index);
           setShowStepValidation(false);
+          setErrors({});
           return;
         }
         setShowStepValidation(true);
       };
 
       const goNextStep = () => {
-        if (!currentStepComplete) {
+        const validation = validateFields(activeStepFields);
+        if (!validation.valid) {
+          setErrors(validation.errors);
           setShowStepValidation(true);
+          scrollToInvalidField(validation.firstInvalidFieldId);
           return;
         }
+        setErrors({});
         setCurrentStep((step) => step + 1);
         setShowStepValidation(false);
       };
@@ -2634,11 +3044,24 @@
         if (field.type === 'colorPalette') {
           return Array.isArray(value) && value.length ? value.join(', ') : '';
         }
-        if (field.type === 'checkbox') {
-          if (!Array.isArray(value) || value.length === 0) return '';
-          return value.map((item) => {
-            const option = field.options.find((entry) => entry.value === item);
-            const base = option ? option.label[language] : item;
+        if (field.type === 'bulletList') {
+          return Array.isArray(formData.visitorActions) ? formData.visitorActions.join(language === 'ar' ? '، ' : ', ') : '';
+        }
+        if (field.type === 'customerProfile') {
+          return getIdealCustomerSummary(formData, language).join('\n');
+        }
+        if (field.type === 'budgetSlider') {
+          return getBudgetRangeLabel(formData.budgetRangeValue, language) || formData.budgetRangeLabel;
+        }
+      if (field.type === 'checkbox') {
+        if (!Array.isArray(value) || value.length === 0) return '';
+        const visibleItems = field.id === 'requiredFeatures'
+          ? value.filter((item) => item !== 'not_sure_recommend_stack')
+          : value;
+        if (!visibleItems.length) return '';
+        return visibleItems.map((item) => {
+          const option = field.options.find((entry) => entry.value === item);
+          const base = option ? option.label[language] : item;
             if (field.id === 'requiredFeatures' && item === 'multi_language') {
               const selectedLanguages = formData.requiredFeatures__multi_language_languages?.trim();
               return selectedLanguages ? `${base}: ${selectedLanguages}` : base;
@@ -2655,33 +3078,126 @@
           const option = field.options.find((entry) => entry.value === value);
           return option ? option.label[language] : value;
         }
-        return value;
+        return typeof value === 'string' ? value.trim() : value;
+      };
+
+      const reviewSections = useMemo(() => (
+        steps
+          .filter((step) => step.id !== 'review')
+          .map((step) => {
+            const answeredFields = step.fields
+              .map((fieldId) => ({ id: fieldId, ...fieldCatalog[fieldId] }))
+              .filter((field) => isVisibleField(field.id, formData) && hasFieldValue(field, formData));
+            if (step.id === 'features' && hasSelectionSupport(formData)) {
+              answeredFields.unshift({
+                id: 'selectionSupport',
+                label: { en: 'Selection Support', ar: 'الدعم في الاختيار' },
+                type: 'selection-support'
+              });
+            }
+            return answeredFields.length ? { ...step, answeredFields } : null;
+          })
+          .filter(Boolean)
+      ), [formData, language]);
+
+      const buildSubmissionAnswers = () => persistedAnswerKeys.reduce((acc, key) => {
+        const value = formData[key];
+        if (value === undefined || value === null) return acc;
+        if (typeof value === 'string' && !value.trim()) return acc;
+        if (Array.isArray(value) && value.length === 0) return acc;
+        if (typeof value === 'boolean' && value === false) return acc;
+        acc[key] = value;
+        return acc;
+      }, {});
+
+      const addVisitorAction = () => {
+        const nextAction = visitorActionDraft.trim();
+        if (!nextAction) return;
+        setFormData((prev) => {
+          const current = Array.isArray(prev.visitorActions) ? prev.visitorActions : [];
+          if (current.includes(nextAction)) return prev;
+          return { ...prev, visitorActions: [...current, nextAction] };
+        });
+        setVisitorActionDraft('');
+        setErrors((prev) => {
+          if (!prev.visitorAction) return prev;
+          const nextErrors = { ...prev };
+          delete nextErrors.visitorAction;
+          return nextErrors;
+        });
+        setShowStepValidation(false);
+      };
+
+      const removeVisitorAction = (actionToRemove) => {
+        setFormData((prev) => ({
+          ...prev,
+          visitorActions: (Array.isArray(prev.visitorActions) ? prev.visitorActions : []).filter((action) => action !== actionToRemove)
+        }));
+      };
+
+      const renderReviewValue = (field) => {
+        if (field.type === 'selection-support') {
+          return language === 'ar'
+            ? 'غير متأكد — اقترحوا النظام المناسب'
+            : 'Not sure — recommend the right stack';
+        }
+
+        if (field.type === 'bulletList') {
+          const actions = Array.isArray(formData.visitorActions) ? formData.visitorActions : [];
+          return actions.length ? (
+            <div className="qd-review-pill-list">
+              {actions.map((action) => <span key={action} className="qd-review-pill">{action}</span>)}
+            </div>
+          ) : locale.reviewEmpty;
+        }
+
+        if (field.type === 'customerProfile') {
+          const customerSummary = getIdealCustomerSummary(formData, language);
+          return customerSummary.length ? (
+            <div className="qd-review-stack">
+              {customerSummary.map((item) => <span key={item}>{item}</span>)}
+            </div>
+          ) : locale.reviewEmpty;
+        }
+
+        const summary = getFieldSummary(field);
+        return summary || locale.reviewEmpty;
       };
 
       const submitQuestionnaire = async () => {
         if (isSubmitting) return;
 
-        const allRequiredComplete = steps
+        let firstFailingStep = null;
+        let finalValidation = { valid: true, errors: {}, firstInvalidFieldId: null };
+
+        steps
           .filter((step) => step.id !== 'review')
-          .every((step) => {
+          .some((step, index) => {
             const stepFields = step.fields
               .map((fieldId) => ({ id: fieldId, ...fieldCatalog[fieldId] }))
               .filter((field) => isVisibleField(field.id, formData));
-
-            const requiredFields = stepFields.filter((field) => isFieldRequired(field.id, formData));
-
-            if (requiredFields.length === 0) return true;
-
-            return requiredFields.every((field) => isFieldAnswered(field, formData));
+            const validation = validateFields(stepFields);
+            if (!validation.valid) {
+              firstFailingStep = index;
+              finalValidation = validation;
+              return true;
+            }
+            return false;
           });
 
-        if (!allRequiredComplete) {
+        if (!finalValidation.valid) {
+          if (firstFailingStep !== null && firstFailingStep !== currentStep) {
+            setCurrentStep(firstFailingStep);
+          }
+          setErrors(finalValidation.errors);
           setShowStepValidation(true);
+          setTimeout(() => scrollToInvalidField(finalValidation.firstInvalidFieldId), 80);
           return;
         }
 
         setIsSubmitting(true);
         setSubmitError('');
+        setErrors({});
 
         try {
           if (!window.QDFirebase) {
@@ -2689,6 +3205,21 @@
           }
 
           const { db, addDoc, collection, serverTimestamp } = window.QDFirebase;
+          const cleanedPhone = sanitizePhoneValue(formData.businessPhone || '');
+          const budgetRange = getBudgetRangeLabel(formData.budgetRangeValue, language) || formData.budgetRangeLabel;
+          const selectionSupport = hasSelectionSupport(formData)
+            ? (language === 'ar' ? 'غير متأكد — اقترحوا النظام المناسب' : 'Not sure — recommend the right stack')
+            : '';
+          const answers = {
+            ...buildSubmissionAnswers(),
+            businessEmail: formData.businessEmail?.trim() || '',
+            businessPhone: cleanedPhone,
+            budgetRange,
+            budgetRangeLabel: budgetRange,
+            budgetRangeValue: formData.budgetRangeValue || '',
+            idealCustomer: getIdealCustomerSummary(formData, language).join('\n'),
+            selectionSupport
+          };
 
           const payload = {
             language,
@@ -2697,21 +3228,25 @@
             status: 'New',
             priority: 'Normal',
             notes: '',
-            answers: formData,
+            answers,
             businessName: formData.businessName?.trim() || '',
             businessEmail: formData.businessEmail?.trim() || '',
-            businessPhone: formData.businessPhone?.trim() || '',
+            businessPhone: cleanedPhone,
             industry: formData.industry?.trim() || '',
-            budgetRange: formData.budgetRange?.trim() || '',
-            launchDate: formData.launchDate || '',
-            urgency: formData.urgency || '',
+            idealCustomerAgeGroup: formData.idealCustomerAgeGroup || '',
+            idealCustomerGender: formData.idealCustomerGender || '',
+            idealCustomerBudgetLevel: formData.idealCustomerBudgetLevel || '',
+            idealCustomerNotes: formData.idealCustomerNotes?.trim() || '',
+            budgetRange,
+            budgetRangeLabel: budgetRange,
+            budgetRangeValue: formData.budgetRangeValue || '',
+            selectionSupport,
             supportLevel: formData.supportLevel || '',
             businessDescription: formData.businessDescription?.trim() || '',
             socialLinks: formData.socialLinks?.trim() || '',
             selectedMainPurpose: getFieldSummary({ id: 'mainPurpose', ...fieldCatalog.mainPurpose }),
             selectedRequiredFeatures: getFieldSummary({ id: 'requiredFeatures', ...fieldCatalog.requiredFeatures }),
-            selectedOptionalServices: getFieldSummary({ id: 'optionalServices', ...fieldCatalog.optionalServices }),
-            ...formData
+            ...answers
           };
 
           const docRef = await addDoc(collection(db, 'projectSubmissions'), payload);
@@ -2739,7 +3274,7 @@
       const renderField = (field) => {
         const placeholder = field.placeholderKey ? locale.placeholders[field.placeholderKey] : '';
         const note = field.note ? field.note[language] : '';
-        const fieldClass = field.type === 'textarea' || field.type === 'checkbox' || field.type === 'radio' || field.type === 'colorPalette' || field.type === 'counter' ? 'qd-field is-full' : 'qd-field';
+        const fieldClass = field.type === 'textarea' || field.type === 'checkbox' || field.type === 'radio' || field.type === 'colorPalette' || field.type === 'counter' || field.type === 'bulletList' || field.type === 'customerProfile' || field.type === 'budgetSlider' ? 'qd-field is-full' : 'qd-field';
         const required = isFieldRequired(field.id, formData);
         const selectedValue = formData[field.id];
         const selectedOtherOption = field.options?.find((option) => (
@@ -2755,15 +3290,199 @@
           selectedOtherOption &&
           !formData[otherKey]?.trim()
         );
-        const missing = showStepValidation && required && !isFieldAnswered(field, formData) && !otherOnlyMissing;
+        const fieldError = errors[field.id] || (otherKey ? errors[otherKey] : '') || '';
+        const missing = Boolean(fieldError) || (showStepValidation && required && !isFieldAnswered(field, formData) && !otherOnlyMissing);
         const requiredLabel = required ? locale.required : locale.optional;
+
+        if (field.type === 'bulletList') {
+          const actions = Array.isArray(formData.visitorActions) ? formData.visitorActions : [];
+
+          return (
+            <div key={field.id} data-field-id={field.id} className={`${fieldClass} ${missing ? 'is-error' : ''}`}>
+              <div className="qd-label-row">
+                <label className="qd-field-label" htmlFor={`${field.id}-draft`}>{field.label[language]}</label>
+                <span className={`qd-required-pill ${required ? '' : 'is-optional'} ${missing ? 'is-error' : ''}`}>
+                  {requiredLabel}
+                </span>
+              </div>
+              <div className="qd-field-note">{locale.actionInputHint}</div>
+              <div className="qd-bullet-builder">
+                <div className="qd-bullet-input-row">
+                  <input
+                    id={`${field.id}-draft`}
+                    className={`qd-input ${missing ? 'is-error' : ''}`}
+                    type="text"
+                    value={visitorActionDraft}
+                    placeholder={placeholder}
+                    onChange={(event) => setVisitorActionDraft(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        event.preventDefault();
+                        addVisitorAction();
+                      }
+                    }}
+                  />
+                  <button type="button" className="qd-btn qd-btn-primary qd-btn-sm qd-acid-action" onClick={addVisitorAction}>
+                    {locale.addAction}
+                  </button>
+                </div>
+                <div className="qd-bullet-pill-wrap">
+                  {actions.length ? actions.map((action) => (
+                    <span key={action} className="qd-bullet-pill">
+                      <span>{action}</span>
+                      <button type="button" aria-label="Remove" onClick={() => removeVisitorAction(action)}>×</button>
+                    </span>
+                  )) : (
+                    <div className="qd-empty-pill-state">{locale.actionListTitle}</div>
+                  )}
+                </div>
+              </div>
+              {fieldError && <div className="qd-error-text">{fieldError}</div>}
+            </div>
+          );
+        }
+
+        if (field.type === 'customerProfile') {
+          const profileStarted = Boolean(formData.idealCustomerProfileStarted);
+          const ageIndex = Math.max(0, idealCustomerAgeOptions.findIndex((option) => option.value === formData.idealCustomerAgeGroup));
+          const budgetIndex = Math.max(0, idealCustomerBudgetOptions.findIndex((option) => option.value === formData.idealCustomerBudgetLevel));
+
+          return (
+            <div key={field.id} data-field-id={field.id} className={`${fieldClass} ${missing ? 'is-error' : ''}`}>
+              <div className="qd-label-row">
+                <div className="qd-field-label">{field.label[language]}</div>
+                <span className={`qd-required-pill ${required ? '' : 'is-optional'} ${missing ? 'is-error' : ''}`}>
+                  {requiredLabel}
+                </span>
+              </div>
+              {!profileStarted ? (
+                <div className="qd-profile-launch-card">
+                  <p>{locale.customerProfileIntro}</p>
+                  <button
+                    type="button"
+                    className="qd-btn qd-btn-primary qd-btn-sm qd-acid-action"
+                    onClick={() => setFormData((prev) => ({ ...prev, idealCustomerProfileStarted: true }))}
+                  >
+                    {locale.startCustomerProfile}
+                  </button>
+                </div>
+              ) : (
+                <div className="qd-profile-builder">
+                  <div className="qd-profile-panel">
+                    <div className="qd-profile-meta">
+                      <strong>{locale.customerAgeGroup}</strong>
+                      <span>{getOptionLabel(idealCustomerAgeOptions, formData.idealCustomerAgeGroup || idealCustomerAgeOptions[ageIndex]?.value, language)}</span>
+                    </div>
+                    <input
+                      className="qd-range-input"
+                      type="range"
+                      min="0"
+                      max={idealCustomerAgeOptions.length - 1}
+                      step="1"
+                      value={ageIndex}
+                      onChange={(event) => updateField('idealCustomerAgeGroup', idealCustomerAgeOptions[Number(event.target.value)].value)}
+                    />
+                    <div className="qd-range-labels">
+                      {idealCustomerAgeOptions.map((option) => <span key={option.value}>{option.label[language]}</span>)}
+                    </div>
+                  </div>
+
+                  <div className="qd-profile-panel">
+                    <div className="qd-profile-meta">
+                      <strong>{locale.customerGender}</strong>
+                    </div>
+                    <div className="qd-segmented-grid">
+                      {idealCustomerGenderOptions.map((option) => (
+                        <button
+                          key={option.value}
+                          type="button"
+                          className={`qd-segmented-chip ${formData.idealCustomerGender === option.value ? 'is-active' : ''}`}
+                          onClick={() => updateField('idealCustomerGender', option.value)}
+                        >
+                          {option.label[language]}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="qd-profile-panel">
+                    <div className="qd-profile-meta">
+                      <strong>{locale.customerBudgetLevel}</strong>
+                      <span>{getOptionLabel(idealCustomerBudgetOptions, formData.idealCustomerBudgetLevel || idealCustomerBudgetOptions[budgetIndex]?.value, language)}</span>
+                    </div>
+                    <input
+                      className="qd-range-input"
+                      type="range"
+                      min="0"
+                      max={idealCustomerBudgetOptions.length - 1}
+                      step="1"
+                      value={budgetIndex}
+                      onChange={(event) => updateField('idealCustomerBudgetLevel', idealCustomerBudgetOptions[Number(event.target.value)].value)}
+                    />
+                    <div className="qd-range-labels">
+                      {idealCustomerBudgetOptions.map((option) => <span key={option.value}>{option.label[language]}</span>)}
+                    </div>
+                  </div>
+
+                  <div className="qd-profile-panel">
+                    <label className="qd-field-label" htmlFor="idealCustomerNotes">{locale.customerNotes}</label>
+                    <textarea
+                      id="idealCustomerNotes"
+                      className="qd-textarea qd-profile-notes"
+                      value={formData.idealCustomerNotes}
+                      placeholder={locale.placeholders.idealCustomerNotes}
+                      onChange={(event) => updateField('idealCustomerNotes', event.target.value)}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        if (field.type === 'budgetSlider') {
+          const budgetValue = Number(formData.budgetRangeValue || 0);
+          const activeBudget = getBudgetRangeLabel(budgetValue, language);
+
+          return (
+            <div key={field.id} data-field-id={field.id} className={`${fieldClass} ${missing ? 'is-error' : ''}`}>
+              <div className="qd-label-row">
+                <div className="qd-field-label">{field.label[language]}</div>
+                <span className={`qd-required-pill ${required ? '' : 'is-optional'} ${missing ? 'is-error' : ''}`}>
+                  {requiredLabel}
+                </span>
+              </div>
+              <div className="qd-profile-panel qd-budget-panel">
+                <div className="qd-profile-meta">
+                  <strong>{locale.budgetLevelTitle}</strong>
+                  <span>{activeBudget || placeholder}</span>
+                </div>
+                <div className="qd-field-note">{locale.budgetSliderHint}</div>
+                <input
+                  id={field.id}
+                  className="qd-range-input"
+                  type="range"
+                  min="1"
+                  max={budgetRangeOptions.length}
+                  step="1"
+                  value={budgetValue || 1}
+                  onChange={(event) => updateBudgetRange(Number(event.target.value))}
+                />
+                <div className="qd-range-labels qd-budget-labels">
+                  {budgetRangeOptions.map((option) => <span key={option.value}>{option.label[language]}</span>)}
+                </div>
+              </div>
+              {fieldError && <div className="qd-error-text">{fieldError}</div>}
+            </div>
+          );
+        }
 
         if (field.type === 'text' || field.type === 'date' || field.type === 'email' || field.type === 'tel') {
           const supportsPaste = pasteFieldIds.has(field.id);
           const inputType = field.type === 'date' ? 'date' : field.type;
 
           return (
-            <div key={field.id} className={`${fieldClass} ${missing ? 'is-error' : ''}`}>
+            <div key={field.id} data-field-id={field.id} className={`${fieldClass} ${missing ? 'is-error' : ''}`}>
               <div className="qd-label-row">
                 <label className="qd-field-label" htmlFor={field.id}>{field.label[language]}</label>
                 <span className={`qd-required-pill ${required ? '' : 'is-optional'} ${missing ? 'is-error' : ''}`}>
@@ -2779,8 +3498,25 @@
                   value={formData[field.id]}
                   placeholder={placeholder}
                   required={required}
-                  inputMode={field.id === 'budgetRange' ? 'numeric' : field.type === 'tel' ? 'tel' : field.type === 'email' ? 'email' : undefined}
-                  pattern={field.id === 'budgetRange' ? '[0-9]*' : undefined}
+                  inputMode={field.type === 'tel' ? 'tel' : field.type === 'email' ? 'email' : undefined}
+                  pattern={field.id === 'businessPhone' ? '^\\+?[0-9]{7,15}$' : undefined}
+                  onBlur={() => {
+                    const validation = validateFields([field]);
+                    setErrors((prev) => {
+                      const nextErrors = { ...prev };
+                      delete nextErrors[field.id];
+                      if (validation.errors[field.id]) nextErrors[field.id] = validation.errors[field.id];
+                      return nextErrors;
+                    });
+                  }}
+                  onKeyDown={(event) => {
+                    if (field.id !== 'businessPhone') return;
+                    const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End'];
+                    if (allowedKeys.includes(event.key) || event.ctrlKey || event.metaKey) return;
+                    if (event.key === '+' && event.currentTarget.selectionStart === 0 && !event.currentTarget.value.includes('+')) return;
+                    if (/^\d$/.test(event.key)) return;
+                    event.preventDefault();
+                  }}
                   onChange={(event) => updateField(field.id, event.target.value)}
                 />
                 {supportsPaste && (
@@ -2795,7 +3531,7 @@
                   </button>
                 )}
               </div>
-              {missing && <div className="qd-error-text">{locale.missingField}</div>}
+              {fieldError && <div className="qd-error-text">{fieldError}</div>}
             </div>
           );
         }
@@ -2804,7 +3540,7 @@
           const supportsPaste = pasteFieldIds.has(field.id);
 
           return (
-            <div key={field.id} className={`${fieldClass} ${missing ? 'is-error' : ''}`}>
+            <div key={field.id} data-field-id={field.id} className={`${fieldClass} ${missing ? 'is-error' : ''}`}>
               <div className="qd-label-row">
                 <label className="qd-field-label" htmlFor={field.id}>{field.label[language]}</label>
                 <span className={`qd-required-pill ${required ? '' : 'is-optional'} ${missing ? 'is-error' : ''}`}>
@@ -2827,13 +3563,13 @@
                     className="qd-paste-icon-btn"
                     aria-label={language === 'ar' ? 'لصق' : 'Paste'}
                     title={language === 'ar' ? 'لصق' : 'Paste'}
-                    onClick={() => pasteIntoField(field.id)}
+                  onClick={() => pasteIntoField(field.id)}
                   >
                     ⧉
                   </button>
                 )}
               </div>
-              {missing && <div className="qd-error-text">{locale.missingField}</div>}
+              {fieldError && <div className="qd-error-text">{fieldError}</div>}
             </div>
           );
         }
@@ -2845,7 +3581,7 @@
           const max = field.max ?? 999;
 
           return (
-            <div key={field.id} className={`${fieldClass} qd-counter-field ${missing ? 'is-error' : ''}`}>
+            <div key={field.id} data-field-id={field.id} className={`${fieldClass} qd-counter-field ${missing ? 'is-error' : ''}`}>
               <div className="qd-label-row">
                 <label className="qd-field-label" htmlFor={field.id}>
                   {field.label[language]}
@@ -2901,7 +3637,7 @@
                 />
               </div>
 
-              {missing && <div className="qd-error-text">{locale.missingField}</div>}
+              {fieldError && <div className="qd-error-text">{fieldError}</div>}
             </div>
           );
         }
@@ -2910,10 +3646,12 @@
           const multiLanguageSelected =
             Array.isArray(formData.requiredFeatures) &&
             formData.requiredFeatures.includes('multi_language');
-          const multiLanguageMissing =
+          const selectionSupportSelected = hasSelectionSupport(formData);
+          const multiLanguageMissing = Boolean(errors.requiredFeatures__multi_language_languages) || (
             showStepValidation &&
             multiLanguageSelected &&
-            !formData.requiredFeatures__multi_language_languages?.trim();
+            !formData.requiredFeatures__multi_language_languages?.trim()
+          );
           const tiers = [
             {
               id: 'tier1',
@@ -2922,7 +3660,7 @@
             },
             {
               id: 'tier2',
-              title: { en: 'Website growth modules', ar: 'وحدات نمو الموقع' },
+              title: { en: 'Growth modules', ar: 'وحدات النمو' },
               caption: { en: 'Growth layer', ar: 'طبقة النمو' }
             },
             {
@@ -2934,7 +3672,7 @@
           const helperOption = field.options.find((option) => option.tier === 'helper');
 
           return (
-            <div key={field.id} className={`${fieldClass} ${missing ? 'is-error' : ''}`}>
+            <div key={field.id} data-field-id={field.id} className={`${fieldClass} ${missing ? 'is-error' : ''}`}>
               <div className="qd-label-row">
                 <div className="qd-field-label">{field.label[language]}</div>
                 <span className={`qd-required-pill ${required ? '' : 'is-optional'} ${missing ? 'is-error' : ''}`}>
@@ -2944,6 +3682,23 @@
               {note && <div className="qd-field-note">{note}</div>}
 
               <div className={`qd-module-groups ${missing ? 'is-error' : ''}`}>
+                {helperOption && (
+                  <label className={`qd-selection-support-card ${selectionSupportSelected ? 'is-selected' : ''}`}>
+                    <input
+                      type="checkbox"
+                      checked={selectionSupportSelected}
+                      required={required}
+                      onChange={() => toggleCheckbox(field.id, helperOption.value)}
+                    />
+                    <span className="qd-selection-support-badge">?</span>
+                    <span className="qd-selection-support-copy">
+                      <span>{language === 'ar' ? 'الدعم في الاختيار' : 'Selection support'}</span>
+                      <strong>{helperOption.label[language]}</strong>
+                      <small>{helperOption.description?.[language]}</small>
+                    </span>
+                  </label>
+                )}
+
                 {tiers.map((tier) => (
                   <div className="qd-module-group" key={tier.id}>
                     <div className="qd-module-group-head">
@@ -2952,7 +3707,9 @@
                     </div>
 
                     <div className="qd-module-grid">
-                      {field.options.filter((option) => option.tier === tier.id).map((option) => {
+                      {field.options
+                        .filter((option) => option.tier === tier.id && option.value !== 'not_sure_recommend_stack')
+                        .map((option) => {
                         const selected = getOptionSelected(field, option.value);
                         return (
                           <div className="qd-module-item" key={option.value}>
@@ -2971,7 +3728,7 @@
                             </label>
 
                             {option.value === 'multi_language' && selected && (
-                              <div className="qd-module-followup">
+                              <div className="qd-module-followup" data-field-id="requiredFeatures__multi_language_languages">
                                 <label className="qd-module-followup-label">
                                   {language === 'ar' ? 'ما اللغات التي تحتاجها؟' : 'Which languages do you need?'}
                                 </label>
@@ -2993,39 +3750,9 @@
                     </div>
                   </div>
                 ))}
-
-                {helperOption && (
-                  <div className="qd-module-group">
-                    <div className="qd-module-group-head">
-                      <span>{language === 'ar' ? 'الدعم في الاختيار' : 'Selection support'}</span>
-                      <small>{language === 'ar' ? 'سنقترح البنية المناسبة' : 'We can recommend the stack'}</small>
-                    </div>
-
-                    <div className="qd-module-grid">
-                      {(() => {
-                        const selected = getOptionSelected(field, helperOption.value);
-                        return (
-                          <label key={helperOption.value} className={`qd-module-card ${selected ? 'is-selected' : ''}`}>
-                            <input
-                              type="checkbox"
-                              checked={selected}
-                              required={required}
-                              onChange={() => toggleCheckbox(field.id, helperOption.value)}
-                            />
-                            <span className="qd-module-icon">{helperOption.icon}</span>
-                            <span className="qd-module-copy">
-                              <strong>{helperOption.label[language]}</strong>
-                              <small>{helperOption.description?.[language]}</small>
-                            </span>
-                          </label>
-                        );
-                      })()}
-                    </div>
-                  </div>
-                )}
               </div>
 
-              {missing && <div className="qd-error-text">{locale.missingField}</div>}
+              {fieldError && <div className="qd-error-text">{fieldError}</div>}
             </div>
           );
         }
@@ -3036,7 +3763,7 @@
           const canAddColor = isValidHex(normalizedHexInput);
 
           return (
-            <div key={field.id} className={fieldClass}>
+            <div key={field.id} data-field-id={field.id} className={fieldClass}>
               <div className="qd-label-row">
                 <label className="qd-field-label" htmlFor={field.id}>{field.label[language]}</label>
                 <span className={`qd-required-pill ${required ? '' : 'is-optional'}`}>
@@ -3117,7 +3844,7 @@
         }
 
         return (
-          <div key={field.id} className={`${fieldClass} ${missing ? 'is-error' : ''}`}>
+          <div key={field.id} data-field-id={field.id} className={`${fieldClass} ${missing ? 'is-error' : ''}`}>
             <div className="qd-label-row">
               <div className="qd-field-label">{field.label[language]}</div>
               <span className={`qd-required-pill ${required ? '' : 'is-optional'} ${missing ? 'is-error' : ''}`}>
@@ -3155,7 +3882,7 @@
                       </span>
                     </label>
                     {option.hasOtherText && selected && (
-                      <div className="qd-other-wrap">
+                      <div className="qd-other-wrap" data-field-id={otherKey}>
                         <input
                           className={`qd-input ${otherMissing ? 'is-error' : ''}`}
                           type="text"
@@ -3172,7 +3899,7 @@
               })}
             </div>
             {field.id === 'hasDomain' && formData.hasDomain === 'yes' && (
-              <div className="qd-embedded-field">
+              <div className="qd-embedded-field" data-field-id="domainName">
                 <div className="qd-embedded-label-row">
                   <label className="qd-module-followup-label" htmlFor="domainName">
                     {language === 'ar' ? 'اسم النطاق' : 'Domain name'}
@@ -3181,7 +3908,7 @@
                 <div className="qd-input-wrap has-paste">
                   <input
                     id="domainName"
-                    className={`qd-input ${showStepValidation && formData.hasDomain === 'yes' && !formData.domainName?.trim() ? 'is-error' : ''}`}
+                    className={`qd-input ${(errors.domainName || (showStepValidation && formData.hasDomain === 'yes' && !formData.domainName?.trim())) ? 'is-error' : ''}`}
                     type="text"
                     value={formData.domainName || ''}
                     placeholder="yourbrand.com"
@@ -3197,13 +3924,13 @@
                     ⧉
                   </button>
                 </div>
-                {showStepValidation && formData.hasDomain === 'yes' && !formData.domainName?.trim() && (
-                  <div className="qd-error-text">{locale.missingField}</div>
+                {(errors.domainName || (showStepValidation && formData.hasDomain === 'yes' && !formData.domainName?.trim())) && (
+                  <div className="qd-error-text">{errors.domainName || locale.missingField}</div>
                 )}
               </div>
             )}
             {field.id === 'hasExistingWebsite' && formData.hasExistingWebsite === 'yes' && (
-              <div className="qd-embedded-field">
+              <div className="qd-embedded-field" data-field-id="existingWebsiteLink">
                 <div className="qd-embedded-label-row">
                   <label className="qd-module-followup-label" htmlFor="existingWebsiteLink">
                     {language === 'ar' ? 'رابط الموقع الحالي' : 'Existing website link'}
@@ -3212,7 +3939,7 @@
                 <div className="qd-input-wrap has-paste">
                   <input
                     id="existingWebsiteLink"
-                    className={`qd-input ${showStepValidation && formData.hasExistingWebsite === 'yes' && !formData.existingWebsiteLink?.trim() ? 'is-error' : ''}`}
+                    className={`qd-input ${(errors.existingWebsiteLink || (showStepValidation && formData.hasExistingWebsite === 'yes' && !formData.existingWebsiteLink?.trim())) ? 'is-error' : ''}`}
                     type="text"
                     value={formData.existingWebsiteLink || ''}
                     placeholder="https://yourwebsite.com"
@@ -3228,12 +3955,12 @@
                     ⧉
                   </button>
                 </div>
-                {showStepValidation && formData.hasExistingWebsite === 'yes' && !formData.existingWebsiteLink?.trim() && (
-                  <div className="qd-error-text">{locale.missingField}</div>
+                {(errors.existingWebsiteLink || (showStepValidation && formData.hasExistingWebsite === 'yes' && !formData.existingWebsiteLink?.trim())) && (
+                  <div className="qd-error-text">{errors.existingWebsiteLink || locale.missingField}</div>
                 )}
               </div>
             )}
-            {missing && <div className="qd-error-text">{locale.missingField}</div>}
+            {fieldError && <div className="qd-error-text">{fieldError}</div>}
           </div>
         );
       };
@@ -3364,26 +4091,20 @@
                     </div>
                   ) : (
                     <div className="qd-review-grid">
-                      {steps.slice(0, -1).map((step) => (
+                      {reviewSections.map((step) => (
                         <div key={step.id} className="qd-review-card">
                           <h3>{step.title[language]}</h3>
-                          {step.fields
-                            .map((fieldId) => ({ id: fieldId, ...fieldCatalog[fieldId] }))
-                            .filter((field) => isVisibleField(field.id, formData))
-                            .map((field) => {
-                              const summary = getFieldSummary(field);
+                          {step.answeredFields.map((field) => {
                               return (
                                 <div key={field.id} className="qd-review-item">
                                   <strong>{field.label[language]}</strong>
-                                  <span>{summary || locale.reviewEmpty}</span>
+                                  <div className="qd-review-value">{renderReviewValue(field)}</div>
                                 </div>
                               );
                             })}
                         </div>
                       ))}
-                      <div className="qd-field is-full">
-                        <div className="qd-field-note">{locale.reviewHint}</div>
-                      </div>
+                      <div className="qd-field-note">{locale.reviewHint}</div>
                     </div>
                   )}
                 </div>
@@ -3391,7 +4112,7 @@
                 <div className="qd-nav-row">
                   <div className="qd-nav-cluster">
                     {currentStep > 0 && (
-                      <button type="button" className="qd-btn qd-btn-ghost qd-btn-md" onClick={() => { setCurrentStep((step) => step - 1); setShowStepValidation(false); }}>
+                      <button type="button" className="qd-btn qd-btn-ghost qd-btn-md" onClick={() => { setCurrentStep((step) => step - 1); setShowStepValidation(false); setErrors({}); }}>
                         {locale.previous}
                       </button>
                     )}

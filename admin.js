@@ -42,6 +42,14 @@ const root = document.getElementById('qd-admin-root');
 const allowedAdminEmails = null;
 const statusOptions = ['New', 'Reviewed', 'Contacted', 'Quoted', 'Accepted', 'Rejected', 'Archived'];
 const priorityOptions = ['Low', 'Normal', 'High', 'VIP'];
+const launchDateFilterOptions = [
+  ['all', 'All launch dates'],
+  ['this-week', 'This week'],
+  ['this-month', 'This month'],
+  ['next-30', 'Next 30 days'],
+  ['flexible', 'Flexible / Not provided'],
+  ['past', 'Past dates']
+];
 
 const state = {
   authLoading: true,
@@ -57,7 +65,8 @@ const state = {
   filters: {
     search: '',
     status: 'All',
-    priority: 'All'
+    priority: 'All',
+    launchDate: 'all'
   },
   selectedId: null,
   drawerDraft: null
@@ -75,7 +84,12 @@ const fieldLabels = {
   socialLinks: 'Social Links',
   mainPurpose: 'Main Purpose',
   visitorAction: 'Visitor Action',
+  visitorActions: 'Visitor Actions',
   idealCustomer: 'Ideal Customer',
+  idealCustomerAgeGroup: 'Ideal Customer Age Group',
+  idealCustomerGender: 'Ideal Customer Audience Type',
+  idealCustomerBudgetLevel: 'Ideal Customer Budget Level',
+  idealCustomerNotes: 'Ideal Customer Notes',
   hasLogo: 'Logo Availability',
   hasBrandAssets: 'Brand Assets',
   brandAssets: 'Brand Assets Details',
@@ -90,6 +104,8 @@ const fieldLabels = {
   requiredFeatures__multi_language_languages: 'Languages Needed',
   customFeatures: 'Custom Features',
   budgetRange: 'Budget',
+  budgetRangeLabel: 'Budget Label',
+  budgetRangeValue: 'Budget Level',
   launchDate: 'Launch Date',
   urgency: 'Urgency',
   workedWithAgency: 'Worked With Agency Before',
@@ -120,6 +136,15 @@ const rawValueLabels = {
   occasional_help: 'Occasional Help',
   basic_care: 'Basic Care',
   multi_language: 'Multi-language',
+  any: 'Any',
+  mostly_men: 'Mostly Men',
+  mostly_women: 'Mostly Women',
+  families: 'Families',
+  businesses_b2b: 'Businesses / B2B',
+  budget_conscious: 'Budget-conscious',
+  mid_range: 'Mid-range',
+  premium: 'Premium',
+  luxury_high_ticket: 'Luxury / High-ticket',
   sell_products_services: 'Sell Products / Services',
   generate_leads: 'Generate Leads',
   accept_bookings: 'Accept Bookings / Appointments',
@@ -210,6 +235,21 @@ const formatCurrency = (value) => {
   return `AED ${numeric.toLocaleString('en-US')}`;
 };
 
+const formatCurrencyNumber = (value, { compact = false } = {}) => {
+  const numeric = Number(value);
+  if (Number.isNaN(numeric) || numeric <= 0) return 'Not Provided';
+
+  if (compact) {
+    const short = new Intl.NumberFormat('en', {
+      notation: 'compact',
+      maximumFractionDigits: numeric >= 1000000 ? 1 : 0
+    }).format(numeric);
+    return `AED ${short.toUpperCase()}`;
+  }
+
+  return `AED ${numeric.toLocaleString('en-US')}`;
+};
+
 const formatDate = (value) => {
   const ms = getTimestampMs(value);
   if (ms) {
@@ -233,6 +273,46 @@ const formatDate = (value) => {
   return 'Not Provided';
 };
 
+const isFlexibleLaunchValue = (value) => {
+  if (value === null || value === undefined) return true;
+  const raw = String(value).trim().toLowerCase();
+  if (!raw) return true;
+  return ['flexible', 'not sure', 'not_sure', 'not provided', 'not-provided', 'n/a', 'na', 'tbd'].includes(raw);
+};
+
+const parseLaunchDateValue = (value) => {
+  if (value === null || value === undefined || value === '') return null;
+  if (typeof value === 'string' && isFlexibleLaunchValue(value)) return null;
+
+  const ms = getTimestampMs(value);
+  if (ms) {
+    const date = new Date(ms);
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  }
+
+  if (typeof value === 'string') {
+    const date = new Date(value);
+    if (!Number.isNaN(date.getTime())) {
+      return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    }
+  }
+
+  return null;
+};
+
+const formatLaunchDate = (value) => {
+  const parsed = parseLaunchDateValue(value);
+  if (parsed) {
+    return new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium' }).format(parsed);
+  }
+
+  if (typeof value === 'string' && value.trim()) {
+    return isFlexibleLaunchValue(value) ? formatLabel(value) : value.trim();
+  }
+
+  return 'Not provided';
+};
+
 const getAnswer = (submission, key) => {
   if (!submission) return '';
   const answers = submission.answers || {};
@@ -252,6 +332,7 @@ const formatValue = (value, { type = 'text' } = {}) => {
   if (type === 'language') return formatLanguage(value);
   if (type === 'currency') return formatCurrency(value);
   if (type === 'date') return formatDate(value);
+  if (type === 'launch-date') return formatLaunchDate(value);
   if (type === 'boolean') return formatLabel(value);
   if (type === 'label') return formatLabel(value);
   if (type === 'text') return typeof value === 'string' ? value.trim() || 'Not provided' : String(value);
@@ -296,6 +377,14 @@ const summarizeCollection = (items) => {
 
 const formatPhoneForWhatsApp = (phone) => String(phone || '').replace(/[^\d]/g, '');
 
+const formatPhoneForCall = (phone) => {
+  const raw = String(phone || '').trim();
+  if (!raw) return '';
+  const digits = raw.replace(/[^\d]/g, '');
+  if (!digits) return '';
+  return /^\+/.test(raw) ? `+${digits}` : digits;
+};
+
 const joinSection = (title, rows) => {
   return [
     `${title}:`,
@@ -315,6 +404,12 @@ const buildMailtoLink = (submission) => {
   const email = getAnswer(submission, 'businessEmail');
   if (!email) return '';
   return `mailto:${email}?subject=${encodeURIComponent('QD Systems - Project Request')}`;
+};
+
+const buildCallLink = (submission) => {
+  const phone = formatPhoneForCall(getAnswer(submission, 'businessPhone'));
+  if (!phone) return '';
+  return `tel:${phone}`;
 };
 
 const buildEmailSummary = (submission) => {
@@ -358,7 +453,7 @@ const buildEmailSummary = (submission) => {
     ]),
     joinSection('Scope & Timeline', [
       ['Budget', formatCurrency(getAnswer(submission, 'budgetRange'))],
-      ['Launch Date', formatValue(getAnswer(submission, 'launchDate'), { type: 'date' })],
+      ['Launch Date', formatValue(getAnswer(submission, 'launchDate'), { type: 'launch-date' })],
       ['Urgency', formatValue(getAnswer(submission, 'urgency'), { type: 'label' })],
       ['Worked With Agency Before', formatValue(getAnswer(submission, 'workedWithAgency'), { type: 'label' })]
     ]),
@@ -427,12 +522,38 @@ const ensureDrawerDraft = () => {
 
 const getFilteredSubmissions = () => {
   const search = state.filters.search.trim().toLowerCase();
+  const today = new Date();
+  const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const weekOffset = (todayDate.getDay() + 6) % 7;
+  const weekStart = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate() - weekOffset);
+  const weekEnd = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + 6);
+  const nextThirtyDays = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate() + 30);
 
   return state.submissions.filter((submission) => {
     const matchesStatus = state.filters.status === 'All' || submission.status === state.filters.status;
     const matchesPriority = state.filters.priority === 'All' || submission.priority === state.filters.priority;
+    const launchDateValue = getAnswer(submission, 'launchDate');
+    const parsedLaunchDate = parseLaunchDateValue(launchDateValue);
+    const matchesLaunchDate = (() => {
+      switch (state.filters.launchDate) {
+        case 'this-week':
+          return parsedLaunchDate ? parsedLaunchDate >= weekStart && parsedLaunchDate <= weekEnd : false;
+        case 'this-month':
+          return parsedLaunchDate
+            ? parsedLaunchDate.getFullYear() === todayDate.getFullYear() && parsedLaunchDate.getMonth() === todayDate.getMonth()
+            : false;
+        case 'next-30':
+          return parsedLaunchDate ? parsedLaunchDate >= todayDate && parsedLaunchDate <= nextThirtyDays : false;
+        case 'flexible':
+          return !parsedLaunchDate && isFlexibleLaunchValue(launchDateValue);
+        case 'past':
+          return parsedLaunchDate ? parsedLaunchDate < todayDate : false;
+        default:
+          return true;
+      }
+    })();
 
-    if (!matchesStatus || !matchesPriority) return false;
+    if (!matchesStatus || !matchesPriority || !matchesLaunchDate) return false;
 
     if (!search) return true;
 
@@ -566,21 +687,25 @@ const renderBudgetStats = (analytics) => {
     return `<div class="qd-admin-empty"><strong>Not enough data</strong>Budget details will appear once numeric budget values are captured.</div>`;
   }
 
+  const budgetMetrics = [
+    ['High', analytics.highestBudget, true],
+    ['Low', analytics.lowestBudget, true],
+    ['Captured', analytics.budgetCount, false]
+  ];
+
   return `
     <div class="qd-admin-budget-panel">
       <div class="qd-admin-budget-metrics">
-        <div class="qd-admin-budget-metric">
-          <span>High</span>
-          <strong>${escapeHtml(formatCurrency(String(analytics.highestBudget)))}</strong>
-        </div>
-        <div class="qd-admin-budget-metric">
-          <span>Low</span>
-          <strong>${escapeHtml(formatCurrency(String(analytics.lowestBudget)))}</strong>
-        </div>
-        <div class="qd-admin-budget-metric">
-          <span>Captured</span>
-          <strong>${analytics.budgetCount}</strong>
-        </div>
+        ${budgetMetrics.map(([label, value, compact]) => {
+          const fullValue = compact ? formatCurrencyNumber(value) : String(value);
+          const displayValue = compact ? formatCurrencyNumber(value, { compact: true }) : String(value);
+          return `
+            <div class="qd-admin-budget-metric" ${compact ? `title="${escapeHtml(fullValue)}"` : ''}>
+              <span>${escapeHtml(label)}</span>
+              <strong>${escapeHtml(displayValue)}</strong>
+            </div>
+          `;
+        }).join('')}
       </div>
       <div class="qd-admin-budget-track">
         <span class="qd-admin-budget-fill" style="width:${analytics.budgetCaptureRate}%"></span>
@@ -622,7 +747,8 @@ const renderOverviewCards = (analytics) => {
 };
 
 const renderAnalyticsCards = (analytics) => {
-  const budgetLabel = analytics.averageBudget ? formatCurrency(String(analytics.averageBudget)) : 'Not available';
+  const hasBudgetSignal = Boolean(analytics.budgetCount && analytics.averageBudget);
+  const budgetLabel = hasBudgetSignal ? formatCurrencyNumber(analytics.averageBudget) : 'Not enough data';
   const topStage = analytics.stage[0]?.[0] || 'No signal yet';
   const topPriority = analytics.priority[0]?.[0] || 'No signal yet';
   const topUrgency = analytics.urgency[0]?.[0] || 'No signal yet';
@@ -641,8 +767,8 @@ const renderAnalyticsCards = (analytics) => {
       <div class="qd-admin-analytics-grid">
       <article class="qd-admin-card qd-admin-analytics-card">
         <div class="qd-admin-card-label">Budget Signal</div>
-        <h3>${escapeHtml(budgetLabel)}</h3>
-        <p>Average captured project budget.</p>
+        <h3 class="qd-admin-budget-value" ${hasBudgetSignal ? `title="${escapeHtml(formatCurrencyNumber(analytics.averageBudget))}"` : ''}>${escapeHtml(budgetLabel)}</h3>
+        <p>${hasBudgetSignal ? 'Average captured project budget.' : 'Budget details will appear once numeric budget values are captured.'}</p>
         ${renderBudgetStats(analytics)}
       </article>
 
@@ -691,10 +817,10 @@ const renderSubmissionRows = (items) => {
   if (!items.length) {
     return `
       <tr>
-        <td colspan="7">
+        <td colspan="8">
           <div class="qd-admin-empty">
             <strong>No submissions match this view</strong>
-            Try a broader search or reset the status and priority filters.
+            Try a broader search or reset the pipeline filters.
           </div>
         </td>
       </tr>
@@ -717,6 +843,7 @@ const renderSubmissionRows = (items) => {
       </td>
       <td>${escapeHtml(formatValue(getAnswer(submission, 'industry')))}</td>
       <td>${escapeHtml(formatCurrency(getAnswer(submission, 'budgetRange')))}</td>
+      <td>${escapeHtml(formatValue(getAnswer(submission, 'launchDate'), { type: 'launch-date' }))}</td>
       <td><span class="qd-status-pill" data-tone="${escapeHtml(statusTone(submission.status))}">${escapeHtml(submission.status)}</span></td>
       <td><span class="qd-priority-pill" data-tone="${escapeHtml(priorityTone(submission.priority))}">${escapeHtml(submission.priority)}</span></td>
       <td>
@@ -753,8 +880,16 @@ const renderSubmissionCards = (items) => {
           <span>${escapeHtml(formatCurrency(getAnswer(submission, 'budgetRange')))}</span>
         </div>
         <div>
+          <strong>Launch Date</strong>
+          <span>${escapeHtml(formatValue(getAnswer(submission, 'launchDate'), { type: 'launch-date' }))}</span>
+        </div>
+        <div>
           <strong>Date</strong>
           <span>${escapeHtml(formatDate(submission.createdAt || submission.submittedAt))}</span>
+        </div>
+        <div>
+          <strong>Industry</strong>
+          <span>${escapeHtml(formatValue(getAnswer(submission, 'industry')))}</span>
         </div>
         <div>
           <strong>Language</strong>
@@ -802,6 +937,11 @@ const renderDashboard = () => {
               <option value="${escapeHtml(option)}" ${state.filters.priority === option ? 'selected' : ''}>${escapeHtml(option)}</option>
             `).join('')}
           </select>
+          <select class="qd-admin-select" data-field="launchDate">
+            ${launchDateFilterOptions.map(([value, label]) => `
+              <option value="${escapeHtml(value)}" ${state.filters.launchDate === value ? 'selected' : ''}>${escapeHtml(label)}</option>
+            `).join('')}
+          </select>
         </div>
 
         <div class="qd-admin-table-wrap">
@@ -812,6 +952,7 @@ const renderDashboard = () => {
                 <th>Contact</th>
                 <th>Industry</th>
                 <th>Budget</th>
+                <th>Launch Date</th>
                 <th>Status</th>
                 <th>Priority</th>
                 <th>Date</th>
@@ -874,6 +1015,7 @@ const renderDrawer = () => {
   const isArabic = language === 'ar';
   const whatsappLink = buildWhatsAppLink(submission);
   const mailtoLink = buildMailtoLink(submission);
+  const callLink = buildCallLink(submission);
   const businessName = getAnswer(submission, 'businessName');
   const businessEmail = getAnswer(submission, 'businessEmail');
   const businessPhone = getAnswer(submission, 'businessPhone');
@@ -936,7 +1078,7 @@ const renderDrawer = () => {
       title: 'Scope & Timeline',
       items: [
         { label: 'Budget', value: getAnswer(submission, 'budgetRange'), type: 'currency' },
-        { label: 'Launch Date', value: getAnswer(submission, 'launchDate'), type: 'date' },
+        { label: 'Launch Date', value: getAnswer(submission, 'launchDate'), type: 'launch-date' },
         { label: 'Urgency', value: getAnswer(submission, 'urgency'), type: 'label' },
         { label: 'Worked With Agency Before', value: getAnswer(submission, 'workedWithAgency'), type: 'label' }
       ]
@@ -988,6 +1130,9 @@ const renderDrawer = () => {
         </div>
         <div class="qd-admin-actions qd-admin-client-actions">
           ${whatsappLink ? `<a class="qd-btn qd-btn-sm qd-admin-action-whatsapp" href="${escapeHtml(whatsappLink)}" target="_blank" rel="noreferrer noopener">WhatsApp</a>` : ''}
+          ${callLink
+            ? `<a class="qd-btn qd-btn-sm qd-admin-action-call" href="${escapeHtml(callLink)}">Call</a>`
+            : '<button class="qd-btn qd-btn-sm qd-admin-action-call is-disabled" type="button" disabled aria-disabled="true">Call</button>'}
           ${mailtoLink ? `<a class="qd-btn qd-btn-sm qd-admin-action-secondary" href="${escapeHtml(mailtoLink)}">Email</a>` : ''}
           <button class="qd-btn qd-btn-sm qd-admin-action-primary" type="button" data-action="copy-summary">Copy Summary</button>
           <button class="qd-btn qd-btn-sm qd-admin-action-danger" type="button" data-action="archive-submission">Archive</button>
