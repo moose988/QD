@@ -1,4 +1,4 @@
-// POST /api/quote-create  { submissionId } → { quote }
+// POST /api/quote-create  { submissionId } -> { quote }
 // Admin-only. Pre-fills from submission, generates passcode + quote number, persists.
 
 import { getDb, admin } from './_lib/firebase.js';
@@ -10,64 +10,87 @@ import { prefillFromSubmission } from '../app/lib/quote-prefill.js';
 export const config = { runtime: 'nodejs', maxDuration: 10 };
 
 export default async function handler(req, res) {
+  console.log('[quote-create] hit', { method: req.method, url: req.url });
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  try { await requireAdmin(req); } catch (e) { return res.status(401).json({ error: e.message }); }
+  try {
+    try {
+      await requireAdmin(req);
+    } catch (error) {
+      console.warn('[quote-create] auth failed:', error.message);
+      return res.status(401).json({ error: error.message });
+    }
 
-  let body = req.body;
-  if (typeof body === 'string') { try { body = JSON.parse(body); } catch { return res.status(400).json({ error: 'Invalid JSON' }); } }
-  const submissionId = (body?.submissionId || '').toString().trim();
-  if (!submissionId) return res.status(400).json({ error: 'submissionId is required' });
+    let body = req.body;
+    if (typeof body === 'string') {
+      try {
+        body = JSON.parse(body);
+      } catch {
+        return res.status(400).json({ error: 'Invalid JSON' });
+      }
+    }
+    console.log('[quote-create] parsed body', body);
 
-  const db = getDb();
+    const submissionId = (body?.submissionId || '').toString().trim();
+    if (!submissionId) return res.status(400).json({ error: 'submissionId is required' });
+    console.log('[quote-create] requested submissionId:', submissionId);
 
-  // 1. Load submission
-  const subSnap = await db.collection('projectSubmissions').doc(submissionId).get();
-  if (!subSnap.exists) return res.status(404).json({ error: 'Submission not found' });
-  const submission = subSnap.data();
+    const db = getDb();
 
-  // 2. Reject if a quote already exists for this submission (admin should open it, not recreate)
-  const existing = await db.collection('quotes').where('submissionId', '==', submissionId).limit(1).get();
-  if (!existing.empty) {
-    const doc = existing.docs[0];
-    return res.status(409).json({ error: 'Quote already exists', existing: { id: doc.id, ...doc.data() } });
+    console.log('[quote-create] loading submission from Firestore');
+    const subSnap = await db.collection('projectSubmissions').doc(submissionId).get();
+    if (!subSnap.exists) return res.status(404).json({ error: 'Submission not found' });
+    const submission = subSnap.data();
+
+    console.log('[quote-create] checking for existing quote');
+    const existing = await db.collection('quotes').where('submissionId', '==', submissionId).limit(1).get();
+    if (!existing.empty) {
+      const doc = existing.docs[0];
+      console.log('[quote-create] quote already exists:', doc.id);
+      return res.status(409).json({ error: 'Quote already exists', existing: { id: doc.id, ...doc.data() } });
+    }
+
+    const draft = prefillFromSubmission(submission);
+    const id = generateQuoteId();
+    const passcodePlain = generatePasscode();
+    const passcodeHash = hashPasscode(passcodePlain);
+    const quoteNumber = await getNextQuoteNumber();
+
+    const now = admin.firestore.FieldValue.serverTimestamp();
+    const quote = {
+      quoteNumber,
+      submissionId,
+      status: 'draft',
+      language: draft.language,
+      validDays: 30,
+      vatPercent: 5,
+      customer: draft.customer,
+      submissionSnapshot: draft.sourceSubmission,
+      lineItems: draft.lineItems,
+      pages: draft.pages,
+      terms: {
+        en: '50% upfront, 50% on delivery. Excludes hosting (we recommend Vercel free).',
+        ar: '50% مقدماً، 50% عند التسليم. لا يشمل الاستضافة (نوصي بـ Vercel المجاني).'
+      },
+      notes: { en: '', ar: '' },
+      passcodeHash,
+      _passcodePlain: passcodePlain,
+      createdAt: now,
+      updatedAt: now,
+      lastSentAt: null
+    };
+
+    console.log('[quote-create] writing quote:', { id, quoteNumber, lineItems: quote.lineItems?.length || 0 });
+    await db.collection('quotes').doc(id).set(quote);
+    console.log('[quote-create] created quote successfully:', id);
+
+    return res.status(201).json({ id, ...quote, passcodePlain });
+  } catch (error) {
+    console.error('[quote-create] unhandled error:', error);
+    return res.status(500).json({ error: error.message || 'Internal server error' });
   }
-
-  // 3. Pre-fill
-  const draft = prefillFromSubmission(submission);
-
-  // 4. Generate IDs and passcode
-  const id = generateQuoteId();
-  const passcodePlain = generatePasscode();
-  const passcodeHash = hashPasscode(passcodePlain);
-  const quoteNumber = await getNextQuoteNumber();
-
-  // 5. Persist
-  const now = admin.firestore.FieldValue.serverTimestamp();
-  const quote = {
-    quoteNumber,
-    submissionId,
-    status: 'draft',
-    language: draft.language,
-    validDays: 30,
-    vatPercent: 5,
-    customer: draft.customer,
-    submissionSnapshot: draft.sourceSubmission,
-    lineItems: draft.lineItems,
-    pages: draft.pages,
-    terms: { en: '50% upfront, 50% on delivery. Excludes hosting (we recommend Vercel free).', ar: '٥٠٪ مقدماً، ٥٠٪ عند التسليم. لا يشمل الاستضافة (نوصي بـ Vercel المجاني).' },
-    notes: { en: '', ar: '' },
-    passcodeHash,
-    _passcodePlain: passcodePlain,
-    createdAt: now,
-    updatedAt: now,
-    lastSentAt: null,
-  };
-  await db.collection('quotes').doc(id).set(quote);
-
-  return res.status(201).json({ id, ...quote, passcodePlain });
 }

@@ -35,12 +35,13 @@ import {
   signOut,
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import {
+  addDoc,
   collection,
   doc,
-  getDocs,
   onSnapshot,
   orderBy,
   query,
+  serverTimestamp,
   updateDoc,
   limit as fsLimit,
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
@@ -89,6 +90,64 @@ function fmtContactLink(contact, type) {
 }
 
 // ─── Renderers ────────────────────────────────────────────────────────────
+function mapLeadToSubmission(lead) {
+  const isEmail = lead.contact_type === 'email';
+  const businessName = (lead.name || '').trim();
+  const businessEmail = isEmail ? (lead.contact || '').trim() : '';
+  const businessPhone = !isEmail ? (lead.contact || '').trim() : '';
+  const priority = lead.urgency === 'urgent' ? 'High' : 'Normal';
+  const importedNoteParts = [
+    'Imported from chat lead.',
+    lead.project_brief ? `Brief: ${lead.project_brief}` : '',
+    lead.sourceUrl ? `Source URL: ${lead.sourceUrl}` : '',
+    lead.sessionId ? `Chat session: ${lead.sessionId}` : '',
+  ].filter(Boolean);
+
+  return {
+    businessName,
+    businessEmail,
+    businessPhone,
+    industry: lead.business_type || '',
+    businessDescription: lead.project_brief || '',
+    mainPurpose: 'generate_leads',
+    selectedMainPurpose: 'generate_leads',
+    visitorAction: '',
+    idealCustomer: '',
+    requiredFeatures: [],
+    optionalServices: [],
+    selectedRequiredFeatures: [],
+    selectedOptionalServices: [],
+    budgetRange: '',
+    launchDate: '',
+    urgency: lead.urgency || 'unknown',
+    notes: importedNoteParts.join('\n'),
+    status: 'New',
+    priority,
+    source: 'chat_lead_import',
+    importedFrom: 'chatLeads',
+    importedChatLeadId: lead.id,
+    importedChatSessionId: lead.sessionId || '',
+    language: lead.language || 'en',
+    createdAt: serverTimestamp(),
+    submittedAt: serverTimestamp(),
+    lastUpdatedAt: serverTimestamp(),
+  };
+}
+
+async function importLeadToSubmissions(lead) {
+  if (!lead) return null;
+  if (lead.importedSubmissionId) return lead.importedSubmissionId;
+
+  const submissionRef = await addDoc(collection(db, 'projectSubmissions'), mapLeadToSubmission(lead));
+
+  await updateDoc(doc(db, 'chatLeads', lead.id), {
+    importedSubmissionId: submissionRef.id,
+    importedAt: serverTimestamp(),
+  });
+
+  return submissionRef.id;
+}
+
 function renderShell(content) {
   const userBadge = state.user?.email
     ? `<span class="qd-admin-user-badge">${escapeHtml(state.user.email)}</span>`
@@ -102,7 +161,6 @@ function renderShell(content) {
           </div>
           <div class="qd-admin-topbar-actions">
             <a class="qd-admin-link" href="admin.html">Submissions</a>
-            <a class="qd-admin-link" href="index.html" target="_blank">Home</a>
             ${userBadge}
             ${state.user ? '<button class="qd-btn qd-btn-ghost qd-btn-sm" type="button" data-action="logout">Logout</button>' : ''}
           </div>
@@ -165,6 +223,7 @@ function renderLeadDetail(lead) {
     return '<div class="qd-chat-admin-empty">Select a lead to view details</div>';
   }
   const status = lead.status || 'new';
+  const importedSubmissionId = lead.importedSubmissionId || '';
   return `
     <div class="qd-chat-admin-header">
       <h2>${escapeHtml(lead.name || lead.business_type || 'Anonymous lead')}</h2>
@@ -175,6 +234,7 @@ function renderLeadDetail(lead) {
       ${lead.contact ? `<a class="is-primary" href="${lead.contact_type === 'email' ? 'mailto:' + encodeURIComponent(lead.contact) : 'https://wa.me/' + lead.contact.replace(/[^\d]/g, '')}" target="_blank" rel="noopener">${escapeHtml(lead.contact_type === 'email' ? 'Email' : 'WhatsApp')} →</a>` : ''}
       ${status === 'new' ? `<a href="#" data-action="mark-contacted" data-id="${lead.id}">Mark as contacted</a>` : ''}
       ${lead.sessionId ? `<a href="#" data-action="view-session" data-session="${lead.sessionId}">View conversation</a>` : ''}
+      ${importedSubmissionId ? `<a href="admin.html">Open in submissions</a>` : `<a href="#" data-action="import-submission" data-id="${lead.id}">Import to submissions</a>`}
     </div>
 
     <div class="qd-chat-admin-field"><span class="qd-chat-admin-field-label">Contact</span><span class="qd-chat-admin-field-value">${fmtContactLink(lead.contact, lead.contact_type)} (${escapeHtml(lead.contact_type || '—')})</span></div>
@@ -285,6 +345,15 @@ root.addEventListener('click', async (e) => {
       await updateDoc(doc(db, 'chatLeads', id), { status: 'contacted' });
     } catch (err) {
       console.error('failed to update lead status:', err);
+    }
+  } else if (action === 'import-submission') {
+    e.preventDefault();
+    const lead = state.leads.find((item) => item.id === t.dataset.id);
+    if (!lead) return;
+    try {
+      await importLeadToSubmissions(lead);
+    } catch (err) {
+      console.error('failed to import lead into submissions:', err);
     }
   } else if (action === 'view-session') {
     e.preventDefault();

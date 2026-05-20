@@ -7,7 +7,8 @@
   "scripts": {
     "build:kb": "node scripts/build-kb.mjs",
     "scrape:site": "node scripts/scrape-site.mjs",
-    "dev": "vercel dev",
+    "dev": "node _dev-server.mjs",
+    "dev:vercel": "vercel dev",
     "deploy": "vercel --prod"
   },
   "dependencies": {

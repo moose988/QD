@@ -613,6 +613,7 @@ body.qd-admin-page.qd-modal-open {
   gap: 4px;
 }
 
+
 .qd-status-pill,
 .qd-priority-pill,
 .qd-language-badge {
@@ -1094,6 +1095,11 @@ body.qd-admin-page.qd-modal-open {
 }
 
 .qd-admin-admin-grid .qd-admin-field:last-child {
+  grid-column: 1 / -1;
+}
+
+.qd-admin-editor-grid .qd-admin-field:nth-last-child(1),
+.qd-admin-editor-grid .qd-admin-field:nth-last-child(2) {
   grid-column: 1 / -1;
 }
 

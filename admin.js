@@ -48,14 +48,6 @@ const root = document.getElementById('qd-admin-root');
 const allowedAdminEmails = null;
 const statusOptions = ['New', 'Reviewed', 'Contacted', 'Quoted', 'Accepted', 'Rejected', 'Archived'];
 const priorityOptions = ['Low', 'Normal', 'High', 'VIP'];
-const launchDateFilterOptions = [
-  ['all', 'All launch dates'],
-  ['this-week', 'This week'],
-  ['this-month', 'This month'],
-  ['next-30', 'Next 30 days'],
-  ['flexible', 'Flexible / Not provided'],
-  ['past', 'Past dates']
-];
 
 const state = {
   authLoading: true,
@@ -71,8 +63,7 @@ const state = {
   filters: {
     search: '',
     status: 'All',
-    priority: 'All',
-    launchDate: 'all'
+    priority: 'All'
   },
   selectedId: null,
   drawerDraft: null,
@@ -134,6 +125,37 @@ const languageLabels = {
   en: 'English',
   ar: 'Arabic'
 };
+
+const editableSubmissionFields = [
+  { key: 'businessName', label: 'Business Name', input: 'text' },
+  { key: 'businessEmail', label: 'Contact Email', input: 'email' },
+  { key: 'businessPhone', label: 'Phone', input: 'text' },
+  { key: 'industry', label: 'Industry', input: 'text' },
+  { key: 'businessDescription', label: 'Business Description', input: 'textarea' },
+  { key: 'socialLinks', label: 'Social Links', input: 'textarea' },
+  { key: 'mainPurpose', label: 'Main Purpose', input: 'select', options: [
+    ['sell_products_services', 'Sell Products / Services'],
+    ['generate_leads', 'Generate Leads'],
+    ['accept_bookings', 'Accept Bookings / Appointments'],
+    ['provide_information', 'Provide Information'],
+    ['build_brand_awareness', 'Build Brand Awareness'],
+    ['improve_google_ranking', 'Improve Google Ranking']
+  ] },
+  { key: 'visitorAction', label: 'Visitor Action', input: 'text' },
+  { key: 'idealCustomer', label: 'Ideal Customer', input: 'textarea' },
+  { key: 'budgetRange', label: 'Budget', input: 'text' },
+  { key: 'launchDate', label: 'Launch Date', input: 'text' },
+  { key: 'urgency', label: 'Urgency', input: 'select', options: [
+    ['urgent', 'Urgent'],
+    ['soon', 'Soon'],
+    ['exploring', 'Exploring'],
+    ['unknown', 'Unknown']
+  ] },
+  { key: 'inspirationSites', label: 'Inspiration Websites', input: 'textarea' },
+  { key: 'competitors', label: 'Competitors', input: 'textarea' },
+  { key: 'domainName', label: 'Domain', input: 'text' },
+  { key: 'existingWebsiteLink', label: 'Existing Website Link', input: 'text' }
+];
 
 const rawValueLabels = {
   en: 'English',
@@ -331,6 +353,26 @@ const getAnswer = (submission, key) => {
   return '';
 };
 
+const createDrawerDraft = (submission, previousDraft = {}) => {
+  if (!submission) return null;
+
+  const base = {
+    id: submission.id,
+    status: previousDraft.status ?? submission.status ?? 'New',
+    priority: previousDraft.priority ?? submission.priority ?? 'Normal',
+    notes: previousDraft.notes ?? submission.notes ?? '',
+    editMode: previousDraft.id === submission.id ? previousDraft.editMode === true : false
+  };
+
+  editableSubmissionFields.forEach(({ key }) => {
+    base[key] = previousDraft.id === submission.id && previousDraft[key] !== undefined
+      ? previousDraft[key]
+      : getAnswer(submission, key);
+  });
+
+  return base;
+};
+
 const formatValue = (value, { type = 'text' } = {}) => {
   if (value === null || value === undefined || value === '') return 'Not provided';
 
@@ -522,48 +564,16 @@ const ensureDrawerDraft = () => {
   if (!selected) return;
   if (state.drawerDraft && state.drawerDraft.id === selected.id) return;
 
-  state.drawerDraft = {
-    id: selected.id,
-    status: selected.status || 'New',
-    priority: selected.priority || 'Normal',
-    notes: selected.notes || ''
-  };
+  state.drawerDraft = createDrawerDraft(selected);
 };
 
 const getFilteredSubmissions = () => {
   const search = state.filters.search.trim().toLowerCase();
-  const today = new Date();
-  const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  const weekOffset = (todayDate.getDay() + 6) % 7;
-  const weekStart = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate() - weekOffset);
-  const weekEnd = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + 6);
-  const nextThirtyDays = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate() + 30);
 
   return state.submissions.filter((submission) => {
     const matchesStatus = state.filters.status === 'All' || submission.status === state.filters.status;
     const matchesPriority = state.filters.priority === 'All' || submission.priority === state.filters.priority;
-    const launchDateValue = getAnswer(submission, 'launchDate');
-    const parsedLaunchDate = parseLaunchDateValue(launchDateValue);
-    const matchesLaunchDate = (() => {
-      switch (state.filters.launchDate) {
-        case 'this-week':
-          return parsedLaunchDate ? parsedLaunchDate >= weekStart && parsedLaunchDate <= weekEnd : false;
-        case 'this-month':
-          return parsedLaunchDate
-            ? parsedLaunchDate.getFullYear() === todayDate.getFullYear() && parsedLaunchDate.getMonth() === todayDate.getMonth()
-            : false;
-        case 'next-30':
-          return parsedLaunchDate ? parsedLaunchDate >= todayDate && parsedLaunchDate <= nextThirtyDays : false;
-        case 'flexible':
-          return !parsedLaunchDate && isFlexibleLaunchValue(launchDateValue);
-        case 'past':
-          return parsedLaunchDate ? parsedLaunchDate < todayDate : false;
-        default:
-          return true;
-      }
-    })();
-
-    if (!matchesStatus || !matchesPriority || !matchesLaunchDate) return false;
+    if (!matchesStatus || !matchesPriority) return false;
 
     if (!search) return true;
 
@@ -947,11 +957,6 @@ const renderDashboard = () => {
               <option value="${escapeHtml(option)}" ${state.filters.priority === option ? 'selected' : ''}>${escapeHtml(option)}</option>
             `).join('')}
           </select>
-          <select class="qd-admin-select" data-field="launchDate">
-            ${launchDateFilterOptions.map(([value, label]) => `
-              <option value="${escapeHtml(value)}" ${state.filters.launchDate === value ? 'selected' : ''}>${escapeHtml(label)}</option>
-            `).join('')}
-          </select>
         </div>
 
         <div class="qd-admin-table-wrap">
@@ -988,6 +993,39 @@ const renderDetailItem = (label, value, options = {}) => {
     <div class="qd-admin-detail-item ${isArabic ? 'is-rtl' : ''}">
       <strong>${escapeHtml(label)}</strong>
       <div class="qd-admin-detail-value ${multiline ? 'is-multiline' : ''}">${escapeHtml(formatted)}</div>
+    </div>
+  `;
+};
+
+const renderEditableField = (field, draft) => {
+  const value = draft?.[field.key] ?? '';
+
+  if (field.input === 'textarea') {
+    return `
+      <div class="qd-admin-field">
+        <label for="drawer-edit-${escapeHtml(field.key)}">${escapeHtml(field.label)}</label>
+        <textarea id="drawer-edit-${escapeHtml(field.key)}" class="qd-admin-textarea" data-drawer-edit-field="${escapeHtml(field.key)}">${escapeHtml(value)}</textarea>
+      </div>
+    `;
+  }
+
+  if (field.input === 'select') {
+    return `
+      <div class="qd-admin-field">
+        <label for="drawer-edit-${escapeHtml(field.key)}">${escapeHtml(field.label)}</label>
+        <select id="drawer-edit-${escapeHtml(field.key)}" class="qd-admin-select" data-drawer-edit-field="${escapeHtml(field.key)}">
+          ${field.options.map(([optionValue, optionLabel]) => `
+            <option value="${escapeHtml(optionValue)}" ${String(value) === optionValue ? 'selected' : ''}>${escapeHtml(optionLabel)}</option>
+          `).join('')}
+        </select>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="qd-admin-field">
+      <label for="drawer-edit-${escapeHtml(field.key)}">${escapeHtml(field.label)}</label>
+      <input id="drawer-edit-${escapeHtml(field.key)}" class="qd-admin-input" type="${escapeHtml(field.input || 'text')}" value="${escapeHtml(value)}" data-drawer-edit-field="${escapeHtml(field.key)}">
     </div>
   `;
 };
@@ -1145,6 +1183,7 @@ const renderDrawer = () => {
             : '<button class="qd-btn qd-btn-sm qd-admin-action-call is-disabled" type="button" disabled aria-disabled="true">Call</button>'}
           ${mailtoLink ? `<a class="qd-btn qd-btn-sm qd-admin-action-secondary" href="${escapeHtml(mailtoLink)}">Email</a>` : ''}
           ${renderQuoteButton(submission)}
+          <button class="qd-btn qd-btn-sm qd-admin-action-secondary" type="button" data-action="${draft.editMode ? 'cancel-edit-submission' : 'edit-submission'}">${draft.editMode ? 'Cancel Edit' : 'Edit Submission'}</button>
           <button class="qd-btn qd-btn-sm qd-admin-action-primary" type="button" data-action="copy-summary">Copy Summary</button>
           <button class="qd-btn qd-btn-sm qd-admin-action-danger" type="button" data-action="archive-submission">Archive</button>
         </div>
@@ -1210,10 +1249,21 @@ const renderDrawer = () => {
         <div class="qd-admin-save-row">
           <span class="qd-admin-save-help">Changes update Firestore in place and stamp a new lastUpdatedAt value.</span>
           <button class="qd-btn qd-btn-md qd-admin-action-primary" type="button" data-action="save-drawer" ${state.isSaving ? 'disabled' : ''}>
-            ${state.isSaving ? 'Saving...' : 'Save changes'}
+            ${state.isSaving ? 'Saving...' : draft.editMode ? 'Save submission' : 'Save changes'}
           </button>
         </div>
       </section>
+
+      ${draft.editMode ? `
+        <section class="qd-admin-drawer-group qd-admin-drawer-admin">
+          <div class="qd-admin-drawer-group-head">
+            <h3>Edit Submission Values</h3>
+          </div>
+          <div class="qd-admin-admin-grid qd-admin-editor-grid">
+            ${editableSubmissionFields.map((field) => renderEditableField(field, draft)).join('')}
+          </div>
+        </section>
+      ` : ''}
 
       ${groupedSections.map((section) => renderDetailSection(section.title, section.items, isArabic)).join('')}
       </aside>
@@ -1235,8 +1285,6 @@ const renderAppShell = (content) => {
           </div>
 
           <div class="qd-admin-topbar-actions">
-            <a class="qd-admin-link" href="index.html" target="_blank" rel="noreferrer noopener">Home</a>
-            <a class="qd-admin-link" href="contact.html" target="_blank" rel="noreferrer noopener">Contact Form</a>
             <a class="qd-admin-link" href="chat-admin.html">Chat Leads</a>
             ${userBadge}
             ${state.user ? '<button class="qd-btn qd-btn-ghost qd-btn-sm" type="button" data-action="logout">Logout</button>' : ''}
@@ -1441,12 +1489,7 @@ const subscribeToSubmissions = () => {
         } else if (state.selectedId) {
           const fresh = getSelectedSubmission();
           if (fresh) {
-            state.drawerDraft = {
-              id: fresh.id,
-              status: state.drawerDraft?.status ?? fresh.status,
-              priority: state.drawerDraft?.priority ?? fresh.priority,
-              notes: state.drawerDraft?.notes ?? fresh.notes
-            };
+            state.drawerDraft = createDrawerDraft(fresh, state.drawerDraft);
           }
         }
 
@@ -1472,10 +1515,24 @@ const saveDrawer = async (nextValues = {}) => {
   const selected = getSelectedSubmission();
   if (!selected) return;
 
+  const nextAnswers = { ...(selected.answers || {}) };
+  for (const field of editableSubmissionFields) {
+    nextAnswers[field.key] = nextValues[field.key] ?? state.drawerDraft?.[field.key] ?? getAnswer(selected, field.key);
+  }
+
   const payload = {
     status: nextValues.status ?? state.drawerDraft?.status ?? selected.status ?? 'New',
     priority: nextValues.priority ?? state.drawerDraft?.priority ?? selected.priority ?? 'Normal',
     notes: nextValues.notes ?? state.drawerDraft?.notes ?? selected.notes ?? '',
+    answers: nextAnswers,
+    businessName: nextAnswers.businessName || '',
+    businessEmail: nextAnswers.businessEmail || '',
+    businessPhone: nextAnswers.businessPhone || '',
+    industry: nextAnswers.industry || '',
+    budgetRange: nextAnswers.budgetRange || '',
+    launchDate: nextAnswers.launchDate || '',
+    urgency: nextAnswers.urgency || '',
+    selectedMainPurpose: nextAnswers.mainPurpose || '',
     lastUpdatedAt: serverTimestamp()
   };
 
@@ -1485,7 +1542,12 @@ const saveDrawer = async (nextValues = {}) => {
 
   try {
     await updateDoc(doc(db, 'projectSubmissions', selected.id), payload);
-    state.drawerDraft = { id: selected.id, ...payload, lastUpdatedAt: undefined };
+    state.drawerDraft = {
+      ...(state.drawerDraft || createDrawerDraft(selected)),
+      ...payload,
+      editMode: false,
+      lastUpdatedAt: undefined
+    };
   } catch (error) {
     state.saveError = error?.message || 'Could not save submission changes.';
   } finally {
@@ -1532,6 +1594,22 @@ const handleDocumentClick = async (event) => {
       state.saveError = error?.message || 'Clipboard write failed.';
       render();
     }
+    return;
+  }
+
+  if (action === 'edit-submission') {
+    ensureDrawerDraft();
+    if (state.drawerDraft) {
+      state.drawerDraft.editMode = true;
+      render();
+    }
+    return;
+  }
+
+  if (action === 'cancel-edit-submission') {
+    const selected = getSelectedSubmission();
+    state.drawerDraft = selected ? createDrawerDraft(selected, { id: selected.id, editMode: false }) : null;
+    render();
     return;
   }
 
@@ -1634,10 +1712,25 @@ const handleDocumentInput = (event) => {
     if (!selected) return;
 
     state.drawerDraft = {
+      ...(state.drawerDraft || createDrawerDraft(selected)),
       id: selected.id,
       status: drawerField === 'status' ? event.target.value : state.drawerDraft?.status ?? selected.status ?? 'New',
       priority: drawerField === 'priority' ? event.target.value : state.drawerDraft?.priority ?? selected.priority ?? 'Normal',
       notes: drawerField === 'notes' ? event.target.value : state.drawerDraft?.notes ?? selected.notes ?? ''
+    };
+    return;
+  }
+
+  const drawerEditField = event.target.dataset.drawerEditField;
+  if (drawerEditField) {
+    const selected = getSelectedSubmission();
+    if (!selected) return;
+
+    state.drawerDraft = {
+      ...(state.drawerDraft || createDrawerDraft(selected)),
+      id: selected.id,
+      editMode: true,
+      [drawerEditField]: event.target.value
     };
   }
 };
@@ -1732,17 +1825,20 @@ const openQuoteFromSubmission = async (submissionId) => {
     const user = auth.currentUser;
     if (!user) { showToast('Not signed in.'); return; }
     const token = await user.getIdToken();
+    console.log('[quote-create] requesting API', { submissionId, endpoint: '/api/quote-create' });
     const res = await fetch('/api/quote-create', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({ submissionId })
     });
+    console.log('[quote-create] response status', res.status, res.statusText);
     if (!res.ok) {
       if (res.status === 404) {
         showToast('Quote API is missing or not deployed.');
         return;
       }
       const err = await res.json().catch(() => ({}));
+      console.error('[quote-create] API failure payload:', err);
       // If quote already exists (409), open the existing one
       if (res.status === 409 && err.existing) {
         state.quotesBySubmissionId[submissionId] = err.existing;
@@ -1841,13 +1937,16 @@ const saveQuoteDrawer = async ({ markSent = false, copy = false, silent = false 
       vatPercent: q.vatPercent,
       language: q.language || 'en'
     };
+    console.log('[quote-save] requesting API', { id: q.id, markSent, endpoint: '/api/quote-save', updates });
     const res = await fetch('/api/quote-save', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({ id: q.id, updates, markSent })
     });
+    console.log('[quote-save] response status', res.status, res.statusText);
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
+      console.error('[quote-save] API failure payload:', err);
       if (!silent) showToast(`Save failed: ${err.error || res.status}`);
       return;
     }

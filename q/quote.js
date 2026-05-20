@@ -26,14 +26,20 @@ function showError(msg, shake = false) {
 }
 
 async function verifyAndRender(passcode) {
+  console.log('[quote-verify] requesting API', { id: ID, endpoint: '/api/quote-verify' });
   const res = await fetch('/api/quote-verify', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ id: ID, passcode }),
   });
+  console.log('[quote-verify] response status', res.status, res.statusText);
   if (res.status === 401) { showError(L(currentLang, 'incorrectPasscode'), true); return; }
   if (res.status === 404) { renderNotFound(); return; }
-  if (!res.ok) { showError('Network error'); return; }
+  if (!res.ok) {
+    console.error('[quote-verify] API failure');
+    showError('Network error');
+    return;
+  }
   const data = await res.json();
   // First successful unlock: pick the quote's preferred language UNLESS user already overrode
   if (!localStorage.getItem('quoteLang')) {

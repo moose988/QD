@@ -2,6 +2,9 @@
   "cleanUrls": false,
   "trailingSlash": false,
   "rewrites": [
+    { "source": "/q/quote.js", "destination": "/q/quote.js" },
+    { "source": "/q/quote.css", "destination": "/q/quote.css" },
+    { "source": "/q/index.html", "destination": "/q/index.html" },
     { "source": "/q/(.*)", "destination": "/q/index.html" }
   ],
   "functions": {

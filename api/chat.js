@@ -28,6 +28,18 @@ warmup();
 const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
 const MAX_HISTORY = 8; // last 8 messages (4 turns)
 
+function getRequiredChatEnv() {
+  const groqApiKey = process.env.GROQ_API_KEY?.trim();
+  if (!groqApiKey) {
+    const error = new Error(
+      'GROQ_API_KEY is missing. Add the rotated key to the root .env.local file and restart `vercel dev`.'
+    );
+    error.statusCode = 500;
+    throw error;
+  }
+  return { groqApiKey };
+}
+
 export const config = {
   // Use Node runtime (we need transformers.js + firebase-admin)
   runtime: 'nodejs',
@@ -70,6 +82,7 @@ export default async function handler(req, res) {
   };
 
   try {
+    const { groqApiKey } = getRequiredChatEnv();
     // ─── 1. Embed query + retrieve ──────────────────────────────────────────
     const queryEmbedding = await embedQuery(message);
     const retrieved = await retrieve(queryEmbedding, { topK: 6, lang });
@@ -101,7 +114,7 @@ export default async function handler(req, res) {
     ];
 
     // ─── 3. Stream Groq response ────────────────────────────────────────────
-    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+    const groq = new Groq({ apiKey: groqApiKey });
 
     const stream = await groq.chat.completions.create({
       model: GROQ_MODEL,

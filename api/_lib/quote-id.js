@@ -13,7 +13,11 @@ export function generatePasscode() {
 
 function getSalt() {
   const salt = process.env.QUOTE_PASSCODE_SALT;
-  if (!salt) throw new Error('QUOTE_PASSCODE_SALT env var is required');
+  if (!salt) {
+    throw new Error(
+      'QUOTE_PASSCODE_SALT env var is required. Add it to the root .env.local file before running `vercel dev`.'
+    );
+  }
   return salt;
 }
 
