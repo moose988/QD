@@ -8,9 +8,10 @@ const ARABIC_RE = /[؀-ۿ]/;
 
 function getAnswer(submission, key) {
   if (!submission) return '';
-  if (submission[key] !== undefined && submission[key] !== null && submission[key] !== '') return submission[key];
   const answers = submission.answers || {};
-  return answers[key] ?? '';
+  if (answers[key] !== undefined && answers[key] !== null && answers[key] !== '') return answers[key];
+  if (submission[key] !== undefined && submission[key] !== null && submission[key] !== '') return submission[key];
+  return '';
 }
 
 function countNeededPages(rawPages) {
@@ -78,5 +79,17 @@ export function prefillFromSubmission(submission) {
     lineItems: lineItems.filter(Boolean),
     pages: { en: pagesEn, ar: '' },
     language: detectLanguage(submission),
+    sourceSubmission: {
+      businessName: getAnswer(submission, 'businessName') || '',
+      businessEmail: getAnswer(submission, 'businessEmail') || '',
+      businessPhone: getAnswer(submission, 'businessPhone') || '',
+      industry: getAnswer(submission, 'industry') || '',
+      mainPurpose: submission?.selectedMainPurpose || getAnswer(submission, 'mainPurpose') || '',
+      requiredFeatures: submission?.selectedRequiredFeatures || getAnswer(submission, 'requiredFeatures') || '',
+      customFeatures: getAnswer(submission, 'customFeatures') || '',
+      contentReadiness: getAnswer(submission, 'contentReadiness') || '',
+      supportLevel: getAnswer(submission, 'supportLevel') || '',
+      language: getAnswer(submission, 'requiredFeatures__multi_language_languages') || submission?.pageLang || ''
+    }
   };
 }

@@ -16,6 +16,10 @@ service cloud.firestore {
       allow read: if true;
       allow write: if request.auth != null;
     }
+
+    match /quotes/{document} {
+      allow read, write: if request.auth != null;
+    }
   }
 }
 */
@@ -1702,6 +1706,7 @@ const subscribeToQuotes = () => {
     },
     (err) => {
       console.warn('[quotes] snapshot error (likely Firestore rules deny):', err?.message || err);
+      showToast('Quotes collection blocked by Firestore rules.');
     }
   );
 };
@@ -1733,6 +1738,10 @@ const openQuoteFromSubmission = async (submissionId) => {
       body: JSON.stringify({ submissionId })
     });
     if (!res.ok) {
+      if (res.status === 404) {
+        showToast('Quote API is missing or not deployed.');
+        return;
+      }
       const err = await res.json().catch(() => ({}));
       // If quote already exists (409), open the existing one
       if (res.status === 409 && err.existing) {
@@ -1748,7 +1757,7 @@ const openQuoteFromSubmission = async (submissionId) => {
     openQuoteDrawer(created);
   } catch (e) {
     console.error('[quote-create] error:', e);
-    showToast(`Error: ${e.message}`);
+    showToast('Quote API is missing or not deployed.');
   }
 };
 

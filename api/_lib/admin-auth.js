@@ -1,4 +1,4 @@
-import { admin } from './firebase.js';
+import { getAdminApp } from './firebase.js';
 
 // Verifies the Firebase ID token from the Authorization header.
 // Throws on failure (which the caller should catch → 401).
@@ -13,7 +13,7 @@ export async function requireAdmin(req) {
     throw new Error('Missing bearer token');
   }
   const idToken = auth.slice('Bearer '.length).trim();
-  const decoded = await admin.auth().verifyIdToken(idToken);
+  const decoded = await getAdminApp().auth().verifyIdToken(idToken);
   // v1: any authenticated Firebase user is admin (matches the existing pattern where
   // the rules just check `request.auth != null`). If we add roles later, gate here.
   return decoded;

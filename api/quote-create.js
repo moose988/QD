@@ -56,6 +56,7 @@ export default async function handler(req, res) {
     validDays: 30,
     vatPercent: 5,
     customer: draft.customer,
+    submissionSnapshot: draft.sourceSubmission,
     lineItems: draft.lineItems,
     pages: draft.pages,
     terms: { en: '50% upfront, 50% on delivery. Excludes hosting (we recommend Vercel free).', ar: '٥٠٪ مقدماً، ٥٠٪ عند التسليم. لا يشمل الاستضافة (نوصي بـ Vercel المجاني).' },
