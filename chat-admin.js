@@ -47,6 +47,9 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const root = document.getElementById('qd-chat-admin-root');
+const returnToTab = new URLSearchParams(window.location.search).get('returnTo') === 'cards' ? 'cards' : 'dashboard';
+const backHref = `admin.html?tab=${returnToTab}`;
+const backLabel = returnToTab === 'cards' ? 'Back to Smart Cards' : 'Back to Pipeline';
 
 const state = {
   user: null,
@@ -160,7 +163,7 @@ function renderShell(content) {
             <img src="assets/qd-logo.jpeg" alt="QD Systems">
           </div>
           <div class="qd-admin-topbar-actions">
-            <a class="qd-admin-link" href="admin.html">Submissions</a>
+            <a class="qd-admin-link" href="${backHref}">${backLabel}</a>
             ${userBadge}
             ${state.user ? '<button class="qd-btn qd-btn-ghost qd-btn-sm" type="button" data-action="logout">Logout</button>' : ''}
           </div>

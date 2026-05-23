@@ -100,9 +100,9 @@ const buildCardLinks = (card) => {
 
 const renderAvatar = (card) => {
   if (card.avatar) {
-    return `<div class="qd-card-avatar"><img src="${escapeHtml(card.avatar)}" alt="${escapeHtml(card.name)}"></div>`;
+    return `<img src="${escapeHtml(card.avatar)}" alt="${escapeHtml(card.name)}">`;
   }
-  return `<div class="qd-card-avatar">${escapeHtml(getInitials(card.name))}</div>`;
+  return `${escapeHtml(getInitials(card.name))}`;
 };
 
 const renderCard = (id, rawCard) => {
@@ -121,54 +121,65 @@ const renderCard = (id, rawCard) => {
   document.title = `${card.name} | QD SYSTEMS`;
 
   contentEl.innerHTML = `
-    <section class="qd-card-hero qd-card-reveal" style="--stagger:0">
-      <div class="qd-card-avatar-wrap">${renderAvatar(card)}</div>
-      <h1 class="qd-card-name">${escapeHtml(card.name || 'QD SYSTEMS')}</h1>
-      <div class="qd-card-role">${escapeHtml(card.role || 'Digital Systems')}</div>
-      <div class="qd-card-company">${escapeHtml(card.company || 'QD SYSTEMS')}</div>
-    </section>
+    <div class="card-avatar card-animate" id="card-avatar-el">${renderAvatar(card)}</div>
+    <h1 class="card-name card-animate" id="card-name-el">${escapeHtml(card.name || 'QD SYSTEMS')}</h1>
+    <p class="card-role card-animate" id="card-role-el">${escapeHtml(card.role || 'Digital Systems')}</p>
+    <span class="card-company-badge card-animate" id="card-company-el">${escapeHtml(card.company || 'QD SYSTEMS')}</span>
 
-    <section class="qd-card-actions qd-card-reveal" style="--stagger:1">
-      <a class="qd-card-button" href="${escapeHtml(card.phone ? `tel:${card.phone}` : '#')}" ${card.phone ? '' : 'aria-disabled="true"'}>${iconMarkup.phone}<span>Call</span></a>
-      <a class="qd-card-button is-whatsapp" href="${escapeHtml(whatsappPhone ? `https://wa.me/${whatsappPhone}` : '#')}" target="_blank" rel="noreferrer noopener" ${whatsappPhone ? '' : 'aria-disabled="true"'}>${iconMarkup.whatsapp}<span>WhatsApp</span></a>
-    </section>
+    <div class="card-actions card-animate">
+      <a class="card-btn-call" id="card-call-btn" href="${escapeHtml(card.phone ? `tel:${card.phone}` : '#')}" ${card.phone ? '' : 'aria-disabled="true"'}>${iconMarkup.phone}<span>Call</span></a>
+      <a class="card-btn-whatsapp" id="card-wa-btn" href="${escapeHtml(whatsappPhone ? `https://wa.me/${whatsappPhone}` : '#')}" target="_blank" rel="noreferrer noopener" ${whatsappPhone ? '' : 'aria-disabled="true"'}>${iconMarkup.whatsapp}<span>WhatsApp</span></a>
+    </div>
 
-    <section class="qd-card-links qd-card-reveal" style="--stagger:2">
+    <div class="card-links card-animate" id="card-links-el">
       ${links.map((item) => `
-        <a class="qd-card-link" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer noopener">
-          <div class="qd-card-link-icon">${iconForLink(item.icon)}</div>
-          <div class="qd-card-link-copy">
-            <div class="qd-card-link-label">${escapeHtml(item.label)}</div>
-            <div class="qd-card-link-subtitle">${escapeHtml(item.subtitle)}</div>
+        <a class="card-link-row" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer noopener">
+          <div class="card-link-icon">${iconForLink(item.icon)}</div>
+          <div class="card-link-text">
+            <span class="card-link-label">${escapeHtml(item.label)}</span>
+            <span class="card-link-sub">${escapeHtml(item.subtitle)}</span>
           </div>
-          <div class="qd-card-link-arrow" aria-hidden="true">-></div>
+          <div class="card-link-arrow" aria-hidden="true">-></div>
         </a>
       `).join('')}
-    </section>
+    </div>
 
-    <section class="qd-card-meta qd-card-reveal" style="--stagger:3">
-      <button class="qd-card-save" type="button" id="save-contact">${iconMarkup.contact}<span>Save to Contacts</span></button>
-      <a class="qd-card-cta" href="${escapeHtml(ctaHref)}" target="${/^https?:\/\//i.test(card.ctaUrl || '') ? '_blank' : '_self'}" rel="noreferrer noopener">${escapeHtml(card.ctaLabel || DEFAULT_CTA_LABEL)}</a>
-    </section>
-
-    <footer class="qd-card-footer qd-card-reveal" style="--stagger:4">
-      <a href="${SITE_URL}" target="_blank" rel="noreferrer noopener">Powered by QD SYSTEMS</a>
-    </footer>
+    <button class="card-save-btn card-animate" type="button" id="card-save-btn">${iconMarkup.contact}<span>Save to Contacts</span></button>
+    <a class="card-cta-btn card-animate" id="card-cta-btn" href="${escapeHtml(ctaHref)}" target="${/^https?:\/\//i.test(card.ctaUrl || '') ? '_blank' : '_self'}" rel="noreferrer noopener">${escapeHtml(card.ctaLabel || DEFAULT_CTA_LABEL)}</a>
   `;
 
-  const saveButton = document.getElementById('save-contact');
+  const avatarHost = document.getElementById('card-avatar-el');
+  if (avatarHost) {
+    avatarHost.innerHTML = renderAvatar(card);
+  }
+
+  const saveButton = document.getElementById('card-save-btn');
   if (saveButton) {
     saveButton.addEventListener('click', () => downloadVCard(card));
   }
 
+  if (skeletonEl) skeletonEl.style.display = 'none';
+
   contentEl.hidden = false;
+  contentEl.style.opacity = '0';
+  contentEl.style.display = 'flex';
+
+  requestAnimationFrame(() => {
+    contentEl.style.transition = 'opacity 0.3s ease';
+    contentEl.style.opacity = '1';
+  });
+
+  const animatables = contentEl.querySelectorAll('.card-animate');
+  animatables.forEach((el, index) => {
+    el.style.animationDelay = `${index * 70}ms`;
+  });
 };
 
 const renderMissing = (slug) => {
   document.title = 'Card Not Found | QD SYSTEMS';
   emptyEl.innerHTML = `
-    <div class="qd-card-empty-state">
-      <div class="qd-card-company">Smart Card</div>
+    <div class="card-empty-state">
+      <div class="card-company-badge">Smart Card</div>
       <h1>Card not found</h1>
       <p>${slug ? `No active QD card exists for "${escapeHtml(slug)}".` : 'This smart card link is missing a profile slug.'}</p>
       <a href="${SITE_URL}">Visit qdsystems.ae</a>
@@ -222,15 +233,15 @@ const loadCard = async () => {
     const snapshot = await getDocs(slugQuery);
     const docSnap = snapshot.docs[0];
 
-    skeletonEl.hidden = true;
-
     if (!docSnap) {
+      if (skeletonEl) skeletonEl.style.display = 'none';
       renderMissing(slug);
       return;
     }
 
     const card = docSnap.data();
     if (card.active === false) {
+      if (skeletonEl) skeletonEl.style.display = 'none';
       renderMissing(slug);
       return;
     }
@@ -239,7 +250,7 @@ const loadCard = async () => {
     incrementViews(docSnap.id);
   } catch (error) {
     console.error('[card] load failed:', error);
-    skeletonEl.hidden = true;
+    if (skeletonEl) skeletonEl.style.display = 'none';
     renderMissing(slug);
   }
 };

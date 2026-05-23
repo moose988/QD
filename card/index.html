@@ -9,37 +9,34 @@
   <link rel="stylesheet" href="/card/card.css">
 </head>
 <body>
-  <div class="qd-card-page">
-    <div class="qd-card-grid"></div>
+  <header class="card-header">
+    <span class="card-header-logo">QD SYSTEMS</span>
+    <a class="card-header-url" href="https://qdsystems.ae" target="_blank" rel="noreferrer noopener">QDSYSTEMS.AE</a>
+  </header>
 
-    <header class="qd-card-topbar">
-      <div class="qd-card-wordmark">QD SYSTEMS</div>
-      <a class="qd-card-domain" href="https://qdsystems.ae" target="_blank" rel="noreferrer noopener">qdsystems.ae</a>
-    </header>
+  <div class="card-glow" aria-hidden="true"></div>
 
-    <main class="qd-card-shell">
-      <section class="qd-card-panel is-visible" id="card-panel" aria-live="polite">
-        <div class="qd-card-skeleton" id="card-skeleton">
-          <div class="qd-card-skeleton-avatar qd-skeleton-block"></div>
-          <div class="qd-card-skeleton-line qd-skeleton-block qd-card-skeleton-name"></div>
-          <div class="qd-card-skeleton-line qd-skeleton-block qd-card-skeleton-role"></div>
-          <div class="qd-card-skeleton-pill qd-skeleton-block"></div>
-          <div class="qd-card-skeleton-actions">
-            <div class="qd-skeleton-block qd-card-skeleton-button"></div>
-            <div class="qd-skeleton-block qd-card-skeleton-button"></div>
-          </div>
-          <div class="qd-card-skeleton-list">
-            <div class="qd-skeleton-block qd-card-skeleton-link"></div>
-            <div class="qd-skeleton-block qd-card-skeleton-link"></div>
-            <div class="qd-skeleton-block qd-card-skeleton-link"></div>
-          </div>
-        </div>
+  <main class="card-container">
+    <div id="card-skeleton">
+      <div class="skeleton-circle"></div>
+      <div class="skeleton-line" style="width: 140px;"></div>
+      <div class="skeleton-line" style="width: 90px;"></div>
+      <div class="skeleton-line" style="width: 108px; height: 30px;"></div>
+      <div class="skeleton-line" style="width: 100%; height: 48px; border-radius: 12px;"></div>
+      <div class="skeleton-line" style="width: 100%; height: 48px; border-radius: 12px;"></div>
+      <div class="skeleton-line" style="width: 100%; height: 58px; border-radius: 12px;"></div>
+      <div class="skeleton-line" style="width: 100%; height: 58px; border-radius: 12px;"></div>
+      <div class="skeleton-line" style="width: 100%; height: 50px; border-radius: 12px;"></div>
+      <div class="skeleton-line" style="width: 100%; height: 54px; border-radius: 12px;"></div>
+    </div>
 
-        <div class="qd-card-content" id="card-content" hidden></div>
-        <div class="qd-card-empty" id="card-empty" hidden></div>
-      </section>
-    </main>
-  </div>
+    <div id="card-content" style="display: none; flex-direction: column; align-items: center; width: 100%;"></div>
+    <div id="card-empty" hidden></div>
+
+    <footer class="card-footer">
+      POWERED BY <a href="https://qdsystems.ae" target="_blank" rel="noreferrer noopener">QD SYSTEMS</a>
+    </footer>
+  </main>
 
   <script type="module" src="/card/card.js"></script>
 </body>

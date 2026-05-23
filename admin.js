@@ -78,7 +78,7 @@ const state = {
   saveError: '',
   copyFeedback: '',
   adminToast: '',
-  activeTab: 'dashboard',
+  activeTab: new URLSearchParams(window.location.search).get('tab') === 'cards' ? 'cards' : 'dashboard',
   submissions: [],
   cards: [],
   filters: {
@@ -1329,6 +1329,7 @@ const renderAdminTabs = () => `
   <nav class="qd-admin-tabs" aria-label="Admin sections">
     <button class="qd-admin-tab ${state.activeTab === 'dashboard' ? 'is-active' : ''}" type="button" data-action="set-admin-tab" data-tab="dashboard">Pipeline</button>
     <button class="qd-admin-tab ${state.activeTab === 'cards' ? 'is-active' : ''}" type="button" data-action="set-admin-tab" data-tab="cards">Smart Cards</button>
+    <a class="qd-admin-tab qd-admin-tab-link" href="chat-admin.html?returnTo=${escapeHtml(state.activeTab)}">Chat Leads</a>
   </nav>
 `;
 
@@ -1870,7 +1871,6 @@ const renderAppShell = (content) => {
           </div>
 
           <div class="qd-admin-topbar-actions">
-            <a class="qd-admin-link" href="chat-admin.html">Chat Leads</a>
             ${userBadge}
             ${state.user ? '<button class="qd-btn qd-btn-ghost qd-btn-sm" type="button" data-action="logout">Logout</button>' : ''}
           </div>
@@ -2528,6 +2528,7 @@ const handleDocumentClick = async (event) => {
 
   if (action === 'set-admin-tab') {
     state.activeTab = actionTarget.dataset.tab || 'dashboard';
+    syncAdminTabUrl();
     render();
     return;
   }
@@ -3261,3 +3262,8 @@ onAuthStateChanged(auth, (user) => {
 });
 
 render();
+const syncAdminTabUrl = () => {
+  const url = new URL(window.location.href);
+  url.searchParams.set('tab', state.activeTab);
+  window.history.replaceState({}, '', url);
+};

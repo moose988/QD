@@ -15,12 +15,17 @@
   padding: 0 16px;
   border: 1px solid transparent;
   border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: transparent;
   color: var(--fg2);
   font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
   transition: border-color 180ms var(--ease-out), color 180ms var(--ease-out), background 180ms var(--ease-out), transform 180ms var(--ease-out);
 }
 
@@ -48,9 +53,43 @@
   justify-content: flex-start;
 }
 
+.qd-admin-row-button {
+  width: auto;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--fg1);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 180ms var(--ease-out), background 180ms var(--ease-out), color 180ms var(--ease-out), transform 180ms var(--ease-out);
+}
+
+.qd-admin-row-button:hover {
+  border-color: rgba(166, 240, 79, 0.26);
+  background: rgba(166, 240, 79, 0.08);
+  color: var(--acid);
+  transform: translateY(-1px);
+}
+
+.qd-admin-row-button:active {
+  transform: translateY(0);
+}
+
 .qd-admin-row-button.is-danger {
   color: #ffb3b3;
   border-color: rgba(229, 75, 75, 0.24);
+  background: rgba(229, 75, 75, 0.05);
+}
+
+.qd-admin-row-button.is-danger:hover {
+  border-color: rgba(229, 75, 75, 0.4);
+  background: rgba(229, 75, 75, 0.12);
+  color: #ffd0d0;
 }
 
 .qd-admin-card-person {
