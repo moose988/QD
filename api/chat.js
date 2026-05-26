@@ -74,11 +74,15 @@ function extractErrorDetails(err) {
 
 function makeStageTracker(send) {
   let currentStage = 'request_received';
+  const startedAt = Date.now();
 
   return {
     mark(stage, meta = {}) {
       currentStage = stage;
-      send({ type: 'debug', stage, meta, at: new Date().toISOString() });
+      const elapsedMs = Date.now() - startedAt;
+      const payload = { ...meta, elapsedMs };
+      console.log(`[chat] stage=${stage} elapsed=${elapsedMs}ms`, payload);
+      send({ type: 'debug', stage, meta: payload, at: new Date().toISOString() });
     },
     current() {
       return currentStage;
@@ -127,12 +131,20 @@ export default async function handler(req, res) {
     res.write(`data: ${JSON.stringify(obj)}\n\n`);
   };
   const stage = makeStageTracker(send);
+  stage.mark('request_received', {
+    sessionId,
+    messageLength: message.length,
+    historyCount: history.length,
+    pageLang,
+    detectedLang: lang,
+  });
 
   try {
     stage.mark('handler_started', { method: req.method });
     const { groqApiKey, groqModel } = getRequiredChatConfig();
     stage.mark('env_checked', {
       groqModel,
+      embedModel: process.env.EMBED_MODEL || 'Xenova/multilingual-e5-base',
       hasGroqApiKey: Boolean(groqApiKey),
     });
     // ─── 1. Embed query + retrieve ──────────────────────────────────────────
@@ -194,11 +206,15 @@ export default async function handler(req, res) {
     let fullText = '';
     const toolCallParts = {}; // index -> { name, args }
     let chunkCount = 0;
+    let lastChunkAt = Date.now();
 
     for await (const chunk of stream) {
       chunkCount += 1;
+      lastChunkAt = Date.now();
       if (chunkCount === 1) {
         stage.mark('groq_stream_first_chunk_received');
+      } else if (chunkCount % 25 === 0) {
+        stage.mark('groq_stream_progress', { chunkCount });
       }
       const choice = chunk.choices?.[0];
       if (!choice) continue;
@@ -220,7 +236,11 @@ export default async function handler(req, res) {
     }
 
     // ─── 4. Persist lead if captured ────────────────────────────────────────
-    stage.mark('groq_stream_completed', { chunkCount, responseLength: fullText.length });
+    stage.mark('groq_stream_completed', {
+      chunkCount,
+      responseLength: fullText.length,
+      idleAfterLastChunkMs: Date.now() - lastChunkAt,
+    });
     let leadSaved = false;
     const db = getDb();
 

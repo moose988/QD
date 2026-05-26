@@ -15,7 +15,17 @@ let _extractorPromise = null;
 
 function getExtractor() {
   if (!_extractorPromise) {
+    const startedAt = Date.now();
+    console.log(`[embed] initializing extractor for model=${MODEL}`);
     _extractorPromise = pipeline('feature-extraction', MODEL, { quantized: true });
+    _extractorPromise
+      .then(() => {
+        console.log(`[embed] extractor ready model=${MODEL} in ${Date.now() - startedAt}ms`);
+      })
+      .catch((error) => {
+        console.error(`[embed] extractor init failed model=${MODEL}:`, error?.message || error);
+        _extractorPromise = null;
+      });
   }
   return _extractorPromise;
 }
@@ -38,8 +48,13 @@ function meanPool(output) {
 }
 
 export async function embedQuery(text) {
+  const startedAt = Date.now();
   const extractor = await getExtractor();
   const output = await extractor(`query: ${text}`, { pooling: 'none', normalize: false });
+  console.log(`[embed] query embedded in ${Date.now() - startedAt}ms`, {
+    model: MODEL,
+    textLength: text.length,
+  });
   return meanPool(output);
 }
 

@@ -11,7 +11,15 @@ let _cacheTime = 0;
 const TTL_MS = 5 * 60 * 1000;
 
 export async function loadChunks() {
-  if (_cache && Date.now() - _cacheTime < TTL_MS) return _cache;
+  if (_cache && Date.now() - _cacheTime < TTL_MS) {
+    console.log('[retrieval] using cached kb chunks', {
+      count: _cache.length,
+      ageMs: Date.now() - _cacheTime,
+    });
+    return _cache;
+  }
+
+  const startedAt = Date.now();
   const db = getDb();
   const snap = await db.collection('kb_chunks').get();
   _cache = snap.docs.map(d => {
@@ -26,6 +34,10 @@ export async function loadChunks() {
     };
   });
   _cacheTime = Date.now();
+  console.log('[retrieval] loaded kb chunks from firestore', {
+    count: _cache.length,
+    elapsedMs: Date.now() - startedAt,
+  });
   return _cache;
 }
 
@@ -34,6 +46,7 @@ export async function loadChunks() {
  * Boosts language-matched chunks slightly so AR queries prefer AR sources.
  */
 export async function retrieve(queryEmbedding, { topK = 6, lang = 'en', minScore = 0.55 } = {}) {
+  const startedAt = Date.now();
   const chunks = await loadChunks();
   if (!chunks.length) return [];
 
@@ -50,6 +63,15 @@ export async function retrieve(queryEmbedding, { topK = 6, lang = 'en', minScore
   // Filter weak matches but always keep at least 3 for context
   const above = scored.filter(c => c.score >= minScore);
   const final = above.length >= 3 ? above.slice(0, topK) : scored.slice(0, Math.max(topK, 4));
+
+  console.log('[retrieval] retrieval completed', {
+    lang,
+    topK,
+    minScore,
+    returnedCount: final.length,
+    bestScore: final[0]?.score ?? null,
+    elapsedMs: Date.now() - startedAt,
+  });
 
   return final;
 }

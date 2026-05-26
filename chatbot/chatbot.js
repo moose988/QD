@@ -25,6 +25,8 @@
   const OPEN_KEY = 'qd_chat_open_v1';
   const DEBUG_KEY = 'qd_chat_debug_v1';
   const MAX_HISTORY = 12;
+  const REQUEST_TIMEOUT_MS = 45000;
+  const STREAM_STALL_TIMEOUT_MS = 15000;
 
   // ─── i18n strings ──────────────────────────────────────────────────────────
   const STRINGS = {
@@ -275,7 +277,28 @@
       state.debugStages = state.debugStages.slice(-25);
     }
     persistDebugStages();
-    console.info('[qd-chat] stage:', entry);
+    console.info(`[qd-chat] stage: ${stage}`, meta, entry.at);
+  }
+
+  function formatDebugStages(limit = 6) {
+    return state.debugStages
+      .slice(-limit)
+      .map((entry) => {
+        const meta = Object.keys(entry.meta || {}).length ? ` ${JSON.stringify(entry.meta)}` : '';
+        return `${entry.stage}${meta}`;
+      })
+      .join('\n');
+  }
+
+  function buildDebugMessage(baseMessage, extras = []) {
+    const stages = formatDebugStages();
+    return [
+      baseMessage,
+      ...extras.filter(Boolean),
+      stages ? `Checkpoints:\n${stages}` : '',
+    ]
+      .filter(Boolean)
+      .join('\n\n');
   }
 
   function renderHistory() {
@@ -314,13 +337,26 @@
     const typing = addTyping();
     let botEl = null;
     let botText = '';
+    const abortController = new AbortController();
+    let timeoutId = null;
+    let stallTimer = null;
 
     try {
       resetDebugStages();
       recordDebugStage('fetch_started', { apiUrl: API_URL });
+      recordDebugStage('request_payload_ready', {
+        historyCount: Math.max(0, state.history.slice(-MAX_HISTORY, -1).length),
+        sessionId: state.sessionId,
+        pageLang: state.lang,
+      });
+      timeoutId = setTimeout(() => {
+        recordDebugStage('request_timeout', { timeoutMs: REQUEST_TIMEOUT_MS });
+        abortController.abort(new Error(`Request timed out after ${REQUEST_TIMEOUT_MS}ms`));
+      }, REQUEST_TIMEOUT_MS);
       const resp = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: abortController.signal,
         body: JSON.stringify({
           message: text,
           history: state.history.slice(-MAX_HISTORY, -1), // exclude just-added user turn
@@ -340,10 +376,30 @@
       let buffer = '';
 
       const removeTyping = () => { if (typing.parentNode) typing.parentNode.removeChild(typing); };
+      const clearStallTimer = () => {
+        if (stallTimer) {
+          clearTimeout(stallTimer);
+          stallTimer = null;
+        }
+      };
+      const armStallTimer = () => {
+        clearStallTimer();
+        stallTimer = setTimeout(() => {
+          recordDebugStage('stream_stalled', { timeoutMs: STREAM_STALL_TIMEOUT_MS });
+        }, STREAM_STALL_TIMEOUT_MS);
+      };
+
+      armStallTimer();
 
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
+        if (done) {
+          recordDebugStage('stream_reader_done');
+          clearStallTimer();
+          break;
+        }
+        armStallTimer();
+        recordDebugStage('stream_chunk_received', { bytes: value?.length || 0 });
         buffer += decoder.decode(value, { stream: true });
 
         // SSE: split on double newline; each event starts with "data: "
@@ -383,6 +439,15 @@
               stage: obj.stage,
               debugStages: state.debugStages,
             });
+            if (!botText) {
+              const stageLabel = obj.stage ? `Debug stage: ${obj.stage}` : '';
+              const detailLabel = obj.details ? `Reason: ${obj.details}` : '';
+              const debugText = [obj.message || STRINGS[state.lang].errorNetwork, stageLabel, detailLabel]
+                .filter(Boolean)
+                .join('\n');
+              addMessage('assistant', debugText);
+              continue;
+            }
             addMessage('assistant', obj.message || STRINGS[state.lang].errorNetwork);
           } else if (obj.type === 'done') {
             // Finalize
@@ -399,12 +464,38 @@
           state.history = state.history.slice(-MAX_HISTORY * 2);
         }
         persist();
+      } else {
+        recordDebugStage('empty_response_received');
+        addMessage(
+          'assistant',
+          buildDebugMessage(
+            state.lang === 'ar'
+              ? 'لم يصل أي رد نصي من الخادم. راجع نقاط التحقق التالية وسجلات Vercel.'
+              : 'The server finished without sending any text. Check the checkpoints below and the Vercel logs.'
+          )
+        );
       }
     } catch (err) {
       console.error('[qd-chat] error:', err, { debugStages: state.debugStages });
       if (typing.parentNode) typing.parentNode.removeChild(typing);
-      addMessage('assistant', STRINGS[state.lang].errorNetwork);
+      const isAbort = err?.name === 'AbortError' || /timed out/i.test(err?.message || '');
+      addMessage(
+        'assistant',
+        buildDebugMessage(
+          isAbort
+            ? (state.lang === 'ar'
+                ? 'انتهت مهلة طلب الدردشة قبل وصول الرد.'
+                : 'The chat request timed out before a response arrived.')
+            : STRINGS[state.lang].errorNetwork,
+          [
+            err?.message ? `Reason: ${err.message}` : '',
+            'If this is the Vercel deployment, check the function logs for `/api/chat`.',
+          ]
+        )
+      );
     } finally {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (stallTimer) clearTimeout(stallTimer);
       state.sending = false;
       els.input.disabled = false;
       els.send.disabled = !els.input.value.trim();
@@ -470,6 +561,9 @@
       localStorage.setItem(SESSION_KEY, state.sessionId);
       persist();
       renderHistory();
+    },
+    getDebugStages() {
+      return [...state.debugStages];
     },
     state,
   };
