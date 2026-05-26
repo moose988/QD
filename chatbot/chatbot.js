@@ -23,6 +23,7 @@
   const SESSION_KEY = 'qd_chat_session_v1';
   const HISTORY_KEY = 'qd_chat_history_v1';
   const OPEN_KEY = 'qd_chat_open_v1';
+  const DEBUG_KEY = 'qd_chat_debug_v1';
   const MAX_HISTORY = 12;
 
   // ─── i18n strings ──────────────────────────────────────────────────────────
@@ -82,6 +83,7 @@
     sessionId: localStorage.getItem(SESSION_KEY) || null,
     history: JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'),
     sending: false,
+    debugStages: JSON.parse(sessionStorage.getItem(DEBUG_KEY) || '[]'),
   };
 
   if (!state.sessionId) {
@@ -253,6 +255,29 @@
     requestAnimationFrame(() => els.messages.scrollTop = els.messages.scrollHeight);
   }
 
+  function persistDebugStages() {
+    sessionStorage.setItem(DEBUG_KEY, JSON.stringify(state.debugStages.slice(-25)));
+  }
+
+  function resetDebugStages() {
+    state.debugStages = [];
+    persistDebugStages();
+  }
+
+  function recordDebugStage(stage, meta = {}) {
+    const entry = {
+      stage,
+      meta,
+      at: new Date().toISOString(),
+    };
+    state.debugStages.push(entry);
+    if (state.debugStages.length > 25) {
+      state.debugStages = state.debugStages.slice(-25);
+    }
+    persistDebugStages();
+    console.info('[qd-chat] stage:', entry);
+  }
+
   function renderHistory() {
     els.messages.innerHTML = '';
     // Greeting first
@@ -291,6 +316,8 @@
     let botText = '';
 
     try {
+      resetDebugStages();
+      recordDebugStage('fetch_started', { apiUrl: API_URL });
       const resp = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -302,6 +329,7 @@
           pageUrl: location.href,
         }),
       });
+      recordDebugStage('fetch_response_received', { ok: resp.ok, status: resp.status });
 
       if (!resp.ok || !resp.body) {
         throw new Error(`HTTP ${resp.status}`);
@@ -338,6 +366,8 @@
             botText += obj.delta;
             botEl.innerHTML = md(botText);
             els.messages.scrollTop = els.messages.scrollHeight;
+          } else if (obj.type === 'debug') {
+            recordDebugStage(obj.stage, obj.meta || {});
           } else if (obj.type === 'lead' && obj.saved) {
             addLeadBanner();
           } else if (obj.type === 'sources') {
@@ -350,10 +380,13 @@
               details: obj.details,
               code: obj.code,
               statusCode: obj.statusCode,
+              stage: obj.stage,
+              debugStages: state.debugStages,
             });
             addMessage('assistant', obj.message || STRINGS[state.lang].errorNetwork);
           } else if (obj.type === 'done') {
             // Finalize
+            recordDebugStage('stream_done');
             removeTyping();
           }
         }
@@ -368,7 +401,7 @@
         persist();
       }
     } catch (err) {
-      console.error('[qd-chat] error:', err);
+      console.error('[qd-chat] error:', err, { debugStages: state.debugStages });
       if (typing.parentNode) typing.parentNode.removeChild(typing);
       addMessage('assistant', STRINGS[state.lang].errorNetwork);
     } finally {

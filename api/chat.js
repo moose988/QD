@@ -72,6 +72,20 @@ function extractErrorDetails(err) {
   };
 }
 
+function makeStageTracker(send) {
+  let currentStage = 'request_received';
+
+  return {
+    mark(stage, meta = {}) {
+      currentStage = stage;
+      send({ type: 'debug', stage, meta, at: new Date().toISOString() });
+    },
+    current() {
+      return currentStage;
+    },
+  };
+}
+
 export const config = {
   // Use Node runtime (we need transformers.js + firebase-admin)
   runtime: 'nodejs',
@@ -112,12 +126,22 @@ export default async function handler(req, res) {
   const send = (obj) => {
     res.write(`data: ${JSON.stringify(obj)}\n\n`);
   };
+  const stage = makeStageTracker(send);
 
   try {
+    stage.mark('handler_started', { method: req.method });
     const { groqApiKey, groqModel } = getRequiredChatConfig();
+    stage.mark('env_checked', {
+      groqModel,
+      hasGroqApiKey: Boolean(groqApiKey),
+    });
     // ─── 1. Embed query + retrieve ──────────────────────────────────────────
+    stage.mark('embedding_started', { messageLength: message.length, lang });
     const queryEmbedding = await embedQuery(message);
+    stage.mark('embedding_completed', { dimensions: queryEmbedding?.length || 0 });
+    stage.mark('retrieval_started');
     const retrieved = await retrieve(queryEmbedding, { topK: 6, lang });
+    stage.mark('retrieval_completed', { retrievedCount: retrieved.length });
 
     // Tell the client what sources we used (optional, for transparency / citations)
     send({
@@ -132,7 +156,9 @@ export default async function handler(req, res) {
     });
 
     // ─── 2. Build prompt ────────────────────────────────────────────────────
+    stage.mark('prompt_build_started');
     const systemPrompt = buildSystemPrompt({ lang, contextChunks: retrieved });
+    stage.mark('prompt_build_completed', { promptLength: systemPrompt.length });
 
     const cleanedHistory = history
       .filter(m => m && m.role && m.content && ['user', 'assistant'].includes(m.role))
@@ -146,8 +172,14 @@ export default async function handler(req, res) {
     ];
 
     // ─── 3. Stream Groq response ────────────────────────────────────────────
+    stage.mark('groq_client_init_started');
     const groq = new Groq({ apiKey: groqApiKey });
+    stage.mark('groq_client_init_completed');
 
+    stage.mark('groq_stream_create_started', {
+      model: groqModel,
+      messageCount: messages.length,
+    });
     const stream = await groq.chat.completions.create({
       model: groqModel,
       messages,
@@ -157,11 +189,17 @@ export default async function handler(req, res) {
       max_tokens: 700,
       stream: true,
     });
+    stage.mark('groq_stream_create_completed');
 
     let fullText = '';
     const toolCallParts = {}; // index -> { name, args }
+    let chunkCount = 0;
 
     for await (const chunk of stream) {
+      chunkCount += 1;
+      if (chunkCount === 1) {
+        stage.mark('groq_stream_first_chunk_received');
+      }
       const choice = chunk.choices?.[0];
       if (!choice) continue;
       const delta = choice.delta || {};
@@ -182,12 +220,14 @@ export default async function handler(req, res) {
     }
 
     // ─── 4. Persist lead if captured ────────────────────────────────────────
+    stage.mark('groq_stream_completed', { chunkCount, responseLength: fullText.length });
     let leadSaved = false;
     const db = getDb();
 
     for (const tc of Object.values(toolCallParts)) {
       if (tc.name === 'capture_lead' && tc.args) {
         try {
+          stage.mark('lead_save_started');
           const leadData = JSON.parse(tc.args);
           await db.collection('chatLeads').add({
             ...leadData,
@@ -198,15 +238,18 @@ export default async function handler(req, res) {
             status: 'new',
           });
           leadSaved = true;
+          stage.mark('lead_save_completed');
           send({ type: 'lead', saved: true });
         } catch (err) {
           console.error('[chat] failed to parse/save lead:', err);
+          stage.mark('lead_save_failed', { message: err?.message || 'Unknown lead save error' });
         }
       }
     }
 
     // ─── 5. Log conversation turn ───────────────────────────────────────────
     try {
+      stage.mark('conversation_log_started');
       const convoRef = db.collection('chatConversations').doc(sessionId);
       await convoRef.set(
         {
@@ -232,10 +275,13 @@ export default async function handler(req, res) {
         leadSaved,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
       });
+      stage.mark('conversation_log_completed');
     } catch (err) {
       console.error('[chat] failed to log conversation:', err);
+      stage.mark('conversation_log_failed', { message: err?.message || 'Unknown conversation log error' });
     }
 
+    stage.mark('handler_completed');
     send({ type: 'done' });
     res.end();
   } catch (err) {
@@ -249,6 +295,7 @@ export default async function handler(req, res) {
       details: errorDetails.message,
       code: errorDetails.code,
       statusCode: errorDetails.statusCode,
+      stage: stage.current(),
     });
     res.end();
   }
