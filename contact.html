@@ -82,12 +82,25 @@
       color: var(--fg1);
     }
 
+    .qd-logo-mark {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border-radius: 10px;
+      box-shadow: 0 0 0 1px var(--border-1);
+      flex: 0 0 auto;
+    }
+
     .qd-logo-lockup img {
       width: 44px;
       height: 44px;
       object-fit: cover;
-      border-radius: 10px;
-      box-shadow: 0 0 0 1px var(--border-1);
+      object-position: center;
+      display: block;
+      border-radius: inherit;
     }
 
     .qd-contact-actions {
@@ -2108,6 +2121,11 @@
         padding: 8px 10px;
         font-size: 10.5px;
         letter-spacing: 0.12em;
+      }
+
+      .qd-logo-mark {
+        width: 44px;
+        height: 44px;
       }
 
       .qd-language-toggle {
@@ -4243,7 +4261,9 @@
           <div className="qd-contact-shell">
             <header className="qd-contact-header contact-nav">
               <a href="index.html" className="qd-logo-lockup">
-                <img src="assets/qd-logo.jpeg" alt="QD Systems" />
+                <span className="qd-logo-mark">
+                  <img src="assets/qd-logo.jpeg" alt="QD Systems" />
+                </span>
                 <div>
                   <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, color: 'var(--fg1)' }}>{locale.siteTitle}</div>
                 </div>
@@ -4308,7 +4328,9 @@
         <div className="qd-contact-shell">
           <header className="qd-contact-header contact-nav">
             <a href="index.html" className="qd-logo-lockup">
-              <img src="assets/qd-logo.jpeg" alt="QD Systems" />
+              <span className="qd-logo-mark">
+                <img src="assets/qd-logo.jpeg" alt="QD Systems" />
+              </span>
               <div>
                 <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, color: 'var(--fg1)' }}>{locale.siteTitle}</div>
               </div>
