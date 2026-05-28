@@ -66,7 +66,7 @@ const priorityOptions = ['Low', 'Normal', 'High', 'VIP'];
 const CARD_SITE_URL = 'https://qdsystems.ae';
 const CARD_DEFAULT_WEBSITE = 'https://qdsystems.ae';
 const CARD_DEFAULT_CTA_LABEL = 'Start a Build';
-const CARD_DEFAULT_CTA_URL = 'https://qdsystems.ae/contact.html';
+const CARD_DEFAULT_CTA_URL = 'https://qdsystems.ae/contact';
 const cardIconOptions = ['website', 'email', 'phone', 'whatsapp', 'instagram', 'linkedin', 'link'];
 const INVITE_THEME_OPTIONS = ['royal-gold', 'minimal-white', 'modern-black', 'arabic-luxury', 'floral-elegant'];
 const INVITE_STATUS_OPTIONS = ['draft', 'active', 'disabled'];
@@ -1936,7 +1936,7 @@ const renderCardEditor = () => {
             </div>
             <div class="qd-admin-field">
               <label for="card-cta-url">CTA URL</label>
-              <input id="card-cta-url" class="qd-admin-input" name="ctaUrl" type="url" value="${escapeHtml(draft.ctaUrl || CARD_DEFAULT_CTA_URL)}" placeholder="https://qdsystems.ae/contact.html">
+              <input id="card-cta-url" class="qd-admin-input" name="ctaUrl" type="url" value="${escapeHtml(draft.ctaUrl || CARD_DEFAULT_CTA_URL)}" placeholder="https://qdsystems.ae/contact">
             </div>
             <div class="qd-admin-field qd-admin-card-avatar-field">
               <label for="card-avatar">Avatar Photo</label>
@@ -3911,7 +3911,7 @@ const seedQdCard = async () => {
       { label: 'WhatsApp', url: 'https://wa.me/971500000000', icon: 'whatsapp' }
     ],
     ctaLabel: 'Start a Build',
-    ctaUrl: 'https://qdsystems.ae/contact.html',
+    ctaUrl: 'https://qdsystems.ae/contact',
     active: true,
     views: 0,
     createdAt: serverTimestamp(),

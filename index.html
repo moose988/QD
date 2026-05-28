@@ -414,7 +414,7 @@ const navLinks = [
 
 const Nav = () => (
   <nav className="qd-nav" style={{ position:'fixed',top:0,left:0,right:0,zIndex:100,padding:'20px 40px',display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(10,11,13,0.7)',backdropFilter:'blur(20px)',borderBottom:'1px solid var(--border-1)' }}>
-    <a href="index.html" className="qd-nav-logo qd-brand-ltr" dir="ltr" style={{ display:'flex',alignItems:'center',gap:12,textDecoration:'none',position:'relative' }}>
+    <a href="/" className="qd-nav-logo qd-brand-ltr" dir="ltr" style={{ display:'flex',alignItems:'center',gap:12,textDecoration:'none',position:'relative' }}>
       <span style={{ position:'relative',display:'flex',alignItems:'center',justifyContent:'center',height:48,width:48,borderRadius:10,overflow:'hidden',boxShadow:'0 0 0 1px var(--border-1)' }}>
         <img src="assets/qd-logo.jpeg" alt="QD Systems" className="qd-logo-img" style={{ height:'100%',width:'100%',objectFit:'cover',objectPosition:'center',display:'block',borderRadius:'inherit',filter:'contrast(1.08) brightness(1.05)' }} />
         <span className="qd-sheen" />
@@ -449,7 +449,7 @@ const Footer = () => {
     <footer className="qd-footer">
       <div className="qd-footer-inner">
         <div className="qd-footer-top">
-          <a href="index.html" className="qd-footer-brand">
+          <a href="/" className="qd-footer-brand">
             <span className="qd-footer-mark">
               <img src="assets/qd-logo.jpeg" alt="QD Systems" className="qd-footer-mark-img" />
               <span className="qd-footer-logo-sheen" />
@@ -636,7 +636,7 @@ window.__QD.HomepageNav = ({ language, setLanguage }) => {
   const navCopy = window.__QD.HOMEPAGE_COPY[language].nav;
   return (
     <nav className="qd-nav" style={{ position:'fixed',top:0,left:0,right:0,zIndex:100,padding:'20px 40px',display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(10,11,13,0.7)',backdropFilter:'blur(20px)',borderBottom:'1px solid var(--border-1)' }}>
-      <a href="index.html" className="qd-nav-logo qd-brand-ltr" dir="ltr" style={{ display:'flex',alignItems:'center',gap:12,textDecoration:'none',position:'relative' }}>
+      <a href="/" className="qd-nav-logo qd-brand-ltr" dir="ltr" style={{ display:'flex',alignItems:'center',gap:12,textDecoration:'none',position:'relative' }}>
         <span style={{ position:'relative',display:'flex',alignItems:'center',justifyContent:'center',height:48,width:48,borderRadius:10,overflow:'hidden',boxShadow:'0 0 0 1px var(--border-1)' }}>
           <img src="assets/qd-logo.jpeg" alt="QD Systems" className="qd-logo-img" style={{ height:'100%',width:'100%',objectFit:'cover',objectPosition:'center',display:'block',borderRadius:'inherit',filter:'contrast(1.08) brightness(1.05)' }} />
           <span className="qd-sheen" />
@@ -738,7 +738,7 @@ window.__QD.HomepageFooter = ({ language }) => {
     <footer className="qd-footer">
       <div className="qd-footer-inner">
         <div className="qd-footer-top">
-          <a href="index.html" className="qd-footer-brand qd-brand-ltr" dir="ltr">
+          <a href="/" className="qd-footer-brand qd-brand-ltr" dir="ltr">
             <span className="qd-footer-mark"><img src="assets/qd-logo.jpeg" alt="QD Systems" className="qd-footer-mark-img" /><span className="qd-footer-logo-sheen" /></span>
             <span className="qd-footer-brand-copy"><span className="qd-footer-brand-name">QD SYSTEMS</span><span className="qd-footer-brand-sub">{footerCopy.studio}</span></span>
           </a>
@@ -792,7 +792,7 @@ window.__QD.applyLanguageDocumentState = (language) => {
   document.body.classList.toggle('qd-lang-ar', normalizedLanguage === 'ar');
   document.body.classList.toggle('qd-lang-en', normalizedLanguage !== 'ar');
 };
-window.__QD.getContactHref = () => `contact.html?lang=${window.__QD.getSavedLanguage()}`;
+window.__QD.getContactHref = () => `contact?lang=${window.__QD.getSavedLanguage()}`;
 
 window.__QD.applyLanguageDocumentState(window.__QD.getSavedLanguage());
 

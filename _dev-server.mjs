@@ -105,6 +105,13 @@ const server = http.createServer(async (req, res) => {
   }
   let stat;
   try { stat = fs.statSync(filePath); } catch {}
+  if (!stat?.isFile() && path.extname(filePath) === '') {
+    const htmlCandidate = filePath + '.html';
+    try {
+      stat = fs.statSync(htmlCandidate);
+      filePath = htmlCandidate;
+    } catch {}
+  }
   if (stat?.isDirectory()) {
     filePath = path.join(filePath, 'index.html');
     try { stat = fs.statSync(filePath); } catch { stat = null; }

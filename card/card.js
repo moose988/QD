@@ -9,7 +9,7 @@ import {
 
 const SITE_URL = 'https://qdsystems.ae';
 const DEFAULT_CTA_LABEL = 'Start a Build';
-const DEFAULT_CTA_URL = '/contact.html';
+const DEFAULT_CTA_URL = '/contact';
 const skeletonEl = document.getElementById('card-skeleton');
 const contentEl = document.getElementById('card-content');
 const emptyEl = document.getElementById('card-empty');
