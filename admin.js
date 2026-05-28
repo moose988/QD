@@ -1534,8 +1534,8 @@ const renderCardEditor = () => {
               <input id="card-name" class="qd-admin-input" name="name" type="text" value="${escapeHtml(draft.name || '')}" placeholder="Ahmed Al Qassimi" required>
             </div>
             <div class="qd-admin-field">
-              <label for="card-role">Role / Title</label>
-              <input id="card-role" class="qd-admin-input" name="role" type="text" value="${escapeHtml(draft.role || '')}" placeholder="Founder & CEO" required>
+              <label for="card-role">Role / Title <span class="qd-admin-field-optional">(optional)</span></label>
+              <input id="card-role" class="qd-admin-input" name="role" type="text" value="${escapeHtml(draft.role || '')}" placeholder="Founder & CEO">
             </div>
             <div class="qd-admin-field">
               <label for="card-slug">Slug</label>
@@ -2366,8 +2366,8 @@ const ensureCardEditorData = () => {
 const saveCardEditor = async () => {
   const draft = ensureCardEditorData();
 
-  if (!draft.name || !draft.role || !draft.slug || !draft.phone || !draft.email) {
-    state.cardEditor.error = 'Name, role, slug, phone, and email are required.';
+  if (!draft.name || !draft.slug || !draft.phone || !draft.email) {
+    state.cardEditor.error = 'Name, slug, phone, and email are required.';
     render();
     return;
   }
