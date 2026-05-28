@@ -2,14 +2,14 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/card/:slug", "destination": "/card/index.html" },
-    { "source": "/card/:slug/", "destination": "/card/index.html" },
-    { "source": "/invite/:slug", "destination": "/invite/index.html" },
-    { "source": "/invite/:slug/", "destination": "/invite/index.html" },
+    { "source": "/card/:slug", "destination": "/card" },
+    { "source": "/card/:slug/", "destination": "/card" },
+    { "source": "/invite/:slug", "destination": "/invite" },
+    { "source": "/invite/:slug/", "destination": "/invite" },
     { "source": "/q/quote.js", "destination": "/q/quote.js" },
     { "source": "/q/quote.css", "destination": "/q/quote.css" },
-    { "source": "/q/index.html", "destination": "/q/index.html" },
-    { "source": "/q/(.*)", "destination": "/q/index.html" }
+    { "source": "/q/index.html", "destination": "/q" },
+    { "source": "/q/(.*)", "destination": "/q" }
   ],
   "functions": {
     "api/chat.js":         { "memory": 1024, "maxDuration": 30 },

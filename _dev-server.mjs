@@ -1,6 +1,6 @@
 // Local dev server for QD — mounts api/*.js on plain Node http (no vercel login).
 // Generic: any file at /api/<name>.js is auto-mounted at /api/<name>.
-// Also rewrites /q/*, /card/*, and /invite/* to their SPA entry files to match Vercel rewrites.
+// Also rewrites /q/*, /card/*, and /invite/* to their clean-route entry pages to match Vercel rewrites.
 // Dynamic import with cache-bust lets us edit handlers without restarting.
 
 import dotenv from 'dotenv';
@@ -130,8 +130,8 @@ server.listen(PORT, () => {
   console.log(`  QD local server (no Vercel CLI needed)`);
   console.log(`  → http://localhost:${PORT}`);
   console.log(`  → /api/* auto-mounts handlers from api/<name>.js`);
-  console.log(`  → /q/* rewrites to /q/index.html (matches vercel.json)`);
-  console.log(`  → /card/* rewrites to /card/index.html (matches vercel.json)`);
-  console.log(`  → /invite/* rewrites to /invite/index.html (matches vercel.json)`);
+  console.log(`  → /q/* rewrites to /q (matches vercel.json)`);
+  console.log(`  → /card/* rewrites to /card (matches vercel.json)`);
+  console.log(`  → /invite/* rewrites to /invite (matches vercel.json)`);
   console.log('═══════════════════════════════════════════════════════════');
 });
