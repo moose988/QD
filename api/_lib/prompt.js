@@ -82,8 +82,7 @@ export const LEAD_TOOL = {
         },
         contact_type: {
           type: 'string',
-          enum: ['whatsapp', 'phone', 'email', 'other'],
-          description: 'What kind of contact method they shared.',
+          description: 'What kind of contact method they shared. Prefer one of: whatsapp, phone, email, other.',
         },
         business_type: {
           type: 'string',

@@ -99,6 +99,57 @@ async function getFallbackContext(lang, limit = 6) {
   }));
 }
 
+function normalizeContactType(rawType, contactValue = '') {
+  const type = String(rawType || '').trim().toLowerCase();
+  const contact = String(contactValue || '').trim().toLowerCase();
+
+  if (type === 'email' || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact)) return 'email';
+
+  if (
+    type.includes('whatsapp') ||
+    type === 'wa' ||
+    type === 'whats app'
+  ) {
+    return 'whatsapp';
+  }
+
+  if (
+    type.includes('phone') ||
+    type.includes('call') ||
+    type.includes('mobile') ||
+    type.includes('number') ||
+    type.includes('tel')
+  ) {
+    return 'phone';
+  }
+
+  if (/^\+?[\d\s()\-]{7,}$/.test(contact)) {
+    return 'phone';
+  }
+
+  return 'other';
+}
+
+function normalizeLeadData(leadData, lang) {
+  const normalized = {
+    ...leadData,
+    name: typeof leadData?.name === 'string' ? leadData.name.trim() : '',
+    contact: typeof leadData?.contact === 'string' ? leadData.contact.trim() : '',
+    business_type: typeof leadData?.business_type === 'string' ? leadData.business_type.trim() : '',
+    project_brief: typeof leadData?.project_brief === 'string' ? leadData.project_brief.trim() : '',
+    urgency: typeof leadData?.urgency === 'string' ? leadData.urgency.trim().toLowerCase() : 'unknown',
+    language: lang === 'ar' ? 'ar' : 'en',
+  };
+
+  normalized.contact_type = normalizeContactType(leadData?.contact_type, normalized.contact);
+
+  if (!['urgent', 'soon', 'exploring', 'unknown'].includes(normalized.urgency)) {
+    normalized.urgency = 'unknown';
+  }
+
+  return normalized;
+}
+
 function makeStageTracker(send) {
   let currentStage = 'request_received';
   const startedAt = Date.now();
@@ -289,13 +340,15 @@ export default async function handler(req, res) {
       idleAfterLastChunkMs: Date.now() - lastChunkAt,
     });
     let leadSaved = false;
+    let leadCaptured = false;
     const db = getDb();
 
     for (const tc of Object.values(toolCallParts)) {
       if (tc.name === 'capture_lead' && tc.args) {
         try {
           stage.mark('lead_save_started');
-          const leadData = JSON.parse(tc.args);
+          leadCaptured = true;
+          const leadData = normalizeLeadData(JSON.parse(tc.args), lang);
           await db.collection('chatLeads').add({
             ...leadData,
             sessionId,
@@ -312,6 +365,18 @@ export default async function handler(req, res) {
           stage.mark('lead_save_failed', { message: err?.message || 'Unknown lead save error' });
         }
       }
+    }
+
+    if (!fullText.trim() && leadSaved) {
+      fullText = lang === 'ar'
+        ? 'تم استلام بياناتك. سيتواصل معك فريق QD قريباً عبر وسيلة التواصل التي شاركتها.'
+        : 'Thanks — we received your details. The QD team will reach out shortly using the contact method you shared.';
+      send({ type: 'text', delta: fullText });
+    } else if (!fullText.trim() && leadCaptured) {
+      fullText = lang === 'ar'
+        ? 'تم التقاط طلبك. إذا رغبت، أرسل اسمك وطريقة التواصل المفضلة وسيتابع معك فريق QD.'
+        : 'I captured the request context. If you want, share your name and preferred contact method and the QD team can follow up.';
+      send({ type: 'text', delta: fullText });
     }
 
     // ─── 5. Log conversation turn ───────────────────────────────────────────
