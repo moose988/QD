@@ -1,0 +1,2733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hamza &amp; Madina Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.3/chart.umd.min.js"></script>
+  <style>
+    :root{
+      --primary:#2E5BD8;
+      --primary-active:#244BBC;
+      --primary-soft:#EAF0FD;
+      --navy:#232C6B;
+      --navy-ink:#22284F;
+      --green:#4BA636;
+      --green-soft:rgba(75,166,54,.12);
+      --canvas:#FFFFFF;
+      --surface-soft:#F3F7FD;
+      --surface-strong:#EEF3FB;
+      --hairline:#E2E9F4;
+      --border-strong:#C6D3E6;
+      --text:#22284F;
+      --body:#3D456A;
+      --muted:#5C6685;
+      --muted-soft:#8A93B0;
+      --danger:#C13515;
+      --warning:#D48919;
+      --on-primary:#FFFFFF;
+      --scrim:rgba(0,0,0,.5);
+      --shadow:rgba(0,0,0,.02) 0 0 0 1px, rgba(0,0,0,.04) 0 2px 6px 0, rgba(0,0,0,.1) 0 4px 8px 0;
+      --r-xs:4px;
+      --r-sm:8px;
+      --r-md:14px;
+      --r-lg:20px;
+      --r-xl:32px;
+      --r-full:9999px;
+      --s-xxs:2px;
+      --s-xs:4px;
+      --s-sm:8px;
+      --s-md:12px;
+      --s-base:16px;
+      --s-lg:24px;
+      --s-xl:32px;
+      --s-xxl:48px;
+      --s-section:64px;
+      --sidebar-w:280px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      min-height:100vh;
+      background:
+        radial-gradient(circle at top left, rgba(46,91,216,.10), transparent 24%),
+        radial-gradient(circle at 100% 0%, rgba(75,166,54,.09), transparent 18%),
+        var(--surface-soft);
+      color:var(--text);
+      font:400 16px/1.5 "Plus Jakarta Sans", system-ui, sans-serif;
+      -webkit-font-smoothing:antialiased;
+    }
+    body.modal-open{overflow:hidden}
+    a{color:inherit;text-decoration:none}
+    button,input,select,textarea{font:inherit}
+    button{cursor:pointer}
+    img{display:block;max-width:100%}
+    .sr-only{
+      position:absolute;
+      width:1px;
+      height:1px;
+      padding:0;
+      margin:-1px;
+      overflow:hidden;
+      clip:rect(0,0,0,0);
+      white-space:nowrap;
+      border:0;
+    }
+    .skip-link{
+      position:absolute;
+      left:var(--s-base);
+      top:-48px;
+      z-index:1000;
+      padding:var(--s-md) var(--s-base);
+      border-radius:var(--r-full);
+      background:var(--primary);
+      color:var(--on-primary);
+      transition:top .2s ease;
+    }
+    .skip-link:focus{top:var(--s-base)}
+    :focus-visible{
+      outline:2px solid var(--primary);
+      outline-offset:3px;
+    }
+
+    .admin-shell{
+      display:grid;
+      grid-template-columns:var(--sidebar-w) minmax(0,1fr);
+      min-height:100vh;
+    }
+    .sidebar{
+      position:sticky;
+      top:0;
+      height:100vh;
+      padding:var(--s-lg);
+      background:
+        radial-gradient(circle at top right, rgba(75,166,54,.14), transparent 30%),
+        linear-gradient(180deg, var(--navy) 0%, #1c2459 100%);
+      color:#fff;
+      display:flex;
+      flex-direction:column;
+      gap:var(--s-lg);
+    }
+    .brand-block{
+      display:flex;
+      align-items:center;
+      gap:var(--s-md);
+      padding-bottom:var(--s-lg);
+      border-bottom:1px solid rgba(255,255,255,.12);
+    }
+    .brand-mark{
+      width:56px;
+      height:56px;
+      border-radius:var(--r-md);
+      background:#fff;
+      display:grid;
+      place-items:center;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .brand-mark img{width:100%;height:100%;object-fit:cover}
+    .brand-copy strong{
+      display:block;
+      font:700 20px/1.1 "Space Grotesk", system-ui, sans-serif;
+      letter-spacing:-.02em;
+    }
+    .brand-copy span{
+      display:block;
+      margin-top:var(--s-xs);
+      color:rgba(255,255,255,.72);
+      font:600 11px/1.2 "Plus Jakarta Sans", system-ui, sans-serif;
+      text-transform:uppercase;
+      letter-spacing:.16em;
+    }
+    .sidebar-section-label{
+      color:rgba(255,255,255,.58);
+      font:700 12px/1.33 "Plus Jakarta Sans", system-ui, sans-serif;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      margin-bottom:var(--s-sm);
+    }
+    .nav-list{
+      list-style:none;
+      padding:0;
+      margin:0;
+      display:grid;
+      gap:var(--s-sm);
+    }
+    .nav-link{
+      width:100%;
+      border:none;
+      text-align:left;
+      display:flex;
+      align-items:center;
+      gap:var(--s-md);
+      padding:14px 16px;
+      border-radius:var(--r-full);
+      background:transparent;
+      color:rgba(255,255,255,.75);
+      font:600 16px/1.25 "Plus Jakarta Sans", system-ui, sans-serif;
+      transition:background .2s ease, color .2s ease, transform .2s ease;
+    }
+    .nav-link:hover,
+    .nav-link[aria-current="page"]{
+      background:rgba(255,255,255,.10);
+      color:#fff;
+      transform:translateX(2px);
+    }
+    .nav-link .icon{
+      width:40px;
+      height:40px;
+      border-radius:var(--r-full);
+      background:rgba(255,255,255,.08);
+      display:grid;
+      place-items:center;
+      flex:0 0 auto;
+    }
+    .nav-link svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
+    .sidebar-card{
+      margin-top:auto;
+      padding:var(--s-lg);
+      border-radius:var(--r-lg);
+      background:rgba(255,255,255,.08);
+      box-shadow:var(--shadow);
+    }
+    .sidebar-card strong{
+      display:block;
+      font:700 20px/1.18 "Space Grotesk", system-ui, sans-serif;
+      margin-bottom:var(--s-sm);
+    }
+    .sidebar-card p{
+      margin:0 0 var(--s-lg);
+      color:rgba(255,255,255,.74);
+      font-size:14px;
+      line-height:1.43;
+    }
+
+    .content{
+      min-width:0;
+      display:flex;
+      flex-direction:column;
+      padding:var(--s-lg);
+      gap:var(--s-lg);
+    }
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:20;
+      display:flex;
+      align-items:center;
+      gap:var(--s-base);
+      justify-content:space-between;
+      padding:var(--s-base) var(--s-lg);
+      border-radius:var(--r-xl);
+      border:1px solid var(--hairline);
+      background:rgba(255,255,255,.88);
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(16px);
+    }
+    .topbar-left{
+      display:flex;
+      align-items:center;
+      gap:var(--s-base);
+      min-width:0;
+    }
+    .menu-button{
+      display:none;
+      width:48px;
+      height:48px;
+      border-radius:var(--r-full);
+      border:1px solid var(--hairline);
+      background:#fff;
+      color:var(--navy);
+    }
+    .topbar h1{
+      margin:0;
+      font:700 28px/1.43 "Space Grotesk", system-ui, sans-serif;
+      color:var(--navy);
+      letter-spacing:0;
+    }
+    .topbar p{
+      margin:0;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.43;
+    }
+    .topbar-right{
+      display:flex;
+      align-items:center;
+      gap:var(--s-md);
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .search-shell{
+      display:flex;
+      align-items:center;
+      gap:var(--s-sm);
+      min-width:min(360px, 100%);
+      padding:14px 18px;
+      border-radius:var(--r-full);
+      border:1px solid var(--hairline);
+      background:#fff;
+      box-shadow:var(--shadow);
+    }
+    .search-shell input{
+      width:100%;
+      border:none;
+      background:transparent;
+      color:var(--text);
+      font-size:14px;
+      outline:none;
+    }
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      gap:var(--s-sm);
+      padding:8px 14px;
+      border-radius:var(--r-full);
+      font:600 14px/1.29 "Plus Jakarta Sans", system-ui, sans-serif;
+      border:1px solid var(--hairline);
+      background:#fff;
+      color:var(--muted);
+    }
+    .chip strong{
+      color:var(--navy);
+      font-weight:700;
+    }
+    .chip.success{
+      background:var(--green-soft);
+      color:#2d6922;
+      border-color:rgba(75,166,54,.18);
+    }
+    .chip-dot{
+      width:8px;
+      height:8px;
+      border-radius:50%;
+      background:currentColor;
+    }
+    .btn{
+      min-height:48px;
+      padding:12px 24px;
+      border-radius:var(--r-sm);
+      border:1px solid transparent;
+      font:500 16px/1.25 "Plus Jakarta Sans", system-ui, sans-serif;
+      transition:background .2s ease, color .2s ease, border-color .2s ease, transform .2s ease;
+    }
+    .btn:hover{transform:translateY(-1px)}
+    .btn-primary{background:var(--primary);color:var(--on-primary)}
+    .btn-primary:active{background:var(--primary-active)}
+    .btn-secondary{background:#fff;color:var(--navy);border-color:var(--hairline)}
+    .btn-secondary.success{color:var(--green);border-color:rgba(75,166,54,.25)}
+    .btn-text{background:transparent;color:var(--navy);padding-inline:0}
+    .icon-btn{
+      width:40px;
+      height:40px;
+      border-radius:var(--r-full);
+      border:1px solid var(--hairline);
+      background:#fff;
+      color:var(--navy);
+      display:grid;
+      place-items:center;
+      box-shadow:var(--shadow);
+    }
+
+    .page{
+      display:grid;
+      gap:var(--s-lg);
+      align-content:start;
+    }
+    .hero-card,
+    .surface,
+    .stat-card,
+    .dish,
+    .table-wrap,
+    .branch-card,
+    .customer-panel,
+    .promo-card{
+      border:1px solid var(--hairline);
+      border-radius:var(--r-md);
+      background:var(--canvas);
+      box-shadow:var(--shadow);
+    }
+    .hero-card{
+      padding:var(--s-xl);
+      display:grid;
+      grid-template-columns:minmax(0,1.25fr) minmax(320px,.75fr);
+      gap:var(--s-xl);
+      background:
+        radial-gradient(circle at top right, rgba(46,91,216,.10), transparent 28%),
+        linear-gradient(180deg, #fff 0%, #fbfcff 100%);
+    }
+    .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      font:700 12px/1.33 "Plus Jakarta Sans", system-ui, sans-serif;
+      text-transform:uppercase;
+      letter-spacing:.16em;
+      color:var(--primary);
+    }
+    .eyebrow::before{
+      content:"";
+      width:22px;
+      height:2px;
+      border-radius:2px;
+      background:var(--green);
+    }
+    .hero-card h2{
+      margin:16px 0 14px;
+      font:700 28px/1.43 "Space Grotesk", system-ui, sans-serif;
+      color:var(--navy);
+      max-width:16ch;
+    }
+    .hero-card p{
+      margin:0;
+      color:var(--muted);
+      max-width:56ch;
+    }
+    .hero-actions{
+      display:flex;
+      gap:var(--s-md);
+      flex-wrap:wrap;
+      margin-top:var(--s-lg);
+    }
+    .hero-side{
+      display:grid;
+      gap:var(--s-md);
+      align-content:start;
+    }
+    .mini-metric{
+      padding:var(--s-lg);
+      border-radius:var(--r-lg);
+      background:var(--surface-soft);
+      border:1px solid var(--hairline);
+    }
+    .mini-metric span{
+      display:block;
+      color:var(--muted);
+      font:500 14px/1.29 "Plus Jakarta Sans", system-ui, sans-serif;
+    }
+    .mini-metric strong{
+      display:block;
+      margin-top:var(--s-sm);
+      font:700 22px/1.18 "Space Grotesk", system-ui, sans-serif;
+      color:var(--navy);
+    }
+
+    .stats-grid{
+      display:grid;
+      grid-template-columns:repeat(4, minmax(0,1fr));
+      gap:var(--s-base);
+    }
+    .stat-card{
+      padding:var(--s-lg);
+    }
+    .stat-card span{
+      display:block;
+      color:var(--muted);
+      font:500 14px/1.29 "Plus Jakarta Sans", system-ui, sans-serif;
+      margin-bottom:var(--s-sm);
+    }
+    .stat-card strong{
+      display:block;
+      font:700 32px/1.1 "Space Grotesk", system-ui, sans-serif;
+      color:var(--navy);
+    }
+    .stat-card small{
+      display:block;
+      margin-top:var(--s-sm);
+      color:var(--green);
+      font:600 13px/1.23 "Plus Jakarta Sans", system-ui, sans-serif;
+    }
+
+    .panel-grid{
+      display:grid;
+      grid-template-columns:1.3fr .95fr;
+      gap:var(--s-lg);
+    }
+    .surface{
+      padding:var(--s-lg);
+      min-width:0;
+    }
+    .surface-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:var(--s-md);
+      margin-bottom:var(--s-lg);
+    }
+    .surface-head h3{
+      margin:0;
+      font:600 21px/1.43 "Space Grotesk", system-ui, sans-serif;
+      color:var(--navy);
+    }
+    .surface-head p{
+      margin:6px 0 0;
+      color:var(--muted);
+      font-size:14px;
+    }
+    .surface-head-actions{
+      display:flex;
+      align-items:center;
+      gap:var(--s-sm);
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .surface-grid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0,1fr));
+      gap:var(--s-lg);
+    }
+
+    .table-wrap{
+      overflow:auto;
+    }
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:700px;
+    }
+    th,td{
+      padding:14px 16px;
+      border-bottom:1px solid var(--hairline);
+      text-align:left;
+      vertical-align:middle;
+    }
+    th{
+      color:var(--muted);
+      font:700 12px/1.33 "Plus Jakarta Sans", system-ui, sans-serif;
+      text-transform:uppercase;
+      letter-spacing:.16em;
+      background:#fbfcff;
+    }
+    tbody tr:hover{background:var(--surface-soft)}
+    tbody tr:last-child td{border-bottom:none}
+    .row-button{
+      border:none;
+      background:transparent;
+      color:inherit;
+      width:100%;
+      text-align:left;
+      padding:0;
+    }
+    .status-badge,
+    .halal-badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:4px 10px;
+      border-radius:var(--r-full);
+      font:600 11px/1.18 "Plus Jakarta Sans", system-ui, sans-serif;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      white-space:nowrap;
+    }
+    .status-badge.pending{background:#FFF5E5;color:#9A5B00}
+    .status-badge.preparing{background:var(--primary-soft);color:var(--primary)}
+    .status-badge.ready{background:var(--green-soft);color:#2d6922}
+    .status-badge.delivered{background:rgba(35,44,107,.08);color:var(--navy)}
+    .status-badge.cancelled{background:rgba(193,53,21,.10);color:var(--danger)}
+    .halal-badge{background:var(--green-soft);color:#2d6922}
+
+    .quick-actions{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0,1fr));
+      gap:var(--s-md);
+    }
+    .quick-action{
+      border:1px solid var(--hairline);
+      border-radius:var(--r-md);
+      background:var(--surface-soft);
+      padding:var(--s-lg);
+      display:grid;
+      gap:var(--s-sm);
+      align-content:start;
+    }
+    .quick-action strong{
+      font:600 16px/1.25 "Space Grotesk", system-ui, sans-serif;
+      color:var(--navy);
+    }
+    .quick-action p{
+      margin:0;
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    .branch-stack,
+    .promo-stack{
+      display:grid;
+      gap:var(--s-md);
+    }
+    .branch-card,
+    .promo-card{
+      padding:var(--s-lg);
+    }
+    .branch-card header,
+    .promo-card header{
+      display:flex;
+      justify-content:space-between;
+      gap:var(--s-md);
+      align-items:flex-start;
+      margin-bottom:var(--s-md);
+    }
+    .branch-card h4,
+    .promo-card h4{
+      margin:0;
+      font:600 20px/1.2 "Space Grotesk", system-ui, sans-serif;
+      color:var(--navy);
+    }
+    .branch-card p,
+    .promo-card p{
+      margin:6px 0 0;
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    .control-bar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:var(--s-md);
+      flex-wrap:wrap;
+    }
+    .filters{
+      display:flex;
+      gap:var(--s-sm);
+      flex-wrap:wrap;
+    }
+    .pill-btn{
+      min-height:40px;
+      padding:8px 16px;
+      border-radius:var(--r-full);
+      border:1px solid var(--hairline);
+      background:#fff;
+      color:var(--muted);
+      font:500 14px/1.29 "Plus Jakarta Sans", system-ui, sans-serif;
+    }
+    .pill-btn.active{
+      border-color:var(--primary);
+      background:var(--primary-soft);
+      color:var(--navy);
+    }
+    .field,
+    .select,
+    .textarea{
+      width:100%;
+      min-height:56px;
+      padding:14px 12px;
+      border-radius:var(--r-sm);
+      border:1px solid var(--hairline);
+      background:#fff;
+      color:var(--text);
+    }
+    .textarea{
+      min-height:120px;
+      resize:vertical;
+    }
+    .field-row{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0,1fr));
+      gap:var(--s-base);
+    }
+    .field-block{
+      display:grid;
+      gap:var(--s-sm);
+    }
+    .field-block label{
+      color:var(--muted);
+      font:500 14px/1.29 "Plus Jakarta Sans", system-ui, sans-serif;
+    }
+
+    .menu-grid{
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0,1fr));
+      gap:var(--s-base);
+    }
+    .dish{
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      transition:transform .3s ease, box-shadow .3s ease;
+    }
+    .dish:hover{
+      transform:translateY(-4px);
+      box-shadow:var(--shadow);
+    }
+    .dish-img{
+      position:relative;
+      aspect-ratio:4 / 5;
+      overflow:hidden;
+    }
+    .dish-img img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+    }
+    .dish .halal{
+      position:absolute;
+      top:12px;
+      left:12px;
+      background:rgba(255,255,255,.94);
+      color:var(--green);
+      font:600 11px/1.18 "Plus Jakarta Sans", system-ui, sans-serif;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      padding:4px 10px;
+      border-radius:var(--r-full);
+      box-shadow:var(--shadow);
+    }
+    .dish-body{
+      display:flex;
+      flex-direction:column;
+      gap:var(--s-sm);
+      padding:18px 20px 22px;
+      flex:1;
+    }
+    .dish-top{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:var(--s-md);
+    }
+    .dish-top h4{
+      margin:0;
+      font:600 16px/1.25 "Space Grotesk", system-ui, sans-serif;
+      color:var(--navy);
+    }
+    .dish-price{
+      color:var(--primary);
+      font:700 16px/1.25 "Space Grotesk", system-ui, sans-serif;
+      white-space:nowrap;
+    }
+    .dish-body p{
+      margin:0;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.43;
+    }
+    .branch-toggle-grid{
+      display:grid;
+      gap:var(--s-sm);
+      margin-top:var(--s-md);
+    }
+    .branch-toggle{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:var(--s-md);
+      padding:12px 0;
+      border-top:1px solid var(--hairline);
+    }
+    .switch{
+      position:relative;
+      width:48px;
+      height:28px;
+      border:none;
+      border-radius:var(--r-full);
+      background:var(--border-strong);
+      transition:background .2s ease;
+    }
+    .switch::after{
+      content:"";
+      position:absolute;
+      top:3px;
+      left:3px;
+      width:22px;
+      height:22px;
+      border-radius:50%;
+      background:#fff;
+      box-shadow:var(--shadow);
+      transition:left .2s ease;
+    }
+    .switch[aria-checked="true"]{
+      background:var(--green);
+    }
+    .switch[aria-checked="true"]::after{
+      left:23px;
+    }
+    .card-actions{
+      display:flex;
+      gap:var(--s-sm);
+      flex-wrap:wrap;
+      margin-top:auto;
+      padding-top:var(--s-sm);
+    }
+
+    .analytics-grid{
+      display:grid;
+      grid-template-columns:1.2fr .8fr;
+      gap:var(--s-lg);
+    }
+    .chart-box{
+      height:340px;
+      min-height:340px;
+    }
+    .chart-box canvas{
+      display:block;
+      width:100% !important;
+      height:340px !important;
+    }
+    .chart-notes{
+      display:grid;
+      gap:var(--s-sm);
+      margin-top:var(--s-lg);
+      padding-top:var(--s-base);
+      border-top:1px solid var(--hairline);
+    }
+    .chart-note{
+      display:flex;
+      justify-content:space-between;
+      gap:var(--s-md);
+      color:var(--body);
+      font-size:14px;
+    }
+    .chart-note strong{
+      color:var(--navy);
+      font-weight:600;
+    }
+
+    .branch-editor{
+      display:grid;
+      gap:var(--s-base);
+      grid-template-columns:repeat(2, minmax(0,1fr));
+    }
+    .hours-grid{
+      display:grid;
+      gap:var(--s-sm);
+    }
+    .hours-row{
+      display:grid;
+      grid-template-columns:1fr 1fr 1fr auto;
+      gap:var(--s-sm);
+      align-items:center;
+    }
+    .hours-row span{
+      color:var(--navy);
+      font-weight:600;
+    }
+
+    .customers-grid{
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:var(--s-lg);
+    }
+    .customer-panel{
+      padding:var(--s-lg);
+    }
+    .customer-summary{
+      display:grid;
+      gap:var(--s-lg);
+    }
+    .customer-summary h3{
+      margin:0;
+      font:600 21px/1.43 "Space Grotesk", system-ui, sans-serif;
+      color:var(--navy);
+    }
+    .summary-list{
+      display:grid;
+      gap:var(--s-sm);
+    }
+    .summary-item{
+      padding:12px 0;
+      border-top:1px solid var(--hairline);
+      display:flex;
+      justify-content:space-between;
+      gap:var(--s-md);
+      color:var(--body);
+    }
+
+    .drawer,
+    .modal{
+      position:fixed;
+      inset:0;
+      z-index:50;
+      display:none;
+      background:var(--scrim);
+    }
+    .drawer.open,
+    .modal.open{
+      display:block;
+    }
+    .drawer-panel{
+      position:absolute;
+      top:0;
+      right:0;
+      width:min(520px, 100%);
+      height:100%;
+      background:#fff;
+      border-left:1px solid var(--hairline);
+      box-shadow:var(--shadow);
+      padding:var(--s-xl);
+      overflow:auto;
+    }
+    .drawer-close,
+    .modal-close{
+      width:40px;
+      height:40px;
+      border-radius:var(--r-full);
+      border:1px solid var(--hairline);
+      background:#fff;
+      color:var(--navy);
+    }
+    .drawer-head,
+    .modal-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:var(--s-md);
+      margin-bottom:var(--s-lg);
+    }
+    .drawer-head h2,
+    .modal-head h2{
+      margin:0;
+      font:700 28px/1.43 "Space Grotesk", system-ui, sans-serif;
+      color:var(--navy);
+    }
+    .drawer-body{
+      display:grid;
+      gap:var(--s-lg);
+    }
+    .detail-list{
+      display:grid;
+      gap:var(--s-sm);
+    }
+    .detail-item{
+      display:flex;
+      justify-content:space-between;
+      gap:var(--s-md);
+      padding:12px 0;
+      border-top:1px solid var(--hairline);
+    }
+    .detail-item strong{
+      color:var(--navy);
+      font-weight:600;
+    }
+    .status-actions{
+      display:flex;
+      gap:var(--s-sm);
+      flex-wrap:wrap;
+    }
+
+    .modal{
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:var(--s-lg);
+    }
+    .modal.open{display:flex}
+    .modal-panel{
+      width:min(760px, 100%);
+      max-height:90vh;
+      overflow:auto;
+      border-radius:var(--r-md);
+      background:#fff;
+      border:1px solid var(--hairline);
+      box-shadow:var(--shadow);
+      padding:var(--s-xl);
+    }
+    .modal-body{
+      display:grid;
+      gap:var(--s-base);
+    }
+    .modal-actions{
+      display:flex;
+      justify-content:flex-end;
+      gap:var(--s-sm);
+      flex-wrap:wrap;
+      margin-top:var(--s-sm);
+    }
+
+    .sidebar-overlay{
+      display:none;
+      position:fixed;
+      inset:0;
+      z-index:30;
+      background:rgba(0,0,0,.35);
+    }
+    .sidebar-overlay.open{display:block}
+
+    @media (max-width:1279px){
+      .stats-grid{grid-template-columns:repeat(2, minmax(0,1fr))}
+      .panel-grid,
+      .analytics-grid,
+      .customers-grid,
+      .hero-card{grid-template-columns:1fr}
+      .menu-grid{grid-template-columns:repeat(2, minmax(0,1fr))}
+      .surface-grid,
+      .branch-editor{grid-template-columns:1fr}
+    }
+    @media (max-width:767px){
+      .admin-shell{grid-template-columns:1fr}
+      .sidebar{
+        position:fixed;
+        inset:0 auto 0 0;
+        z-index:40;
+        width:min(88vw, 320px);
+        transform:translateX(-100%);
+        transition:transform .25s ease;
+      }
+      .sidebar.open{transform:translateX(0)}
+      .content{padding:var(--s-base)}
+      .topbar{padding:var(--s-base)}
+      .menu-button{display:grid;place-items:center}
+      .topbar h1{font-size:22px;line-height:1.18}
+      .search-shell{min-width:0;width:100%}
+      .topbar,
+      .topbar-left,
+      .topbar-right{align-items:stretch}
+      .topbar,
+      .topbar-right{flex-direction:column}
+      .stats-grid,
+      .quick-actions,
+      .field-row,
+      .customers-grid,
+      .analytics-grid,
+      .surface-grid,
+      .hours-row,
+      .menu-grid{grid-template-columns:1fr}
+      .hours-row{align-items:stretch}
+      .hours-row span{padding-top:10px}
+      .hero-card{padding:var(--s-lg)}
+      .modal-panel,
+      .drawer-panel{padding:var(--s-lg)}
+      table{min-width:620px}
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#mainContent">Skip to content</a>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="admin-shell">
+    <aside class="sidebar" id="sidebar" aria-label="Primary navigation">
+      <div class="brand-block">
+        <div class="brand-mark">
+          <img src="hamza-madina-logo.jpeg" alt="Hamza and Madina Halal Food logo" />
+        </div>
+        <div class="brand-copy">
+          <strong>Hamza &amp; Madina</strong>
+          <span>Admin Control Room</span>
+        </div>
+      </div>
+
+      <div>
+        <div class="sidebar-section-label">Workspace</div>
+        <nav>
+          <ul class="nav-list" id="navList"></ul>
+        </nav>
+      </div>
+
+      <div class="sidebar-card">
+        <strong>Halal standards live</strong>
+        <p>Branch availability, menu integrity, and promo performance are all editable from this dashboard.</p>
+        <button class="btn btn-primary" type="button" data-quick-route="branches">Review branches</button>
+      </div>
+    </aside>
+
+    <main class="content" id="mainContent" tabindex="-1">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="menu-button" id="menuButton" type="button" aria-label="Open sidebar navigation" aria-expanded="false" aria-controls="sidebar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+          </button>
+          <div>
+            <h1 id="pageTitle">Dashboard</h1>
+            <p id="pageSubtitle">Today across Dubai and Sharjah</p>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <label class="search-shell" aria-label="Search admin dashboard">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input id="globalSearch" type="search" placeholder="Search orders, customers, menu items" aria-label="Search orders, customers, and menu items" />
+          </label>
+          <div class="chip success"><span class="chip-dot" aria-hidden="true"></span>Live <strong id="topbarLiveOrders">0 open orders</strong></div>
+          <div class="chip"><strong id="topbarRevenue">AED 8,420</strong> today</div>
+        </div>
+      </header>
+
+      <section class="page" id="app" aria-live="polite"></section>
+    </main>
+  </div>
+
+  <div class="drawer" id="orderDrawer" aria-hidden="true">
+    <div class="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
+      <div class="drawer-head">
+        <div>
+          <h2 id="drawerTitle">Order details</h2>
+          <p id="drawerSubtitle" class="topbar-copy"></p>
+        </div>
+        <button class="drawer-close" id="drawerClose" type="button" aria-label="Close order details">×</button>
+      </div>
+      <div class="drawer-body" id="drawerBody"></div>
+    </div>
+  </div>
+
+  <div class="modal" id="entityModal" aria-hidden="true">
+    <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-head">
+        <div>
+          <h2 id="modalTitle">Edit item</h2>
+          <p id="modalSubtitle"></p>
+        </div>
+        <button class="modal-close" id="modalClose" type="button" aria-label="Close dialog">×</button>
+      </div>
+      <form class="modal-body" id="modalForm"></form>
+    </div>
+  </div>
+
+  <script>
+    const mockData = {
+      metrics: {
+        todayRevenue: 8420,
+        weeklyRevenue: 53480,
+        avgOrderValue: 71,
+        newCustomers: 18,
+        fulfillmentRate: 96
+      },
+      analyticsSnapshots: {
+        revenue: [
+          { day: "Wed", amount: 6120, orders: 74, delivery: 48, pickup: 26 },
+          { day: "Thu", amount: 6880, orders: 82, delivery: 53, pickup: 29 },
+          { day: "Fri", amount: 9340, orders: 111, delivery: 71, pickup: 40 },
+          { day: "Sat", amount: 10180, orders: 123, delivery: 77, pickup: 46 },
+          { day: "Sun", amount: 8620, orders: 101, delivery: 65, pickup: 36 },
+          { day: "Mon", amount: 7240, orders: 88, delivery: 58, pickup: 30 },
+          { day: "Tue", amount: 8420, orders: 96, delivery: 61, pickup: 35 }
+        ],
+        categorySales: [
+          { category: "Platters", total: 15360 },
+          { category: "Rice Platters", total: 12640 },
+          { category: "Gyros", total: 8840 },
+          { category: "Loaded Fries", total: 6420 },
+          { category: "Burritos & Wraps", total: 4880 },
+          { category: "Wings", total: 3340 }
+        ],
+        branchPerformance: [
+          { branch: "Dubai Deira", revenue: 31140, orders: 366, avgPrep: "18 min" },
+          { branch: "Sharjah Al Nasserya", revenue: 25660, orders: 309, avgPrep: "16 min" }
+        ]
+      },
+      branches: [
+        {
+          id: "branch-dubai",
+          name: "Dubai Deira",
+          area: "Al Rigga Road, Deira",
+          phone: "+971 4 123 4567",
+          status: "Open",
+          open: true,
+          manager: "Sara Khan",
+          prepTime: "18-24 min",
+          hours: [
+            { day: "Mon", open: "11:00", close: "23:00", enabled: true },
+            { day: "Tue", open: "11:00", close: "23:00", enabled: true },
+            { day: "Wed", open: "11:00", close: "23:00", enabled: true },
+            { day: "Thu", open: "11:00", close: "23:00", enabled: true },
+            { day: "Fri", open: "11:00", close: "01:00", enabled: true },
+            { day: "Sat", open: "11:00", close: "01:00", enabled: true },
+            { day: "Sun", open: "11:00", close: "23:00", enabled: true }
+          ]
+        },
+        {
+          id: "branch-sharjah",
+          name: "Sharjah Al Nasserya",
+          area: "Al Nasserya, Sharjah",
+          phone: "+971 6 123 4567",
+          status: "Open",
+          open: true,
+          manager: "Omar Siddiqui",
+          prepTime: "15-20 min",
+          hours: [
+            { day: "Mon", open: "11:00", close: "00:00", enabled: true },
+            { day: "Tue", open: "11:00", close: "00:00", enabled: true },
+            { day: "Wed", open: "11:00", close: "00:00", enabled: true },
+            { day: "Thu", open: "11:00", close: "00:00", enabled: true },
+            { day: "Fri", open: "11:00", close: "00:30", enabled: true },
+            { day: "Sat", open: "11:00", close: "00:30", enabled: true },
+            { day: "Sun", open: "11:00", close: "00:00", enabled: true }
+          ]
+        }
+      ],
+      menuItems: [
+        {
+          id: "menu-1",
+          name: "Chicken Over Rice",
+          category: "Rice Platters",
+          price: 38,
+          image: "https://images.unsplash.com/photo-1511690743698-d9d85f2fbf38?auto=format&fit=crop&w=1200&q=80",
+          description: "Char-grilled chicken, fragrant basmati, white sauce, and hot-sauce finish.",
+          branches: { "branch-dubai": true, "branch-sharjah": true },
+          halal: true
+        },
+        {
+          id: "menu-2",
+          name: "Lamb Over Rice",
+          category: "Rice Platters",
+          price: 45,
+          image: "https://images.unsplash.com/photo-1529006557810-274b9b2fc783?auto=format&fit=crop&w=1200&q=80",
+          description: "Savoury lamb strips over rice with white sauce and deep spice.",
+          branches: { "branch-dubai": true, "branch-sharjah": false },
+          halal: true
+        },
+        {
+          id: "menu-3",
+          name: "Chicken Over Fries",
+          category: "Loaded Trays",
+          price: 42,
+          image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=1200&q=80",
+          description: "Loaded fries topped with smoky chicken, garlic sauce, and herbs.",
+          branches: { "branch-dubai": true, "branch-sharjah": true },
+          halal: true
+        },
+        {
+          id: "menu-4",
+          name: "Kofta Gyro",
+          category: "Gyros",
+          price: 32,
+          image: "https://images.unsplash.com/photo-1534938665420-4193effeacc4?auto=format&fit=crop&w=1200&q=80",
+          description: "Soft flatbread wrapped around juicy kofta, herbs, and tahina.",
+          branches: { "branch-dubai": true, "branch-sharjah": true },
+          halal: true
+        },
+        {
+          id: "menu-5",
+          name: "Falafel Gyro",
+          category: "Gyros",
+          price: 28,
+          image: "https://images.unsplash.com/photo-1543339308-43e59d6b73a6?auto=format&fit=crop&w=1200&q=80",
+          description: "Crisp falafel, pickles, tahina, and fresh herbs in warm bread.",
+          branches: { "branch-dubai": true, "branch-sharjah": true },
+          halal: true
+        },
+        {
+          id: "menu-6",
+          name: "Chicken Platter",
+          category: "Platters",
+          price: 55,
+          image: "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=80",
+          description: "A larger-format chicken feast with rice, salad, and double sauce.",
+          branches: { "branch-dubai": true, "branch-sharjah": true },
+          halal: true
+        },
+        {
+          id: "menu-7",
+          name: "Lamb Platter",
+          category: "Platters",
+          price: 62,
+          image: "https://images.unsplash.com/photo-1529006557810-274b9b2fc783?auto=format&fit=crop&w=1200&q=80",
+          description: "Premium lamb platter with rice, herbs, salad, and warm bread.",
+          branches: { "branch-dubai": true, "branch-sharjah": false },
+          halal: true
+        },
+        {
+          id: "menu-8",
+          name: "Kofta Platter",
+          category: "Platters",
+          price: 58,
+          image: "https://images.unsplash.com/photo-1534938665420-4193effeacc4?auto=format&fit=crop&w=1200&q=80",
+          description: "Spiced kofta with rice, tahina, herb salad, and warm bread.",
+          branches: { "branch-dubai": true, "branch-sharjah": true },
+          halal: true
+        },
+        {
+          id: "menu-9",
+          name: "Chicken Burrito",
+          category: "Burritos & Wraps",
+          price: 36,
+          image: "https://images.unsplash.com/photo-1559847844-d721426d6edc?auto=format&fit=crop&w=1200&q=80",
+          description: "A tight wrap of chicken, rice, sauce, and fresh crunch.",
+          branches: { "branch-dubai": true, "branch-sharjah": true },
+          halal: true
+        },
+        {
+          id: "menu-10",
+          name: "Loaded Fries",
+          category: "Loaded Fries",
+          price: 28,
+          image: "https://images.unsplash.com/photo-1604908811371-2d1bb0e3d7b7?auto=format&fit=crop&w=1200&q=80",
+          description: "Crisp fries finished with chicken bits, sauce, and spice dust.",
+          branches: { "branch-dubai": true, "branch-sharjah": true },
+          halal: true
+        },
+        {
+          id: "menu-11",
+          name: "Classic Chicken Sandwich",
+          category: "Sandwiches & Starters",
+          price: 30,
+          image: "https://images.unsplash.com/photo-1553979459-d2229ba7433b?auto=format&fit=crop&w=1200&q=80",
+          description: "Toasted bread, seasoned chicken, crisp salad, and creamy sauce.",
+          branches: { "branch-dubai": true, "branch-sharjah": true },
+          halal: true
+        },
+        {
+          id: "menu-12",
+          name: "Crispy Wings",
+          category: "Wings",
+          price: 34,
+          image: "https://images.unsplash.com/photo-1567620832903-9fc6debc209f?auto=format&fit=crop&w=1200&q=80",
+          description: "Golden wings with smoky spice lacquer and cooling dip.",
+          branches: { "branch-dubai": false, "branch-sharjah": true },
+          halal: true
+        }
+      ],
+      orders: [
+        {
+          id: "HM-2401",
+          customerId: "cust-1",
+          customer: "Aisha Rahman",
+          serviceDate: "2026-06-02",
+          branchId: "branch-dubai",
+          branch: "Dubai Deira",
+          type: "Delivery",
+          status: "Preparing",
+          total: 98,
+          time: "11:18 AM",
+          placedAt: "10:56 AM",
+          address: "Al Muraqqabat, Dubai",
+          items: ["Chicken Over Rice", "Loaded Fries", "Saffron Lemonade"],
+          payment: "Paid online"
+        },
+        {
+          id: "HM-2402",
+          customerId: "cust-2",
+          customer: "Bilal Hussain",
+          serviceDate: "2026-06-02",
+          branchId: "branch-sharjah",
+          branch: "Sharjah Al Nasserya",
+          type: "Pickup",
+          status: "Ready",
+          total: 62,
+          time: "11:25 AM",
+          placedAt: "11:02 AM",
+          address: "Pickup counter",
+          items: ["Lamb Platter"],
+          payment: "Paid online"
+        },
+        {
+          id: "HM-2403",
+          customerId: "cust-3",
+          customer: "Nadia Khan",
+          serviceDate: "2026-06-02",
+          branchId: "branch-sharjah",
+          branch: "Sharjah Al Nasserya",
+          type: "Delivery",
+          status: "Pending",
+          total: 84,
+          time: "11:42 AM",
+          placedAt: "11:16 AM",
+          address: "Al Majaz 2, Sharjah",
+          items: ["Kofta Gyro", "Falafel Gyro", "Loaded Fries"],
+          payment: "Cash on delivery"
+        },
+        {
+          id: "HM-2404",
+          customerId: "cust-4",
+          customer: "Yusuf Ali",
+          serviceDate: "2026-06-02",
+          branchId: "branch-dubai",
+          branch: "Dubai Deira",
+          type: "Delivery",
+          status: "Delivered",
+          total: 110,
+          time: "10:58 AM",
+          placedAt: "10:21 AM",
+          address: "Al Rigga, Dubai",
+          items: ["Chicken Platter", "Chicken Burrito", "Saffron Lemonade"],
+          payment: "Paid online"
+        },
+        {
+          id: "HM-2405",
+          customerId: "cust-5",
+          customer: "Mariam Saeed",
+          serviceDate: "2026-06-02",
+          branchId: "branch-sharjah",
+          branch: "Sharjah Al Nasserya",
+          type: "Pickup",
+          status: "Preparing",
+          total: 58,
+          time: "11:54 AM",
+          placedAt: "11:30 AM",
+          address: "Pickup counter",
+          items: ["Kofta Platter"],
+          payment: "Paid online"
+        },
+        {
+          id: "HM-2406",
+          customerId: "cust-6",
+          customer: "Omar Abdullah",
+          serviceDate: "2026-06-02",
+          branchId: "branch-dubai",
+          branch: "Dubai Deira",
+          type: "Delivery",
+          status: "Ready",
+          total: 72,
+          time: "12:04 PM",
+          placedAt: "11:33 AM",
+          address: "Port Saeed, Dubai",
+          items: ["Chicken Over Fries", "Classic Chicken Sandwich"],
+          payment: "Paid online"
+        },
+        {
+          id: "HM-2407",
+          customerId: "cust-1",
+          customer: "Aisha Rahman",
+          serviceDate: "2026-06-01",
+          branchId: "branch-dubai",
+          branch: "Dubai Deira",
+          type: "Delivery",
+          status: "Cancelled",
+          total: 45,
+          time: "Yesterday",
+          placedAt: "Yesterday",
+          address: "Al Muraqqabat, Dubai",
+          items: ["Lamb Over Rice"],
+          payment: "Refunded"
+        },
+        {
+          id: "HM-2408",
+          customerId: "cust-4",
+          customer: "Yusuf Ali",
+          serviceDate: "2026-06-02",
+          branchId: "branch-sharjah",
+          branch: "Sharjah Al Nasserya",
+          type: "Delivery",
+          status: "Preparing",
+          total: 64,
+          time: "12:12 PM",
+          placedAt: "11:48 AM",
+          address: "Al Khan, Sharjah",
+          items: ["Crispy Wings", "Saffron Lemonade", "Falafel Gyro"],
+          payment: "Paid online"
+        },
+        {
+          id: "HM-2397",
+          customerId: "cust-2",
+          customer: "Bilal Hussain",
+          serviceDate: "2026-06-01",
+          branchId: "branch-sharjah",
+          branch: "Sharjah Al Nasserya",
+          type: "Pickup",
+          status: "Delivered",
+          total: 90,
+          time: "8:10 PM",
+          placedAt: "7:42 PM",
+          address: "Pickup counter",
+          items: ["Chicken Platter", "Loaded Fries", "Saffron Lemonade"],
+          payment: "Paid online"
+        },
+        {
+          id: "HM-2396",
+          customerId: "cust-5",
+          customer: "Mariam Saeed",
+          serviceDate: "2026-06-01",
+          branchId: "branch-dubai",
+          branch: "Dubai Deira",
+          type: "Delivery",
+          status: "Delivered",
+          total: 74,
+          time: "6:48 PM",
+          placedAt: "6:11 PM",
+          address: "Al Baraha, Dubai",
+          items: ["Chicken Burrito", "Classic Chicken Sandwich", "Saffron Lemonade"],
+          payment: "Paid online"
+        },
+        {
+          id: "HM-2395",
+          customerId: "cust-6",
+          customer: "Omar Abdullah",
+          serviceDate: "2026-05-31",
+          branchId: "branch-dubai",
+          branch: "Dubai Deira",
+          type: "Delivery",
+          status: "Delivered",
+          total: 100,
+          time: "9:22 PM",
+          placedAt: "8:41 PM",
+          address: "Al Nahda 1, Dubai",
+          items: ["Chicken Over Rice", "Kofta Gyro", "Loaded Fries"],
+          payment: "Paid online"
+        },
+        {
+          id: "HM-2394",
+          customerId: "cust-3",
+          customer: "Nadia Khan",
+          serviceDate: "2026-05-31",
+          branchId: "branch-sharjah",
+          branch: "Sharjah Al Nasserya",
+          type: "Pickup",
+          status: "Delivered",
+          total: 62,
+          time: "7:15 PM",
+          placedAt: "6:55 PM",
+          address: "Pickup counter",
+          items: ["Lamb Platter"],
+          payment: "Paid online"
+        },
+        {
+          id: "HM-2393",
+          customerId: "cust-4",
+          customer: "Yusuf Ali",
+          serviceDate: "2026-05-30",
+          branchId: "branch-dubai",
+          branch: "Dubai Deira",
+          type: "Delivery",
+          status: "Delivered",
+          total: 81,
+          time: "2:06 PM",
+          placedAt: "1:28 PM",
+          address: "Port Saeed, Dubai",
+          items: ["Chicken Over Fries", "Falafel Gyro", "Saffron Lemonade"],
+          payment: "Paid online"
+        },
+        {
+          id: "HM-2392",
+          customerId: "cust-1",
+          customer: "Aisha Rahman",
+          serviceDate: "2026-05-30",
+          branchId: "branch-sharjah",
+          branch: "Sharjah Al Nasserya",
+          type: "Delivery",
+          status: "Delivered",
+          total: 116,
+          time: "8:54 PM",
+          placedAt: "8:13 PM",
+          address: "Al Taawun, Sharjah",
+          items: ["Chicken Platter", "Kofta Platter"],
+          payment: "Paid online"
+        },
+        {
+          id: "HM-2391",
+          customerId: "cust-2",
+          customer: "Bilal Hussain",
+          serviceDate: "2026-05-29",
+          branchId: "branch-dubai",
+          branch: "Dubai Deira",
+          type: "Delivery",
+          status: "Delivered",
+          total: 96,
+          time: "9:18 PM",
+          placedAt: "8:42 PM",
+          address: "Al Rigga, Dubai",
+          items: ["Lamb Over Rice", "Chicken Burrito", "Saffron Lemonade"],
+          payment: "Paid online"
+        },
+        {
+          id: "HM-2390",
+          customerId: "cust-5",
+          customer: "Mariam Saeed",
+          serviceDate: "2026-05-29",
+          branchId: "branch-sharjah",
+          branch: "Sharjah Al Nasserya",
+          type: "Pickup",
+          status: "Delivered",
+          total: 60,
+          time: "1:06 PM",
+          placedAt: "12:44 PM",
+          address: "Pickup counter",
+          items: ["Classic Chicken Sandwich", "Loaded Fries", "Saffron Lemonade"],
+          payment: "Paid online"
+        },
+        {
+          id: "HM-2389",
+          customerId: "cust-6",
+          customer: "Omar Abdullah",
+          serviceDate: "2026-05-28",
+          branchId: "branch-dubai",
+          branch: "Dubai Deira",
+          type: "Delivery",
+          status: "Delivered",
+          total: 87,
+          time: "8:44 PM",
+          placedAt: "8:09 PM",
+          address: "Deira, Dubai",
+          items: ["Chicken Over Rice", "Crispy Wings", "Saffron Lemonade"],
+          payment: "Paid online"
+        },
+        {
+          id: "HM-2388",
+          customerId: "cust-3",
+          customer: "Nadia Khan",
+          serviceDate: "2026-05-28",
+          branchId: "branch-sharjah",
+          branch: "Sharjah Al Nasserya",
+          type: "Delivery",
+          status: "Delivered",
+          total: 60,
+          time: "7:31 PM",
+          placedAt: "6:58 PM",
+          address: "Al Qasimia, Sharjah",
+          items: ["Falafel Gyro", "Loaded Fries", "Saffron Lemonade"],
+          payment: "Cash on delivery"
+        },
+        {
+          id: "HM-2387",
+          customerId: "cust-4",
+          customer: "Yusuf Ali",
+          serviceDate: "2026-05-27",
+          branchId: "branch-dubai",
+          branch: "Dubai Deira",
+          type: "Delivery",
+          status: "Delivered",
+          total: 96,
+          time: "9:04 PM",
+          placedAt: "8:22 PM",
+          address: "Al Khabaisi, Dubai",
+          items: ["Chicken Over Rice", "Kofta Platter"],
+          payment: "Paid online"
+        },
+        {
+          id: "HM-2386",
+          customerId: "cust-1",
+          customer: "Aisha Rahman",
+          serviceDate: "2026-05-27",
+          branchId: "branch-sharjah",
+          branch: "Sharjah Al Nasserya",
+          type: "Pickup",
+          status: "Delivered",
+          total: 62,
+          time: "6:18 PM",
+          placedAt: "5:55 PM",
+          address: "Pickup counter",
+          items: ["Falafel Gyro", "Loaded Fries", "Saffron Lemonade"],
+          payment: "Paid online"
+        }
+      ],
+      customers: [
+        { id: "cust-1", name: "Aisha Rahman", email: "aisha.r@example.com", phone: "+971 50 220 1184", segment: "VIP", totalSpend: 646, lastOrder: "Today", favoriteDish: "Chicken Over Rice" },
+        { id: "cust-2", name: "Bilal Hussain", email: "bilal.h@example.com", phone: "+971 55 781 4400", segment: "Frequent", totalSpend: 384, lastOrder: "Today", favoriteDish: "Lamb Platter" },
+        { id: "cust-3", name: "Nadia Khan", email: "nadia.k@example.com", phone: "+971 56 991 7780", segment: "New", totalSpend: 84, lastOrder: "Today", favoriteDish: "Loaded Fries" },
+        { id: "cust-4", name: "Yusuf Ali", email: "yusuf.a@example.com", phone: "+971 52 448 2211", segment: "Frequent", totalSpend: 510, lastOrder: "Today", favoriteDish: "Chicken Platter" },
+        { id: "cust-5", name: "Mariam Saeed", email: "mariam.s@example.com", phone: "+971 54 722 6671", segment: "Loyal", totalSpend: 271, lastOrder: "Today", favoriteDish: "Kofta Platter" },
+        { id: "cust-6", name: "Omar Abdullah", email: "omar.a@example.com", phone: "+971 50 998 0102", segment: "Frequent", totalSpend: 332, lastOrder: "Today", favoriteDish: "Chicken Over Fries" }
+      ],
+      promotions: [
+        { id: "promo-1", code: "HALAL10", type: "Percent", value: "10% off", usage: 112, active: true, expires: "2026-06-30" },
+        { id: "promo-2", code: "IFTAR25", type: "Fixed", value: "AED 25 off", usage: 46, active: false, expires: "2026-04-15" },
+        { id: "promo-3", code: "FAMILYMEAL", type: "Bundle", value: "Free fries over AED 140", usage: 73, active: true, expires: "2026-07-20" }
+      ]
+    };
+
+    const routes = [
+      { id: "dashboard", label: "Dashboard", subtitle: "Revenue, live orders, and branch health" },
+      { id: "orders", label: "Orders", subtitle: "Filter, inspect, and update service flow" },
+      { id: "menu-items", label: "Menu Items", subtitle: "Dish availability, pricing, and branch controls" },
+      { id: "analytics", label: "Analytics", subtitle: "Revenue, dish mix, and channel performance" },
+      { id: "branches", label: "Branches", subtitle: "Hours, status, and operational settings" },
+      { id: "customers", label: "Customers", subtitle: "Search profiles and inspect order history" },
+      { id: "promotions", label: "Promotions", subtitle: "Promo codes, status, and offer creation" }
+    ];
+
+    const state = {
+      route: "dashboard",
+      search: "",
+      orderFilter: "All",
+      selectedOrderId: null,
+      selectedCustomerId: mockData.customers[0].id,
+      orderDrawerOpen: false,
+      sidebarOpen: false,
+      modalOpen: false,
+      modalType: null,
+      editingItemId: null,
+      chartRefs: []
+    };
+
+    const app = document.getElementById("app");
+    const navList = document.getElementById("navList");
+    const pageTitle = document.getElementById("pageTitle");
+    const pageSubtitle = document.getElementById("pageSubtitle");
+    const topbarRevenue = document.getElementById("topbarRevenue");
+    const topbarLiveOrders = document.getElementById("topbarLiveOrders");
+    const globalSearch = document.getElementById("globalSearch");
+    const sidebar = document.getElementById("sidebar");
+    const sidebarOverlay = document.getElementById("sidebarOverlay");
+    const menuButton = document.getElementById("menuButton");
+    const orderDrawer = document.getElementById("orderDrawer");
+    const drawerClose = document.getElementById("drawerClose");
+    const drawerBody = document.getElementById("drawerBody");
+    const drawerSubtitle = document.getElementById("drawerSubtitle");
+    const entityModal = document.getElementById("entityModal");
+    const modalClose = document.getElementById("modalClose");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalSubtitle = document.getElementById("modalSubtitle");
+    const modalForm = document.getElementById("modalForm");
+
+    function formatCurrency(value){
+      return `AED ${value.toLocaleString("en-US")}`;
+    }
+
+    function initials(name){
+      return name.split(" ").map((part) => part[0]).slice(0, 2).join("");
+    }
+
+    function getOrderById(orderId){
+      return mockData.orders.find((order) => order.id === orderId);
+    }
+
+    function getCustomerById(customerId){
+      return mockData.customers.find((customer) => customer.id === customerId);
+    }
+
+    function getBranchById(branchId){
+      return mockData.branches.find((branch) => branch.id === branchId);
+    }
+
+    function getMenuItemByName(name){
+      return mockData.menuItems.find((item) => item.name === name);
+    }
+
+    function getLiveOrders(){
+      return mockData.orders.filter((order) => ["Pending", "Preparing", "Ready"].includes(order.status));
+    }
+
+    function getTodayRevenue(){
+      return mockData.orders
+        .filter((order) => order.serviceDate === "2026-06-02" && order.status !== "Cancelled")
+        .reduce((sum, order) => sum + order.total, 0);
+    }
+
+    function getSevenDayRevenueSeries(){
+      const days = ["2026-05-27", "2026-05-28", "2026-05-29", "2026-05-30", "2026-05-31", "2026-06-01", "2026-06-02"];
+      return days.map((date) => {
+        const dayOrders = mockData.orders.filter((order) => order.serviceDate === date && order.status !== "Cancelled");
+        const label = new Date(`${date}T12:00:00`).toLocaleDateString("en-US", { weekday: "short" });
+        return {
+          date,
+          day: label,
+          amount: dayOrders.reduce((sum, order) => sum + order.total, 0),
+          orders: dayOrders.length
+        };
+      });
+    }
+
+    function getTopDishCounts(){
+      return mockData.menuItems
+        .map((dish) => ({
+          name: dish.name,
+          count: mockData.orders.reduce((sum, order) => sum + order.items.filter((item) => item === dish.name).length, 0)
+        }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5);
+    }
+
+    function getCategorySalesData(){
+      const totals = {};
+      mockData.orders
+        .filter((order) => order.status !== "Cancelled")
+        .forEach((order) => {
+          order.items.forEach((itemName) => {
+            const item = getMenuItemByName(itemName);
+            if (!item) return;
+            totals[item.category] = (totals[item.category] || 0) + item.price;
+          });
+        });
+      return Object.entries(totals)
+        .map(([category, total]) => ({ category, total }))
+        .sort((a, b) => b.total - a.total);
+    }
+
+    function getAnalyticsSummary(){
+      const revenue = mockData.analyticsSnapshots.revenue;
+      const totalOrders = revenue.reduce((sum, day) => sum + day.orders, 0);
+      const deliveryCount = revenue.reduce((sum, day) => sum + day.delivery, 0);
+      const pickupCount = revenue.reduce((sum, day) => sum + day.pickup, 0);
+      const promoOrderCount = Math.round(totalOrders * 0.24);
+      const returningCount = Math.round(totalOrders * 0.58);
+      return {
+        deliveryShare: Math.round((deliveryCount / totalOrders) * 100),
+        pickupShare: Math.round((pickupCount / totalOrders) * 100),
+        promoShare: Math.round((promoOrderCount / totalOrders) * 100),
+        returningShare: Math.round((returningCount / totalOrders) * 100)
+      };
+    }
+
+    function destroyCharts(){
+      state.chartRefs.forEach((chart) => chart.destroy());
+      state.chartRefs = [];
+    }
+
+    function setRoute(routeId){
+      state.route = routeId;
+      window.location.hash = routeId;
+      state.sidebarOpen = false;
+      syncSidebar();
+      render();
+    }
+
+    function syncSidebar(){
+      const open = state.sidebarOpen;
+      sidebar.classList.toggle("open", open);
+      sidebarOverlay.classList.toggle("open", open);
+      menuButton.setAttribute("aria-expanded", String(open));
+    }
+
+    function renderNav(){
+      const icons = {
+        dashboard: '<svg viewBox="0 0 24 24"><path d="M3 13h8V3H3zm10 8h8V11h-8zM3 21h8v-6H3zm10-10h8V3h-8z"/></svg>',
+        orders: '<svg viewBox="0 0 24 24"><path d="M6 2h12l3 6v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8z"/><path d="M3 8h18"/><path d="M16 12a4 4 0 0 1-8 0"/></svg>',
+        "menu-items": '<svg viewBox="0 0 24 24"><path d="M4 11h16"/><path d="M12 3v18"/><path d="M5 5h14v14H5z"/></svg>',
+        analytics: '<svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-7"/></svg>',
+        branches: '<svg viewBox="0 0 24 24"><path d="M3 10 12 3l9 7v10a1 1 0 0 1-1 1h-6v-6H10v6H4a1 1 0 0 1-1-1z"/></svg>',
+        customers: '<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+        promotions: '<svg viewBox="0 0 24 24"><path d="M20.59 13.41 11 23l-9.59-9.59a2 2 0 0 1 0-2.82L11 1l9.59 9.59a2 2 0 0 1 0 2.82z"/><path d="M7 7h.01"/><path d="M17 17h.01"/></svg>'
+      };
+
+      navList.innerHTML = routes.map((route) => `
+        <li>
+          <button class="nav-link" type="button" data-route="${route.id}" aria-current="${state.route === route.id ? "page" : "false"}">
+            <span class="icon" aria-hidden="true">${icons[route.id]}</span>
+            <span>${route.label}</span>
+          </button>
+        </li>
+      `).join("");
+    }
+
+    function dashboardPage(){
+      const pendingOrders = getLiveOrders().length;
+      const topDishes = getTopDishCounts();
+      const weeklyRevenue = getSevenDayRevenueSeries().reduce((sum, day) => sum + day.amount, 0);
+
+      return `
+        <section class="hero-card">
+          <div>
+            <span class="eyebrow">Operational overview</span>
+            <h2>Keep both UAE kitchens moving without leaving one screen.</h2>
+            <p>Revenue, menu performance, and branch status all follow the same calm system from the main site, with the admin layer tuned for faster decisions and denser service data.</p>
+            <div class="hero-actions">
+              <button class="btn btn-primary" type="button" data-quick-route="orders">Manage live orders</button>
+              <button class="btn btn-secondary success" type="button" data-open-modal="promo">Launch promotion</button>
+            </div>
+          </div>
+          <div class="hero-side">
+            <div class="mini-metric"><span>Active kitchens</span><strong>${mockData.branches.filter((branch) => branch.open).length} / ${mockData.branches.length} open now</strong></div>
+            <div class="mini-metric"><span>Live queue</span><strong>${pendingOrders} orders in motion</strong></div>
+            <div class="mini-metric"><span>Most ordered overall</span><strong>${topDishes[0]?.name || "No orders yet"}</strong></div>
+          </div>
+        </section>
+
+        <section class="stats-grid" aria-label="Dashboard metrics">
+          <article class="stat-card"><span>Today revenue</span><strong>${formatCurrency(getTodayRevenue())}</strong><small>Derived from today&apos;s static orders</small></article>
+          <article class="stat-card"><span>Weekly revenue</span><strong>${formatCurrency(weeklyRevenue)}</strong><small>7-day rolling total</small></article>
+          <article class="stat-card"><span>Average order</span><strong>${formatCurrency(mockData.metrics.avgOrderValue)}</strong><small>Across delivery and pickup</small></article>
+          <article class="stat-card"><span>New customers</span><strong>${mockData.metrics.newCustomers}</strong><small>${mockData.metrics.fulfillmentRate}% fulfilled on time</small></article>
+        </section>
+
+        <section class="panel-grid">
+          <article class="surface">
+            <div class="surface-head">
+              <div>
+                <h3>Live orders</h3>
+                <p>Tap a row to open the detail drawer and update status.</p>
+              </div>
+              <button class="btn btn-secondary" type="button" data-quick-route="orders">View all orders</button>
+            </div>
+            <div class="table-wrap">
+              <table aria-label="Live orders table">
+                <thead>
+                  <tr>
+                    <th>Order</th>
+                    <th>Customer</th>
+                    <th>Branch</th>
+                    <th>Status</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${mockData.orders.slice(0, 5).map((order) => `
+                    <tr>
+                      <td><button class="row-button" type="button" data-order-id="${order.id}">${order.id}<br /><span style="color:var(--muted)">${order.time}</span></button></td>
+                      <td>${order.customer}</td>
+                      <td>${order.branch}</td>
+                      <td><span class="status-badge ${order.status.toLowerCase()}">${order.status}</span></td>
+                      <td>${formatCurrency(order.total)}</td>
+                    </tr>
+                  `).join("")}
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="surface">
+            <div class="surface-head">
+              <div>
+                <h3>Quick actions</h3>
+                <p>Most common admin tasks</p>
+              </div>
+            </div>
+            <div class="quick-actions">
+              <div class="quick-action">
+                <strong>New menu item</strong>
+                <p>Add a dish, set exact price, and decide which branch can serve it.</p>
+                <button class="btn btn-primary" type="button" data-open-modal="menu">Add dish</button>
+              </div>
+              <div class="quick-action">
+                <strong>Branch hours</strong>
+                <p>Update opening times before the next service window changes.</p>
+                <button class="btn btn-secondary" type="button" data-quick-route="branches">Edit hours</button>
+              </div>
+              <div class="quick-action">
+                <strong>Customer follow-up</strong>
+                <p>Review VIP guests and recent order history in one panel.</p>
+                <button class="btn btn-secondary" type="button" data-quick-route="customers">Open customers</button>
+              </div>
+              <div class="quick-action">
+                <strong>Promo push</strong>
+                <p>Spin up a code for slower hours or branch-specific demand.</p>
+                <button class="btn btn-secondary success" type="button" data-open-modal="promo">Create promo</button>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section class="surface-grid">
+          <article class="surface">
+            <div class="surface-head">
+              <div>
+                <h3>Top dishes</h3>
+                <p>Order count from today&apos;s mock queue</p>
+              </div>
+            </div>
+            <div class="chart-box"><canvas id="topDishesChart" aria-label="Top dishes chart"></canvas></div>
+          </article>
+
+          <article class="surface">
+            <div class="surface-head">
+              <div>
+                <h3>Branch status</h3>
+                <p>Open / closed and expected prep pace</p>
+              </div>
+            </div>
+            <div class="branch-stack">
+              ${mockData.branches.map((branch) => `
+                <article class="branch-card">
+                  <header>
+                    <div>
+                      <h4>${branch.name}</h4>
+                      <p>${branch.area}</p>
+                    </div>
+                    <span class="status-badge ${branch.open ? "ready" : "cancelled"}">${branch.open ? "Open" : "Closed"}</span>
+                  </header>
+                  <div class="detail-list">
+                    <div class="detail-item"><span>Manager</span><strong>${branch.manager}</strong></div>
+                    <div class="detail-item"><span>Prep time</span><strong>${branch.prepTime}</strong></div>
+                    <div class="detail-item"><span>Phone</span><strong>${branch.phone}</strong></div>
+                  </div>
+                </article>
+              `).join("")}
+            </div>
+          </article>
+        </section>
+      `;
+    }
+
+    function ordersPage(){
+      const query = state.search.trim().toLowerCase();
+      const filteredOrders = mockData.orders.filter((order) => {
+        const statusMatch = state.orderFilter === "All" || order.status === state.orderFilter;
+        const textMatch = !query || [order.id, order.customer, order.branch, order.items.join(" ")].join(" ").toLowerCase().includes(query);
+        return statusMatch && textMatch;
+      });
+      const statuses = ["All", "Pending", "Preparing", "Ready", "Delivered", "Cancelled"];
+
+      return `
+        <section class="surface">
+          <div class="surface-head">
+            <div>
+              <h3>Orders queue</h3>
+              <p>Filter by status and open any row for full service details.</p>
+            </div>
+            <div class="surface-head-actions">
+              <span class="chip"><strong>${filteredOrders.length}</strong> matching orders</span>
+            </div>
+          </div>
+          <div class="control-bar">
+            <div class="filters" role="tablist" aria-label="Order status filters">
+              ${statuses.map((status) => `
+                <button class="pill-btn ${state.orderFilter === status ? "active" : ""}" type="button" role="tab" aria-selected="${state.orderFilter === status}" data-order-filter="${status}">${status}</button>
+              `).join("")}
+            </div>
+          </div>
+          <div class="table-wrap" style="margin-top:16px">
+            <table aria-label="Orders table">
+              <thead>
+                <tr>
+                  <th>Order</th>
+                  <th>Customer</th>
+                  <th>Items</th>
+                  <th>Branch</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${filteredOrders.map((order) => `
+                  <tr>
+                    <td><button class="row-button" type="button" data-order-id="${order.id}">${order.id}<br /><span style="color:var(--muted)">${order.placedAt}</span></button></td>
+                    <td>${order.customer}</td>
+                    <td>${order.items.join(", ")}</td>
+                    <td>${order.branch}</td>
+                    <td>${order.type}</td>
+                    <td><span class="status-badge ${order.status.toLowerCase()}">${order.status}</span></td>
+                    <td>${formatCurrency(order.total)}</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      `;
+    }
+
+    function menuItemsPage(){
+      const query = state.search.trim().toLowerCase();
+      const items = mockData.menuItems.filter((item) => !query || [item.name, item.category, item.description].join(" ").toLowerCase().includes(query));
+      return `
+        <section class="surface">
+          <div class="surface-head">
+            <div>
+              <h3>Menu catalog</h3>
+              <p>Each dish card follows the same visual treatment as the public menu.</p>
+            </div>
+            <div class="surface-head-actions">
+              <button class="btn btn-primary" type="button" data-open-modal="menu">Add menu item</button>
+            </div>
+          </div>
+          <div class="menu-grid">
+            ${items.map((item) => `
+              <article class="dish">
+                <div class="dish-img">
+                  <span class="halal">Halal</span>
+                  <img src="${item.image}" alt="${item.name}" loading="lazy" />
+                </div>
+                <div class="dish-body">
+                  <div class="dish-top">
+                    <h4>${item.name}</h4>
+                    <span class="dish-price">${formatCurrency(item.price)}</span>
+                  </div>
+                  <p>${item.description}</p>
+                  <span class="status-badge ready" style="width:max-content">${item.category}</span>
+                  <div class="branch-toggle-grid">
+                    ${mockData.branches.map((branch) => `
+                      <div class="branch-toggle">
+                        <div>
+                          <strong>${branch.name}</strong><br />
+                          <span style="color:var(--muted);font-size:14px">${item.branches[branch.id] ? "Serving now" : "Hidden from this branch"}</span>
+                        </div>
+                        <button class="switch" type="button" role="switch" aria-checked="${item.branches[branch.id]}" aria-label="Toggle ${item.name} at ${branch.name}" data-menu-id="${item.id}" data-branch-id="${branch.id}"></button>
+                      </div>
+                    `).join("")}
+                  </div>
+                  <div class="card-actions">
+                    <button class="btn btn-secondary" type="button" data-edit-menu="${item.id}">Edit item</button>
+                  </div>
+                </div>
+              </article>
+            `).join("")}
+          </div>
+        </section>
+      `;
+    }
+
+    function analyticsPage(){
+      const summary = getAnalyticsSummary();
+      const revenueSeries = mockData.analyticsSnapshots.revenue;
+      const categorySales = mockData.analyticsSnapshots.categorySales;
+      const branchPerformance = mockData.analyticsSnapshots.branchPerformance;
+      const bestCategory = categorySales[0]?.category || "No sales yet";
+      const peakDay = revenueSeries.slice().sort((a, b) => b.amount - a.amount)[0];
+      const totalWeekRevenue = revenueSeries.reduce((sum, day) => sum + day.amount, 0);
+      const totalWeekOrders = revenueSeries.reduce((sum, day) => sum + day.orders, 0);
+      return `
+        <section class="stats-grid">
+          <article class="stat-card"><span>Delivery share</span><strong>${summary.deliveryShare}%</strong><small>Calculated from non-cancelled orders</small></article>
+          <article class="stat-card"><span>Pickup share</span><strong>${summary.pickupShare}%</strong><small>Counter traffic across both branches</small></article>
+          <article class="stat-card"><span>Promo-assisted orders</span><strong>${summary.promoShare}%</strong><small>Placeholder uptake against static history</small></article>
+          <article class="stat-card"><span>Returning customers</span><strong>${summary.returningShare}%</strong><small>Guests with more than one completed order</small></article>
+        </section>
+        <section class="analytics-grid">
+          <article class="surface">
+            <div class="surface-head">
+              <div>
+                <h3>7-day revenue</h3>
+                <p>Line chart for revenue movement across the week</p>
+              </div>
+            </div>
+            <div class="chart-box"><canvas id="revenueChart" aria-label="Revenue chart"></canvas></div>
+            <div class="chart-notes">
+              <div class="chart-note"><span>Total 7-day revenue</span><strong>${formatCurrency(totalWeekRevenue)}</strong></div>
+              <div class="chart-note"><span>Peak day</span><strong>${peakDay ? `${peakDay.day} · ${formatCurrency(peakDay.amount)}` : "No data yet"}</strong></div>
+              <div class="chart-note"><span>Strongest branch</span><strong>${branchPerformance[0].branch} · ${formatCurrency(branchPerformance[0].revenue)}</strong></div>
+            </div>
+          </article>
+          <article class="surface">
+            <div class="surface-head">
+              <div>
+                <h3>Order volume</h3>
+                <p>Bar chart for total orders per day</p>
+              </div>
+            </div>
+            <div class="chart-box"><canvas id="ordersBarChart" aria-label="Orders bar chart"></canvas></div>
+            <div class="chart-notes">
+              <div class="chart-note"><span>Total weekly orders</span><strong>${totalWeekOrders}</strong></div>
+              <div class="chart-note"><span>Busiest day</span><strong>${revenueSeries.slice().sort((a, b) => b.orders - a.orders)[0].day} · ${revenueSeries.slice().sort((a, b) => b.orders - a.orders)[0].orders} orders</strong></div>
+              <div class="chart-note"><span>Average order value</span><strong>${formatCurrency(Math.round(totalWeekRevenue / totalWeekOrders))}</strong></div>
+            </div>
+          </article>
+        </section>
+        <section class="surface-grid">
+          <article class="surface">
+            <div class="surface-head">
+              <div>
+                <h3>Sales by category</h3>
+                <p>Doughnut view of menu mix</p>
+              </div>
+            </div>
+            <div class="chart-box"><canvas id="categoryChart" aria-label="Category mix chart"></canvas></div>
+            <div class="chart-notes">
+              ${categorySales.slice(0, 4).map((entry) => `
+                <div class="chart-note"><span>${entry.category}</span><strong>${formatCurrency(entry.total)}</strong></div>
+              `).join("")}
+            </div>
+          </article>
+          <article class="surface">
+            <div class="surface-head">
+              <div>
+                <h3>Insights</h3>
+                <p>Quick readouts from the mock data model</p>
+              </div>
+            </div>
+            <div class="detail-list">
+              <div class="detail-item"><span>Peak day</span><strong>${peakDay ? `${peakDay.day} · ${formatCurrency(peakDay.amount)}` : "No data yet"}</strong></div>
+              <div class="detail-item"><span>Top revenue category</span><strong>${bestCategory}</strong></div>
+              <div class="detail-item"><span>Fastest branch</span><strong>${branchPerformance[1].branch}</strong></div>
+              <div class="detail-item"><span>Chart basis</span><strong>Static 7-day fake orders</strong></div>
+              <div class="detail-item"><span>Dubai branch</span><strong>${branchPerformance[0].orders} orders · ${branchPerformance[0].avgPrep}</strong></div>
+              <div class="detail-item"><span>Sharjah branch</span><strong>${branchPerformance[1].orders} orders · ${branchPerformance[1].avgPrep}</strong></div>
+            </div>
+          </article>
+        </section>
+      `;
+    }
+
+    function branchesPage(){
+      return `
+        <section class="branch-editor">
+          ${mockData.branches.map((branch) => `
+            <article class="surface" data-branch-card="${branch.id}">
+              <div class="surface-head">
+                <div>
+                  <h3>${branch.name}</h3>
+                  <p>${branch.area}</p>
+                </div>
+                <button class="switch" type="button" role="switch" aria-checked="${branch.open}" aria-label="Toggle ${branch.name} open state" data-branch-status="${branch.id}"></button>
+              </div>
+              <div class="detail-list">
+                <div class="detail-item"><span>Manager</span><strong>${branch.manager}</strong></div>
+                <div class="detail-item"><span>Phone</span><strong>${branch.phone}</strong></div>
+                <div class="detail-item"><span>Prep time</span><strong>${branch.prepTime}</strong></div>
+              </div>
+              <div class="hours-grid" style="margin-top:24px">
+                ${branch.hours.map((slot, index) => `
+                  <div class="hours-row">
+                    <span>${slot.day}</span>
+                    <input class="field" type="time" value="${slot.open}" aria-label="${branch.name} ${slot.day} opening time" data-branch-hour="${branch.id}" data-hour-index="${index}" data-hour-field="open" />
+                    <input class="field" type="time" value="${slot.close}" aria-label="${branch.name} ${slot.day} closing time" data-branch-hour="${branch.id}" data-hour-index="${index}" data-hour-field="close" />
+                    <button class="switch" type="button" role="switch" aria-checked="${slot.enabled}" aria-label="Toggle ${slot.day} hours for ${branch.name}" data-branch-day="${branch.id}" data-hour-index="${index}"></button>
+                  </div>
+                `).join("")}
+              </div>
+            </article>
+          `).join("")}
+        </section>
+      `;
+    }
+
+    function customersPage(){
+      const query = state.search.trim().toLowerCase();
+      const customers = mockData.customers.filter((customer) => !query || [customer.name, customer.email, customer.favoriteDish].join(" ").toLowerCase().includes(query));
+      const selectedCustomer = getCustomerById(state.selectedCustomerId) || customers[0] || mockData.customers[0];
+      const history = mockData.orders.filter((order) => order.customerId === selectedCustomer.id);
+
+      return `
+        <section class="customers-grid">
+          <article class="surface">
+            <div class="surface-head">
+              <div>
+                <h3>Customers</h3>
+                <p>Select a guest to inspect order history and lifetime value.</p>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table aria-label="Customer table">
+                <thead>
+                  <tr>
+                    <th>Customer</th>
+                    <th>Segment</th>
+                    <th>Favorite dish</th>
+                    <th>Total spend</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${customers.map((customer) => `
+                    <tr>
+                      <td><button class="row-button" type="button" data-customer-id="${customer.id}">${customer.name}<br /><span style="color:var(--muted)">${customer.email}</span></button></td>
+                      <td>${customer.segment}</td>
+                      <td>${customer.favoriteDish}</td>
+                      <td>${formatCurrency(customer.totalSpend)}</td>
+                    </tr>
+                  `).join("")}
+                </tbody>
+              </table>
+            </div>
+          </article>
+          <aside class="customer-panel">
+            <div class="customer-summary">
+              <div>
+                <span class="eyebrow">Guest profile</span>
+                <h3>${selectedCustomer.name}</h3>
+                <p style="color:var(--muted);margin:12px 0 0">${selectedCustomer.phone} · ${selectedCustomer.email}</p>
+              </div>
+              <div class="summary-list">
+                <div class="summary-item"><span>Segment</span><strong>${selectedCustomer.segment}</strong></div>
+                <div class="summary-item"><span>Total spend</span><strong>${formatCurrency(selectedCustomer.totalSpend)}</strong></div>
+                <div class="summary-item"><span>Favorite dish</span><strong>${selectedCustomer.favoriteDish}</strong></div>
+                <div class="summary-item"><span>Last order</span><strong>${selectedCustomer.lastOrder}</strong></div>
+              </div>
+              <div>
+                <h3 style="font-size:20px">Order history</h3>
+                <div class="summary-list">
+                  ${history.map((order) => `
+                    <div class="summary-item">
+                      <span>${order.id} · ${order.status}</span>
+                      <strong>${formatCurrency(order.total)}</strong>
+                    </div>
+                  `).join("")}
+                </div>
+              </div>
+            </div>
+          </aside>
+        </section>
+      `;
+    }
+
+    function promotionsPage(){
+      return `
+        <section class="surface">
+          <div class="surface-head">
+            <div>
+              <h3>Promotions</h3>
+              <p>Manage promo codes and add new offers without leaving the dashboard.</p>
+            </div>
+            <div class="surface-head-actions">
+              <button class="btn btn-primary" type="button" data-open-modal="promo">Add promo code</button>
+            </div>
+          </div>
+          <div class="promo-stack">
+            ${mockData.promotions.map((promo) => `
+              <article class="promo-card">
+                <header>
+                  <div>
+                    <h4>${promo.code}</h4>
+                    <p>${promo.type} · Expires ${promo.expires}</p>
+                  </div>
+                  <span class="status-badge ${promo.active ? "ready" : "cancelled"}">${promo.active ? "Active" : "Expired"}</span>
+                </header>
+                <div class="detail-list">
+                  <div class="detail-item"><span>Offer</span><strong>${promo.value}</strong></div>
+                  <div class="detail-item"><span>Uses</span><strong>${promo.usage}</strong></div>
+                </div>
+              </article>
+            `).join("")}
+          </div>
+        </section>
+      `;
+    }
+
+    function renderPage(){
+      switch (state.route) {
+        case "orders": return ordersPage();
+        case "menu-items": return menuItemsPage();
+        case "analytics": return analyticsPage();
+        case "branches": return branchesPage();
+        case "customers": return customersPage();
+        case "promotions": return promotionsPage();
+        default: return dashboardPage();
+      }
+    }
+
+    function renderCharts(){
+      destroyCharts();
+      if (state.route === "dashboard") {
+        const topDishes = getTopDishCounts();
+        const topCtx = document.getElementById("topDishesChart");
+        if (topCtx) {
+          state.chartRefs.push(new Chart(topCtx, {
+            type: "bar",
+            data: {
+              labels: topDishes.map((dish) => dish.name),
+              datasets: [{
+                data: topDishes.map((dish) => dish.count),
+                backgroundColor: ["#2E5BD8", "#4BA636", "#7A8FE3", "#9BB95A", "#232C6B"],
+                borderRadius: 14
+              }]
+            },
+            options: chartOptions(false)
+          }));
+        }
+      }
+
+      if (state.route === "analytics") {
+        const revenueSeries = mockData.analyticsSnapshots.revenue;
+        const categorySales = mockData.analyticsSnapshots.categorySales;
+        const revenueCtx = document.getElementById("revenueChart");
+        const ordersCtx = document.getElementById("ordersBarChart");
+        const categoryCtx = document.getElementById("categoryChart");
+
+        if (revenueCtx && typeof Chart !== "undefined") {
+          state.chartRefs.push(new Chart(revenueCtx, {
+            type: "line",
+            data: {
+              labels: revenueSeries.map((entry) => entry.day),
+              datasets: [{
+                label: "Revenue",
+                data: revenueSeries.map((entry) => entry.amount),
+                borderColor: "#2E5BD8",
+                backgroundColor: "rgba(46,91,216,.14)",
+                fill: true,
+                tension: .35,
+                pointBackgroundColor: "#2E5BD8",
+                pointRadius: 4
+              }]
+            },
+            options: chartOptions(true)
+          }));
+        }
+
+        if (ordersCtx && typeof Chart !== "undefined") {
+          state.chartRefs.push(new Chart(ordersCtx, {
+            type: "bar",
+            data: {
+              labels: revenueSeries.map((entry) => entry.day),
+              datasets: [{
+                label: "Orders",
+                data: revenueSeries.map((entry) => entry.orders),
+                backgroundColor: "#4BA636",
+                borderRadius: 14
+              }]
+            },
+            options: chartOptions(false)
+          }));
+        }
+
+        if (categoryCtx && typeof Chart !== "undefined") {
+          state.chartRefs.push(new Chart(categoryCtx, {
+            type: "doughnut",
+            data: {
+              labels: categorySales.map((entry) => entry.category),
+              datasets: [{
+                data: categorySales.map((entry) => entry.total),
+                backgroundColor: ["#2E5BD8", "#4BA636", "#232C6B", "#8CA2E8", "#B9CF74", "#D7E2FB"],
+                borderWidth: 0
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  position: "bottom",
+                  labels: {
+                    color: "#5C6685",
+                    font: { family: "Plus Jakarta Sans", size: 12, weight: "600" }
+                  }
+                }
+              },
+              cutout: "68%"
+            }
+          }));
+        }
+      }
+    }
+
+    function chartOptions(showCurrency){
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          x: {
+            ticks: {
+              color: "#5C6685",
+              font: { family: "Plus Jakarta Sans", size: 12, weight: "600" }
+            },
+            grid: { display: false }
+          },
+          y: {
+            ticks: {
+              color: "#5C6685",
+              callback: (value) => showCurrency ? `AED ${value}` : value,
+              font: { family: "Plus Jakarta Sans", size: 12 }
+            },
+            grid: { color: "#E2E9F4" }
+          }
+        }
+      };
+    }
+
+    function render(){
+      const activeRoute = routes.find((route) => route.id === state.route) || routes[0];
+      const liveOrderCount = getLiveOrders().length;
+      pageTitle.textContent = activeRoute.label;
+      pageSubtitle.textContent = activeRoute.subtitle;
+      topbarRevenue.textContent = formatCurrency(getTodayRevenue());
+      topbarLiveOrders.textContent = `${liveOrderCount} open orders`;
+      renderNav();
+      app.innerHTML = renderPage();
+      renderCharts();
+    }
+
+    function updateOrderStatus(orderId, status){
+      const order = getOrderById(orderId);
+      if (!order) return;
+      order.status = status;
+      render();
+      if (state.orderDrawerOpen && state.selectedOrderId === orderId) {
+        openOrderDrawer(orderId, false);
+      }
+    }
+
+    function openOrderDrawer(orderId, moveFocus = true){
+      const order = getOrderById(orderId);
+      if (!order) return;
+      state.selectedOrderId = orderId;
+      state.orderDrawerOpen = true;
+      orderDrawer.classList.add("open");
+      orderDrawer.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+      drawerSubtitle.textContent = `${order.customer} · ${order.branch}`;
+      drawerBody.innerHTML = `
+        <div class="detail-list">
+          <div class="detail-item"><span>Status</span><strong><span class="status-badge ${order.status.toLowerCase()}">${order.status}</span></strong></div>
+          <div class="detail-item"><span>Type</span><strong>${order.type}</strong></div>
+          <div class="detail-item"><span>Total</span><strong>${formatCurrency(order.total)}</strong></div>
+          <div class="detail-item"><span>Placed at</span><strong>${order.placedAt}</strong></div>
+          <div class="detail-item"><span>Delivery / pickup</span><strong>${order.address}</strong></div>
+          <div class="detail-item"><span>Payment</span><strong>${order.payment}</strong></div>
+        </div>
+        <div>
+          <h3 style="margin:0 0 12px;font:600 21px/1.43 'Space Grotesk',system-ui,sans-serif;color:var(--navy)">Items</h3>
+          <div class="detail-list">
+            ${order.items.map((item) => `<div class="detail-item"><span>${item}</span><strong>In order</strong></div>`).join("")}
+          </div>
+        </div>
+        <div>
+          <h3 style="margin:0 0 12px;font:600 21px/1.43 'Space Grotesk',system-ui,sans-serif;color:var(--navy)">Update status</h3>
+          <div class="status-actions">
+            ${["Pending", "Preparing", "Ready", "Delivered", "Cancelled"].map((status) => `
+              <button class="btn ${order.status === status ? "btn-primary" : "btn-secondary"}" type="button" data-update-order="${order.id}" data-next-status="${status}">${status}</button>
+            `).join("")}
+          </div>
+        </div>
+      `;
+      trapFocus(orderDrawer.querySelector(".drawer-panel"));
+      if (moveFocus) drawerClose.focus();
+    }
+
+    function closeOrderDrawer(){
+      state.orderDrawerOpen = false;
+      orderDrawer.classList.remove("open");
+      orderDrawer.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("modal-open");
+      releaseFocusTrap();
+    }
+
+    function openModal(type, itemId = null){
+      state.modalOpen = true;
+      state.modalType = type;
+      state.editingItemId = itemId;
+      entityModal.classList.add("open");
+      entityModal.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+
+      if (type === "menu") {
+        const item = itemId ? mockData.menuItems.find((entry) => entry.id === itemId) : null;
+        modalTitle.textContent = item ? "Edit menu item" : "Add menu item";
+        modalSubtitle.textContent = item ? `Update ${item.name} and keep branch availability in sync.` : "Create a new mock menu item inside the in-memory data object.";
+        modalForm.innerHTML = `
+          <div class="field-row">
+            <div class="field-block"><label for="menuName">Dish name</label><input class="field" id="menuName" name="name" value="${item ? item.name : ""}" required /></div>
+            <div class="field-block"><label for="menuPrice">Price (AED)</label><input class="field" id="menuPrice" name="price" type="number" min="1" value="${item ? item.price : 30}" required /></div>
+          </div>
+          <div class="field-row">
+            <div class="field-block"><label for="menuCategory">Category</label><input class="field" id="menuCategory" name="category" value="${item ? item.category : "Specials"}" required /></div>
+            <div class="field-block"><label for="menuImage">Image URL</label><input class="field" id="menuImage" name="image" value="${item ? item.image : ""}" required /></div>
+          </div>
+          <div class="field-block"><label for="menuDescription">Description</label><textarea class="textarea" id="menuDescription" name="description" required>${item ? item.description : ""}</textarea></div>
+          <div class="field-block">
+            <label>Available branches</label>
+            ${mockData.branches.map((branch) => `
+              <label style="display:flex;align-items:center;gap:10px;padding:10px 0">
+                <input type="checkbox" name="branch-${branch.id}" ${item ? (item.branches[branch.id] ? "checked" : "") : "checked"} />
+                <span>${branch.name}</span>
+              </label>
+            `).join("")}
+          </div>
+          <div class="modal-actions">
+            <button class="btn btn-secondary" type="button" data-close-modal="true">Cancel</button>
+            <button class="btn btn-primary" type="submit">${item ? "Save changes" : "Add item"}</button>
+          </div>
+        `;
+      } else {
+        modalTitle.textContent = "Add promo code";
+        modalSubtitle.textContent = "Create a new mock promo entry for the dashboard.";
+        modalForm.innerHTML = `
+          <div class="field-row">
+            <div class="field-block"><label for="promoCode">Code</label><input class="field" id="promoCode" name="code" required /></div>
+            <div class="field-block"><label for="promoType">Type</label><select class="select" id="promoType" name="type"><option>Percent</option><option>Fixed</option><option>Bundle</option></select></div>
+          </div>
+          <div class="field-row">
+            <div class="field-block"><label for="promoValue">Offer value</label><input class="field" id="promoValue" name="value" placeholder="10% off" required /></div>
+            <div class="field-block"><label for="promoExpiry">Expiry</label><input class="field" id="promoExpiry" name="expires" type="date" required /></div>
+          </div>
+          <div class="modal-actions">
+            <button class="btn btn-secondary" type="button" data-close-modal="true">Cancel</button>
+            <button class="btn btn-primary" type="submit">Create promo</button>
+          </div>
+        `;
+      }
+
+      trapFocus(entityModal.querySelector(".modal-panel"));
+      const firstField = modalForm.querySelector("input,select,textarea,button");
+      if (firstField) firstField.focus();
+    }
+
+    function closeModal(){
+      state.modalOpen = false;
+      state.modalType = null;
+      state.editingItemId = null;
+      entityModal.classList.remove("open");
+      entityModal.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("modal-open");
+      releaseFocusTrap();
+    }
+
+    let focusTrapCleanup = null;
+
+    function trapFocus(container){
+      releaseFocusTrap();
+      const focusable = container.querySelectorAll('a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])');
+      const items = Array.from(focusable);
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      const handler = (event) => {
+        if (event.key === "Escape") {
+          if (state.modalOpen) closeModal();
+          if (state.orderDrawerOpen) closeOrderDrawer();
+          return;
+        }
+        if (event.key !== "Tab") return;
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      };
+      document.addEventListener("keydown", handler);
+      focusTrapCleanup = () => document.removeEventListener("keydown", handler);
+    }
+
+    function releaseFocusTrap(){
+      if (focusTrapCleanup) focusTrapCleanup();
+      focusTrapCleanup = null;
+    }
+
+    function handleModalSubmit(event){
+      event.preventDefault();
+      const formData = new FormData(event.currentTarget);
+
+      if (state.modalType === "menu") {
+        const branchMap = Object.fromEntries(mockData.branches.map((branch) => [branch.id, formData.get(`branch-${branch.id}`) === "on"]));
+        if (state.editingItemId) {
+          const item = mockData.menuItems.find((entry) => entry.id === state.editingItemId);
+          Object.assign(item, {
+            name: formData.get("name"),
+            price: Number(formData.get("price")),
+            category: formData.get("category"),
+            image: formData.get("image"),
+            description: formData.get("description"),
+            branches: branchMap
+          });
+        } else {
+          mockData.menuItems.unshift({
+            id: `menu-${Date.now()}`,
+            name: formData.get("name"),
+            price: Number(formData.get("price")),
+            category: formData.get("category"),
+            image: formData.get("image"),
+            description: formData.get("description"),
+            branches: branchMap,
+            halal: true
+          });
+        }
+      }
+
+      if (state.modalType === "promo") {
+        mockData.promotions.unshift({
+          id: `promo-${Date.now()}`,
+          code: String(formData.get("code")).toUpperCase(),
+          type: formData.get("type"),
+          value: formData.get("value"),
+          usage: 0,
+          active: true,
+          expires: formData.get("expires")
+        });
+      }
+
+      closeModal();
+      render();
+    }
+
+    navList.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-route]");
+      if (!button) return;
+      setRoute(button.dataset.route);
+    });
+
+    app.addEventListener("click", (event) => {
+      const orderButton = event.target.closest("[data-order-id]");
+      if (orderButton) {
+        openOrderDrawer(orderButton.dataset.orderId);
+        return;
+      }
+
+      const quickRoute = event.target.closest("[data-quick-route]");
+      if (quickRoute) {
+        setRoute(quickRoute.dataset.quickRoute);
+        return;
+      }
+
+      const orderFilter = event.target.closest("[data-order-filter]");
+      if (orderFilter) {
+        state.orderFilter = orderFilter.dataset.orderFilter;
+        render();
+        return;
+      }
+
+      const branchToggle = event.target.closest("[data-menu-id][data-branch-id]");
+      if (branchToggle) {
+        const item = mockData.menuItems.find((entry) => entry.id === branchToggle.dataset.menuId);
+        const branchId = branchToggle.dataset.branchId;
+        item.branches[branchId] = !item.branches[branchId];
+        render();
+        return;
+      }
+
+      const editMenu = event.target.closest("[data-edit-menu]");
+      if (editMenu) {
+        openModal("menu", editMenu.dataset.editMenu);
+        return;
+      }
+
+      const customerButton = event.target.closest("[data-customer-id]");
+      if (customerButton) {
+        state.selectedCustomerId = customerButton.dataset.customerId;
+        render();
+        return;
+      }
+
+      const openModalButton = event.target.closest("[data-open-modal]");
+      if (openModalButton) {
+        openModal(openModalButton.dataset.openModal);
+      }
+    });
+
+    app.addEventListener("change", (event) => {
+      const branchStatusButton = event.target.closest("[data-branch-hour]");
+      if (branchStatusButton) {
+        const branch = getBranchById(branchStatusButton.dataset.branchHour);
+        const slot = branch.hours[Number(branchStatusButton.dataset.hourIndex)];
+        slot[branchStatusButton.dataset.hourField] = event.target.value;
+      }
+    });
+
+    app.addEventListener("click", (event) => {
+      const branchStatus = event.target.closest("[data-branch-status]");
+      if (branchStatus) {
+        const branch = getBranchById(branchStatus.dataset.branchStatus);
+        branch.open = !branch.open;
+        branch.status = branch.open ? "Open" : "Closed";
+        render();
+        return;
+      }
+
+      const branchDay = event.target.closest("[data-branch-day]");
+      if (branchDay) {
+        const branch = getBranchById(branchDay.dataset.branchDay);
+        const slot = branch.hours[Number(branchDay.dataset.hourIndex)];
+        slot.enabled = !slot.enabled;
+        render();
+      }
+    });
+
+    orderDrawer.addEventListener("click", (event) => {
+      if (event.target === orderDrawer) closeOrderDrawer();
+      const updateButton = event.target.closest("[data-update-order]");
+      if (updateButton) {
+        updateOrderStatus(updateButton.dataset.updateOrder, updateButton.dataset.nextStatus);
+      }
+    });
+
+    drawerClose.addEventListener("click", closeOrderDrawer);
+
+    entityModal.addEventListener("click", (event) => {
+      if (event.target === entityModal) closeModal();
+      if (event.target.closest("[data-close-modal]")) closeModal();
+    });
+    modalClose.addEventListener("click", closeModal);
+    modalForm.addEventListener("submit", handleModalSubmit);
+
+    globalSearch.addEventListener("input", (event) => {
+      state.search = event.target.value;
+      render();
+    });
+
+    menuButton.addEventListener("click", () => {
+      state.sidebarOpen = !state.sidebarOpen;
+      syncSidebar();
+    });
+    sidebarOverlay.addEventListener("click", () => {
+      state.sidebarOpen = false;
+      syncSidebar();
+    });
+
+    sidebar.addEventListener("click", (event) => {
+      const routeButton = event.target.closest("[data-quick-route]");
+      if (routeButton) {
+        setRoute(routeButton.dataset.quickRoute);
+      }
+    });
+
+    window.addEventListener("hashchange", () => {
+      const hash = window.location.hash.replace("#", "");
+      if (routes.some((route) => route.id === hash)) {
+        state.route = hash;
+        render();
+      }
+    });
+
+    function init(){
+      const initialHash = window.location.hash.replace("#", "");
+      if (routes.some((route) => route.id === initialHash)) state.route = initialHash;
+      render();
+    }
+
+    init();
+  </script>
+</body>
+</html>
