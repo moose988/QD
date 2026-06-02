@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Wedding Invitation | QD SYSTEMS</title>
+  <title>Wedding Invitation</title>
   <meta name="theme-color" content="#0c0c0f">
   <link rel="icon" href="/assets/favicon.svg">
   <link rel="stylesheet" href="/invite/invite.css">
@@ -13,10 +13,10 @@
     <div class="invite-bg" aria-hidden="true"></div>
 
     <header class="invite-topbar">
-      <a class="invite-brand" href="https://qdsystems.ae" target="_blank" rel="noreferrer noopener">QD SYSTEMS</a>
+      <div class="invite-topbar-spacer" aria-hidden="true"></div>
       <div class="invite-topbar-actions">
-        <button class="invite-lang-toggle" type="button" id="invite-lang-toggle">AR</button>
-        <button class="invite-audio-toggle" type="button" id="invite-audio-toggle" hidden>Play Music</button>
+        <button class="invite-lang-toggle" type="button" id="invite-lang-toggle" aria-label="Switch language">AR</button>
+        <button class="invite-audio-toggle" type="button" id="invite-audio-toggle" hidden aria-label="Music control">Play Music</button>
       </div>
     </header>
 
@@ -34,101 +34,105 @@
         <section class="invite-hero">
           <div class="invite-hero-media" id="invite-hero-media"></div>
           <div class="invite-hero-overlay"></div>
-          <div class="invite-hero-content">
-            <div class="invite-kicker" id="invite-kicker"></div>
-            <h1 class="invite-couple" id="invite-couple"></h1>
-            <p class="invite-title" id="invite-title"></p>
-            <div class="invite-event-meta">
-              <div class="invite-meta-pill" id="invite-date"></div>
-              <div class="invite-meta-pill" id="invite-time"></div>
+          <div class="invite-hero-content invite-frame">
+            <div class="invite-hero-inner">
+              <div class="invite-kicker" id="invite-kicker"></div>
+              <h1 class="invite-couple" id="invite-couple"></h1>
+              <p class="invite-title" id="invite-title"></p>
+              <div class="invite-event-meta">
+                <div class="invite-meta-line" id="invite-date"></div>
+                <div class="invite-meta-line" id="invite-time"></div>
+              </div>
+              <div class="invite-hero-actions">
+                <a class="invite-btn invite-btn-ghost" id="invite-location-btn" target="_blank" rel="noreferrer noopener"></a>
+                <button class="invite-btn invite-btn-ghost" type="button" id="invite-whatsapp-btn"></button>
+              </div>
             </div>
-            <div class="invite-hero-actions">
-              <a class="invite-btn invite-btn-primary" id="invite-location-btn" target="_blank" rel="noreferrer noopener"></a>
-              <button class="invite-btn invite-btn-secondary" type="button" id="invite-whatsapp-btn"></button>
+          </div>
+        </section>
+
+        <div class="invite-frame invite-story">
+          <section class="invite-section invite-countdown-section">
+            <div class="invite-section-head">
+              <span class="invite-section-label" id="invite-countdown-label"></span>
+              <h2 id="invite-countdown-heading"></h2>
             </div>
-          </div>
-        </section>
-
-        <section class="invite-section invite-countdown-section">
-          <div class="invite-section-head">
-            <span class="invite-section-label" id="invite-countdown-label"></span>
-            <h2 id="invite-countdown-heading"></h2>
-          </div>
-          <div class="invite-countdown-grid" id="invite-countdown-grid">
-            <article class="invite-count-card">
-              <strong id="count-days">--</strong>
-              <span id="label-days"></span>
-            </article>
-            <article class="invite-count-card">
-              <strong id="count-hours">--</strong>
-              <span id="label-hours"></span>
-            </article>
-            <article class="invite-count-card">
-              <strong id="count-minutes">--</strong>
-              <span id="label-minutes"></span>
-            </article>
-            <article class="invite-count-card">
-              <strong id="count-seconds">--</strong>
-              <span id="label-seconds"></span>
-            </article>
-          </div>
-          <p class="invite-countdown-note" id="invite-countdown-note"></p>
-        </section>
-
-        <section class="invite-section invite-venue-section">
-          <div class="invite-section-head">
-            <span class="invite-section-label" id="invite-location-label"></span>
-            <h2 id="invite-venue-name"></h2>
-          </div>
-          <p class="invite-venue-address" id="invite-venue-address"></p>
-          <a class="invite-btn invite-btn-outline" id="invite-location-link" target="_blank" rel="noreferrer noopener"></a>
-        </section>
-
-        <section class="invite-section invite-audio-section" id="invite-audio-section" hidden>
-          <div class="invite-section-head">
-            <span class="invite-section-label">Soundtrack</span>
-            <h2>Set the mood</h2>
-          </div>
-          <p class="invite-audio-copy">Tap once to start the wedding soundtrack. Playback stays in your control.</p>
-          <button class="invite-btn invite-btn-primary" type="button" id="invite-audio-cta"></button>
-          <audio id="invite-audio-player" preload="none"></audio>
-        </section>
-
-        <section class="invite-section invite-rsvp-section" id="invite-rsvp-section" hidden>
-          <div class="invite-section-head">
-            <span class="invite-section-label" id="invite-rsvp-label"></span>
-            <h2 id="invite-rsvp-heading"></h2>
-          </div>
-          <form class="invite-rsvp-form" id="invite-rsvp-form">
-            <label class="invite-field">
-              <span id="label-rsvp-name"></span>
-              <input class="invite-input" name="name" type="text" required>
-            </label>
-            <label class="invite-field">
-              <span id="label-rsvp-phone"></span>
-              <input class="invite-input" name="phone" type="text" inputmode="tel">
-            </label>
-            <label class="invite-field">
-              <span id="label-rsvp-attending"></span>
-              <select class="invite-input" name="attending">
-                <option value="yes" id="option-attending-yes"></option>
-                <option value="no" id="option-attending-no"></option>
-              </select>
-            </label>
-            <label class="invite-field">
-              <span id="label-rsvp-guests"></span>
-              <input class="invite-input" name="guests" type="number" min="1" max="20" value="1">
-            </label>
-            <label class="invite-field invite-field-full">
-              <span id="label-rsvp-message"></span>
-              <textarea class="invite-input invite-textarea" name="message" rows="4"></textarea>
-            </label>
-            <div class="invite-rsvp-actions">
-              <button class="invite-btn invite-btn-primary" type="submit" id="invite-rsvp-submit"></button>
-              <p class="invite-rsvp-feedback" id="invite-rsvp-feedback" role="status" aria-live="polite"></p>
+            <div class="invite-countdown-grid" id="invite-countdown-grid">
+              <article class="invite-count-card">
+                <strong id="count-days">--</strong>
+                <span id="label-days"></span>
+              </article>
+              <article class="invite-count-card">
+                <strong id="count-hours">--</strong>
+                <span id="label-hours"></span>
+              </article>
+              <article class="invite-count-card">
+                <strong id="count-minutes">--</strong>
+                <span id="label-minutes"></span>
+              </article>
+              <article class="invite-count-card">
+                <strong id="count-seconds">--</strong>
+                <span id="label-seconds"></span>
+              </article>
             </div>
-          </form>
-        </section>
+            <p class="invite-countdown-note" id="invite-countdown-note"></p>
+          </section>
+
+          <section class="invite-section invite-venue-section">
+            <div class="invite-section-head">
+              <span class="invite-section-label" id="invite-location-label"></span>
+              <h2 id="invite-venue-name"></h2>
+            </div>
+            <p class="invite-venue-address" id="invite-venue-address"></p>
+            <a class="invite-location-link" id="invite-location-link" target="_blank" rel="noreferrer noopener"></a>
+          </section>
+
+          <section class="invite-section invite-audio-section" id="invite-audio-section" hidden>
+            <div class="invite-section-head">
+              <span class="invite-section-label">Soundtrack</span>
+              <h2>Set the mood</h2>
+            </div>
+            <p class="invite-audio-copy">Tap once to start the wedding soundtrack. Playback stays in your control.</p>
+            <button class="invite-btn invite-btn-ghost invite-audio-cta" type="button" id="invite-audio-cta"></button>
+            <audio id="invite-audio-player" preload="none"></audio>
+          </section>
+
+          <section class="invite-section invite-rsvp-section" id="invite-rsvp-section" hidden>
+            <div class="invite-section-head">
+              <span class="invite-section-label" id="invite-rsvp-label"></span>
+              <h2 id="invite-rsvp-heading"></h2>
+            </div>
+            <form class="invite-rsvp-form" id="invite-rsvp-form">
+              <label class="invite-field">
+                <span id="label-rsvp-name"></span>
+                <input class="invite-input" name="name" type="text" required>
+              </label>
+              <label class="invite-field">
+                <span id="label-rsvp-phone"></span>
+                <input class="invite-input" name="phone" type="text" inputmode="tel">
+              </label>
+              <label class="invite-field">
+                <span id="label-rsvp-attending"></span>
+                <select class="invite-input" name="attending">
+                  <option value="yes" id="option-attending-yes"></option>
+                  <option value="no" id="option-attending-no"></option>
+                </select>
+              </label>
+              <label class="invite-field">
+                <span id="label-rsvp-guests"></span>
+                <input class="invite-input" name="guests" type="number" min="1" max="20" value="1">
+              </label>
+              <label class="invite-field invite-field-full">
+                <span id="label-rsvp-message"></span>
+                <textarea class="invite-input invite-textarea" name="message" rows="4"></textarea>
+              </label>
+              <div class="invite-rsvp-actions">
+                <button class="invite-btn invite-btn-submit" type="submit" id="invite-rsvp-submit"></button>
+                <p class="invite-rsvp-feedback" id="invite-rsvp-feedback" role="status" aria-live="polite"></p>
+              </div>
+            </form>
+          </section>
+        </div>
       </article>
     </main>
   </div>
