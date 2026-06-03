@@ -110,6 +110,64 @@ header.nav.scrolled .nav-links a.lnk:hover{color:var(--blue)}
 .sec-head h2 .blue{color:var(--blue)}
 .sec-head p{color:var(--muted);font-size:18px;max-width:540px}
 
+.locations-stage{position:relative;padding-top:18px;min-height:290px}
+.locations-stage .sec-head{position:relative;z-index:1}
+.loc-spotlight{
+  position:absolute;
+  box-shadow:0 24px 54px -24px rgba(31,42,110,.42);
+  z-index:0;
+}
+.loc-spotlight-right{
+  top:-70px;
+  right:-120px;
+  width:min(430px,34vw);
+  aspect-ratio:1/1;
+  overflow:visible;
+  background:transparent;
+  box-shadow:none;
+  transform:rotate(12deg);
+}
+.loc-spotlight-left{
+  top:-96px;
+  left:36px;
+  width:min(190px,15vw);
+  aspect-ratio:10/24;
+  overflow:visible;
+  background:transparent;
+  box-shadow:none;
+  transform:rotate(14deg);
+}
+.loc-spotlight::before{
+  content:"";
+  position:absolute;
+  inset:-18px;
+  border-radius:34px;
+  background:radial-gradient(circle at 50% 50%, rgba(75,166,54,.16), transparent 70%);
+  z-index:0;
+}
+.loc-spotlight img{
+  position:relative;
+  z-index:1;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.loc-spotlight-right::before{
+  display:none;
+}
+.loc-spotlight-right img{
+  object-fit:contain;
+  border-radius:0;
+  filter:none;
+}
+.loc-spotlight-left::before{
+  display:none;
+}
+.loc-spotlight-left img{
+  object-fit:contain;
+  filter:none;
+}
+
 .loc-switch{max-width:1120px;margin:0 auto}
 .loc-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
 .loc-card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:8px;box-shadow:var(--shadow-sm);overflow:hidden;height:100%}
@@ -304,6 +362,20 @@ footer{background:var(--navy-deep);color:#fff}
   .hero-left .inner{margin:0 auto}
   .eyebrow{justify-content:flex-start}
   .hero-cta{justify-content:flex-start}
+  .locations-stage{padding-top:0;min-height:0}
+  .loc-spotlight{
+    position:relative;
+    top:auto;
+    width:min(320px,72vw);
+    margin:0 auto 30px;
+    left:auto;
+    right:auto;
+    aspect-ratio:1/1;
+    border-radius:28px;
+    overflow:hidden;
+    transform:rotate(8deg);
+  }
+  .loc-spotlight-left{display:none}
   .loc-grid{grid-template-columns:1fr}
   .about-grid{grid-template-columns:1fr;gap:56px}
   .about-media{max-width:500px}
@@ -441,10 +513,18 @@ header.nav.scrolled .nav-cart:hover{border-color:var(--blue);color:var(--blue)}
 
 <section id="locations" class="section-pad tint">
   <div class="wrap">
-    <div class="sec-head center reveal">
+    <div class="locations-stage">
+      <div class="loc-spotlight loc-spotlight-left reveal" aria-hidden="true">
+        <img src="assets/locations-sauce-bottle-cutout.png" alt="" loading="lazy" />
+      </div>
+      <div class="loc-spotlight loc-spotlight-right reveal" aria-hidden="true">
+        <img src="assets/locations-platter-cutout.png" alt="" loading="lazy" />
+      </div>
+      <div class="sec-head center reveal">
       <span class="eyebrow">Our Locations</span>
       <h2>Two homes in the <span class="blue">Emirates</span></h2>
       <p>Dine in, take away, or order online — the same kitchen and the same standard, in both branches.</p>
+      </div>
     </div>
     <div class="loc-switch">
       <div class="loc-grid" data-stagger>
@@ -466,7 +546,7 @@ header.nav.scrolled .nav-cart:hover{border-color:var(--blue);color:var(--blue)}
               <span class="ic"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span>
               <div class="body"><span class="k">Hours</span>Sun–Thu · 11:00 – 23:00 · Fri–Sat · 11:00 – 01:00</div>
             </div>
-            <a class="btn btn-outline" href="#" target="_blank" rel="noopener">Get Directions
+            <a class="btn btn-outline" href="https://maps.app.goo.gl/amyeQwHUToy2ut7bA" target="_blank" rel="noopener">Get Directions
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg>
             </a>
           </div>
@@ -489,7 +569,7 @@ header.nav.scrolled .nav-cart:hover{border-color:var(--blue);color:var(--blue)}
               <span class="ic"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span>
               <div class="body"><span class="k">Hours</span>Daily · 11:00 – 00:00</div>
             </div>
-            <a class="btn btn-outline" href="#" target="_blank" rel="noopener">Get Directions
+            <a class="btn btn-outline" href="https://maps.app.goo.gl/amyeQwHUToy2ut7bA" target="_blank" rel="noopener">Get Directions
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg>
             </a>
           </div>

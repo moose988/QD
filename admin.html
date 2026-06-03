@@ -321,6 +321,7 @@
     .btn-primary:active{background:var(--primary-active)}
     .btn-secondary{background:#fff;color:var(--navy);border-color:var(--hairline)}
     .btn-secondary.success{color:var(--green);border-color:rgba(75,166,54,.25)}
+    .btn-secondary.danger{color:var(--danger);border-color:rgba(193,53,21,.2)}
     .btn-text{background:transparent;color:var(--navy);padding-inline:0}
     .icon-btn{
       width:40px;
@@ -585,6 +586,11 @@
       color:var(--muted);
       font-size:14px;
     }
+    .promo-actions{
+      display:flex;
+      justify-content:flex-end;
+      margin-top:var(--s-md);
+    }
 
     .control-bar{
       display:flex;
@@ -592,6 +598,14 @@
       align-items:center;
       gap:var(--s-md);
       flex-wrap:wrap;
+    }
+    .control-stack{
+      display:grid;
+      gap:var(--s-md);
+    }
+    .control-bar .search-shell{
+      min-width:min(320px, 100%);
+      margin-left:auto;
     }
     .filters{
       display:flex;
@@ -611,6 +625,18 @@
       border-color:var(--primary);
       background:var(--primary-soft);
       color:var(--navy);
+    }
+    .pagination-bar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:var(--s-md);
+      margin-top:16px;
+      flex-wrap:wrap;
+    }
+    .pagination-copy{
+      color:var(--muted);
+      font:500 14px/1.4 "Plus Jakarta Sans", system-ui, sans-serif;
     }
     .field,
     .select,
@@ -769,6 +795,40 @@
       display:block;
       width:100% !important;
       height:340px !important;
+    }
+    .chart-list{
+      display:grid;
+      gap:14px;
+      height:100%;
+      align-content:start;
+      padding-top:8px;
+    }
+    .chart-row{
+      display:grid;
+      gap:8px;
+    }
+    .chart-row-top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:var(--s-md);
+      font-size:14px;
+      color:var(--body);
+    }
+    .chart-row-top strong{
+      color:var(--navy);
+      font-weight:700;
+    }
+    .chart-track{
+      width:100%;
+      height:12px;
+      border-radius:999px;
+      background:var(--surface-strong);
+      overflow:hidden;
+    }
+    .chart-fill{
+      height:100%;
+      border-radius:999px;
     }
     .chart-notes{
       display:grid;
@@ -1019,11 +1079,6 @@
         </nav>
       </div>
 
-      <div class="sidebar-card">
-        <strong>Halal standards live</strong>
-        <p>Branch availability, menu integrity, and promo performance are all editable from this dashboard.</p>
-        <button class="btn btn-primary" type="button" data-quick-route="branches">Review branches</button>
-      </div>
     </aside>
 
     <main class="content" id="mainContent" tabindex="-1">
@@ -1038,10 +1093,6 @@
           </div>
         </div>
         <div class="topbar-right">
-          <label class="search-shell" aria-label="Search admin dashboard">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-            <input id="globalSearch" type="search" placeholder="Search orders, customers, menu items" aria-label="Search orders, customers, and menu items" />
-          </label>
           <div class="chip success"><span class="chip-dot" aria-hidden="true"></span>Live <strong id="topbarLiveOrders">0 open orders</strong></div>
           <div class="chip"><strong id="topbarRevenue">AED 8,420</strong> today</div>
         </div>
@@ -1107,6 +1158,27 @@
         branchPerformance: [
           { branch: "Dubai Deira", revenue: 31140, orders: 366, avgPrep: "18 min" },
           { branch: "Sharjah Al Nasserya", revenue: 25660, orders: 309, avgPrep: "16 min" }
+        ],
+        channelPerformance: [
+          { channel: "Talabat", orders: 218, revenue: 17640, conversion: "7.4%" },
+          { channel: "Deliveroo", orders: 171, revenue: 13820, conversion: "6.8%" },
+          { channel: "Pickup", orders: 129, revenue: 9420, conversion: "11.2%" },
+          { channel: "Direct WhatsApp", orders: 84, revenue: 6150, conversion: "13.6%" },
+          { channel: "Careem", orders: 73, revenue: 5770, conversion: "5.9%" }
+        ],
+        topItems: [
+          { name: "Chicken Over Rice", orders: 132, revenue: 5016, margin: "68%" },
+          { name: "Chicken Platter", orders: 94, revenue: 5170, margin: "63%" },
+          { name: "Lamb Platter", orders: 77, revenue: 4774, margin: "59%" },
+          { name: "Loaded Fries", orders: 116, revenue: 3248, margin: "71%" },
+          { name: "Kofta Gyro", orders: 88, revenue: 2816, margin: "64%" },
+          { name: "Chicken Burrito", orders: 73, revenue: 2628, margin: "66%" }
+        ],
+        daypartPerformance: [
+          { slot: "Lunch Rush", window: "12:00-15:00", orders: 241, revenue: 18620 },
+          { slot: "Afternoon", window: "15:00-18:00", orders: 118, revenue: 8410 },
+          { slot: "Dinner Peak", window: "18:00-22:00", orders: 267, revenue: 21430 },
+          { slot: "Late Night", window: "22:00-01:00", orders: 49, revenue: 4340 }
         ]
       },
       branches: [
@@ -1620,8 +1692,11 @@
 
     const state = {
       route: "dashboard",
-      search: "",
+      orderSearch: "",
+      menuSearch: "",
+      customerSearch: "",
       orderFilter: "All",
+      ordersPage: 1,
       selectedOrderId: null,
       selectedCustomerId: mockData.customers[0].id,
       orderDrawerOpen: false,
@@ -1638,7 +1713,6 @@
     const pageSubtitle = document.getElementById("pageSubtitle");
     const topbarRevenue = document.getElementById("topbarRevenue");
     const topbarLiveOrders = document.getElementById("topbarLiveOrders");
-    const globalSearch = document.getElementById("globalSearch");
     const sidebar = document.getElementById("sidebar");
     const sidebarOverlay = document.getElementById("sidebarOverlay");
     const menuButton = document.getElementById("menuButton");
@@ -1654,6 +1728,21 @@
 
     function formatCurrency(value){
       return `AED ${value.toLocaleString("en-US")}`;
+    }
+
+    function escapeAttribute(value){
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/"/g, "&quot;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    function escapeHtml(value){
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
     }
 
     function initials(name){
@@ -1748,6 +1837,7 @@
 
     function setRoute(routeId){
       state.route = routeId;
+      if (routeId !== "orders") state.ordersPage = 1;
       window.location.hash = routeId;
       state.sidebarOpen = false;
       syncSidebar();
@@ -1786,6 +1876,7 @@
       const pendingOrders = getLiveOrders().length;
       const topDishes = getTopDishCounts();
       const weeklyRevenue = getSevenDayRevenueSeries().reduce((sum, day) => sum + day.amount, 0);
+      const maxTopDishCount = Math.max(1, ...topDishes.map((dish) => dish.count));
 
       return `
         <section class="hero-card">
@@ -1887,7 +1978,19 @@
                 <p>Order count from today&apos;s mock queue</p>
               </div>
             </div>
-            <div class="chart-box"><canvas id="topDishesChart" aria-label="Top dishes chart"></canvas></div>
+            <div class="chart-box">
+              <div class="chart-list" aria-label="Top dishes chart">
+                ${topDishes.map((dish, index) => {
+                  const colors = ["#2E5BD8", "#4BA636", "#232C6B", "#8CA2E8", "#B9CF74"];
+                  return `
+                    <div class="chart-row">
+                      <div class="chart-row-top"><span>${dish.name}</span><strong>${dish.count} orders</strong></div>
+                      <div class="chart-track"><div class="chart-fill" style="width:${Math.max(12, Math.round((dish.count / maxTopDishCount) * 100))}%;background:${colors[index % colors.length]}"></div></div>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+            </div>
           </article>
 
           <article class="surface">
@@ -1917,17 +2020,83 @@
             </div>
           </article>
         </section>
+        <section class="surface-grid">
+          <article class="surface">
+            <div class="surface-head">
+              <div>
+                <h3>Channel performance</h3>
+                <p>Seeded traffic mix across delivery, pickup, and direct channels.</p>
+              </div>
+            </div>
+            <div class="detail-list">
+              ${channelPerformance.map((entry) => `
+                <div class="detail-item"><span>${entry.channel}</span><strong>${entry.orders} orders Â· ${formatCurrency(entry.revenue)} Â· ${entry.conversion}</strong></div>
+              `).join("")}
+            </div>
+          </article>
+          <article class="surface">
+            <div class="surface-head">
+              <div>
+                <h3>Daypart performance</h3>
+                <p>Seeded demand windows so the analytics page feels more complete.</p>
+              </div>
+            </div>
+            <div class="detail-list">
+              ${daypartPerformance.map((entry) => `
+                <div class="detail-item"><span>${entry.slot} Â· ${entry.window}</span><strong>${entry.orders} orders Â· ${formatCurrency(entry.revenue)}</strong></div>
+              `).join("")}
+            </div>
+          </article>
+        </section>
+        <section class="surface">
+          <div class="surface-head">
+            <div>
+              <h3>Top menu items</h3>
+              <p>Seeded leaderboard data for top-selling items and revenue contribution.</p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table aria-label="Top menu items table">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Orders</th>
+                  <th>Revenue</th>
+                  <th>Margin</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${topItems.map((item) => `
+                  <tr>
+                    <td>${item.name}</td>
+                    <td>${item.orders}</td>
+                    <td>${formatCurrency(item.revenue)}</td>
+                    <td>${item.margin}</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        </section>
       `;
     }
 
     function ordersPage(){
-      const query = state.search.trim().toLowerCase();
+      const ordersPerPage = 8;
+      const query = state.orderSearch.trim().toLowerCase();
       const filteredOrders = mockData.orders.filter((order) => {
         const statusMatch = state.orderFilter === "All" || order.status === state.orderFilter;
         const textMatch = !query || [order.id, order.customer, order.branch, order.items.join(" ")].join(" ").toLowerCase().includes(query);
         return statusMatch && textMatch;
       });
       const statuses = ["All", "Pending", "Preparing", "Ready", "Delivered", "Cancelled"];
+      const totalPages = Math.max(1, Math.ceil(filteredOrders.length / ordersPerPage));
+      const currentPage = Math.min(state.ordersPage, totalPages);
+      state.ordersPage = currentPage;
+      const startIndex = (currentPage - 1) * ordersPerPage;
+      const visibleOrders = filteredOrders.slice(startIndex, startIndex + ordersPerPage);
+      const rangeStart = filteredOrders.length ? startIndex + 1 : 0;
+      const rangeEnd = filteredOrders.length ? startIndex + visibleOrders.length : 0;
 
       return `
         <section class="surface">
@@ -1940,11 +2109,17 @@
               <span class="chip"><strong>${filteredOrders.length}</strong> matching orders</span>
             </div>
           </div>
-          <div class="control-bar">
-            <div class="filters" role="tablist" aria-label="Order status filters">
-              ${statuses.map((status) => `
-                <button class="pill-btn ${state.orderFilter === status ? "active" : ""}" type="button" role="tab" aria-selected="${state.orderFilter === status}" data-order-filter="${status}">${status}</button>
-              `).join("")}
+          <div class="control-stack">
+            <div class="control-bar">
+              <div class="filters" role="tablist" aria-label="Order status filters">
+                ${statuses.map((status) => `
+                  <button class="pill-btn ${state.orderFilter === status ? "active" : ""}" type="button" role="tab" aria-selected="${state.orderFilter === status}" data-order-filter="${status}">${status}</button>
+                `).join("")}
+              </div>
+              <label class="search-shell" aria-label="Search orders">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <input type="search" value="${escapeAttribute(state.orderSearch)}" placeholder="Search order ID, customer, branch, or item" aria-label="Search orders" data-order-search />
+              </label>
             </div>
           </div>
           <div class="table-wrap" style="margin-top:16px">
@@ -1961,7 +2136,7 @@
                 </tr>
               </thead>
               <tbody>
-                ${filteredOrders.map((order) => `
+                ${visibleOrders.map((order) => `
                   <tr>
                     <td><button class="row-button" type="button" data-order-id="${order.id}">${order.id}<br /><span style="color:var(--muted)">${order.placedAt}</span></button></td>
                     <td>${order.customer}</td>
@@ -1975,12 +2150,20 @@
               </tbody>
             </table>
           </div>
+          <div class="pagination-bar">
+            <span class="pagination-copy">Showing ${rangeStart}-${rangeEnd} of ${filteredOrders.length} orders</span>
+            <div class="surface-head-actions">
+              <button class="btn btn-secondary" type="button" data-order-page="prev" ${currentPage === 1 ? "disabled" : ""}>Left</button>
+              <span class="chip"><strong>Page ${currentPage}</strong> of ${totalPages}</span>
+              <button class="btn btn-secondary" type="button" data-order-page="next" ${currentPage === totalPages ? "disabled" : ""}>Right</button>
+            </div>
+          </div>
         </section>
       `;
     }
 
     function menuItemsPage(){
-      const query = state.search.trim().toLowerCase();
+      const query = state.menuSearch.trim().toLowerCase();
       const items = mockData.menuItems.filter((item) => !query || [item.name, item.category, item.description].join(" ").toLowerCase().includes(query));
       return `
         <section class="surface">
@@ -1990,6 +2173,10 @@
               <p>Each dish card follows the same visual treatment as the public menu.</p>
             </div>
             <div class="surface-head-actions">
+              <label class="search-shell" aria-label="Search menu items">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <input type="search" value="${escapeAttribute(state.menuSearch)}" placeholder="Search dish name, category, or description" aria-label="Search menu items" data-menu-search />
+              </label>
               <button class="btn btn-primary" type="button" data-open-modal="menu">Add menu item</button>
             </div>
           </div>
@@ -2034,10 +2221,16 @@
       const revenueSeries = mockData.analyticsSnapshots.revenue;
       const categorySales = mockData.analyticsSnapshots.categorySales;
       const branchPerformance = mockData.analyticsSnapshots.branchPerformance;
+      const channelPerformance = mockData.analyticsSnapshots.channelPerformance;
+      const topItems = mockData.analyticsSnapshots.topItems;
+      const daypartPerformance = mockData.analyticsSnapshots.daypartPerformance;
       const bestCategory = categorySales[0]?.category || "No sales yet";
       const peakDay = revenueSeries.slice().sort((a, b) => b.amount - a.amount)[0];
       const totalWeekRevenue = revenueSeries.reduce((sum, day) => sum + day.amount, 0);
       const totalWeekOrders = revenueSeries.reduce((sum, day) => sum + day.orders, 0);
+      const strongestChannel = channelPerformance.slice().sort((a, b) => b.revenue - a.revenue)[0];
+      const topMenuItem = topItems.slice().sort((a, b) => b.revenue - a.revenue)[0];
+      const bestDaypart = daypartPerformance.slice().sort((a, b) => b.revenue - a.revenue)[0];
       return `
         <section class="stats-grid">
           <article class="stat-card"><span>Delivery share</span><strong>${summary.deliveryShare}%</strong><small>Calculated from non-cancelled orders</small></article>
@@ -2101,11 +2294,346 @@
               <div class="detail-item"><span>Peak day</span><strong>${peakDay ? `${peakDay.day} · ${formatCurrency(peakDay.amount)}` : "No data yet"}</strong></div>
               <div class="detail-item"><span>Top revenue category</span><strong>${bestCategory}</strong></div>
               <div class="detail-item"><span>Fastest branch</span><strong>${branchPerformance[1].branch}</strong></div>
-              <div class="detail-item"><span>Chart basis</span><strong>Static 7-day fake orders</strong></div>
+              <div class="detail-item"><span>Best channel</span><strong>${strongestChannel.channel} Â· ${formatCurrency(strongestChannel.revenue)}</strong></div>
+              <div class="detail-item"><span>Best daypart</span><strong>${bestDaypart.slot} Â· ${formatCurrency(bestDaypart.revenue)}</strong></div>
+              <div class="detail-item"><span>Top menu item</span><strong>${topMenuItem.name} Â· ${formatCurrency(topMenuItem.revenue)}</strong></div>
               <div class="detail-item"><span>Dubai branch</span><strong>${branchPerformance[0].orders} orders · ${branchPerformance[0].avgPrep}</strong></div>
               <div class="detail-item"><span>Sharjah branch</span><strong>${branchPerformance[1].orders} orders · ${branchPerformance[1].avgPrep}</strong></div>
             </div>
           </article>
+        </section>
+      `;
+    }
+
+    function dashboardPage(){
+      const pendingOrders = getLiveOrders().length;
+      const topDishes = getTopDishCounts();
+      const weeklyRevenue = getSevenDayRevenueSeries().reduce((sum, day) => sum + day.amount, 0);
+      const maxTopDishCount = Math.max(1, ...topDishes.map((dish) => dish.count));
+
+      return `
+        <section class="hero-card">
+          <div>
+            <span class="eyebrow">Operational overview</span>
+            <h2>Keep both UAE kitchens moving without leaving one screen.</h2>
+            <p>Revenue, menu performance, and branch status all follow the same calm system from the main site, with the admin layer tuned for faster decisions and denser service data.</p>
+            <div class="hero-actions">
+              <button class="btn btn-primary" type="button" data-quick-route="orders">Manage live orders</button>
+              <button class="btn btn-secondary success" type="button" data-open-modal="promo">Launch promotion</button>
+            </div>
+          </div>
+          <div class="hero-side">
+            <div class="mini-metric"><span>Active kitchens</span><strong>${mockData.branches.filter((branch) => branch.open).length} / ${mockData.branches.length} open now</strong></div>
+            <div class="mini-metric"><span>Live queue</span><strong>${pendingOrders} orders in motion</strong></div>
+            <div class="mini-metric"><span>Most ordered overall</span><strong>${topDishes[0]?.name || "No orders yet"}</strong></div>
+          </div>
+        </section>
+
+        <section class="stats-grid" aria-label="Dashboard metrics">
+          <article class="stat-card"><span>Today revenue</span><strong>${formatCurrency(getTodayRevenue())}</strong><small>Derived from today&apos;s static orders</small></article>
+          <article class="stat-card"><span>Weekly revenue</span><strong>${formatCurrency(weeklyRevenue)}</strong><small>7-day rolling total</small></article>
+          <article class="stat-card"><span>Average order</span><strong>${formatCurrency(mockData.metrics.avgOrderValue)}</strong><small>Across delivery and pickup</small></article>
+          <article class="stat-card"><span>New customers</span><strong>${mockData.metrics.newCustomers}</strong><small>${mockData.metrics.fulfillmentRate}% fulfilled on time</small></article>
+        </section>
+
+        <section class="panel-grid">
+          <article class="surface">
+            <div class="surface-head">
+              <div>
+                <h3>Live orders</h3>
+                <p>Tap a row to open the detail drawer and update status.</p>
+              </div>
+              <button class="btn btn-secondary" type="button" data-quick-route="orders">View all orders</button>
+            </div>
+            <div class="table-wrap">
+              <table aria-label="Live orders table">
+                <thead>
+                  <tr>
+                    <th>Order</th>
+                    <th>Customer</th>
+                    <th>Branch</th>
+                    <th>Status</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${mockData.orders.slice(0, 5).map((order) => `
+                    <tr>
+                      <td><button class="row-button" type="button" data-order-id="${order.id}">${order.id}<br /><span style="color:var(--muted)">${order.time}</span></button></td>
+                      <td>${order.customer}</td>
+                      <td>${order.branch}</td>
+                      <td><span class="status-badge ${order.status.toLowerCase()}">${order.status}</span></td>
+                      <td>${formatCurrency(order.total)}</td>
+                    </tr>
+                  `).join("")}
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="surface">
+            <div class="surface-head">
+              <div>
+                <h3>Quick actions</h3>
+                <p>Most common admin tasks</p>
+              </div>
+            </div>
+            <div class="quick-actions">
+              <div class="quick-action">
+                <strong>New menu item</strong>
+                <p>Add a dish, set exact price, and decide which branch can serve it.</p>
+                <button class="btn btn-primary" type="button" data-open-modal="menu">Add dish</button>
+              </div>
+              <div class="quick-action">
+                <strong>Branch hours</strong>
+                <p>Update opening times before the next service window changes.</p>
+                <button class="btn btn-secondary" type="button" data-quick-route="branches">Edit hours</button>
+              </div>
+              <div class="quick-action">
+                <strong>Customer follow-up</strong>
+                <p>Review VIP guests and recent order history in one panel.</p>
+                <button class="btn btn-secondary" type="button" data-quick-route="customers">Open customers</button>
+              </div>
+              <div class="quick-action">
+                <strong>Promo push</strong>
+                <p>Spin up a code for slower hours or branch-specific demand.</p>
+                <button class="btn btn-secondary success" type="button" data-open-modal="promo">Create promo</button>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section class="surface-grid">
+          <article class="surface">
+            <div class="surface-head">
+              <div>
+                <h3>Top dishes</h3>
+                <p>Order count from today&apos;s mock queue</p>
+              </div>
+            </div>
+            <div class="chart-box">
+              <div class="chart-list" aria-label="Top dishes chart">
+                ${topDishes.map((dish, index) => {
+                  const colors = ["#2E5BD8", "#4BA636", "#232C6B", "#8CA2E8", "#B9CF74"];
+                  return `
+                    <div class="chart-row">
+                      <div class="chart-row-top"><span>${dish.name}</span><strong>${dish.count} orders</strong></div>
+                      <div class="chart-track"><div class="chart-fill" style="width:${Math.max(12, Math.round((dish.count / maxTopDishCount) * 100))}%;background:${colors[index % colors.length]}"></div></div>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+            </div>
+          </article>
+
+          <article class="surface">
+            <div class="surface-head">
+              <div>
+                <h3>Branch status</h3>
+                <p>Open / closed and expected prep pace</p>
+              </div>
+            </div>
+            <div class="branch-stack">
+              ${mockData.branches.map((branch) => `
+                <article class="branch-card">
+                  <header>
+                    <div>
+                      <h4>${branch.name}</h4>
+                      <p>${branch.area}</p>
+                    </div>
+                    <span class="status-badge ${branch.open ? "ready" : "cancelled"}">${branch.open ? "Open" : "Closed"}</span>
+                  </header>
+                  <div class="detail-list">
+                    <div class="detail-item"><span>Manager</span><strong>${branch.manager}</strong></div>
+                    <div class="detail-item"><span>Prep time</span><strong>${branch.prepTime}</strong></div>
+                    <div class="detail-item"><span>Phone</span><strong>${branch.phone}</strong></div>
+                  </div>
+                </article>
+              `).join("")}
+            </div>
+          </article>
+        </section>
+      `;
+    }
+
+    function analyticsPage(){
+      const summary = getAnalyticsSummary();
+      const revenueSeries = mockData.analyticsSnapshots.revenue;
+      const categorySales = mockData.analyticsSnapshots.categorySales;
+      const branchPerformance = mockData.analyticsSnapshots.branchPerformance;
+      const channelPerformance = mockData.analyticsSnapshots.channelPerformance;
+      const topItems = mockData.analyticsSnapshots.topItems;
+      const daypartPerformance = mockData.analyticsSnapshots.daypartPerformance;
+      const bestCategory = categorySales[0]?.category || "No sales yet";
+      const peakDay = revenueSeries.slice().sort((a, b) => b.amount - a.amount)[0];
+      const busiestDay = revenueSeries.slice().sort((a, b) => b.orders - a.orders)[0];
+      const totalWeekRevenue = revenueSeries.reduce((sum, day) => sum + day.amount, 0);
+      const totalWeekOrders = revenueSeries.reduce((sum, day) => sum + day.orders, 0);
+      const strongestChannel = channelPerformance.slice().sort((a, b) => b.revenue - a.revenue)[0];
+      const topMenuItem = topItems.slice().sort((a, b) => b.revenue - a.revenue)[0];
+      const bestDaypart = daypartPerformance.slice().sort((a, b) => b.revenue - a.revenue)[0];
+      const maxRevenue = Math.max(...revenueSeries.map((entry) => entry.amount));
+      const maxOrders = Math.max(...revenueSeries.map((entry) => entry.orders));
+      const maxCategory = Math.max(...categorySales.map((entry) => entry.total));
+
+      return `
+        <section class="stats-grid">
+          <article class="stat-card"><span>Delivery share</span><strong>${summary.deliveryShare}%</strong><small>Calculated from non-cancelled orders</small></article>
+          <article class="stat-card"><span>Pickup share</span><strong>${summary.pickupShare}%</strong><small>Counter traffic across both branches</small></article>
+          <article class="stat-card"><span>Promo-assisted orders</span><strong>${summary.promoShare}%</strong><small>Placeholder uptake against static history</small></article>
+          <article class="stat-card"><span>Returning customers</span><strong>${summary.returningShare}%</strong><small>Guests with more than one completed order</small></article>
+        </section>
+        <section class="analytics-grid">
+          <article class="surface">
+            <div class="surface-head">
+              <div>
+                <h3>7-day revenue</h3>
+                <p>Seeded daily revenue bars across the week</p>
+              </div>
+            </div>
+            <div class="chart-box">
+              <div class="chart-list" aria-label="Revenue chart">
+                ${revenueSeries.map((entry) => `
+                  <div class="chart-row">
+                    <div class="chart-row-top"><span>${entry.day}</span><strong>${formatCurrency(entry.amount)}</strong></div>
+                    <div class="chart-track"><div class="chart-fill" style="width:${Math.max(12, Math.round((entry.amount / maxRevenue) * 100))}%;background:linear-gradient(90deg,#2E5BD8,#8CA2E8)"></div></div>
+                  </div>
+                `).join("")}
+              </div>
+            </div>
+            <div class="chart-notes">
+              <div class="chart-note"><span>Total 7-day revenue</span><strong>${formatCurrency(totalWeekRevenue)}</strong></div>
+              <div class="chart-note"><span>Peak day</span><strong>${peakDay ? `${peakDay.day} Â· ${formatCurrency(peakDay.amount)}` : "No data yet"}</strong></div>
+              <div class="chart-note"><span>Strongest branch</span><strong>${branchPerformance[0].branch} Â· ${formatCurrency(branchPerformance[0].revenue)}</strong></div>
+            </div>
+          </article>
+          <article class="surface">
+            <div class="surface-head">
+              <div>
+                <h3>Order volume</h3>
+                <p>Seeded daily order bars across the week</p>
+              </div>
+            </div>
+            <div class="chart-box">
+              <div class="chart-list" aria-label="Orders chart">
+                ${revenueSeries.map((entry) => `
+                  <div class="chart-row">
+                    <div class="chart-row-top"><span>${entry.day}</span><strong>${entry.orders} orders</strong></div>
+                    <div class="chart-track"><div class="chart-fill" style="width:${Math.max(12, Math.round((entry.orders / maxOrders) * 100))}%;background:linear-gradient(90deg,#4BA636,#B9CF74)"></div></div>
+                  </div>
+                `).join("")}
+              </div>
+            </div>
+            <div class="chart-notes">
+              <div class="chart-note"><span>Total weekly orders</span><strong>${totalWeekOrders}</strong></div>
+              <div class="chart-note"><span>Busiest day</span><strong>${busiestDay.day} Â· ${busiestDay.orders} orders</strong></div>
+              <div class="chart-note"><span>Average order value</span><strong>${formatCurrency(Math.round(totalWeekRevenue / totalWeekOrders))}</strong></div>
+            </div>
+          </article>
+        </section>
+        <section class="surface-grid">
+          <article class="surface">
+            <div class="surface-head">
+              <div>
+                <h3>Sales by category</h3>
+                <p>Seeded category mix with visible contribution bars</p>
+              </div>
+            </div>
+            <div class="chart-box">
+              <div class="chart-list" aria-label="Category mix chart">
+                ${categorySales.map((entry, index) => {
+                  const colors = ["#2E5BD8", "#4BA636", "#232C6B", "#8CA2E8", "#B9CF74", "#D7E2FB"];
+                  return `
+                    <div class="chart-row">
+                      <div class="chart-row-top"><span>${entry.category}</span><strong>${formatCurrency(entry.total)}</strong></div>
+                      <div class="chart-track"><div class="chart-fill" style="width:${Math.max(12, Math.round((entry.total / maxCategory) * 100))}%;background:${colors[index % colors.length]}"></div></div>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+            </div>
+            <div class="chart-notes">
+              ${categorySales.slice(0, 4).map((entry) => `
+                <div class="chart-note"><span>${entry.category}</span><strong>${formatCurrency(entry.total)}</strong></div>
+              `).join("")}
+            </div>
+          </article>
+          <article class="surface">
+            <div class="surface-head">
+              <div>
+                <h3>Insights</h3>
+                <p>Quick readouts from the mock data model</p>
+              </div>
+            </div>
+            <div class="detail-list">
+              <div class="detail-item"><span>Peak day</span><strong>${peakDay ? `${peakDay.day} Â· ${formatCurrency(peakDay.amount)}` : "No data yet"}</strong></div>
+              <div class="detail-item"><span>Top revenue category</span><strong>${bestCategory}</strong></div>
+              <div class="detail-item"><span>Fastest branch</span><strong>${branchPerformance[1].branch}</strong></div>
+              <div class="detail-item"><span>Best channel</span><strong>${strongestChannel.channel} Â· ${formatCurrency(strongestChannel.revenue)}</strong></div>
+              <div class="detail-item"><span>Best daypart</span><strong>${bestDaypart.slot} Â· ${formatCurrency(bestDaypart.revenue)}</strong></div>
+              <div class="detail-item"><span>Top menu item</span><strong>${topMenuItem.name} Â· ${formatCurrency(topMenuItem.revenue)}</strong></div>
+              <div class="detail-item"><span>Dubai branch</span><strong>${branchPerformance[0].orders} orders Â· ${branchPerformance[0].avgPrep}</strong></div>
+              <div class="detail-item"><span>Sharjah branch</span><strong>${branchPerformance[1].orders} orders Â· ${branchPerformance[1].avgPrep}</strong></div>
+            </div>
+          </article>
+        </section>
+        <section class="surface-grid">
+          <article class="surface">
+            <div class="surface-head">
+              <div>
+                <h3>Channel performance</h3>
+                <p>Seeded traffic mix across delivery, pickup, and direct channels.</p>
+              </div>
+            </div>
+            <div class="detail-list">
+              ${channelPerformance.map((entry) => `
+                <div class="detail-item"><span>${entry.channel}</span><strong>${entry.orders} orders Â· ${formatCurrency(entry.revenue)} Â· ${entry.conversion}</strong></div>
+              `).join("")}
+            </div>
+          </article>
+          <article class="surface">
+            <div class="surface-head">
+              <div>
+                <h3>Daypart performance</h3>
+                <p>Seeded demand windows so the analytics page feels more complete.</p>
+              </div>
+            </div>
+            <div class="detail-list">
+              ${daypartPerformance.map((entry) => `
+                <div class="detail-item"><span>${entry.slot} Â· ${entry.window}</span><strong>${entry.orders} orders Â· ${formatCurrency(entry.revenue)}</strong></div>
+              `).join("")}
+            </div>
+          </article>
+        </section>
+        <section class="surface">
+          <div class="surface-head">
+            <div>
+              <h3>Top menu items</h3>
+              <p>Seeded leaderboard data for top-selling items and revenue contribution.</p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table aria-label="Top menu items table">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Orders</th>
+                  <th>Revenue</th>
+                  <th>Margin</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${topItems.map((item) => `
+                  <tr>
+                    <td>${item.name}</td>
+                    <td>${item.orders}</td>
+                    <td>${formatCurrency(item.revenue)}</td>
+                    <td>${item.margin}</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
         </section>
       `;
     }
@@ -2144,20 +2672,16 @@
     }
 
     function customersPage(){
-      const query = state.search.trim().toLowerCase();
+      const query = state.customerSearch.trim().toLowerCase();
       const customers = mockData.customers.filter((customer) => !query || [customer.name, customer.email, customer.favoriteDish].join(" ").toLowerCase().includes(query));
-      const selectedCustomer = getCustomerById(state.selectedCustomerId) || customers[0] || mockData.customers[0];
-      const history = mockData.orders.filter((order) => order.customerId === selectedCustomer.id);
-
       return `
-        <section class="customers-grid">
-          <article class="surface">
-            <div class="surface-head">
-              <div>
-                <h3>Customers</h3>
-                <p>Select a guest to inspect order history and lifetime value.</p>
-              </div>
+        <section class="surface">
+          <div class="surface-head">
+            <div>
+              <h3>Customers</h3>
+              <p>Select a guest to inspect order history and lifetime value.</p>
             </div>
+          </div>
             <div class="table-wrap">
               <table aria-label="Customer table">
                 <thead>
@@ -2211,6 +2735,93 @@
       `;
     }
 
+    function customersPage(){
+      const query = state.customerSearch.trim().toLowerCase();
+      const customers = mockData.customers.filter((customer) => !query || [customer.name, customer.email, customer.favoriteDish].join(" ").toLowerCase().includes(query));
+
+      return `
+        <section class="surface">
+          <div class="surface-head">
+            <div>
+              <h3>Customers</h3>
+              <p>Select a guest to inspect order history and lifetime value.</p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table aria-label="Customer table">
+              <thead>
+                <tr>
+                  <th>Customer</th>
+                  <th>Segment</th>
+                  <th>Favorite dish</th>
+                  <th>Total spend</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${customers.map((customer) => `
+                  <tr>
+                    <td><button class="row-button" type="button" data-customer-id="${customer.id}">${customer.name}<br /><span style="color:var(--muted)">${customer.email}</span></button></td>
+                    <td>${customer.segment}</td>
+                    <td>${customer.favoriteDish}</td>
+                    <td>${formatCurrency(customer.totalSpend)}</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      `;
+    }
+
+    function openCustomerProfileModal(customerId){
+      const customer = getCustomerById(customerId);
+      if (!customer) return;
+      const history = mockData.orders.filter((order) => order.customerId === customer.id);
+
+      state.modalOpen = true;
+      state.modalType = "customer";
+      state.selectedCustomerId = customerId;
+      entityModal.classList.add("open");
+      entityModal.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+
+      modalTitle.textContent = "Guest profile";
+      modalSubtitle.textContent = "Review guest details, lifetime value, and recent orders.";
+      modalForm.innerHTML = `
+        <div class="customer-summary">
+          <div>
+            <span class="eyebrow">Guest profile</span>
+            <h3>${escapeHtml(customer.name)}</h3>
+            <p style="color:var(--muted);margin:12px 0 0">${escapeHtml(customer.phone)} · ${escapeHtml(customer.email)}</p>
+          </div>
+          <div class="summary-list">
+            <div class="summary-item"><span>Segment</span><strong>${escapeHtml(customer.segment)}</strong></div>
+            <div class="summary-item"><span>Total spend</span><strong>${formatCurrency(customer.totalSpend)}</strong></div>
+            <div class="summary-item"><span>Favorite dish</span><strong>${escapeHtml(customer.favoriteDish)}</strong></div>
+            <div class="summary-item"><span>Last order</span><strong>${escapeHtml(customer.lastOrder)}</strong></div>
+          </div>
+          <div>
+            <h3 style="font-size:20px">Order history</h3>
+            <div class="summary-list">
+              ${history.map((order) => `
+                <div class="summary-item">
+                  <span>${escapeHtml(order.id)} · ${escapeHtml(order.status)}</span>
+                  <strong>${formatCurrency(order.total)}</strong>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button class="btn btn-primary" type="button" data-close-modal="true">Close</button>
+          </div>
+        </div>
+      `;
+
+      trapFocus(entityModal.querySelector(".modal-panel"));
+      const firstField = modalForm.querySelector("input,select,textarea,button");
+      if (firstField) firstField.focus();
+    }
+
     function promotionsPage(){
       return `
         <section class="surface">
@@ -2236,6 +2847,9 @@
                 <div class="detail-list">
                   <div class="detail-item"><span>Offer</span><strong>${promo.value}</strong></div>
                   <div class="detail-item"><span>Uses</span><strong>${promo.usage}</strong></div>
+                </div>
+                <div class="promo-actions">
+                  <button class="btn btn-secondary danger" type="button" data-delete-promo="${promo.id}">Delete</button>
                 </div>
               </article>
             `).join("")}
@@ -2386,6 +3000,9 @@
       topbarLiveOrders.textContent = `${liveOrderCount} open orders`;
       renderNav();
       app.innerHTML = renderPage();
+      if (state.route === "analytics") {
+        app.innerHTML = app.innerHTML.replace(/(?:Ã‚Â·|Â·)/g, "·");
+      }
       renderCharts();
     }
 
@@ -2454,18 +3071,35 @@
 
       if (type === "menu") {
         const item = itemId ? mockData.menuItems.find((entry) => entry.id === itemId) : null;
+        const macros = item?.macros || { calories: "", protein: "", carbs: "", fat: "" };
+        const ingredients = Array.isArray(item?.ingredients) ? item.ingredients.join(", ") : "";
         modalTitle.textContent = item ? "Edit menu item" : "Add menu item";
         modalSubtitle.textContent = item ? `Update ${item.name} and keep branch availability in sync.` : "Create a new mock menu item inside the in-memory data object.";
         modalForm.innerHTML = `
           <div class="field-row">
-            <div class="field-block"><label for="menuName">Dish name</label><input class="field" id="menuName" name="name" value="${item ? item.name : ""}" required /></div>
+            <div class="field-block"><label for="menuName">Dish name</label><input class="field" id="menuName" name="name" value="${item ? escapeAttribute(item.name) : ""}" required /></div>
             <div class="field-block"><label for="menuPrice">Price (AED)</label><input class="field" id="menuPrice" name="price" type="number" min="1" value="${item ? item.price : 30}" required /></div>
           </div>
           <div class="field-row">
-            <div class="field-block"><label for="menuCategory">Category</label><input class="field" id="menuCategory" name="category" value="${item ? item.category : "Specials"}" required /></div>
-            <div class="field-block"><label for="menuImage">Image URL</label><input class="field" id="menuImage" name="image" value="${item ? item.image : ""}" required /></div>
+            <div class="field-block"><label for="menuCategory">Category</label><input class="field" id="menuCategory" name="category" value="${item ? escapeAttribute(item.category) : "Specials"}" required /></div>
+            <div class="field-block"><label for="menuImage">Image URL</label><input class="field" id="menuImage" name="image" value="${item ? escapeAttribute(item.image) : ""}" required /></div>
           </div>
-          <div class="field-block"><label for="menuDescription">Description</label><textarea class="textarea" id="menuDescription" name="description" required>${item ? item.description : ""}</textarea></div>
+          <div class="field-block"><label for="menuDescription">Description</label><textarea class="textarea" id="menuDescription" name="description" required>${item ? escapeHtml(item.description) : ""}</textarea></div>
+          <div class="field-block">
+            <label for="menuIngredients">Ingredients</label>
+            <textarea class="textarea" id="menuIngredients" name="ingredients" placeholder="Chicken, basmati rice, white sauce, hot sauce, parsley">${escapeHtml(ingredients)}</textarea>
+          </div>
+          <div class="field-block">
+            <label>Macros</label>
+            <div class="field-row">
+              <div class="field-block"><label for="menuCalories">Calories</label><input class="field" id="menuCalories" name="calories" type="number" min="0" value="${escapeAttribute(macros.calories)}" /></div>
+              <div class="field-block"><label for="menuProtein">Protein (g)</label><input class="field" id="menuProtein" name="protein" type="number" min="0" value="${escapeAttribute(macros.protein)}" /></div>
+            </div>
+            <div class="field-row">
+              <div class="field-block"><label for="menuCarbs">Carbs (g)</label><input class="field" id="menuCarbs" name="carbs" type="number" min="0" value="${escapeAttribute(macros.carbs)}" /></div>
+              <div class="field-block"><label for="menuFat">Fat (g)</label><input class="field" id="menuFat" name="fat" type="number" min="0" value="${escapeAttribute(macros.fat)}" /></div>
+            </div>
+          </div>
           <div class="field-block">
             <label>Available branches</label>
             ${mockData.branches.map((branch) => `
@@ -2553,6 +3187,16 @@
 
       if (state.modalType === "menu") {
         const branchMap = Object.fromEntries(mockData.branches.map((branch) => [branch.id, formData.get(`branch-${branch.id}`) === "on"]));
+        const ingredients = String(formData.get("ingredients") || "")
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean);
+        const macros = {
+          calories: Number(formData.get("calories")) || 0,
+          protein: Number(formData.get("protein")) || 0,
+          carbs: Number(formData.get("carbs")) || 0,
+          fat: Number(formData.get("fat")) || 0
+        };
         if (state.editingItemId) {
           const item = mockData.menuItems.find((entry) => entry.id === state.editingItemId);
           Object.assign(item, {
@@ -2561,6 +3205,8 @@
             category: formData.get("category"),
             image: formData.get("image"),
             description: formData.get("description"),
+            ingredients,
+            macros,
             branches: branchMap
           });
         } else {
@@ -2571,6 +3217,8 @@
             category: formData.get("category"),
             image: formData.get("image"),
             description: formData.get("description"),
+            ingredients,
+            macros,
             branches: branchMap,
             halal: true
           });
@@ -2615,6 +3263,14 @@
       const orderFilter = event.target.closest("[data-order-filter]");
       if (orderFilter) {
         state.orderFilter = orderFilter.dataset.orderFilter;
+        state.ordersPage = 1;
+        render();
+        return;
+      }
+
+      const orderPage = event.target.closest("[data-order-page]");
+      if (orderPage) {
+        state.ordersPage = Math.max(1, state.ordersPage + (orderPage.dataset.orderPage === "next" ? 1 : -1));
         render();
         return;
       }
@@ -2634,10 +3290,17 @@
         return;
       }
 
+      const deletePromo = event.target.closest("[data-delete-promo]");
+      if (deletePromo) {
+        mockData.promotions = mockData.promotions.filter((promo) => promo.id !== deletePromo.dataset.deletePromo);
+        render();
+        return;
+      }
+
       const customerButton = event.target.closest("[data-customer-id]");
       if (customerButton) {
         state.selectedCustomerId = customerButton.dataset.customerId;
-        render();
+        openCustomerProfileModal(customerButton.dataset.customerId);
         return;
       }
 
@@ -2653,6 +3316,26 @@
         const branch = getBranchById(branchStatusButton.dataset.branchHour);
         const slot = branch.hours[Number(branchStatusButton.dataset.hourIndex)];
         slot[branchStatusButton.dataset.hourField] = event.target.value;
+      }
+    });
+
+    app.addEventListener("input", (event) => {
+      if (event.target.matches("[data-order-search]")) {
+        state.orderSearch = event.target.value;
+        state.ordersPage = 1;
+        render();
+        return;
+      }
+
+      if (event.target.matches("[data-menu-search]")) {
+        state.menuSearch = event.target.value;
+        render();
+        return;
+      }
+
+      if (event.target.matches("[data-customer-search]")) {
+        state.customerSearch = event.target.value;
+        render();
       }
     });
 
@@ -2691,11 +3374,6 @@
     });
     modalClose.addEventListener("click", closeModal);
     modalForm.addEventListener("submit", handleModalSubmit);
-
-    globalSearch.addEventListener("input", (event) => {
-      state.search = event.target.value;
-      render();
-    });
 
     menuButton.addEventListener("click", () => {
       state.sidebarOpen = !state.sidebarOpen;
