@@ -4,6 +4,8 @@
   "rewrites": [
     { "source": "/card/:slug", "destination": "/card" },
     { "source": "/card/:slug/", "destination": "/card" },
+    { "source": "/demo/:slug", "destination": "/demo" },
+    { "source": "/demo/:slug/", "destination": "/demo" },
     { "source": "/invite/:slug", "destination": "/invite" },
     { "source": "/invite/:slug/", "destination": "/invite" },
     { "source": "/q/quote.js", "destination": "/q/quote.js" },
@@ -13,6 +15,9 @@
   ],
   "functions": {
     "api/chat.js":         { "memory": 1024, "maxDuration": 30 },
+    "api/demo-deploy.js":  { "memory": 512,  "maxDuration": 10 },
+    "api/demo-get.js":     { "memory": 512,  "maxDuration": 10 },
+    "api/demo-verify.js":  { "memory": 512,  "maxDuration": 10 },
     "api/quote-create.js": { "memory": 512,  "maxDuration": 10 },
     "api/quote-save.js":   { "memory": 512,  "maxDuration": 10 },
     "api/quote-verify.js": { "memory": 512,  "maxDuration": 10 }

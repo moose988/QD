@@ -94,6 +94,9 @@ const server = http.createServer(async (req, res) => {
   if (urlPath.startsWith('/card/') && urlPath !== '/card/index.html' && urlPath !== '/card/card.css' && urlPath !== '/card/card.js') {
     urlPath = '/card/index.html';
   }
+  if (urlPath.startsWith('/demo/') && urlPath !== '/demo/index.html' && urlPath !== '/demo/demo.css' && urlPath !== '/demo/demo.js') {
+    urlPath = '/demo/index.html';
+  }
   if (urlPath.startsWith('/invite/') && urlPath !== '/invite/index.html' && urlPath !== '/invite/invite.css' && urlPath !== '/invite/invite.js') {
     urlPath = '/invite/index.html';
   }

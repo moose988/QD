@@ -43,6 +43,7 @@ import {
   orderBy,
   query,
   serverTimestamp,
+  Timestamp,
   updateDoc,
   where
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
@@ -70,6 +71,7 @@ const CARD_DEFAULT_CTA_URL = 'https://qdsystems.ae/contact';
 const cardIconOptions = ['website', 'email', 'phone', 'whatsapp', 'instagram', 'linkedin', 'link'];
 const INVITE_THEME_OPTIONS = ['royal-gold', 'minimal-white', 'modern-black', 'arabic-luxury', 'floral-elegant'];
 const INVITE_STATUS_OPTIONS = ['draft', 'active', 'disabled'];
+const DEMO_STATUS_OPTIONS = ['draft', 'active', 'expired', 'disabled'];
 const inviteThemeLabels = {
   'royal-gold': 'Royal Gold',
   'minimal-white': 'Minimal White',
@@ -82,8 +84,16 @@ const inviteStatusLabels = {
   active: 'Active',
   disabled: 'Disabled'
 };
-const adminTabs = new Set(['dashboard', 'cards', 'activity', 'invitations']);
+const demoStatusLabels = {
+  draft: 'Draft',
+  active: 'Active',
+  expired: 'Expired',
+  disabled: 'Disabled'
+};
+const adminTabs = new Set(['dashboard', 'cards', 'demos', 'activity', 'invitations']);
 const initialAdminTab = new URLSearchParams(window.location.search).get('tab');
+const dashboardSections = new Set(['overview', 'pipeline', 'archive']);
+const initialDashboardSection = new URLSearchParams(window.location.search).get('section');
 const initialActivitySearch = new URLSearchParams(window.location.search).get('activitySearch') || '';
 const activityActionLabels = {
   login: 'Logged in',
@@ -98,14 +108,22 @@ const activityActionLabels = {
   open_smart_card: 'Opened smart card',
   create_smart_card: 'Created smart card',
   edit_smart_card: 'Edited smart card',
-  delete_smart_card: 'Deleted smart card'
+  delete_smart_card: 'Deleted smart card',
+  create_demo: 'Created demo',
+  edit_demo: 'Edited demo',
+  delete_demo: 'Deleted demo',
+  disable_demo: 'Disabled demo',
+  enable_demo: 'Enabled demo',
+  trigger_demo_deploy: 'Triggered demo deploy',
+  open_demo_admin: 'Opened demo (admin)'
 };
 const activityTargetTypeLabels = {
   session: 'Session',
   submission: 'Submission',
   quote: 'Quote',
   smart_card: 'Smart Card',
-  chat_lead: 'Chat Lead'
+  chat_lead: 'Chat Lead',
+  demo: 'Demo'
 };
 const activityOpenSessionKey = 'qd-admin-activity-opened-v1';
 
@@ -113,6 +131,7 @@ const state = {
   authLoading: true,
   dataLoading: false,
   cardsLoading: false,
+  demosLoading: false,
   invitationsLoading: false,
   invitationRsvpsLoading: false,
   activityLoading: false,
@@ -123,6 +142,7 @@ const state = {
   loginError: '',
   dataError: '',
   cardsError: '',
+  demosError: '',
   invitationsError: '',
   invitationRsvpsError: '',
   activityError: '',
@@ -131,8 +151,10 @@ const state = {
   copyFeedback: '',
   adminToast: '',
   activeTab: adminTabs.has(initialAdminTab) ? initialAdminTab : 'dashboard',
+  dashboardSection: dashboardSections.has(initialDashboardSection) ? initialDashboardSection : 'overview',
   submissions: [],
   cards: [],
+  demos: [],
   invitations: [],
   invitationRsvps: [],
   activityLogs: [],
@@ -146,6 +168,10 @@ const state = {
     search: initialActivitySearch,
     action: 'All',
     targetType: 'All'
+  },
+  demoFilters: {
+    search: '',
+    status: 'All'
   },
   pipelinePage: 0,
   budgetProjectsPage: 0,
@@ -167,6 +193,18 @@ const state = {
     error: '',
     pendingAvatarFile: null
   },
+  demoEditor: {
+    open: false,
+    mode: 'create',
+    id: null,
+    draft: null,
+    original: null,
+    slugState: { status: 'idle', message: '' },
+    slugTouched: false,
+    isSaving: false,
+    deployLoading: false,
+    error: ''
+  },
   invitationEditor: {
     open: false,
     mode: 'create',
@@ -186,6 +224,7 @@ const state = {
 let unsubscribeSnapshot = null;
 let unsubscribeQuotesSnapshot = null;
 let unsubscribeCardsSnapshot = null;
+let unsubscribeDemosSnapshot = null;
 let unsubscribeInvitationsSnapshot = null;
 let unsubscribeInvitationRsvpsSnapshot = null;
 let unsubscribeActivityLogsSnapshot = null;
@@ -422,6 +461,7 @@ const createEmptyCardDraft = () => ({
 });
 
 const getInvitePublicUrl = (slug) => `${CARD_SITE_URL}/invite/${slug}`;
+const getDemoPublicUrl = (slug) => `${CARD_SITE_URL}/demo/${slug}`;
 
 const createEmptyInvitationDraft = () => ({
   slug: '',
@@ -448,6 +488,26 @@ const createEmptyInvitationDraft = () => ({
   rsvpCount: 0
 });
 
+const createEmptyDemoDraft = () => ({
+  title: '',
+  clientName: '',
+  slug: '',
+  demoUrl: '',
+  githubRepoUrl: '',
+  vercelProjectUrl: '',
+  vercelPreviewUrl: '',
+  deployHookUrl: '',
+  passcodeHash: '',
+  passcode: '',
+  status: 'draft',
+  notes: '',
+  expiresAt: '',
+  viewCount: 0,
+  lastViewedAt: null,
+  createdBy: '',
+  updatedBy: ''
+});
+
 const hydrateCard = (snapshot) => ({
   id: snapshot.id,
   ...snapshot.data()
@@ -461,6 +521,12 @@ const hydrateInvitation = (snapshot) => ({
 
 const hydrateInvitationRsvp = (snapshot) => ({
   id: snapshot.id,
+  ...snapshot.data()
+});
+
+const hydrateDemo = (snapshot) => ({
+  id: snapshot.id,
+  ...createEmptyDemoDraft(),
   ...snapshot.data()
 });
 
@@ -601,6 +667,7 @@ const getSubmissionActivityLabel = (submission) => {
 };
 
 const getSmartCardActivityLabel = (card) => card?.name || card?.slug || card?.id || 'Smart card';
+const getDemoActivityLabel = (demo) => demo?.title || demo?.slug || demo?.id || 'Client demo';
 
 const getSubmissionLogState = (submission) => {
   if (!submission) return {};
@@ -640,6 +707,23 @@ const getQuoteLogState = (quote) => ({
   validDays: Number(quote?.validDays || 0),
   vatPercent: Number(quote?.vatPercent || 0),
   language: quote?.language || 'en'
+});
+
+const getDemoLogState = (demo) => ({
+  title: demo?.title || '',
+  clientName: demo?.clientName || '',
+  slug: demo?.slug || '',
+  demoUrl: demo?.demoUrl || '',
+  githubRepoUrl: demo?.githubRepoUrl || '',
+  vercelProjectUrl: demo?.vercelProjectUrl || '',
+  vercelPreviewUrl: demo?.vercelPreviewUrl || '',
+  hasDeployHookUrl: Boolean(demo?.deployHookUrl),
+  hasPasscodeHash: Boolean(demo?.passcodeHash),
+  status: demo?.status || 'draft',
+  notes: demo?.notes || '',
+  expiresAt: demo?.expiresAt ? formatDate(demo.expiresAt) : '',
+  viewCount: Number(demo?.viewCount || 0),
+  lastViewedAt: demo?.lastViewedAt ? formatDate(demo.lastViewedAt) : ''
 });
 
 const buildCardLinkRows = (links = []) => {
@@ -686,6 +770,7 @@ const getCardEditorDraftFromState = () => ({
 
 const buildCardEditorPreviewUrl = (slug) => getCardPublicUrl(slugifyCardValue(slug) || 'your-slug');
 const buildInvitationPreviewUrl = (slug) => getInvitePublicUrl(slugifyCardValue(slug) || 'your-invitation');
+const buildDemoPreviewUrl = (slug) => getDemoPublicUrl(slugifyCardValue(slug) || 'your-demo');
 const buildInvitationAdminPreviewUrl = (invitation) => {
   const slug = slugifyCardValue(invitation?.slug || '');
   const url = new URL(getInvitePublicUrl(slug || 'your-invitation'));
@@ -751,6 +836,39 @@ const getInvitationEditorDraftFromState = () => ({
   ...createEmptyInvitationDraft(),
   ...(state.invitationEditor?.draft || {})
 });
+
+const getDemoEditorDraftFromState = () => ({
+  ...createEmptyDemoDraft(),
+  ...(state.demoEditor?.draft || {})
+});
+
+const getDemoStatus = (demo) => {
+  if (!demo) return 'draft';
+  return DEMO_STATUS_OPTIONS.includes(demo.status) ? demo.status : 'draft';
+};
+
+const getDemoStatusLabel = (demo) => demoStatusLabels[getDemoStatus(demo)] || 'Draft';
+
+const getDemoStatusTone = (demo) => {
+  const status = getDemoStatus(demo);
+  if (status === 'active') return 'active';
+  if (status === 'expired') return 'expired';
+  if (status === 'disabled') return 'disabled';
+  return 'draft';
+};
+
+const getDemoStatusBadge = (demo) => `
+  <span class="qd-demo-status-pill" data-tone="${escapeHtml(getDemoStatusTone(demo))}">
+    ${escapeHtml(getDemoStatusLabel(demo))}
+  </span>
+`;
+
+const formatDemoExpiry = (value) => {
+  if (!value) return 'No expiry';
+  const ms = getTimestampMs(value);
+  if (!ms) return 'No expiry';
+  return new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium' }).format(ms);
+};
 
 const formatLabel = (value) => {
   if (value === null || value === undefined || value === '') return 'Not Provided';
@@ -905,6 +1023,26 @@ const formatValue = (value, { type = 'text' } = {}) => {
 const isAllowedAdminUser = (user) => {
   if (!user) return false;
   return allowedAdminEmails.includes((user.email || '').toLowerCase());
+};
+
+const isPermissionDeniedError = (error) => {
+  const code = String(error?.code || '').toLowerCase();
+  const message = String(error?.message || '').toLowerCase();
+  return code.includes('permission-denied')
+    || message.includes('insufficient permissions')
+    || message.includes('missing or insufficient permissions');
+};
+
+const ensureAdminFirestoreSession = async (user = auth.currentUser) => {
+  if (!user) return false;
+
+  try {
+    await user.getIdToken(true);
+    return true;
+  } catch (error) {
+    console.warn('[admin] auth token refresh failed:', error?.message || error);
+    return false;
+  }
 };
 
 const getTimestampMs = (value) => {
@@ -1123,8 +1261,11 @@ const parseSubmissionServices = (submission) => {
 
 const scrollToPipelineSection = () => {
   requestAnimationFrame(() => {
-    const pipelineSection = document.getElementById('qd-submission-pipeline');
-    pipelineSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const targetId = state.dashboardSection === 'archive'
+      ? 'qd-archived-submissions'
+      : 'qd-submission-pipeline';
+    const section = document.getElementById(targetId);
+    section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 };
 
@@ -1425,6 +1566,49 @@ const renderOverviewCards = (analytics) => {
   `;
 };
 
+const renderDashboardSectionNav = ({ activeCount, archivedCount, analytics }) => {
+  const totalCount = analytics.counts.total || 0;
+  const sectionMeta = [
+    ['overview', 'Overview', `${totalCount} total`, 'Snapshot, demand signals, and quick routing across the workspace.'],
+    ['pipeline', 'Live Pipeline', `${activeCount} active`, 'Review current submissions without the archive crowding the same page.'],
+    ['archive', 'Archive', `${archivedCount} closed`, 'Review parked or finished work in a dedicated lane.']
+  ];
+
+  return `
+    <section class="qd-admin-section qd-admin-section-nav-shell">
+      <article class="qd-admin-card qd-admin-dashboard-hero">
+        <div class="qd-admin-dashboard-hero-copy">
+          <div class="qd-eyebrow qd-admin-kicker">Operations Console</div>
+          <h1>Admin workspace</h1>
+          <p>Split into calmer rooms for overview, active work, and archive so the page feels easier to scan and operate.</p>
+        </div>
+        <div class="qd-admin-dashboard-hero-meta">
+          <span>${escapeHtml(`${activeCount} active projects`)}</span>
+          <span>${escapeHtml(`${archivedCount} archived`)}</span>
+          <span>${escapeHtml(`${analytics.responseBuckets.notContacted} untouched`)}</span>
+        </div>
+      </article>
+
+      <div class="qd-admin-dashboard-section-nav" role="tablist" aria-label="Dashboard sections">
+        ${sectionMeta.map(([key, label, countLabel, description]) => `
+          <button
+            class="qd-admin-card qd-admin-dashboard-section-card ${state.dashboardSection === key ? 'is-active' : ''}"
+            type="button"
+            role="tab"
+            aria-selected="${state.dashboardSection === key ? 'true' : 'false'}"
+            data-action="set-dashboard-section"
+            data-section="${escapeHtml(key)}"
+          >
+            <span class="qd-admin-card-label">${escapeHtml(label)}</span>
+            <strong>${escapeHtml(countLabel)}</strong>
+            <p>${escapeHtml(description)}</p>
+          </button>
+        `).join('')}
+      </div>
+    </section>
+  `;
+};
+
 const renderBudgetProjectList = (items) => {
   if (!items.length) {
     return `<div class="qd-admin-empty"><strong>No budgets yet</strong>Only submissions with usable numeric budgets will appear here.</div>`;
@@ -1663,6 +1847,101 @@ const renderPipelinePagination = (totalItems) => {
   `;
 };
 
+const renderPipelineWorkspace = (items, totalItems) => `
+  <article class="qd-admin-card qd-admin-table-card" id="qd-submission-pipeline">
+    <div class="qd-admin-section-head">
+      <div>
+        <div class="qd-eyebrow qd-admin-kicker">Submission Pipeline</div>
+        <h2>Live pipeline</h2>
+        <p>Only active work stays here. Open, filter, and move through current submissions without archive noise.</p>
+      </div>
+    </div>
+
+    <div class="qd-admin-table-toolbar qd-admin-table-toolbar-spacious">
+      <input
+        class="qd-admin-search"
+        type="search"
+        placeholder="Search business, email, phone, industry, budget, service..."
+        value="${escapeHtml(state.filters.search)}"
+        data-field="search"
+      >
+      <select class="qd-admin-select" data-field="status">
+        ${['All', ...statusOptions].map((option) => `
+          <option value="${escapeHtml(option)}" ${state.filters.status === option ? 'selected' : ''}>${escapeHtml(option)}</option>
+        `).join('')}
+      </select>
+      <select class="qd-admin-select" data-field="priority">
+        ${['All', ...priorityOptions].map((option) => `
+          <option value="${escapeHtml(option)}" ${state.filters.priority === option ? 'selected' : ''}>${escapeHtml(option)}</option>
+        `).join('')}
+      </select>
+    </div>
+
+    <div class="qd-admin-table-wrap">
+      <table class="qd-admin-table">
+        <thead>
+          <tr>
+            <th>Business</th>
+            <th>Contact</th>
+            <th>Industry</th>
+            <th>Budget</th>
+            <th>Launch Date</th>
+            <th>Status</th>
+            <th>Priority</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>${renderSubmissionRows(items)}</tbody>
+      </table>
+    </div>
+    <div class="qd-admin-mobile-list">
+      ${renderSubmissionCards(items)}
+    </div>
+    ${renderPipelinePagination(totalItems)}
+  </article>
+`;
+
+const renderArchiveWorkspace = (items) => `
+  <article class="qd-admin-card qd-admin-table-card" id="qd-archived-submissions">
+    <div class="qd-admin-section-head">
+      <div>
+        <div class="qd-eyebrow qd-admin-kicker">Archive</div>
+        <h2>Archived submissions</h2>
+        <p>Closed, rejected, or parked projects live here so active operations stay focused.</p>
+      </div>
+    </div>
+
+    <div class="qd-admin-table-wrap">
+      <table class="qd-admin-table">
+        <thead>
+          <tr>
+            <th>Business</th>
+            <th>Contact</th>
+            <th>Industry</th>
+            <th>Budget</th>
+            <th>Launch Date</th>
+            <th>Status</th>
+            <th>Priority</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>${renderSubmissionRows(
+          items,
+          'No archived submissions in this view',
+          'Archived projects will appear here when they match the current search and filters.'
+        )}</tbody>
+      </table>
+    </div>
+    <div class="qd-admin-mobile-list">
+      ${renderSubmissionCards(
+        items,
+        'No archived submissions in this view',
+        'Archived projects will appear here when they match the current search and filters.'
+      )}
+    </div>
+  </article>
+`;
+
 const renderDashboard = () => {
   const filteredSubmissions = getFilteredSubmissions();
   const activeSubmissions = filteredSubmissions.filter((submission) => submission.status !== 'Archived');
@@ -1675,102 +1954,26 @@ const renderDashboard = () => {
     (activePipelinePage + 1) * pipelinePageSize
   );
   const analytics = getAnalytics(state.submissions);
+  const dashboardBody = state.dashboardSection === 'pipeline'
+    ? renderPipelineWorkspace(paginatedActiveSubmissions, activeSubmissions.length)
+    : state.dashboardSection === 'archive'
+      ? renderArchiveWorkspace(archivedSubmissions)
+      : `
+        <section class="qd-admin-dashboard-overview-stack">
+          ${renderOverviewCards(analytics)}
+          ${renderAnalyticsCards(analytics)}
+        </section>
+      `;
 
   return `
     <section class="qd-admin-dashboard">
       ${state.dataError ? `<div class="qd-admin-alert" role="alert">${escapeHtml(state.dataError)}</div>` : ''}
-      ${renderOverviewCards(analytics)}
-      ${renderAnalyticsCards(analytics)}
-
-      <article class="qd-admin-card qd-admin-table-card" id="qd-submission-pipeline">
-        <div class="qd-admin-section-head">
-          <div>
-            <div class="qd-eyebrow qd-admin-kicker">Submission Pipeline</div>
-            <h2>Pipeline monitor</h2>
-          </div>
-        </div>
-
-        <div class="qd-admin-table-toolbar">
-          <input
-            class="qd-admin-search"
-            type="search"
-            placeholder="Search business, email, phone, industry, budget, service..."
-            value="${escapeHtml(state.filters.search)}"
-            data-field="search"
-          >
-          <select class="qd-admin-select" data-field="status">
-            ${['All', ...statusOptions].map((option) => `
-              <option value="${escapeHtml(option)}" ${state.filters.status === option ? 'selected' : ''}>${escapeHtml(option)}</option>
-            `).join('')}
-          </select>
-          <select class="qd-admin-select" data-field="priority">
-            ${['All', ...priorityOptions].map((option) => `
-              <option value="${escapeHtml(option)}" ${state.filters.priority === option ? 'selected' : ''}>${escapeHtml(option)}</option>
-            `).join('')}
-          </select>
-        </div>
-
-        <div class="qd-admin-table-wrap">
-          <table class="qd-admin-table">
-            <thead>
-              <tr>
-                <th>Business</th>
-                <th>Contact</th>
-                <th>Industry</th>
-                <th>Budget</th>
-                <th>Launch Date</th>
-                <th>Status</th>
-                <th>Priority</th>
-                <th>Date</th>
-              </tr>
-            </thead>
-            <tbody>${renderSubmissionRows(paginatedActiveSubmissions)}</tbody>
-          </table>
-        </div>
-        <div class="qd-admin-mobile-list">
-          ${renderSubmissionCards(paginatedActiveSubmissions)}
-        </div>
-        ${renderPipelinePagination(activeSubmissions.length)}
-      </article>
-
-      <article class="qd-admin-card qd-admin-table-card" id="qd-archived-submissions">
-        <div class="qd-admin-section-head">
-          <div>
-            <div class="qd-eyebrow qd-admin-kicker">Archived</div>
-            <h2>Archived submissions</h2>
-            <p>Closed or parked projects live here so the active pipeline stays focused on current work.</p>
-          </div>
-        </div>
-
-        <div class="qd-admin-table-wrap">
-          <table class="qd-admin-table">
-            <thead>
-              <tr>
-                <th>Business</th>
-                <th>Contact</th>
-                <th>Industry</th>
-                <th>Budget</th>
-                <th>Launch Date</th>
-                <th>Status</th>
-                <th>Priority</th>
-                <th>Date</th>
-              </tr>
-            </thead>
-            <tbody>${renderSubmissionRows(
-              archivedSubmissions,
-              'No archived submissions in this view',
-              'Archived projects will appear here when they match the current search and filters.'
-            )}</tbody>
-          </table>
-        </div>
-        <div class="qd-admin-mobile-list">
-          ${renderSubmissionCards(
-            archivedSubmissions,
-            'No archived submissions in this view',
-            'Archived projects will appear here when they match the current search and filters.'
-          )}
-        </div>
-      </article>
+      ${renderDashboardSectionNav({
+        activeCount: activeSubmissions.length,
+        archivedCount: archivedSubmissions.length,
+        analytics
+      })}
+      ${dashboardBody}
     </section>
   `;
 };
@@ -1779,6 +1982,7 @@ const renderAdminTabs = () => `
   <nav class="qd-admin-tabs" aria-label="Admin sections">
     <button class="qd-admin-tab ${state.activeTab === 'dashboard' ? 'is-active' : ''}" type="button" data-action="set-admin-tab" data-tab="dashboard">Pipeline</button>
     <button class="qd-admin-tab ${state.activeTab === 'cards' ? 'is-active' : ''}" type="button" data-action="set-admin-tab" data-tab="cards">Smart Cards</button>
+    <button class="qd-admin-tab ${state.activeTab === 'demos' ? 'is-active' : ''}" type="button" data-action="set-admin-tab" data-tab="demos">Demos</button>
     <button class="qd-admin-tab ${state.activeTab === 'invitations' ? 'is-active' : ''}" type="button" data-action="set-admin-tab" data-tab="invitations">Invitations</button>
     <button class="qd-admin-tab ${state.activeTab === 'activity' ? 'is-active' : ''}" type="button" data-action="set-admin-tab" data-tab="activity">Activity</button>
     <a class="qd-admin-tab qd-admin-tab-link" href="chat-admin.html?returnTo=${escapeHtml(state.activeTab)}">Chat Leads</a>
@@ -1985,7 +2189,6 @@ const renderCardsManager = () => `
           <p>Create slug-driven digital business cards, download print-ready QR codes, and track live views from one place.</p>
         </div>
         <div class="qd-admin-cards-toolbar">
-          <button class="qd-btn qd-btn-sm qd-admin-action-secondary" type="button" data-action="seed-qd-card">Seed QD Test Card</button>
           <button class="qd-btn qd-btn-sm qd-admin-action-primary" type="button" data-action="open-card-create">Create card</button>
         </div>
       </div>
@@ -2012,6 +2215,272 @@ const renderCardsManager = () => `
     </article>
   </section>
 `;
+
+const getDemoById = (id) => state.demos.find((demo) => demo.id === id) || null;
+
+const getFilteredDemos = () => {
+  const queryValue = String(state.demoFilters.search || '').trim().toLowerCase();
+  const statusFilter = state.demoFilters.status || 'All';
+
+  return state.demos.filter((demo) => {
+    const matchesSearch = !queryValue || [demo.title, demo.clientName, demo.slug]
+      .some((value) => String(value || '').toLowerCase().includes(queryValue));
+    const matchesStatus = statusFilter === 'All' || getDemoStatus(demo) === statusFilter.toLowerCase();
+    return matchesSearch && matchesStatus;
+  });
+};
+
+const getDemoKpis = () => {
+  const expiredOrDisabled = state.demos.filter((demo) => ['expired', 'disabled'].includes(getDemoStatus(demo))).length;
+  return {
+    total: state.demos.length,
+    active: state.demos.filter((demo) => getDemoStatus(demo) === 'active').length,
+    draft: state.demos.filter((demo) => getDemoStatus(demo) === 'draft').length,
+    expiredOrDisabled
+  };
+};
+
+const renderDemoRows = (items) => {
+  if (state.demosLoading && !items.length) {
+    return `
+      <tr>
+        <td colspan="7">
+          <div class="qd-admin-empty-state">
+            <strong>Loading demos</strong>
+            <p>Opening the realtime Firestore listener for client demos.</p>
+          </div>
+        </td>
+      </tr>
+    `;
+  }
+
+  if (!items.length) {
+    return `
+      <tr>
+        <td colspan="7">
+          <div class="qd-admin-empty-state">
+            <strong>No demos found</strong>
+            <p>Create the first protected client demo link to start sharing previews safely.</p>
+          </div>
+        </td>
+      </tr>
+    `;
+  }
+
+  return items.map((demo) => `
+    <tr>
+      <td>${escapeHtml(demo.title || 'Untitled Demo')}</td>
+      <td>${escapeHtml(demo.clientName || 'No client')}</td>
+      <td>
+        <div class="qd-admin-card-slug-wrap">
+          <span>${escapeHtml(demo.slug || '-')}</span>
+          <small>${escapeHtml(getDemoPublicUrl(demo.slug || ''))}</small>
+        </div>
+      </td>
+      <td>${getDemoStatusBadge(demo)}</td>
+      <td>${escapeHtml(String(demo.viewCount ?? 0))}</td>
+      <td>${escapeHtml(formatDemoExpiry(demo.expiresAt))}</td>
+      <td>
+        <div class="qd-admin-row-actions">
+          <button class="qd-admin-row-button" type="button" data-action="edit-demo" data-id="${escapeHtml(demo.id)}">Edit</button>
+          <button class="qd-admin-row-button" type="button" data-action="copy-demo-link" data-id="${escapeHtml(demo.id)}">Copy Link</button>
+          <button class="qd-admin-row-button" type="button" data-action="open-demo-admin" data-id="${escapeHtml(demo.id)}">Open as admin</button>
+          <button class="qd-admin-row-button" type="button" data-action="toggle-demo-status" data-id="${escapeHtml(demo.id)}">${getDemoStatus(demo) === 'disabled' ? 'Enable' : 'Disable'}</button>
+          <button class="qd-admin-row-button is-danger" type="button" data-action="delete-demo" data-id="${escapeHtml(demo.id)}">Delete</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+};
+
+const renderDemoCards = (items) => {
+  if (!items.length) return '';
+
+  return items.map((demo) => `
+    <article class="qd-admin-mobile-card qd-admin-card-mobile-card">
+      <div class="qd-admin-card-person">
+        <div class="qd-admin-card-avatar">${escapeHtml(getCardInitials(demo.clientName || demo.title || 'QD'))}</div>
+        <div>
+          <strong>${escapeHtml(demo.title || 'Untitled Demo')}</strong>
+          <span>${escapeHtml(demo.clientName || 'No client')}</span>
+        </div>
+      </div>
+      <div class="qd-admin-mobile-card-grid">
+        <div><strong>Slug</strong><span>${escapeHtml(demo.slug || '-')}</span></div>
+        <div><strong>Status</strong><span>${escapeHtml(getDemoStatusLabel(demo))}</span></div>
+        <div><strong>Views</strong><span>${escapeHtml(String(demo.viewCount ?? 0))}</span></div>
+        <div><strong>Expires</strong><span>${escapeHtml(formatDemoExpiry(demo.expiresAt))}</span></div>
+      </div>
+      <div class="qd-admin-card-mobile-actions">
+        <button class="qd-btn qd-btn-sm qd-admin-action-secondary" type="button" data-action="edit-demo" data-id="${escapeHtml(demo.id)}">Edit</button>
+        <button class="qd-btn qd-btn-sm qd-admin-action-secondary" type="button" data-action="copy-demo-link" data-id="${escapeHtml(demo.id)}">Copy</button>
+        <button class="qd-btn qd-btn-sm qd-admin-action-secondary" type="button" data-action="open-demo-admin" data-id="${escapeHtml(demo.id)}">Open</button>
+        <button class="qd-btn qd-btn-sm qd-admin-action-secondary" type="button" data-action="toggle-demo-status" data-id="${escapeHtml(demo.id)}">${getDemoStatus(demo) === 'disabled' ? 'Enable' : 'Disable'}</button>
+        <button class="qd-btn qd-btn-sm qd-admin-action-danger" type="button" data-action="delete-demo" data-id="${escapeHtml(demo.id)}">Delete</button>
+      </div>
+    </article>
+  `).join('');
+};
+
+const renderDemoEditor = () => {
+  if (!state.demoEditor.open) return '';
+
+  const draft = getDemoEditorDraftFromState();
+  const previewUrl = buildDemoPreviewUrl(draft.slug);
+  const slugState = state.demoEditor.slugState || { status: 'idle', message: '' };
+
+  return `
+    <div class="qd-admin-modal-overlay">
+      <button class="qd-admin-modal-backdrop" type="button" data-action="close-demo-editor" aria-label="Close demo editor"></button>
+      <aside class="qd-admin-drawer qd-admin-card-editor qd-admin-demo-editor" role="dialog" aria-modal="true" aria-label="Client demo editor">
+        <button class="qd-admin-drawer-close qd-admin-drawer-close-floating" type="button" data-action="close-demo-editor" aria-label="Close">X</button>
+
+        <section class="qd-admin-card-editor-head">
+          <div>
+            <div class="qd-eyebrow qd-admin-kicker">Client Demos</div>
+            <h2>${state.demoEditor.mode === 'edit' ? 'Edit demo' : 'Create demo'}</h2>
+            <p>Protect client previews with a passcode gate while keeping repo and deploy references private.</p>
+          </div>
+          <div class="qd-admin-card-editor-preview">
+            <span>Customer URL</span>
+            <code id="demo-preview-url">${escapeHtml(previewUrl)}</code>
+            <div class="qd-admin-card-mobile-actions">
+              <button class="qd-btn qd-btn-sm qd-admin-action-secondary" type="button" data-action="copy-demo-preview">Copy link</button>
+              ${draft.deployHookUrl ? `<button class="qd-btn qd-btn-sm qd-admin-action-primary" type="button" data-action="trigger-demo-deploy" ${state.demoEditor.deployLoading ? 'disabled' : ''}>${state.demoEditor.deployLoading ? 'Triggering...' : 'Trigger Rebuild'}</button>` : ''}
+            </div>
+          </div>
+        </section>
+
+        ${state.demoEditor.error ? `<div class="qd-admin-alert" role="alert">${escapeHtml(state.demoEditor.error)}</div>` : ''}
+
+        <form class="qd-admin-card-form" id="demo-editor-form">
+          <div class="qd-admin-admin-grid qd-admin-card-grid-fields">
+            <div class="qd-admin-field">
+              <label for="demo-title">Demo Title</label>
+              <input id="demo-title" class="qd-admin-input" name="title" type="text" value="${escapeHtml(draft.title || '')}" required>
+            </div>
+            <div class="qd-admin-field">
+              <label for="demo-client-name">Client Name</label>
+              <input id="demo-client-name" class="qd-admin-input" name="clientName" type="text" value="${escapeHtml(draft.clientName || '')}" required>
+            </div>
+            <div class="qd-admin-field">
+              <label for="demo-slug">Slug</label>
+              <input id="demo-slug" class="qd-admin-input ${slugState.status === 'invalid' ? 'is-invalid' : slugState.status === 'valid' ? 'is-valid' : slugState.status === 'checking' ? 'is-checking' : ''}" name="slug" type="text" value="${escapeHtml(draft.slug || '')}" required>
+              <div class="qd-admin-field-hint ${slugState.status === 'invalid' ? 'is-invalid' : slugState.status === 'valid' ? 'is-valid' : slugState.status === 'checking' ? 'is-checking' : ''}" id="demo-slug-hint">${escapeHtml(slugState.message || 'Use lowercase letters, numbers, and hyphens only.')}</div>
+            </div>
+            <div class="qd-admin-field">
+              <label for="demo-url">Preview URL</label>
+              <input id="demo-url" class="qd-admin-input" name="demoUrl" type="url" value="${escapeHtml(draft.demoUrl || '')}" placeholder="https://..." required>
+              <div class="qd-admin-field-hint">Deploy to Vercel first, then paste the URL here.</div>
+            </div>
+            <div class="qd-admin-field">
+              <label for="demo-passcode">Passcode ${state.demoEditor.mode === 'edit' ? '<span class="qd-admin-field-optional">(optional)</span>' : ''}</label>
+              <input id="demo-passcode" class="qd-admin-input" name="passcode" type="password" value="" ${state.demoEditor.mode === 'create' ? 'required' : ''}>
+              <div class="qd-admin-field-hint">${state.demoEditor.mode === 'edit' ? 'Leave blank to keep the current passcode hash.' : 'This is hashed client-side for the MVP before saving to Firestore.'}</div>
+            </div>
+            <div class="qd-admin-field">
+              <label for="demo-status">Status</label>
+              <select id="demo-status" class="qd-admin-select" name="status">
+                ${DEMO_STATUS_OPTIONS.map((status) => `<option value="${escapeHtml(status)}" ${getDemoStatus(draft) === status ? 'selected' : ''}>${escapeHtml(demoStatusLabels[status])}</option>`).join('')}
+              </select>
+            </div>
+            <div class="qd-admin-field">
+              <label for="demo-expiry">Expiry Date <span class="qd-admin-field-optional">(optional)</span></label>
+              <input id="demo-expiry" class="qd-admin-input" name="expiresAt" type="date" value="${escapeHtml(draft.expiresAt || '')}">
+            </div>
+            <div class="qd-admin-field qd-admin-field-span-2">
+              <label for="demo-notes">Notes <span class="qd-admin-field-optional">(optional)</span></label>
+              <textarea id="demo-notes" class="qd-admin-textarea" name="notes">${escapeHtml(draft.notes || '')}</textarea>
+            </div>
+            <div class="qd-admin-field">
+              <label for="demo-github-url">GitHub Repo URL <span class="qd-admin-field-optional">(optional)</span></label>
+              <input id="demo-github-url" class="qd-admin-input" name="githubRepoUrl" type="url" value="${escapeHtml(draft.githubRepoUrl || '')}" placeholder="https://github.com/...">
+              <div class="qd-admin-field-hint">For reference only. GitHub repos cannot be previewed directly - deploy to Vercel first.</div>
+            </div>
+            <div class="qd-admin-field">
+              <label for="demo-vercel-project-url">Vercel Project URL <span class="qd-admin-field-optional">(optional)</span></label>
+              <input id="demo-vercel-project-url" class="qd-admin-input" name="vercelProjectUrl" type="url" value="${escapeHtml(draft.vercelProjectUrl || '')}" placeholder="https://vercel.com/...">
+              <div class="qd-admin-field-hint">Admin reference only.</div>
+            </div>
+            <div class="qd-admin-field">
+              <label for="demo-vercel-preview-url">Vercel Preview URL <span class="qd-admin-field-optional">(optional)</span></label>
+              <input id="demo-vercel-preview-url" class="qd-admin-input" name="vercelPreviewUrl" type="url" value="${escapeHtml(draft.vercelPreviewUrl || '')}" placeholder="https://your-demo.vercel.app">
+              <div class="qd-admin-field-hint">Admin reference only.</div>
+            </div>
+            <div class="qd-admin-field">
+              <label for="demo-deploy-hook-url">Deploy Hook URL <span class="qd-admin-field-optional">(optional)</span></label>
+              <input id="demo-deploy-hook-url" class="qd-admin-input" name="deployHookUrl" type="url" value="${escapeHtml(draft.deployHookUrl || '')}" placeholder="https://api.vercel.com/...">
+              <div class="qd-admin-field-hint">Kept secret. Used to trigger Vercel rebuilds.</div>
+            </div>
+          </div>
+
+          <div class="qd-admin-save-row">
+            <span class="qd-admin-save-help">The public page only unlocks the iframe URL after passcode verification through the API, and secret admin references never leave Firestore.</span>
+            <button class="qd-btn qd-btn-md qd-admin-action-primary" type="submit" ${state.demoEditor.isSaving ? 'disabled' : ''}>
+              ${state.demoEditor.isSaving ? 'Saving...' : state.demoEditor.mode === 'edit' ? 'Save demo' : 'Create demo'}
+            </button>
+          </div>
+        </form>
+      </aside>
+    </div>
+  `;
+};
+
+const renderDemosManager = () => {
+  const items = getFilteredDemos();
+  const kpis = getDemoKpis();
+
+  return `
+    <section class="qd-admin-dashboard qd-admin-cards-dashboard">
+      ${state.demosError ? `<div class="qd-admin-alert" role="alert">${escapeHtml(state.demosError)}</div>` : ''}
+
+      <section class="qd-admin-overview-grid">
+        <article class="qd-admin-card"><div class="qd-admin-card-label">Total demos</div><h3>${escapeHtml(String(kpis.total))}</h3></article>
+        <article class="qd-admin-card"><div class="qd-admin-card-label">Active demos</div><h3>${escapeHtml(String(kpis.active))}</h3></article>
+        <article class="qd-admin-card"><div class="qd-admin-card-label">Draft demos</div><h3>${escapeHtml(String(kpis.draft))}</h3></article>
+        <article class="qd-admin-card"><div class="qd-admin-card-label">Expired / Disabled</div><h3>${escapeHtml(String(kpis.expiredOrDisabled))}</h3></article>
+      </section>
+
+      <article class="qd-admin-card qd-admin-table-card">
+        <div class="qd-admin-section-head">
+          <div>
+            <div class="qd-eyebrow qd-admin-kicker">Demos</div>
+            <h2>Protected client previews</h2>
+            <p>Manage passcode-gated demo links, preview destinations, and internal deployment references in one place.</p>
+          </div>
+          <div class="qd-admin-table-toolbar">
+            <input class="qd-admin-input" type="search" placeholder="Search title, client, or slug" data-demo-field="search" value="${escapeHtml(state.demoFilters.search)}">
+            <select class="qd-admin-select" data-demo-field="status">
+              ${['All', 'Active', 'Draft', 'Expired', 'Disabled'].map((option) => `<option value="${escapeHtml(option)}" ${state.demoFilters.status === option ? 'selected' : ''}>${escapeHtml(option === 'All' ? 'All statuses' : option)}</option>`).join('')}
+            </select>
+            <button class="qd-btn qd-btn-sm qd-admin-action-primary" type="button" data-action="open-demo-create">Create demo</button>
+          </div>
+        </div>
+
+        <div class="qd-admin-table-wrap">
+          <table class="qd-admin-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Client</th>
+                <th>Slug</th>
+                <th>Status</th>
+                <th>Views</th>
+                <th>Expires</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>${renderDemoRows(items)}</tbody>
+          </table>
+        </div>
+
+        <div class="qd-admin-mobile-list">
+          ${renderDemoCards(items)}
+        </div>
+      </article>
+    </section>
+  `;
+};
 
 const renderInvitationRows = (items) => {
   if (state.invitationsLoading && !items.length) {
@@ -2772,6 +3241,7 @@ const renderAppShell = (content) => {
       ${state.adminToast ? `<div class="qd-admin-toast" role="status" aria-live="polite">${escapeHtml(state.adminToast)}</div>` : ''}
       ${renderDrawer()}
       ${renderCardEditor()}
+      ${renderDemoEditor()}
       ${renderInvitationEditor()}
       ${renderQuoteDrawer()}
     </div>
@@ -2828,7 +3298,7 @@ const renderAccessDenied = () => renderAppShell(`
 `);
 
 const render = () => {
-  const nextModalOpen = Boolean(state.selectedId || state.cardEditor.open || state.invitationEditor.open || state.quoteDrawer.open);
+  const nextModalOpen = Boolean(state.selectedId || state.cardEditor.open || state.demoEditor.open || state.invitationEditor.open || state.quoteDrawer.open);
   if (nextModalOpen !== isModalOpen) {
     document.body.classList.toggle('qd-modal-open', nextModalOpen);
     isModalOpen = nextModalOpen;
@@ -2861,6 +3331,8 @@ const render = () => {
 
   const content = state.activeTab === 'cards'
     ? renderCardsManager()
+    : state.activeTab === 'demos'
+      ? renderDemosManager()
     : state.activeTab === 'invitations'
       ? renderInvitationsManager()
     : state.activeTab === 'activity'
@@ -3084,6 +3556,357 @@ const subscribeToCards = () => {
   };
 
   startListener(orderedQuery);
+};
+
+const subscribeToDemos = () => {
+  if (unsubscribeDemosSnapshot) {
+    unsubscribeDemosSnapshot();
+    unsubscribeDemosSnapshot = null;
+  }
+
+  state.demosLoading = true;
+  state.demosError = '';
+  render();
+
+  const demosRef = collection(db, 'clientDemos');
+  const orderedQuery = query(demosRef, orderBy('createdAt', 'desc'));
+  let permissionRetryCount = 0;
+
+  const startListener = (source) => {
+    unsubscribeDemosSnapshot = onSnapshot(
+      source,
+      (snapshot) => {
+        state.demos = snapshot.docs.map(hydrateDemo);
+        state.demosLoading = false;
+        state.demosError = '';
+        permissionRetryCount = 0;
+        if (state.demoEditor.open && state.demoEditor.id) {
+          const fresh = state.demos.find((item) => item.id === state.demoEditor.id);
+          if (fresh && !state.demoEditor.isSaving) {
+            state.demoEditor.original = deepCloneForLog(getDemoLogState(fresh));
+            state.demoEditor.draft = {
+              ...createEmptyDemoDraft(),
+              ...fresh,
+              expiresAt: fresh.expiresAt ? new Date(getTimestampMs(fresh.expiresAt)).toISOString().slice(0, 10) : '',
+              passcode: ''
+            };
+          }
+        }
+        render();
+      },
+      async (error) => {
+        if (isPermissionDeniedError(error) && permissionRetryCount < 1) {
+          permissionRetryCount += 1;
+          const refreshed = await ensureAdminFirestoreSession();
+          if (refreshed) {
+            startListener(source);
+            return;
+          }
+        }
+
+        if (source === orderedQuery) {
+          startListener(demosRef);
+          return;
+        }
+
+        state.demosLoading = false;
+        state.demosError = error?.message || 'Unable to read client demos.';
+        render();
+      }
+    );
+  };
+
+  startListener(orderedQuery);
+};
+
+const openDemoEditor = (mode, demo = null) => {
+  const draft = demo
+    ? {
+        ...createEmptyDemoDraft(),
+        ...demo,
+        expiresAt: demo.expiresAt ? new Date(getTimestampMs(demo.expiresAt)).toISOString().slice(0, 10) : '',
+        passcode: ''
+      }
+    : createEmptyDemoDraft();
+
+  state.demoEditor = {
+    open: true,
+    mode,
+    id: demo?.id || null,
+    draft,
+    original: demo ? deepCloneForLog(getDemoLogState(demo)) : null,
+    slugState: { status: 'idle', message: 'Use lowercase letters, numbers, and hyphens only.' },
+    slugTouched: Boolean(demo?.slug),
+    isSaving: false,
+    deployLoading: false,
+    error: ''
+  };
+  render();
+};
+
+const closeDemoEditor = () => {
+  state.demoEditor = {
+    open: false,
+    mode: 'create',
+    id: null,
+    draft: null,
+    original: null,
+    slugState: { status: 'idle', message: '' },
+    slugTouched: false,
+    isSaving: false,
+    deployLoading: false,
+    error: ''
+  };
+  render();
+};
+
+const captureDemoEditorDraftFromDom = () => {
+  const form = document.getElementById('demo-editor-form');
+  const current = getDemoEditorDraftFromState();
+  if (!form) return current;
+
+  return {
+    ...current,
+    title: form.elements.title?.value?.trim() || '',
+    clientName: form.elements.clientName?.value?.trim() || '',
+    slug: slugifyCardValue(form.elements.slug?.value || ''),
+    demoUrl: form.elements.demoUrl?.value?.trim() || '',
+    githubRepoUrl: form.elements.githubRepoUrl?.value?.trim() || '',
+    vercelProjectUrl: form.elements.vercelProjectUrl?.value?.trim() || '',
+    vercelPreviewUrl: form.elements.vercelPreviewUrl?.value?.trim() || '',
+    deployHookUrl: form.elements.deployHookUrl?.value?.trim() || '',
+    passcode: form.elements.passcode?.value || '',
+    status: DEMO_STATUS_OPTIONS.includes(form.elements.status?.value) ? form.elements.status.value : 'draft',
+    notes: form.elements.notes?.value?.trim() || '',
+    expiresAt: form.elements.expiresAt?.value || ''
+  };
+};
+
+const ensureDemoEditorData = () => {
+  const draft = captureDemoEditorDraftFromDom();
+  state.demoEditor.draft = draft;
+  return draft;
+};
+
+// Keep the browser hash and API verification in sync: UTF-8 string -> SHA-256 -> lowercase hex.
+const sha256 = async (value) => {
+  const digest = await window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(String(value || '')));
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('');
+};
+
+const setDemoSlugState = (status, message) => {
+  state.demoEditor.slugState = { status, message };
+  const hint = document.getElementById('demo-slug-hint');
+  const input = document.getElementById('demo-slug');
+  if (hint) {
+    hint.textContent = message;
+    hint.classList.remove('is-valid', 'is-invalid', 'is-checking');
+    if (status === 'valid' || status === 'invalid' || status === 'checking') hint.classList.add(`is-${status}`);
+  }
+  if (input) {
+    input.classList.remove('is-valid', 'is-invalid', 'is-checking');
+    if (status === 'valid' || status === 'invalid' || status === 'checking') input.classList.add(`is-${status}`);
+  }
+};
+
+const validateDemoSlug = async (slug, { silent = false } = {}) => {
+  const normalized = slugifyCardValue(slug);
+  if (!normalized) {
+    if (!silent) setDemoSlugState('invalid', 'Slug is required.');
+    return false;
+  }
+
+  if (normalized !== slug) {
+    if (!silent) setDemoSlugState('invalid', 'Use lowercase letters, numbers, and hyphens only.');
+    return false;
+  }
+
+  if (!silent) setDemoSlugState('checking', 'Checking slug availability...');
+  const demosRef = collection(db, 'clientDemos');
+  const slugQuery = query(demosRef, where('slug', '==', normalized), limit(2));
+  const snapshot = await getDocs(slugQuery);
+  const conflict = snapshot.docs.find((item) => item.id !== state.demoEditor.id);
+
+  if (conflict) {
+    if (!silent) setDemoSlugState('invalid', 'That demo link is already in use.');
+    return false;
+  }
+
+  if (!silent) setDemoSlugState('valid', 'Demo link is available.');
+  return true;
+};
+
+const buildDemoExpiryTimestamp = (value) => {
+  if (!value) return null;
+  const date = new Date(`${value}T23:59:59.999`);
+  if (Number.isNaN(date.getTime())) return null;
+  return Timestamp.fromDate(date);
+};
+
+const saveDemoEditor = async () => {
+  const draft = ensureDemoEditorData();
+
+  if (!draft.title || !draft.clientName || !draft.slug || !draft.demoUrl) {
+    state.demoEditor.error = 'Demo title, client name, slug, and preview URL are required.';
+    render();
+    return;
+  }
+
+  if (state.demoEditor.mode !== 'edit' && !draft.passcode) {
+    state.demoEditor.error = 'Passcode is required for new demos.';
+    render();
+    return;
+  }
+
+  const isSlugValid = await validateDemoSlug(draft.slug, { silent: false });
+  if (!isSlugValid) return;
+
+  state.demoEditor.isSaving = true;
+  state.demoEditor.error = '';
+  render();
+
+  try {
+    const existing = getDemoById(state.demoEditor.id) || {};
+    const passcodeHash = draft.passcode ? await sha256(draft.passcode) : existing.passcodeHash || draft.passcodeHash || '';
+    const payload = {
+      title: draft.title,
+      clientName: draft.clientName,
+      slug: draft.slug,
+      demoUrl: draft.demoUrl,
+      githubRepoUrl: draft.githubRepoUrl || '',
+      vercelProjectUrl: draft.vercelProjectUrl || '',
+      vercelPreviewUrl: draft.vercelPreviewUrl || '',
+      deployHookUrl: draft.deployHookUrl || '',
+      passcodeHash,
+      status: DEMO_STATUS_OPTIONS.includes(draft.status) ? draft.status : 'draft',
+      notes: draft.notes || '',
+      expiresAt: buildDemoExpiryTimestamp(draft.expiresAt),
+      viewCount: Number(existing.viewCount || draft.viewCount || 0),
+      lastViewedAt: existing.lastViewedAt || draft.lastViewedAt || null,
+      createdBy: existing.createdBy || state.user?.email || '',
+      updatedBy: state.user?.email || '',
+      updatedAt: serverTimestamp()
+    };
+
+    if (state.demoEditor.mode === 'edit' && state.demoEditor.id) {
+      await updateDoc(doc(db, 'clientDemos', state.demoEditor.id), payload);
+      const changeSet = buildChangedMetadata(state.demoEditor.original || {}, getDemoLogState({ ...existing, ...payload }));
+      if (changeSet.changedFields.length) {
+        await logAdminActivity({
+          action: 'edit_demo',
+          targetType: 'demo',
+          targetId: state.demoEditor.id,
+          targetLabel: draft.title || draft.slug || state.demoEditor.id,
+          metadata: changeSet
+        });
+      }
+      showAdminToast(`Saved ${draft.slug}`);
+    } else {
+      const demoRef = await addDoc(collection(db, 'clientDemos'), {
+        ...payload,
+        createdAt: serverTimestamp()
+      });
+      await logAdminActivity({
+        action: 'create_demo',
+        targetType: 'demo',
+        targetId: demoRef.id,
+        targetLabel: draft.title || draft.slug || demoRef.id,
+        metadata: {
+          changedFields: Object.keys(getDemoLogState(payload)),
+          after: getDemoLogState(payload)
+        }
+      });
+      showAdminToast(`Created ${draft.slug}`);
+    }
+
+    closeDemoEditor();
+  } catch (error) {
+    state.demoEditor.isSaving = false;
+    state.demoEditor.error = error?.message || 'Could not save the client demo.';
+    render();
+  }
+};
+
+const copyDemoLink = async (demo) => {
+  await navigator.clipboard.writeText(getDemoPublicUrl(demo.slug));
+  showAdminToast('Demo link copied.');
+};
+
+const openDemoAdmin = async (demo) => {
+  window.open(demo.demoUrl, '_blank', 'noopener,noreferrer');
+  await logAdminActivity({
+    action: 'open_demo_admin',
+    targetType: 'demo',
+    targetId: demo.id,
+    targetLabel: getDemoActivityLabel(demo)
+  });
+};
+
+const toggleDemoStatus = async (demo) => {
+  const nextStatus = getDemoStatus(demo) === 'disabled' ? 'active' : 'disabled';
+  await updateDoc(doc(db, 'clientDemos', demo.id), {
+    status: nextStatus,
+    updatedBy: state.user?.email || '',
+    updatedAt: serverTimestamp()
+  });
+  await logAdminActivity({
+    action: nextStatus === 'disabled' ? 'disable_demo' : 'enable_demo',
+    targetType: 'demo',
+    targetId: demo.id,
+    targetLabel: getDemoActivityLabel(demo)
+  });
+  showAdminToast(nextStatus === 'disabled' ? `Disabled ${demo.slug}` : `Enabled ${demo.slug}`);
+};
+
+const deleteDemoRecord = async (demo) => {
+  const confirmed = window.confirm(`Delete the client demo "${demo.title || demo.slug}"?`);
+  if (!confirmed) return;
+  await deleteDoc(doc(db, 'clientDemos', demo.id));
+  await logAdminActivity({
+    action: 'delete_demo',
+    targetType: 'demo',
+    targetId: demo.id,
+    targetLabel: getDemoActivityLabel(demo)
+  });
+  showAdminToast(`Deleted ${demo.slug}`);
+};
+
+const triggerDemoDeploy = async (demo) => {
+  if (!demo?.id) return;
+
+  state.demoEditor.deployLoading = true;
+  state.demoEditor.error = '';
+  render();
+
+  try {
+    const token = await state.user?.getIdToken();
+    const response = await fetch('/api/demo-deploy', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ demoId: demo.id })
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || payload?.triggered !== true) {
+      throw new Error(payload?.error || 'Could not trigger demo rebuild.');
+    }
+    await logAdminActivity({
+      action: 'trigger_demo_deploy',
+      targetType: 'demo',
+      targetId: demo.id,
+      targetLabel: getDemoActivityLabel(demo)
+    });
+    showAdminToast('Deploy hook triggered.');
+  } catch (error) {
+    state.demoEditor.error = error?.message || 'Could not trigger demo rebuild.';
+  } finally {
+    state.demoEditor.deployLoading = false;
+    render();
+  }
 };
 
 const subscribeToInvitations = () => {
@@ -3889,49 +4712,6 @@ const deleteCardRecord = async (card) => {
   showAdminToast(`Deleted ${card.slug}`);
 };
 
-const seedQdCard = async () => {
-  const exists = state.cards.some((card) => card.slug === 'qd');
-  if (exists) {
-    showAdminToast('The qd seed card already exists.');
-    return;
-  }
-
-  const seededPayload = {
-    slug: 'qd',
-    name: 'QD SYSTEMS',
-    role: 'Digital Systems Agency',
-    company: 'QD SYSTEMS',
-    phone: '+971500000000',
-    email: 'hello@qdsystems.ae',
-    website: 'https://qdsystems.ae',
-    avatar: '',
-    avatarStoragePath: '',
-    links: [
-      { label: 'Instagram', url: 'https://instagram.com/qdsystems', icon: 'instagram' },
-      { label: 'WhatsApp', url: 'https://wa.me/971500000000', icon: 'whatsapp' }
-    ],
-    ctaLabel: 'Start a Build',
-    ctaUrl: 'https://qdsystems.ae/contact',
-    active: true,
-    views: 0,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp()
-  };
-  const cardRef = await addDoc(collection(db, 'cards'), seededPayload);
-  await logAdminActivity({
-    action: 'create_smart_card',
-    targetType: 'smart_card',
-    targetId: cardRef.id,
-    targetLabel: seededPayload.name,
-    metadata: {
-      source: 'seed',
-      changedFields: Object.keys(getSmartCardLogState(seededPayload)),
-      after: getSmartCardLogState(seededPayload)
-    }
-  });
-  showAdminToast('Seed card created.');
-};
-
 const saveDrawer = async (nextValues = {}) => {
   const selected = getSelectedSubmission();
   if (!selected) return;
@@ -4046,6 +4826,14 @@ const handleDocumentClick = async (event) => {
     return;
   }
 
+  if (action === 'set-dashboard-section') {
+    const nextSection = actionTarget.dataset.section || 'overview';
+    state.dashboardSection = dashboardSections.has(nextSection) ? nextSection : 'overview';
+    syncAdminTabUrl();
+    render();
+    return;
+  }
+
   if (action === 'open-submission') {
     openSubmission(actionTarget.dataset.id);
     return;
@@ -4056,6 +4844,8 @@ const handleDocumentClick = async (event) => {
     const nextStatus = state.filters.status === clickedStatus && clickedStatus !== 'All'
       ? 'All'
       : clickedStatus;
+    state.dashboardSection = clickedStatus === 'Archived' ? 'archive' : 'pipeline';
+    syncAdminTabUrl();
     applyPipelineStatusFilter(nextStatus, { scroll: true });
     return;
   }
@@ -4101,6 +4891,11 @@ const handleDocumentClick = async (event) => {
     return;
   }
 
+  if (action === 'open-demo-create') {
+    openDemoEditor('create');
+    return;
+  }
+
   if (action === 'open-invitation-create') {
     openInvitationEditor('create');
     return;
@@ -4108,6 +4903,11 @@ const handleDocumentClick = async (event) => {
 
   if (action === 'close-card-editor') {
     closeCardEditor();
+    return;
+  }
+
+  if (action === 'close-demo-editor') {
+    closeDemoEditor();
     return;
   }
 
@@ -4120,6 +4920,13 @@ const handleDocumentClick = async (event) => {
     const card = getCardById(actionTarget.dataset.id);
     if (!card) return;
     openCardEditor('edit', card);
+    return;
+  }
+
+  if (action === 'edit-demo') {
+    const demo = getDemoById(actionTarget.dataset.id);
+    if (!demo) return;
+    openDemoEditor('edit', demo);
     return;
   }
 
@@ -4154,10 +4961,24 @@ const handleDocumentClick = async (event) => {
     return;
   }
 
+  if (action === 'copy-demo-preview') {
+    const slug = slugifyCardValue(document.getElementById('demo-slug')?.value || state.demoEditor.draft?.slug || '');
+    await navigator.clipboard.writeText(buildDemoPreviewUrl(slug));
+    showAdminToast('Demo link copied.');
+    return;
+  }
+
   if (action === 'copy-card-link') {
     const card = getCardById(actionTarget.dataset.id);
     if (!card) return;
     await copyCardUrl(card);
+    return;
+  }
+
+  if (action === 'copy-demo-link') {
+    const demo = getDemoById(actionTarget.dataset.id);
+    if (!demo) return;
+    await copyDemoLink(demo);
     return;
   }
 
@@ -4189,10 +5010,24 @@ const handleDocumentClick = async (event) => {
     return;
   }
 
+  if (action === 'toggle-demo-status') {
+    const demo = getDemoById(actionTarget.dataset.id);
+    if (!demo) return;
+    await toggleDemoStatus(demo);
+    return;
+  }
+
   if (action === 'delete-card') {
     const card = getCardById(actionTarget.dataset.id);
     if (!card) return;
     await deleteCardRecord(card);
+    return;
+  }
+
+  if (action === 'delete-demo') {
+    const demo = getDemoById(actionTarget.dataset.id);
+    if (!demo) return;
+    await deleteDemoRecord(demo);
     return;
   }
 
@@ -4210,6 +5045,20 @@ const handleDocumentClick = async (event) => {
     return;
   }
 
+  if (action === 'open-demo-admin') {
+    const demo = getDemoById(actionTarget.dataset.id);
+    if (!demo) return;
+    await openDemoAdmin(demo);
+    return;
+  }
+
+  if (action === 'trigger-demo-deploy') {
+    const demo = state.demoEditor.id ? getDemoById(state.demoEditor.id) : getDemoEditorDraftFromState();
+    if (!demo) return;
+    await triggerDemoDeploy(demo);
+    return;
+  }
+
   if (action === 'preview-invitation-draft') {
     const draft = ensureInvitationEditorData();
     previewInvitation({ id: state.invitationEditor.id, slug: draft.slug });
@@ -4220,11 +5069,6 @@ const handleDocumentClick = async (event) => {
     const invitation = getInvitationById(actionTarget.dataset.id);
     if (!invitation) return;
     shareInvitationWhatsapp(invitation);
-    return;
-  }
-
-  if (action === 'seed-qd-card') {
-    await seedQdCard();
     return;
   }
 
@@ -4357,6 +5201,30 @@ const handleDocumentInput = (event) => {
     }
   }
 
+  if (state.demoEditor.open) {
+    if (event.target.id === 'demo-title' || event.target.id === 'demo-client-name') {
+      const slugInput = document.getElementById('demo-slug');
+      if (slugInput && !state.demoEditor.slugTouched) {
+        const title = document.getElementById('demo-title')?.value || '';
+        const clientName = document.getElementById('demo-client-name')?.value || '';
+        slugInput.value = slugifyCardValue(clientName || title);
+        const preview = document.getElementById('demo-preview-url');
+        if (preview) preview.textContent = buildDemoPreviewUrl(slugInput.value);
+      }
+      return;
+    }
+
+    if (event.target.id === 'demo-slug') {
+      state.demoEditor.slugTouched = true;
+      const nextSlug = slugifyCardValue(event.target.value);
+      if (nextSlug !== event.target.value) event.target.value = nextSlug;
+      const preview = document.getElementById('demo-preview-url');
+      if (preview) preview.textContent = buildDemoPreviewUrl(nextSlug);
+      setDemoSlugState('idle', 'Use lowercase letters, numbers, and hyphens only.');
+      return;
+    }
+  }
+
   if (state.invitationEditor.open) {
     if (event.target.id === 'invite-bride-name' || event.target.id === 'invite-groom-name') {
       if (!state.invitationEditor.slugTouched) {
@@ -4429,6 +5297,23 @@ const handleDocumentInput = (event) => {
     return;
   }
 
+  const demoField = event.target.dataset.demoField;
+  if (demoField) {
+    const { selectionStart, selectionEnd, value } = event.target;
+    state.demoFilters[demoField] = event.target.value;
+    render();
+    if (demoField === 'search') {
+      const nextInput = root.querySelector('[data-demo-field="search"]');
+      if (nextInput) {
+        nextInput.focus();
+        const caret = typeof selectionStart === 'number' ? selectionStart : value.length;
+        const caretEnd = typeof selectionEnd === 'number' ? selectionEnd : value.length;
+        nextInput.setSelectionRange(caret, caretEnd);
+      }
+    }
+    return;
+  }
+
   const qfield = event.target.dataset.qfield;
   const qline = event.target.dataset.qline;
   if (qfield || qline) {
@@ -4475,8 +5360,15 @@ document.addEventListener('input', (event) => {
 });
 
 document.addEventListener('change', (event) => {
-  if (event.target.dataset.activityField || event.target.dataset.field) {
+  if (event.target.dataset.activityField || event.target.dataset.field || event.target.dataset.demoField) {
     handleDocumentInput(event);
+    return;
+  }
+
+  if (event.target.id === 'demo-slug') {
+    validateDemoSlug(event.target.value).catch((error) => {
+      setDemoSlugState('invalid', error?.message || 'Slug check failed.');
+    });
     return;
   }
 
@@ -4552,6 +5444,10 @@ document.addEventListener('submit', async (event) => {
     event.preventDefault();
     await saveCardEditor();
   }
+  if (event.target.id === 'demo-editor-form') {
+    event.preventDefault();
+    await saveDemoEditor();
+  }
   if (event.target.id === 'invitation-editor-form') {
     event.preventDefault();
     await saveInvitationEditor();
@@ -4560,6 +5456,10 @@ document.addEventListener('submit', async (event) => {
 
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') {
+    if (state.demoEditor.open) {
+      closeDemoEditor();
+      return;
+    }
     if (state.invitationEditor.open) {
       closeInvitationEditor();
       return;
@@ -4937,9 +5837,11 @@ onAuthStateChanged(auth, async (user) => {
   }
 
   if (user && isAllowedAdminUser(user)) {
+    await ensureAdminFirestoreSession(user);
     subscribeToSubmissions();
     subscribeToQuotes();
     subscribeToCards();
+    subscribeToDemos();
     subscribeToInvitations();
     if (state.pendingLoginAudit) {
       await logAdminActivity({
@@ -4963,12 +5865,17 @@ onAuthStateChanged(auth, async (user) => {
       unsubscribeCardsSnapshot();
       unsubscribeCardsSnapshot = null;
     }
+    if (unsubscribeDemosSnapshot) {
+      unsubscribeDemosSnapshot();
+      unsubscribeDemosSnapshot = null;
+    }
     if (unsubscribeInvitationsSnapshot) {
       unsubscribeInvitationsSnapshot();
       unsubscribeInvitationsSnapshot = null;
     }
     state.submissions = [];
     state.cards = [];
+    state.demos = [];
     state.invitations = [];
     state.invitationRsvps = [];
     state.activityLogs = [];
@@ -4987,6 +5894,18 @@ onAuthStateChanged(auth, async (user) => {
       error: '',
       pendingAvatarFile: null
     };
+    state.demoEditor = {
+      open: false,
+      mode: 'create',
+      id: null,
+      draft: null,
+      original: null,
+      slugState: { status: 'idle', message: '' },
+      slugTouched: false,
+      isSaving: false,
+      deployLoading: false,
+      error: ''
+    };
     state.invitationEditor = {
       open: false,
       mode: 'create',
@@ -5001,8 +5920,13 @@ onAuthStateChanged(auth, async (user) => {
       pendingMusicFile: null
     };
     state.dataLoading = false;
+    state.dataError = '';
     state.cardsLoading = false;
+    state.cardsError = '';
+    state.demosLoading = false;
+    state.demosError = '';
     state.invitationsLoading = false;
+    state.invitationsError = '';
     state.invitationRsvpsLoading = false;
     state.activityLoading = false;
     state.submissionActivityLoading = false;
@@ -5023,5 +5947,10 @@ render();
 const syncAdminTabUrl = () => {
   const url = new URL(window.location.href);
   url.searchParams.set('tab', state.activeTab);
+  if (state.activeTab === 'dashboard') {
+    url.searchParams.set('section', state.dashboardSection);
+  } else {
+    url.searchParams.delete('section');
+  }
   window.history.replaceState({}, '', url);
 };
