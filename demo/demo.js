@@ -17,7 +17,8 @@ const state = {
   error: '',
   blocked: false,
   localAttempts: 0,
-  iframeLoaded: false
+  iframeLoaded: false,
+  embedWarningVisible: false
 };
 
 const escapeHtml = (value) => String(value ?? '')
@@ -98,6 +99,15 @@ const deviceButtons = Object.keys(DEVICE_WIDTHS).map((device) => `
   </button>
 `).join('');
 
+const looksLikeProtectedVercelPreview = (url) => {
+  try {
+    const parsed = new URL(url);
+    return parsed.hostname.endsWith('.vercel.app') && parsed.hostname.includes('-projects.');
+  } catch {
+    return false;
+  }
+};
+
 const renderUnlocked = () => `
   <div class="qd-demo-shell">
     <div class="qd-demo-frame-shell">
@@ -115,6 +125,11 @@ const renderUnlocked = () => `
         ${deviceButtons}
         <a class="qd-demo-link qd-demo-frame-fallback" id="qd-demo-fallback-link" href="${escapeHtml(state.demoUrl)}" target="_blank" rel="noreferrer noopener">Open demo in new tab</a>
       </div>
+      ${state.embedWarningVisible ? `
+        <div class="qd-demo-embed-warning" role="status">
+          This site is blocking iframe embedding. Open the demo in a new tab, or use a public deployment URL that allows embedding.
+        </div>
+      ` : ''}
       <div class="qd-demo-iframe-wrap">
         <iframe
           id="qd-demo-iframe"
@@ -171,15 +186,26 @@ const attachUnlockedEvents = () => {
   const fallback = document.getElementById('qd-demo-fallback-link');
   if (!iframe || !fallback) return;
 
-  const revealFallback = () => fallback.classList.add('is-visible');
+  const revealFallback = () => {
+    state.embedWarningVisible = true;
+    fallback.classList.add('is-visible');
+    const warning = document.querySelector('.qd-demo-embed-warning');
+    if (warning) warning.hidden = false;
+  };
   const fallbackTimer = window.setTimeout(() => {
     if (!state.iframeLoaded) revealFallback();
   }, 12000);
 
+  if (looksLikeProtectedVercelPreview(state.demoUrl)) {
+    revealFallback();
+  }
+
   iframe.addEventListener('load', () => {
     state.iframeLoaded = true;
     window.clearTimeout(fallbackTimer);
-    fallback.classList.remove('is-visible');
+    if (!state.embedWarningVisible) {
+      fallback.classList.remove('is-visible');
+    }
   }, { once: true });
 
   iframe.addEventListener('error', () => {
@@ -268,6 +294,7 @@ const handlePasscodeSubmit = async (event) => {
     state.error = '';
     state.blocked = false;
     state.iframeLoaded = false;
+    state.embedWarningVisible = looksLikeProtectedVercelPreview(payload.demoUrl);
     render();
   } catch (error) {
     console.error('[demo-page] verify failed:', error);

@@ -62,7 +62,7 @@ const allowedAdminEmails = [
   'mdaya0089@gmail.com'
 ];
 const unauthorizedAdminMessage = 'Unauthorized access';
-const statusOptions = ['New', 'Reviewed', 'Contacted', 'Quoted', 'Accepted', 'Under Construction', 'Completed', 'Rejected', 'Archived'];
+const statusOptions = ['New', 'Reviewed', 'Contacted', 'Meeting', 'Quoted', 'Accepted', 'Under Construction', 'Completed', 'Rejected', 'Archived'];
 const priorityOptions = ['Low', 'Normal', 'High', 'VIP'];
 const CARD_SITE_URL = 'https://qdsystems.ae';
 const CARD_DEFAULT_WEBSITE = 'https://qdsystems.ae';
@@ -72,6 +72,13 @@ const cardIconOptions = ['website', 'email', 'phone', 'whatsapp', 'instagram', '
 const INVITE_THEME_OPTIONS = ['royal-gold', 'minimal-white', 'modern-black', 'arabic-luxury', 'floral-elegant'];
 const INVITE_STATUS_OPTIONS = ['draft', 'active', 'disabled'];
 const DEMO_STATUS_OPTIONS = ['draft', 'active', 'expired', 'disabled'];
+const OUTREACH_STATUS_OPTIONS = [
+  { value: 'setting_meeting', label: 'Setting Meeting' },
+  { value: 'meeting', label: 'Meeting' },
+  { value: 'declined', label: 'Declined' },
+  { value: 'they_will_call_back', label: 'They Will Call Back' },
+  { value: 'confirmed', label: 'Confirmed' }
+];
 const inviteThemeLabels = {
   'royal-gold': 'Royal Gold',
   'minimal-white': 'Minimal White',
@@ -90,7 +97,7 @@ const demoStatusLabels = {
   expired: 'Expired',
   disabled: 'Disabled'
 };
-const adminTabs = new Set(['dashboard', 'cards', 'demos', 'activity', 'invitations']);
+const adminTabs = new Set(['dashboard', 'cards', 'demos', 'activity', 'invitations', 'outreach']);
 const initialAdminTab = new URLSearchParams(window.location.search).get('tab');
 const dashboardSections = new Set(['overview', 'pipeline', 'archive']);
 const initialDashboardSection = new URLSearchParams(window.location.search).get('section');
@@ -115,7 +122,12 @@ const activityActionLabels = {
   disable_demo: 'Disabled demo',
   enable_demo: 'Enabled demo',
   trigger_demo_deploy: 'Triggered demo deploy',
-  open_demo_admin: 'Opened demo (admin)'
+  open_demo_admin: 'Opened demo (admin)',
+  create_outreach_lead: 'Created outreach lead',
+  edit_outreach_lead: 'Edited outreach lead',
+  change_outreach_status: 'Changed outreach status',
+  import_outreach_lead: 'Imported outreach lead to pipeline',
+  delete_outreach_lead: 'Deleted outreach lead'
 };
 const activityTargetTypeLabels = {
   session: 'Session',
@@ -123,7 +135,8 @@ const activityTargetTypeLabels = {
   quote: 'Quote',
   smart_card: 'Smart Card',
   chat_lead: 'Chat Lead',
-  demo: 'Demo'
+  demo: 'Demo',
+  outreach_lead: 'Outreach Lead'
 };
 const activityOpenSessionKey = 'qd-admin-activity-opened-v1';
 
@@ -133,6 +146,7 @@ const state = {
   cardsLoading: false,
   demosLoading: false,
   invitationsLoading: false,
+  outreachLoading: false,
   invitationRsvpsLoading: false,
   activityLoading: false,
   submissionActivityLoading: false,
@@ -144,6 +158,7 @@ const state = {
   cardsError: '',
   demosError: '',
   invitationsError: '',
+  outreachError: '',
   invitationRsvpsError: '',
   activityError: '',
   submissionActivityError: '',
@@ -156,6 +171,7 @@ const state = {
   cards: [],
   demos: [],
   invitations: [],
+  outreachLeads: [],
   invitationRsvps: [],
   activityLogs: [],
   submissionActivityLogs: [],
@@ -173,7 +189,12 @@ const state = {
     search: '',
     status: 'All'
   },
+  outreachFilters: {
+    search: '',
+    status: 'All'
+  },
   pipelinePage: 0,
+  outreachPage: 0,
   budgetProjectsPage: 0,
   budgetSortDirection: 'desc',
   selectedId: null,
@@ -218,6 +239,15 @@ const state = {
     pendingCoverFile: null,
     pendingMusicFile: null
   },
+  outreachEditor: {
+    open: false,
+    mode: 'create',
+    id: null,
+    draft: null,
+    original: null,
+    isSaving: false,
+    error: ''
+  },
   pendingLoginAudit: false
 };
 
@@ -226,12 +256,14 @@ let unsubscribeQuotesSnapshot = null;
 let unsubscribeCardsSnapshot = null;
 let unsubscribeDemosSnapshot = null;
 let unsubscribeInvitationsSnapshot = null;
+let unsubscribeOutreachSnapshot = null;
 let unsubscribeInvitationRsvpsSnapshot = null;
 let unsubscribeActivityLogsSnapshot = null;
 let unsubscribeSubmissionActivitySnapshot = null;
 let copyFeedbackTimeout = null;
 let adminToastTimeout = null;
 let isModalOpen = false;
+let lastModalOpenedAt = 0;
 let currentSubmissionActivityTargetId = null;
 let currentInvitationRsvpsTargetId = null;
 const openedActivitySessionSet = new Set((() => {
@@ -400,7 +432,12 @@ const rawValueLabels = {
   contact: 'Contact',
   gallery_portfolio: 'Gallery / Portfolio',
   faq: 'FAQ',
-  blog_news_offers: 'Blog / News / Offers'
+  blog_news_offers: 'Blog / News / Offers',
+  setting_meeting: 'Setting Meeting',
+  meeting: 'Meeting',
+  they_will_call_back: 'They Will Call Back',
+  declined: 'Declined',
+  confirmed: 'Confirmed'
 };
 
 const escapeHtml = (value) => String(value ?? '')
@@ -508,6 +545,20 @@ const createEmptyDemoDraft = () => ({
   updatedBy: ''
 });
 
+const createEmptyOutreachLeadDraft = () => ({
+  businessName: '',
+  ownerName: '',
+  phoneNumber: '',
+  hasWebsite: 'no',
+  websiteUrl: '',
+  meetingDateTime: '',
+  meetingLocation: '',
+  status: 'setting_meeting',
+  importedSubmissionId: '',
+  importedAt: null,
+  importedFrom: ''
+});
+
 const hydrateCard = (snapshot) => ({
   id: snapshot.id,
   ...snapshot.data()
@@ -527,6 +578,12 @@ const hydrateInvitationRsvp = (snapshot) => ({
 const hydrateDemo = (snapshot) => ({
   id: snapshot.id,
   ...createEmptyDemoDraft(),
+  ...snapshot.data()
+});
+
+const hydrateOutreachLead = (snapshot) => ({
+  id: snapshot.id,
+  ...createEmptyOutreachLeadDraft(),
   ...snapshot.data()
 });
 
@@ -668,6 +725,7 @@ const getSubmissionActivityLabel = (submission) => {
 
 const getSmartCardActivityLabel = (card) => card?.name || card?.slug || card?.id || 'Smart card';
 const getDemoActivityLabel = (demo) => demo?.title || demo?.slug || demo?.id || 'Client demo';
+const getOutreachLeadActivityLabel = (lead) => lead?.businessName || lead?.ownerName || lead?.id || 'Outreach lead';
 
 const getSubmissionLogState = (submission) => {
   if (!submission) return {};
@@ -724,6 +782,19 @@ const getDemoLogState = (demo) => ({
   expiresAt: demo?.expiresAt ? formatDate(demo.expiresAt) : '',
   viewCount: Number(demo?.viewCount || 0),
   lastViewedAt: demo?.lastViewedAt ? formatDate(demo.lastViewedAt) : ''
+});
+
+const getOutreachLeadLogState = (lead) => ({
+  businessName: lead?.businessName || '',
+  ownerName: lead?.ownerName || '',
+  phoneNumber: lead?.phoneNumber || '',
+  hasWebsite: lead?.hasWebsite === 'yes' ? 'yes' : 'no',
+  websiteUrl: lead?.websiteUrl || '',
+  meetingDateTime: lead?.meetingDateTime || '',
+  meetingLocation: lead?.meetingLocation || '',
+  status: lead?.status || 'setting_meeting',
+  importedSubmissionId: lead?.importedSubmissionId || '',
+  importedFrom: lead?.importedFrom || ''
 });
 
 const buildCardLinkRows = (links = []) => {
@@ -1084,6 +1155,40 @@ const formatPhoneForCall = (phone) => {
   return /^\+/.test(raw) ? `+${digits}` : digits;
 };
 
+const getOutreachStatusLabel = (value) => OUTREACH_STATUS_OPTIONS.find((option) => option.value === value)?.label || formatLabel(value || 'setting_meeting');
+
+const getOutreachStatusTone = (value) => {
+  if (value === 'confirmed') return 'accepted';
+  if (value === 'meeting') return 'contacted';
+  if (value === 'they_will_call_back') return 'quoted';
+  if (value === 'declined') return 'archived';
+  return 'new';
+};
+
+const buildOutreachWhatsAppLink = (lead) => {
+  const phone = formatPhoneForWhatsApp(lead?.phoneNumber || '');
+  if (!phone) return '';
+  const message = `Hi ${lead?.ownerName || 'there'}, this is QD Systems. We'd love to schedule a quick intro about your business and website goals.`;
+  return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+};
+
+const buildOutreachCallLink = (lead) => {
+  const phone = formatPhoneForCall(lead?.phoneNumber || '');
+  if (!phone) return '';
+  return `tel:${phone}`;
+};
+
+const formatOutreachMeeting = (lead) => {
+  const parts = [];
+  if (lead?.meetingDateTime) {
+    parts.push(formatDate(lead.meetingDateTime));
+  }
+  if (lead?.meetingLocation) {
+    parts.push(String(lead.meetingLocation || '').trim());
+  }
+  return parts.filter(Boolean).join(' | ');
+};
+
 const joinSection = (title, rows) => {
   return [
     `${title}:`,
@@ -1285,6 +1390,7 @@ const getAnalytics = (items) => {
     New: 0,
     Reviewed: 0,
     Contacted: 0,
+    Meeting: 0,
     Quoted: 0,
     Accepted: 0,
     'Under Construction': 0,
@@ -1317,7 +1423,7 @@ const getAnalytics = (items) => {
     warm: 0,
     stale: 0
   };
-  const openStatuses = new Set(['New', 'Reviewed', 'Contacted', 'Quoted', 'Under Construction']);
+  const openStatuses = new Set(['New', 'Reviewed', 'Contacted', 'Meeting', 'Quoted', 'Under Construction']);
   const now = Date.now();
 
   items.forEach((submission) => {
@@ -1523,6 +1629,8 @@ const renderOverviewCards = (analytics) => {
     ['Total', 'All', analytics.counts.total, 'All live submissions'],
     ['New', 'New', analytics.counts.New || 0, 'Awaiting review'],
     ['Reviewed', 'Reviewed', analytics.counts.Reviewed || 0, 'Assessed'],
+    ['Contacted', 'Contacted', analytics.counts.Contacted || 0, 'Initial outreach completed'],
+    ['Meeting', 'Meeting', analytics.counts.Meeting || 0, 'Intro or follow-up meeting planned'],
     ['Quoted', 'Quoted', analytics.counts.Quoted || 0, 'Proposal stage'],
     ['Accepted', 'Accepted', analytics.counts.Accepted || 0, 'Approved'],
     ['Under Construction', 'Under Construction', analytics.counts['Under Construction'] || 0, 'Build in progress'],
@@ -1978,14 +2086,330 @@ const renderDashboard = () => {
   `;
 };
 
+const getOutreachLeadById = (id) => state.outreachLeads.find((lead) => lead.id === id) || null;
+
+const getFilteredOutreachLeads = () => {
+  const search = String(state.outreachFilters.search || '').trim().toLowerCase();
+  return state.outreachLeads.filter((lead) => {
+    const matchesStatus = state.outreachFilters.status === 'All' || lead.status === state.outreachFilters.status;
+    if (!matchesStatus) return false;
+    if (!search) return true;
+
+    const haystack = [
+      lead.businessName,
+      lead.ownerName,
+      lead.phoneNumber,
+      lead.websiteUrl,
+      lead.meetingLocation,
+      lead.meetingDateTime
+    ].join(' ').toLowerCase();
+
+    return haystack.includes(search);
+  });
+};
+
+const getPaginatedOutreachLeads = (items) => {
+  const pageSize = 10;
+  const pageCount = Math.ceil(items.length / pageSize);
+  const activePage = Math.min(state.outreachPage, Math.max(pageCount - 1, 0));
+  return {
+    pageSize,
+    pageCount,
+    activePage,
+    items: items.slice(activePage * pageSize, (activePage + 1) * pageSize)
+  };
+};
+
+const renderOutreachStatusSelect = (lead) => `
+  <select class="qd-admin-select qd-admin-outreach-status-select" data-outreach-status-id="${escapeHtml(lead.id)}" aria-label="${escapeHtml(`Change status for ${lead.businessName || lead.ownerName || 'lead'}`)}">
+    ${OUTREACH_STATUS_OPTIONS.map((option) => `
+      <option value="${escapeHtml(option.value)}" ${lead.status === option.value ? 'selected' : ''}>${escapeHtml(option.label)}</option>
+    `).join('')}
+  </select>
+`;
+
+const renderOutreachRows = (items) => {
+  if (state.outreachLoading && !items.length) {
+    return `
+      <tr>
+        <td colspan="7">
+          <div class="qd-admin-empty-state">
+            <strong>Loading outreach leads</strong>
+            <p>Opening the realtime Firestore listener for business outreach leads.</p>
+          </div>
+        </td>
+      </tr>
+    `;
+  }
+
+  if (!items.length) {
+    return `
+      <tr>
+        <td colspan="7">
+          <div class="qd-admin-empty-state">
+            <strong>No outreach leads yet</strong>
+            <p>Add your first cold outreach contact to start tracking follow-up and confirmed imports.</p>
+          </div>
+        </td>
+      </tr>
+    `;
+  }
+
+  return items.map((lead) => {
+    const whatsappLink = buildOutreachWhatsAppLink(lead);
+    const callLink = buildOutreachCallLink(lead);
+    const meetingSummary = formatOutreachMeeting(lead);
+    const meetingDateLabel = lead.meetingDateTime ? formatDate(lead.meetingDateTime) : 'Not scheduled';
+    const meetingLocationLabel = lead.meetingLocation || 'No location set';
+    return `
+      <tr>
+        <td>
+          <div class="qd-admin-card-person qd-admin-outreach-person">
+            <div>
+              <strong>${escapeHtml(lead.businessName || 'Untitled Lead')}</strong>
+              <span>${escapeHtml(lead.websiteUrl || 'No website listed')}</span>
+            </div>
+          </div>
+        </td>
+        <td>${escapeHtml(lead.ownerName || 'Not provided')}</td>
+        <td>${escapeHtml(lead.phoneNumber || 'Not provided')}</td>
+        <td>${escapeHtml(lead.websiteUrl || 'No website')}</td>
+        <td>
+          ${escapeHtml(meetingDateLabel)}
+          <div class="qd-admin-subline">${escapeHtml(meetingLocationLabel)}</div>
+        </td>
+        <td><span class="qd-status-pill" data-tone="${escapeHtml(getOutreachStatusTone(lead.status))}">${escapeHtml(getOutreachStatusLabel(lead.status))}</span></td>
+        <td>${escapeHtml(formatDate(lead.createdAt))}</td>
+        <td>
+          <div class="qd-admin-row-actions qd-admin-outreach-actions">
+            ${renderOutreachStatusSelect(lead)}
+            <div class="qd-admin-outreach-action-links">
+              ${whatsappLink ? `<a class="qd-admin-row-button qd-admin-outreach-action-link" href="${escapeHtml(whatsappLink)}" target="_blank" rel="noreferrer noopener">WhatsApp</a>` : ''}
+              ${callLink ? `<a class="qd-admin-row-button qd-admin-outreach-action-link" href="${escapeHtml(callLink)}">Call</a>` : ''}
+              <button class="qd-admin-row-button" type="button" data-action="edit-outreach-lead" data-id="${escapeHtml(lead.id)}">Edit</button>
+              <button class="qd-admin-row-button is-danger" type="button" data-action="delete-outreach-lead" data-id="${escapeHtml(lead.id)}">Delete</button>
+            </div>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+};
+
+const renderOutreachCards = (items) => {
+  if (!items.length) {
+    return `
+      <div class="qd-admin-empty-state">
+        <strong>No outreach leads yet</strong>
+        <p>Add your first cold outreach contact to start tracking follow-up and confirmed imports.</p>
+      </div>
+    `;
+  }
+
+  return items.map((lead) => {
+    const whatsappLink = buildOutreachWhatsAppLink(lead);
+    const callLink = buildOutreachCallLink(lead);
+    const meetingSummary = formatOutreachMeeting(lead);
+    return `
+      <article class="qd-admin-mobile-card qd-admin-outreach-mobile-card">
+        <div class="qd-admin-mobile-card-head">
+          <div>
+            <div class="qd-admin-business-name">${escapeHtml(lead.businessName || 'Untitled Lead')}</div>
+            <div class="qd-admin-subline">${escapeHtml(lead.ownerName || 'No owner name')}</div>
+          </div>
+          <span class="qd-status-pill" data-tone="${escapeHtml(getOutreachStatusTone(lead.status))}">${escapeHtml(getOutreachStatusLabel(lead.status))}</span>
+        </div>
+        <div class="qd-admin-mobile-card-grid">
+          <div><strong>Owner</strong><span>${escapeHtml(lead.ownerName || 'Not provided')}</span></div>
+          <div><strong>Phone</strong><span>${escapeHtml(lead.phoneNumber || 'Not provided')}</span></div>
+          <div><strong>Website</strong><span>${escapeHtml(lead.websiteUrl || 'No website')}</span></div>
+          <div><strong>Meeting</strong><span>${escapeHtml(meetingSummary || 'Not scheduled')}</span></div>
+          <div><strong>Added</strong><span>${escapeHtml(formatDate(lead.createdAt))}</span></div>
+        </div>
+        <div class="qd-admin-card-mobile-actions qd-admin-outreach-mobile-actions">
+          ${renderOutreachStatusSelect(lead)}
+          ${whatsappLink ? `<a class="qd-btn qd-btn-sm qd-admin-action-whatsapp" href="${escapeHtml(whatsappLink)}" target="_blank" rel="noreferrer noopener">WhatsApp</a>` : ''}
+          ${callLink ? `<a class="qd-btn qd-btn-sm qd-admin-action-call" href="${escapeHtml(callLink)}">Call</a>` : ''}
+          <button class="qd-btn qd-btn-sm qd-admin-action-secondary" type="button" data-action="edit-outreach-lead" data-id="${escapeHtml(lead.id)}">Edit</button>
+          <button class="qd-btn qd-btn-sm qd-admin-action-danger" type="button" data-action="delete-outreach-lead" data-id="${escapeHtml(lead.id)}">Delete</button>
+        </div>
+      </article>
+    `;
+  }).join('');
+};
+
+const renderOutreachPagination = (totalItems) => {
+  const pageSize = 10;
+  const pageCount = Math.ceil(totalItems / pageSize);
+  if (pageCount <= 1) return '';
+  const activePage = Math.min(state.outreachPage, Math.max(pageCount - 1, 0));
+  return `
+    <div class="qd-admin-pagination">
+      <button class="qd-admin-pagination-btn" type="button" data-action="outreach-page-prev" ${activePage === 0 ? 'disabled' : ''} aria-label="Previous outreach page">&larr;</button>
+      <span>${activePage + 1} / ${pageCount}</span>
+      <button class="qd-admin-pagination-btn" type="button" data-action="outreach-page-next" ${activePage >= pageCount - 1 ? 'disabled' : ''} aria-label="Next outreach page">&rarr;</button>
+    </div>
+  `;
+};
+
+const getOutreachEditorDraftFromState = () => ({
+  ...createEmptyOutreachLeadDraft(),
+  ...(state.outreachEditor?.draft || {})
+});
+
+const renderOutreachEditor = () => {
+  if (!state.outreachEditor.open) return '';
+
+  const draft = getOutreachEditorDraftFromState();
+  const showWebsiteField = draft.hasWebsite === 'yes';
+
+  return `
+    <div class="qd-admin-modal-overlay">
+      <button class="qd-admin-modal-backdrop" type="button" data-action="close-outreach-editor" aria-label="Close outreach lead editor"></button>
+      <aside class="qd-admin-drawer qd-admin-card-editor qd-admin-outreach-editor" role="dialog" aria-modal="true" aria-label="Outreach lead editor">
+        <button class="qd-admin-drawer-close qd-admin-drawer-close-floating" type="button" data-action="close-outreach-editor" aria-label="Close">X</button>
+
+        <section class="qd-admin-card-editor-head">
+          <div>
+            <div class="qd-eyebrow qd-admin-kicker">Business Outreach</div>
+            <h2>${state.outreachEditor.mode === 'edit' ? 'Edit outreach lead' : 'Add outreach lead'}</h2>
+            <p>Track manual cold outreach and promote confirmed leads into the project submissions pipeline.</p>
+          </div>
+        </section>
+
+        ${state.outreachEditor.error ? `<div class="qd-admin-alert" role="alert">${escapeHtml(state.outreachEditor.error)}</div>` : ''}
+
+        <form class="qd-admin-card-form" id="outreach-editor-form">
+          <div class="qd-admin-admin-grid qd-admin-card-grid-fields qd-admin-outreach-grid">
+            <div class="qd-admin-field">
+              <label for="outreach-business-name">Business Name</label>
+              <input id="outreach-business-name" class="qd-admin-input" name="businessName" type="text" value="${escapeHtml(draft.businessName || '')}" required>
+            </div>
+            <div class="qd-admin-field">
+              <label for="outreach-owner-name">Owner Name</label>
+              <input id="outreach-owner-name" class="qd-admin-input" name="ownerName" type="text" value="${escapeHtml(draft.ownerName || '')}" required>
+            </div>
+            <div class="qd-admin-field">
+              <label for="outreach-phone-number">Phone Number</label>
+              <input id="outreach-phone-number" class="qd-admin-input" name="phoneNumber" type="tel" inputmode="tel" value="${escapeHtml(draft.phoneNumber || '')}" required>
+            </div>
+            <div class="qd-admin-field">
+              <label for="outreach-status">Status</label>
+              <select id="outreach-status" class="qd-admin-select" name="status">
+                ${OUTREACH_STATUS_OPTIONS.map((option) => `
+                  <option value="${escapeHtml(option.value)}" ${draft.status === option.value ? 'selected' : ''}>${escapeHtml(option.label)}</option>
+                `).join('')}
+              </select>
+            </div>
+            <div class="qd-admin-field">
+              <label for="outreach-meeting-date-time">Meeting Date & Time <span class="qd-admin-field-optional">(optional)</span></label>
+              <input id="outreach-meeting-date-time" class="qd-admin-input" name="meetingDateTime" type="datetime-local" value="${escapeHtml(draft.meetingDateTime || '')}">
+            </div>
+            <fieldset class="qd-admin-field qd-admin-outreach-radio-field">
+              <legend>Has Website</legend>
+              <div class="qd-admin-outreach-radio-group">
+                <label class="qd-admin-toggle qd-admin-outreach-radio-option">
+                  <input type="radio" name="hasWebsite" value="yes" ${draft.hasWebsite === 'yes' ? 'checked' : ''}>
+                  <span>Yes</span>
+                </label>
+                <label class="qd-admin-toggle qd-admin-outreach-radio-option">
+                  <input type="radio" name="hasWebsite" value="no" ${draft.hasWebsite === 'yes' ? '' : 'checked'}>
+                  <span>No</span>
+                </label>
+              </div>
+            </fieldset>
+            <div class="qd-admin-field qd-admin-field-span-2">
+              <label for="outreach-meeting-location">Meeting Location <span class="qd-admin-field-optional">(optional)</span></label>
+              <input id="outreach-meeting-location" class="qd-admin-input" name="meetingLocation" type="text" value="${escapeHtml(draft.meetingLocation || '')}" placeholder="Office, cafe, Zoom link, address...">
+            </div>
+            ${showWebsiteField ? `
+              <div class="qd-admin-field qd-admin-field-span-2">
+                <label for="outreach-website-url">Website URL</label>
+                <input id="outreach-website-url" class="qd-admin-input" name="websiteUrl" type="url" value="${escapeHtml(draft.websiteUrl || '')}" placeholder="https://example.com">
+              </div>
+            ` : ''}
+          </div>
+
+          <div class="qd-admin-save-row">
+            <span class="qd-admin-save-help">Confirmed leads import once into the live pipeline and keep a linked submission ID for duplicate protection.</span>
+            <button class="qd-btn qd-btn-md qd-admin-action-primary" type="submit" ${state.outreachEditor.isSaving ? 'disabled' : ''}>
+              ${state.outreachEditor.isSaving ? 'Saving...' : state.outreachEditor.mode === 'edit' ? 'Save lead' : 'Create lead'}
+            </button>
+          </div>
+        </form>
+      </aside>
+    </div>
+  `;
+};
+
+const renderOutreachManager = () => {
+  const filteredLeads = getFilteredOutreachLeads();
+  const { items, activePage, pageCount } = getPaginatedOutreachLeads(filteredLeads);
+  if (activePage !== state.outreachPage && pageCount) {
+    state.outreachPage = activePage;
+  }
+
+  return `
+    <section class="qd-admin-dashboard qd-admin-cards-dashboard">
+      ${state.outreachError ? `<div class="qd-admin-alert" role="alert">${escapeHtml(state.outreachError)}</div>` : ''}
+
+      <article class="qd-admin-card qd-admin-table-card">
+        <div class="qd-admin-section-head">
+          <div>
+            <div class="qd-eyebrow qd-admin-kicker">Business Outreach</div>
+            <h2>Lead tracker</h2>
+            <p>Track cold outreach contacts, follow-up status, and import confirmed businesses directly into the pipeline.</p>
+          </div>
+        </div>
+
+        <div class="qd-admin-table-toolbar qd-admin-outreach-toolbar">
+          <input class="qd-admin-input" type="search" placeholder="Search business, owner, phone, or website" data-outreach-field="search" value="${escapeHtml(state.outreachFilters.search)}">
+          <select class="qd-admin-select" data-outreach-field="status">
+            <option value="All" ${state.outreachFilters.status === 'All' ? 'selected' : ''}>All statuses</option>
+            ${OUTREACH_STATUS_OPTIONS.map((option) => `
+              <option value="${escapeHtml(option.value)}" ${state.outreachFilters.status === option.value ? 'selected' : ''}>${escapeHtml(option.label)}</option>
+            `).join('')}
+          </select>
+          <button class="qd-btn qd-btn-sm qd-admin-action-primary" type="button" data-action="open-outreach-create">Add Lead</button>
+        </div>
+
+        <div class="qd-admin-table-wrap">
+          <table class="qd-admin-table">
+            <thead>
+              <tr>
+                <th>Business</th>
+                <th>Owner</th>
+                <th>Phone</th>
+                <th>Website</th>
+                <th>Meeting</th>
+                <th>Status</th>
+                <th>Added</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>${renderOutreachRows(items)}</tbody>
+          </table>
+        </div>
+
+        <div class="qd-admin-mobile-list">
+          ${renderOutreachCards(items)}
+        </div>
+
+        ${renderOutreachPagination(filteredLeads.length)}
+      </article>
+    </section>
+  `;
+};
+
 const renderAdminTabs = () => `
   <nav class="qd-admin-tabs" aria-label="Admin sections">
     <button class="qd-admin-tab ${state.activeTab === 'dashboard' ? 'is-active' : ''}" type="button" data-action="set-admin-tab" data-tab="dashboard">Pipeline</button>
-    <button class="qd-admin-tab ${state.activeTab === 'cards' ? 'is-active' : ''}" type="button" data-action="set-admin-tab" data-tab="cards">Smart Cards</button>
+    <button class="qd-admin-tab ${state.activeTab === 'outreach' ? 'is-active' : ''}" type="button" data-action="set-admin-tab" data-tab="outreach">Outreach</button>
+    <a class="qd-admin-tab qd-admin-tab-link" href="chat-admin.html?returnTo=${escapeHtml(state.activeTab)}">Chat Leads</a>
     <button class="qd-admin-tab ${state.activeTab === 'demos' ? 'is-active' : ''}" type="button" data-action="set-admin-tab" data-tab="demos">Demos</button>
+    <button class="qd-admin-tab ${state.activeTab === 'cards' ? 'is-active' : ''}" type="button" data-action="set-admin-tab" data-tab="cards">Smart Cards</button>
     <button class="qd-admin-tab ${state.activeTab === 'invitations' ? 'is-active' : ''}" type="button" data-action="set-admin-tab" data-tab="invitations">Invitations</button>
     <button class="qd-admin-tab ${state.activeTab === 'activity' ? 'is-active' : ''}" type="button" data-action="set-admin-tab" data-tab="activity">Activity</button>
-    <a class="qd-admin-tab qd-admin-tab-link" href="chat-admin.html?returnTo=${escapeHtml(state.activeTab)}">Chat Leads</a>
   </nav>
 `;
 
@@ -3243,6 +3667,7 @@ const renderAppShell = (content) => {
       ${renderCardEditor()}
       ${renderDemoEditor()}
       ${renderInvitationEditor()}
+      ${renderOutreachEditor()}
       ${renderQuoteDrawer()}
     </div>
   `;
@@ -3298,7 +3723,7 @@ const renderAccessDenied = () => renderAppShell(`
 `);
 
 const render = () => {
-  const nextModalOpen = Boolean(state.selectedId || state.cardEditor.open || state.demoEditor.open || state.invitationEditor.open || state.quoteDrawer.open);
+  const nextModalOpen = Boolean(state.selectedId || state.cardEditor.open || state.demoEditor.open || state.invitationEditor.open || state.outreachEditor.open || state.quoteDrawer.open);
   if (nextModalOpen !== isModalOpen) {
     document.body.classList.toggle('qd-modal-open', nextModalOpen);
     isModalOpen = nextModalOpen;
@@ -3335,6 +3760,8 @@ const render = () => {
       ? renderDemosManager()
     : state.activeTab === 'invitations'
       ? renderInvitationsManager()
+    : state.activeTab === 'outreach'
+      ? renderOutreachManager()
     : state.activeTab === 'activity'
       ? renderActivityManager()
       : renderDashboard();
@@ -3345,6 +3772,7 @@ const render = () => {
 const openSubmission = (id) => {
   const submission = state.submissions.find((item) => item.id === id);
   if (!submission) return;
+  lastModalOpenedAt = Date.now();
   const didChangeSelection = state.selectedId !== id;
   state.selectedId = id;
   if (didChangeSelection) {
@@ -3620,6 +4048,7 @@ const subscribeToDemos = () => {
 };
 
 const openDemoEditor = (mode, demo = null) => {
+  lastModalOpenedAt = Date.now();
   const draft = demo
     ? {
         ...createEmptyDemoDraft(),
@@ -3958,6 +4387,348 @@ const subscribeToInvitations = () => {
   startListener(orderedQuery);
 };
 
+const subscribeToOutreachLeads = () => {
+  if (unsubscribeOutreachSnapshot) {
+    unsubscribeOutreachSnapshot();
+    unsubscribeOutreachSnapshot = null;
+  }
+
+  state.outreachLoading = true;
+  state.outreachError = '';
+  render();
+
+  const outreachRef = collection(db, 'businessOutreachLeads');
+  const orderedQuery = query(outreachRef, orderBy('createdAt', 'desc'));
+
+  const startListener = (source) => {
+    unsubscribeOutreachSnapshot = onSnapshot(
+      source,
+      (snapshot) => {
+        state.outreachLeads = snapshot.docs.map(hydrateOutreachLead);
+        state.outreachLoading = false;
+        if (state.outreachEditor.open && state.outreachEditor.id) {
+          const fresh = state.outreachLeads.find((item) => item.id === state.outreachEditor.id);
+          if (fresh && !state.outreachEditor.isSaving) {
+            state.outreachEditor.original = deepCloneForLog(getOutreachLeadLogState(fresh));
+            state.outreachEditor.draft = {
+              ...createEmptyOutreachLeadDraft(),
+              ...fresh
+            };
+          }
+        }
+        render();
+      },
+      (error) => {
+        if (source === orderedQuery) {
+          startListener(outreachRef);
+          return;
+        }
+
+        state.outreachLoading = false;
+        state.outreachError = error?.message || 'Unable to read outreach leads.';
+        render();
+      }
+    );
+  };
+
+  startListener(orderedQuery);
+};
+
+const openOutreachEditor = (mode, lead = null) => {
+  lastModalOpenedAt = Date.now();
+  const draft = lead
+    ? { ...createEmptyOutreachLeadDraft(), ...lead }
+    : createEmptyOutreachLeadDraft();
+
+  state.outreachEditor = {
+    open: true,
+    mode,
+    id: lead?.id || null,
+    draft,
+    original: lead ? deepCloneForLog(getOutreachLeadLogState(lead)) : null,
+    isSaving: false,
+    error: ''
+  };
+  render();
+};
+
+const closeOutreachEditor = () => {
+  state.outreachEditor = {
+    open: false,
+    mode: 'create',
+    id: null,
+    draft: null,
+    original: null,
+    isSaving: false,
+    error: ''
+  };
+  render();
+};
+
+const captureOutreachDraftFromDom = () => {
+  const form = document.getElementById('outreach-editor-form');
+  if (!form) return getOutreachEditorDraftFromState();
+
+  const hasWebsite = form.elements.hasWebsite?.value === 'yes' ? 'yes' : 'no';
+  return {
+    ...getOutreachEditorDraftFromState(),
+    businessName: form.elements.businessName?.value?.trim() || '',
+    ownerName: form.elements.ownerName?.value?.trim() || '',
+    phoneNumber: sanitizePhoneValue(form.elements.phoneNumber?.value || ''),
+    hasWebsite,
+    websiteUrl: hasWebsite === 'yes' ? form.elements.websiteUrl?.value?.trim() || '' : '',
+    meetingDateTime: form.elements.meetingDateTime?.value || '',
+    meetingLocation: form.elements.meetingLocation?.value?.trim() || '',
+    status: OUTREACH_STATUS_OPTIONS.some((option) => option.value === form.elements.status?.value)
+      ? form.elements.status.value
+      : 'setting_meeting'
+  };
+};
+
+const ensureOutreachEditorData = () => {
+  const draft = captureOutreachDraftFromDom();
+  state.outreachEditor.draft = draft;
+  return draft;
+};
+
+const importOutreachLeadToSubmissions = async (lead, { suppressToast = false } = {}) => {
+  if (lead.importedSubmissionId) {
+    showAdminToast('Already imported to pipeline.');
+    return lead.importedSubmissionId;
+  }
+
+  const payload = {
+    businessName: lead.businessName,
+    businessPhone: sanitizePhoneValue(lead.phoneNumber),
+    businessEmail: '',
+    industry: '',
+    businessDescription: '',
+    answers: {
+      businessName: lead.businessName,
+      businessPhone: sanitizePhoneValue(lead.phoneNumber),
+      hasExistingWebsite: lead.hasWebsite === 'yes' ? 'yes' : 'no',
+      existingWebsiteLink: lead.websiteUrl || '',
+      ownerName: lead.ownerName
+    },
+    hasExistingWebsite: lead.hasWebsite === 'yes' ? 'yes' : 'no',
+    existingWebsiteLink: lead.websiteUrl || '',
+    status: 'Contacted',
+    priority: 'Normal',
+    notes: [
+      'Imported from manual business outreach.',
+      `Owner: ${lead.ownerName}`,
+      lead.hasWebsite === 'yes' && lead.websiteUrl ? `Website: ${lead.websiteUrl}` : 'No existing website.',
+      `Outreach lead ID: ${lead.id}`
+    ].filter(Boolean).join('\n'),
+    source: 'manual_outreach',
+    importedFrom: 'businessOutreachLeads',
+    importedOutreachLeadId: lead.id,
+    language: 'en',
+    createdAt: serverTimestamp(),
+    submittedAt: serverTimestamp(),
+    lastUpdatedAt: serverTimestamp(),
+    selectedMainPurpose: '',
+    selectedRequiredFeatures: '',
+    selectedOptionalServices: ''
+  };
+
+  const submissionRef = await addDoc(collection(db, 'projectSubmissions'), payload);
+
+  await updateDoc(doc(db, 'businessOutreachLeads', lead.id), {
+    importedSubmissionId: submissionRef.id,
+    importedAt: serverTimestamp(),
+    importedFrom: 'businessOutreachLeads',
+    updatedAt: serverTimestamp()
+  });
+
+  await logAdminActivity({
+    action: 'import_outreach_lead',
+    targetType: 'submission',
+    targetId: submissionRef.id,
+    targetLabel: getOutreachLeadActivityLabel(lead),
+    metadata: {
+      outreachLeadId: lead.id,
+      ownerName: lead.ownerName,
+      phoneNumber: lead.phoneNumber
+    }
+  });
+
+  if (!suppressToast) {
+    showAdminToast(`${lead.businessName} imported to pipeline.`);
+  }
+  return submissionRef.id;
+};
+
+const saveOutreachLeadEditor = async () => {
+  const draft = ensureOutreachEditorData();
+
+  if (!draft.businessName?.trim()) {
+    state.outreachEditor.error = 'Business name is required.';
+    render();
+    return;
+  }
+  if (!draft.ownerName?.trim()) {
+    state.outreachEditor.error = 'Owner name is required.';
+    render();
+    return;
+  }
+  const cleanPhone = sanitizePhoneValue(draft.phoneNumber || '');
+  if (!cleanPhone) {
+    state.outreachEditor.error = 'Phone number is required.';
+    render();
+    return;
+  }
+  if (draft.hasWebsite === 'yes' && !draft.websiteUrl?.trim()) {
+    state.outreachEditor.error = 'Website URL is required when Has Website is Yes.';
+    render();
+    return;
+  }
+  if (draft.hasWebsite === 'yes' && draft.websiteUrl?.trim()) {
+    try {
+      new URL(draft.websiteUrl.trim());
+    } catch {
+      state.outreachEditor.error = 'Please enter a valid website URL.';
+      render();
+      return;
+    }
+  }
+
+  state.outreachEditor.isSaving = true;
+  state.outreachEditor.error = '';
+  render();
+
+  try {
+    let resultId = state.outreachEditor.id;
+    const payload = {
+      businessName: draft.businessName.trim(),
+      ownerName: draft.ownerName.trim(),
+      phoneNumber: cleanPhone,
+      hasWebsite: draft.hasWebsite === 'yes' ? 'yes' : 'no',
+      websiteUrl: draft.hasWebsite === 'yes' ? draft.websiteUrl.trim() : '',
+      meetingDateTime: draft.meetingDateTime || '',
+      meetingLocation: draft.meetingLocation?.trim() || '',
+      status: draft.status,
+      updatedAt: serverTimestamp()
+    };
+
+    if (state.outreachEditor.mode === 'edit' && state.outreachEditor.id) {
+      const existing = getOutreachLeadById(state.outreachEditor.id) || {};
+      await updateDoc(doc(db, 'businessOutreachLeads', state.outreachEditor.id), payload);
+      const nextLead = { ...existing, ...payload };
+      const changeSet = buildChangedMetadata(state.outreachEditor.original || {}, getOutreachLeadLogState(nextLead));
+      const changedWithoutStatus = changeSet.changedFields.filter((field) => field !== 'status');
+
+      if (changedWithoutStatus.length) {
+        await logAdminActivity({
+          action: 'edit_outreach_lead',
+          targetType: 'outreach_lead',
+          targetId: state.outreachEditor.id,
+          targetLabel: getOutreachLeadActivityLabel(payload),
+          metadata: changeSet
+        });
+      }
+
+      if (changeSet.changedFields.includes('status')) {
+        await logAdminActivity({
+          action: 'change_outreach_status',
+          targetType: 'outreach_lead',
+          targetId: state.outreachEditor.id,
+          targetLabel: getOutreachLeadActivityLabel(payload),
+          metadata: {
+            changedFields: ['status'],
+            before: { status: state.outreachEditor.original?.status || existing.status || 'setting_meeting' },
+            after: { status: payload.status }
+          }
+        });
+      }
+
+      showAdminToast(`Saved ${payload.businessName}`);
+    } else {
+      const docRef = await addDoc(collection(db, 'businessOutreachLeads'), {
+        ...payload,
+        importedSubmissionId: '',
+        importedAt: null,
+        importedFrom: '',
+        createdBy: state.user?.email || '',
+        createdAt: serverTimestamp()
+      });
+      resultId = docRef.id;
+      await logAdminActivity({
+        action: 'create_outreach_lead',
+        targetType: 'outreach_lead',
+        targetId: docRef.id,
+        targetLabel: getOutreachLeadActivityLabel(payload),
+        metadata: { status: payload.status, ownerName: payload.ownerName }
+      });
+      showAdminToast(`Created ${payload.businessName}`);
+    }
+
+    const existingLead = getOutreachLeadById(resultId) || {};
+    const savedLead = {
+      ...existingLead,
+      ...draft,
+      ...payload,
+      id: resultId,
+      importedSubmissionId: existingLead.importedSubmissionId || draft.importedSubmissionId || '',
+      importedAt: existingLead.importedAt || draft.importedAt || null,
+      importedFrom: existingLead.importedFrom || draft.importedFrom || ''
+    };
+
+    if (savedLead.status === 'confirmed' && !savedLead.importedSubmissionId) {
+      await importOutreachLeadToSubmissions(savedLead, { suppressToast: true });
+      showAdminToast('Lead confirmed and imported to pipeline.');
+    }
+
+    closeOutreachEditor();
+  } catch (error) {
+    state.outreachEditor.isSaving = false;
+    state.outreachEditor.error = error?.message || 'Could not save the outreach lead.';
+    render();
+  }
+};
+
+const updateOutreachLeadStatus = async (lead, nextStatus) => {
+  if (!lead?.id || lead.status === nextStatus) return;
+  await updateDoc(doc(db, 'businessOutreachLeads', lead.id), {
+    status: nextStatus,
+    updatedAt: serverTimestamp()
+  });
+
+  await logAdminActivity({
+    action: 'change_outreach_status',
+    targetType: 'outreach_lead',
+    targetId: lead.id,
+    targetLabel: getOutreachLeadActivityLabel(lead),
+    metadata: {
+      changedFields: ['status'],
+      before: { status: lead.status },
+      after: { status: nextStatus }
+    }
+  });
+
+  if (nextStatus === 'confirmed' && !lead.importedSubmissionId) {
+    await importOutreachLeadToSubmissions({ ...lead, status: nextStatus }, { suppressToast: true });
+    showAdminToast('Lead confirmed and imported to pipeline.');
+    return;
+  }
+
+  showAdminToast(`Status changed to ${getOutreachStatusLabel(nextStatus)}`);
+};
+
+const deleteOutreachLead = async (lead) => {
+  const confirmed = window.confirm(`Delete outreach lead "${lead.businessName || lead.ownerName}"?`);
+  if (!confirmed) return;
+  await deleteDoc(doc(db, 'businessOutreachLeads', lead.id));
+  await logAdminActivity({
+    action: 'delete_outreach_lead',
+    targetType: 'outreach_lead',
+    targetId: lead.id,
+    targetLabel: getOutreachLeadActivityLabel(lead),
+    metadata: { status: lead.status, ownerName: lead.ownerName }
+  });
+  showAdminToast(`Deleted ${lead.businessName}`);
+};
+
 const getInvitationById = (id) => state.invitations.find((invitation) => invitation.id === id) || null;
 
 const stopInvitationRsvpsSubscription = () => {
@@ -4001,6 +4772,7 @@ const subscribeToInvitationRsvps = (invitationId) => {
 };
 
 const openInvitationEditor = (mode, invitation = null) => {
+  lastModalOpenedAt = Date.now();
   const draft = invitation
     ? { ...createEmptyInvitationDraft(), ...invitation }
     : createEmptyInvitationDraft();
@@ -4360,16 +5132,15 @@ const syncActivitySubscriptions = () => {
     stopActivityLogsSubscription();
   }
 
-  if (state.selectedId) {
-    subscribeToSubmissionActivity(state.selectedId);
-  } else {
-    stopSubmissionActivitySubscription();
-  }
+  // The submission drawer does not currently render per-submission activity logs,
+  // so keeping this listener live only adds avoidable rerenders during status saves.
+  stopSubmissionActivitySubscription();
 };
 
 const getCardById = (id) => state.cards.find((card) => card.id === id) || null;
 
 const openCardEditor = (mode, card = null) => {
+  lastModalOpenedAt = Date.now();
   const draft = card
     ? {
         ...createEmptyCardDraft(),
@@ -4758,17 +5529,18 @@ const saveDrawer = async (nextValues = {}) => {
       editMode: false,
       lastUpdatedAt: undefined
     };
+    const pendingLogs = [];
     if (changeSet.changedFields.length) {
-      await logAdminActivity({
+      pendingLogs.push(logAdminActivity({
         action: 'edit_submission',
         targetType: 'submission',
         targetId: selected.id,
         targetLabel: getSubmissionActivityLabel({ ...selected, ...payload, answers: payload.answers }),
         metadata: changeSet
-      });
+      }));
     }
     if (payload.status !== previousStatus) {
-      await logAdminActivity({
+      pendingLogs.push(logAdminActivity({
         action: 'change_status',
         targetType: 'submission',
         targetId: selected.id,
@@ -4778,10 +5550,10 @@ const saveDrawer = async (nextValues = {}) => {
           before: { status: previousStatus },
           after: { status: payload.status }
         }
-      });
+      }));
     }
     if (payload.priority !== previousPriority) {
-      await logAdminActivity({
+      pendingLogs.push(logAdminActivity({
         action: 'change_priority',
         targetType: 'submission',
         targetId: selected.id,
@@ -4791,14 +5563,19 @@ const saveDrawer = async (nextValues = {}) => {
           before: { priority: previousPriority },
           after: { priority: payload.priority }
         }
-      });
+      }));
     }
+
+    state.isSaving = false;
+    render();
+
     if (payload.status !== previousStatus) {
       showAdminToast(`Status changed to ${payload.status}`);
     }
+
+    void Promise.allSettled(pendingLogs);
   } catch (error) {
     state.saveError = error?.message || 'Could not save submission changes.';
-  } finally {
     state.isSaving = false;
     render();
   }
@@ -4807,6 +5584,7 @@ const saveDrawer = async (nextValues = {}) => {
 const handleDocumentClick = async (event) => {
   const actionTarget = event.target.closest('[data-action]');
   if (!actionTarget) return;
+  if (shouldIgnoreImmediateModalClose(actionTarget)) return;
 
   const action = actionTarget.dataset.action;
 
@@ -4881,6 +5659,18 @@ const handleDocumentClick = async (event) => {
     return;
   }
 
+  if (action === 'outreach-page-prev') {
+    state.outreachPage = Math.max(state.outreachPage - 1, 0);
+    render();
+    return;
+  }
+
+  if (action === 'outreach-page-next') {
+    state.outreachPage += 1;
+    render();
+    return;
+  }
+
   if (action === 'close-drawer') {
     closeDrawer();
     return;
@@ -4901,6 +5691,11 @@ const handleDocumentClick = async (event) => {
     return;
   }
 
+  if (action === 'open-outreach-create') {
+    openOutreachEditor('create');
+    return;
+  }
+
   if (action === 'close-card-editor') {
     closeCardEditor();
     return;
@@ -4913,6 +5708,11 @@ const handleDocumentClick = async (event) => {
 
   if (action === 'close-invitation-editor') {
     closeInvitationEditor();
+    return;
+  }
+
+  if (action === 'close-outreach-editor') {
+    closeOutreachEditor();
     return;
   }
 
@@ -4934,6 +5734,13 @@ const handleDocumentClick = async (event) => {
     const invitation = getInvitationById(actionTarget.dataset.id);
     if (!invitation) return;
     openInvitationEditor('edit', invitation);
+    return;
+  }
+
+  if (action === 'edit-outreach-lead') {
+    const lead = getOutreachLeadById(actionTarget.dataset.id);
+    if (!lead) return;
+    openOutreachEditor('edit', lead);
     return;
   }
 
@@ -5035,6 +5842,13 @@ const handleDocumentClick = async (event) => {
     const invitation = getInvitationById(actionTarget.dataset.id);
     if (!invitation) return;
     await deleteInvitationRecord(invitation);
+    return;
+  }
+
+  if (action === 'delete-outreach-lead') {
+    const lead = getOutreachLeadById(actionTarget.dataset.id);
+    if (!lead) return;
+    await deleteOutreachLead(lead);
     return;
   }
 
@@ -5254,6 +6068,20 @@ const handleDocumentInput = (event) => {
     }
   }
 
+  if (state.outreachEditor.open) {
+    if (event.target.id === 'outreach-phone-number') {
+      event.target.value = sanitizePhoneValue(event.target.value);
+      state.outreachEditor.draft = captureOutreachDraftFromDom();
+      return;
+    }
+
+    if (event.target.name === 'hasWebsite') {
+      state.outreachEditor.draft = captureOutreachDraftFromDom();
+      render();
+      return;
+    }
+  }
+
   const filterField = event.target.dataset.field;
   if (filterField) {
     if (filterField === 'status') {
@@ -5314,6 +6142,24 @@ const handleDocumentInput = (event) => {
     return;
   }
 
+  const outreachField = event.target.dataset.outreachField;
+  if (outreachField) {
+    const { selectionStart, selectionEnd, value } = event.target;
+    state.outreachFilters[outreachField] = event.target.value;
+    state.outreachPage = 0;
+    render();
+    if (outreachField === 'search') {
+      const nextInput = root.querySelector('[data-outreach-field="search"]');
+      if (nextInput) {
+        nextInput.focus();
+        const caret = typeof selectionStart === 'number' ? selectionStart : value.length;
+        const caretEnd = typeof selectionEnd === 'number' ? selectionEnd : value.length;
+        nextInput.setSelectionRange(caret, caretEnd);
+      }
+    }
+    return;
+  }
+
   const qfield = event.target.dataset.qfield;
   const qline = event.target.dataset.qline;
   if (qfield || qline) {
@@ -5360,8 +6206,18 @@ document.addEventListener('input', (event) => {
 });
 
 document.addEventListener('change', (event) => {
-  if (event.target.dataset.activityField || event.target.dataset.field || event.target.dataset.demoField) {
+  if (event.target.dataset.activityField || event.target.dataset.field || event.target.dataset.demoField || event.target.dataset.outreachField) {
     handleDocumentInput(event);
+    return;
+  }
+
+  if (event.target.dataset.outreachStatusId) {
+    const lead = getOutreachLeadById(event.target.dataset.outreachStatusId);
+    if (!lead) return;
+    updateOutreachLeadStatus(lead, event.target.value).catch((error) => {
+      state.outreachError = error?.message || 'Could not update outreach status.';
+      render();
+    });
     return;
   }
 
@@ -5452,6 +6308,10 @@ document.addEventListener('submit', async (event) => {
     event.preventDefault();
     await saveInvitationEditor();
   }
+  if (event.target.id === 'outreach-editor-form') {
+    event.preventDefault();
+    await saveOutreachLeadEditor();
+  }
 });
 
 document.addEventListener('keydown', (event) => {
@@ -5466,6 +6326,10 @@ document.addEventListener('keydown', (event) => {
     }
     if (state.cardEditor.open) {
       closeCardEditor();
+      return;
+    }
+    if (state.outreachEditor.open) {
+      closeOutreachEditor();
       return;
     }
     if (state.quoteDrawer.open) {
@@ -5586,6 +6450,7 @@ const openQuoteByQuoteId = (quoteId) => {
 };
 
 const openQuoteDrawer = (quote) => {
+  lastModalOpenedAt = Date.now();
   state.quoteDrawer = {
     open: true,
     quote: {
@@ -5605,6 +6470,18 @@ const closeQuoteDrawer = ({ autosave = true } = {}) => {
   }
   state.quoteDrawer = { open: false, quote: null, original: null, dirty: false };
   render();
+};
+
+const shouldIgnoreImmediateModalClose = (actionTarget) => {
+  if (!actionTarget) return false;
+  const action = String(actionTarget.dataset.action || '');
+  if (!action.startsWith('close-')) return false;
+
+  const isBackdropClick = actionTarget.classList.contains('qd-admin-modal-backdrop')
+    || actionTarget.classList.contains('qd-quote-overlay');
+
+  if (!isBackdropClick) return false;
+  return Date.now() - lastModalOpenedAt < 250;
 };
 
 const applyQuoteChange = (path, value) => {
@@ -5843,6 +6720,7 @@ onAuthStateChanged(auth, async (user) => {
     subscribeToCards();
     subscribeToDemos();
     subscribeToInvitations();
+    subscribeToOutreachLeads();
     if (state.pendingLoginAudit) {
       await logAdminActivity({
         action: 'login',
@@ -5873,10 +6751,15 @@ onAuthStateChanged(auth, async (user) => {
       unsubscribeInvitationsSnapshot();
       unsubscribeInvitationsSnapshot = null;
     }
+    if (unsubscribeOutreachSnapshot) {
+      unsubscribeOutreachSnapshot();
+      unsubscribeOutreachSnapshot = null;
+    }
     state.submissions = [];
     state.cards = [];
     state.demos = [];
     state.invitations = [];
+    state.outreachLeads = [];
     state.invitationRsvps = [];
     state.activityLogs = [];
     state.submissionActivityLogs = [];
@@ -5919,6 +6802,15 @@ onAuthStateChanged(auth, async (user) => {
       pendingCoverFile: null,
       pendingMusicFile: null
     };
+    state.outreachEditor = {
+      open: false,
+      mode: 'create',
+      id: null,
+      draft: null,
+      original: null,
+      isSaving: false,
+      error: ''
+    };
     state.dataLoading = false;
     state.dataError = '';
     state.cardsLoading = false;
@@ -5927,6 +6819,8 @@ onAuthStateChanged(auth, async (user) => {
     state.demosError = '';
     state.invitationsLoading = false;
     state.invitationsError = '';
+    state.outreachLoading = false;
+    state.outreachError = '';
     state.invitationRsvpsLoading = false;
     state.activityLoading = false;
     state.submissionActivityLoading = false;

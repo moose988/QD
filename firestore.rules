@@ -78,5 +78,10 @@ service cloud.firestore {
         allow update, delete: if false;
       }
     }
+
+    match /businessOutreachLeads/{document} {
+      allow read, update, delete: if request.auth != null;
+      allow create: if request.auth != null;
+    }
   }
 }

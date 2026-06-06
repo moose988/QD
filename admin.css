@@ -1010,7 +1010,8 @@ body.qd-admin-page.qd-modal-open {
 }
 
 .qd-status-pill[data-tone="reviewed"],
-.qd-status-pill[data-tone="contacted"] {
+.qd-status-pill[data-tone="contacted"],
+.qd-status-pill[data-tone="meeting"] {
   color: #d7ef9c;
   border-color: rgba(199, 229, 143, 0.2);
   background: rgba(199, 229, 143, 0.1);
@@ -1917,3 +1918,104 @@ body.qd-admin-page.qd-modal-open {
 .qd-demo-status-pill[data-tone="draft"] { color: var(--fg2); border-color: rgba(244,241,234,0.14); background: rgba(255,255,255,0.04); }
 .qd-demo-status-pill[data-tone="expired"] { color: #ffb3b3; border-color: rgba(229,75,75,0.22); background: rgba(229,75,75,0.07); }
 .qd-demo-status-pill[data-tone="disabled"] { color: var(--fg3); border-color: rgba(244,241,234,0.08); background: rgba(255,255,255,0.025); }
+
+.qd-admin-outreach-toolbar {
+  grid-template-columns: minmax(260px, 1.4fr) minmax(190px, 0.45fr) auto;
+}
+
+.qd-admin-outreach-actions {
+  display: grid;
+  gap: 10px;
+  min-width: 260px;
+}
+
+.qd-admin-outreach-status-select {
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  padding-left: 12px;
+  padding-right: 32px;
+  border-radius: 999px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.qd-admin-outreach-action-links {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.qd-admin-outreach-action-links .qd-admin-row-button,
+.qd-admin-outreach-actions > .qd-admin-row-button,
+.qd-admin-outreach-actions > a.qd-admin-row-button {
+  width: 100%;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-content: center;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.qd-admin-outreach-editor {
+  width: min(960px, calc(100vw - 28px));
+}
+
+.qd-admin-outreach-radio-field {
+  grid-column: 1 / -1;
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+
+.qd-admin-outreach-radio-field legend {
+  margin-bottom: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg3);
+}
+
+.qd-admin-outreach-radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.qd-admin-outreach-radio-option {
+  min-width: 140px;
+}
+
+.qd-admin-outreach-mobile-card .qd-admin-mobile-card-grid span {
+  overflow-wrap: anywhere;
+}
+
+.qd-admin-outreach-mobile-actions {
+  align-items: stretch;
+  gap: 8px;
+}
+
+.qd-admin-outreach-mobile-actions .qd-btn,
+.qd-admin-outreach-mobile-actions .qd-admin-outreach-status-select {
+  width: 100%;
+}
+
+.qd-admin-outreach-mobile-actions .qd-admin-outreach-status-select {
+  width: 100%;
+}
+
+@media (max-width: 980px) {
+  .qd-admin-outreach-toolbar {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .qd-admin-outreach-action-links {
+    grid-template-columns: 1fr;
+  }
+}
