@@ -36,7 +36,7 @@ const Process = ({ language = 'en' }) => {
   return (
   <section id="process" className="qd-section qd-bridge-receive" data-bridge="obsidian"
     style={{ position:'relative',background:'var(--obsidian-2)',color:'var(--fg1)',padding:'200px 40px',borderTop:'1px solid var(--border-1)',zIndex:5,overflow:'hidden' }}>
-    <div style={{ position:'absolute',right:-80,top:80,fontFamily:'var(--font-display)',fontSize:'clamp(400px,50vw,720px)',fontWeight:700,letterSpacing:'-0.06em',color:'transparent',WebkitTextStroke:'1px rgba(166,240,79,0.06)',lineHeight:0.85,pointerEvents:'none',userSelect:'none' }}>QD</div>
+    <div style={{ position:'absolute',right:-80,top:80,fontFamily:'var(--font-display)',fontSize:'clamp(400px,50vw,720px)',fontWeight:700,letterSpacing:'-0.06em',color:'transparent',WebkitTextStroke:'1px rgba(232,232,238,0.06)',lineHeight:0.85,pointerEvents:'none',userSelect:'none' }}>QD</div>
     <div style={{ maxWidth:1280,margin:'0 auto',position:'relative' }}>
       <div className="qd-process-head qd-mobile-stack" style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:60,alignItems:'flex-start',marginBottom:100 }}>
         <Reveal lift={32}>

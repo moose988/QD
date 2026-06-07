@@ -101,8 +101,8 @@ const useViewportFlag = (breakpoint = 980) => {
 };
 
 const LiveIndicator = ({ text }) => (
-  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 999, border: '1px solid rgba(166,240,79,0.26)', background: 'rgba(166,240,79,0.08)', backdropFilter: 'blur(14px)' }}>
-    <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--acid)', boxShadow: '0 0 18px rgba(166,240,79,0.9)', animation: 'qd-pulse 1.4s ease-in-out infinite' }} />
+  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 999, border: '1px solid rgba(232,232,238,0.26)', background: 'rgba(232,232,238,0.08)', backdropFilter: 'blur(14px)' }}>
+    <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--acid)', boxShadow: '0 0 18px rgba(232,232,238,0.9)', animation: 'qd-pulse 1.4s ease-in-out infinite' }} />
     <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.18em', color: 'var(--acid)' }}>{text}</span>
   </div>
 );
@@ -173,10 +173,10 @@ const BrowserShell = ({ project, tiltX, tiltY, isCompact, copy }) => {
 
   return (
     <div style={{ position: 'relative', transformStyle: 'preserve-3d', transform: `perspective(1600px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`, transition: 'transform 180ms ease-out' }}>
-      <div style={{ position: 'absolute', inset: '-4% 10% auto', height: 160, background: 'radial-gradient(circle,rgba(166,240,79,0.26),transparent 72%)', filter: 'blur(26px)', pointerEvents: 'none' }} />
-      <div style={{ position: 'absolute', inset: 'auto 12% -8%', height: 140, background: 'radial-gradient(circle,rgba(166,240,79,0.18),transparent 72%)', filter: 'blur(34px)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', inset: '-4% 10% auto', height: 160, background: 'radial-gradient(circle,rgba(232,232,238,0.26),transparent 72%)', filter: 'blur(26px)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', inset: 'auto 12% -8%', height: 140, background: 'radial-gradient(circle,rgba(232,232,238,0.18),transparent 72%)', filter: 'blur(34px)', pointerEvents: 'none' }} />
 
-      <div style={{ position: 'relative', overflow: 'hidden', overflowAnchor: 'none', borderRadius: 28, border: '1px solid rgba(244,241,234,0.12)', background: 'rgba(13,14,17,0.88)', boxShadow: '0 28px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04), 0 0 0 1px rgba(166,240,79,0.08)' }}>
+      <div style={{ position: 'relative', overflow: 'hidden', overflowAnchor: 'none', borderRadius: 28, border: '1px solid rgba(244,241,234,0.12)', background: 'rgba(13,14,17,0.88)', boxShadow: '0 28px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04), 0 0 0 1px rgba(232,232,238,0.08)' }}>
         <div className="qd-liveweb-glow" style={{ pointerEvents: 'none' }} />
 
         <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', borderBottom: '1px solid rgba(244,241,234,0.08)', background: 'linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01))' }}>
@@ -273,7 +273,7 @@ const LiveWebsiteCard = ({ project, index, isMobile, copy }) => {
           <div style={{ display: 'grid', gap: 10, padding: '18px 0', borderTop: '1px solid rgba(244,241,234,0.08)', borderBottom: '1px solid rgba(244,241,234,0.08)' }}>
             {project.metrics.map((metric) => (
               <div key={metric} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--acid)', boxShadow: '0 0 16px rgba(166,240,79,0.8)' }} />
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--acid)', boxShadow: '0 0 16px rgba(232,232,238,0.8)' }} />
                 <span style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 500, letterSpacing: '-0.01em', color: 'var(--bone)' }}>{metric}</span>
               </div>
             ))}
@@ -304,7 +304,7 @@ const LiveWebsiteCard = ({ project, index, isMobile, copy }) => {
                 fontSize: 14,
                 letterSpacing: '0.08em',
                 textTransform: 'uppercase',
-                boxShadow: '0 0 32px rgba(166,240,79,0.22)',
+                boxShadow: '0 0 32px rgba(232,232,238,0.22)',
                 cursor: 'pointer',
               }}
             >
@@ -357,14 +357,14 @@ const LiveWebsites = ({ language = 'en' }) => {
           position:absolute;
           inset:0;
           background:
-            radial-gradient(circle at 12% 18%, rgba(166,240,79,0.12), transparent 28%),
-            radial-gradient(circle at 86% 82%, rgba(166,240,79,0.08), transparent 24%);
+            radial-gradient(circle at 12% 18%, rgba(232,232,238,0.12), transparent 28%),
+            radial-gradient(circle at 86% 82%, rgba(232,232,238,0.08), transparent 24%);
           pointer-events:none;
         }
         .qd-liveweb-glow{
           position:absolute;
           inset:-22%;
-          background:conic-gradient(from 180deg, transparent 0deg, rgba(166,240,79,0.12) 76deg, transparent 140deg, rgba(166,240,79,0.08) 240deg, transparent 360deg);
+          background:conic-gradient(from 180deg, transparent 0deg, rgba(232,232,238,0.12) 76deg, transparent 140deg, rgba(232,232,238,0.08) 240deg, transparent 360deg);
           animation: qd-liveweb-spin 14s linear infinite;
           pointer-events:none;
         }
@@ -373,7 +373,7 @@ const LiveWebsites = ({ language = 'en' }) => {
           inset:-20% auto auto -30%;
           width:70%;
           height:160%;
-          background:linear-gradient(110deg, transparent 0%, rgba(166,240,79,0.12) 45%, transparent 72%);
+          background:linear-gradient(110deg, transparent 0%, rgba(232,232,238,0.12) 45%, transparent 72%);
           transform:rotate(8deg);
           animation: qd-liveweb-sweep 9s ease-in-out infinite;
           pointer-events:none;
@@ -402,13 +402,13 @@ const LiveWebsites = ({ language = 'en' }) => {
       `}</style>
 
       <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: 0.26, backgroundImage: 'linear-gradient(rgba(244,241,234,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(244,241,234,0.03) 1px,transparent 1px)', backgroundSize: '68px 68px' }} />
-      <div style={{ position: 'absolute', top: -40, left: '-8%', width: '40%', height: 420, background: 'radial-gradient(circle,rgba(166,240,79,0.14),transparent 72%)', filter: 'blur(36px)' }} />
-      <div style={{ position: 'absolute', right: '-10%', bottom: 40, width: '38%', height: 360, background: 'radial-gradient(circle,rgba(166,240,79,0.12),transparent 68%)', filter: 'blur(42px)' }} />
+      <div style={{ position: 'absolute', top: -40, left: '-8%', width: '40%', height: 420, background: 'radial-gradient(circle,rgba(232,232,238,0.14),transparent 72%)', filter: 'blur(36px)' }} />
+      <div style={{ position: 'absolute', right: '-10%', bottom: 40, width: '38%', height: 360, background: 'radial-gradient(circle,rgba(232,232,238,0.12),transparent 68%)', filter: 'blur(42px)' }} />
 
       <div style={{ position: 'absolute', top: isMobile ? 24 : 18, left: 0, right: 0, opacity: 0.16, pointerEvents: 'none', overflow: 'hidden' }}>
         <Marquee speed={26}>
           {copy.marquee.map((item, index) => (
-            <span key={index} style={{ padding: item === '•' ? '0 18px' : '0 28px', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: item === '•' ? 'clamp(22px,2.8vw,40px)' : 'clamp(68px,9vw,140px)', letterSpacing: item === '•' ? '0' : '-0.05em', color: item === '•' ? 'rgba(166,240,79,0.46)' : 'transparent', WebkitTextStroke: item === '•' ? '0' : '1px rgba(244,241,234,0.3)' }}>
+            <span key={index} style={{ padding: item === '•' ? '0 18px' : '0 28px', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: item === '•' ? 'clamp(22px,2.8vw,40px)' : 'clamp(68px,9vw,140px)', letterSpacing: item === '•' ? '0' : '-0.05em', color: item === '•' ? 'rgba(232,232,238,0.46)' : 'transparent', WebkitTextStroke: item === '•' ? '0' : '1px rgba(244,241,234,0.3)' }}>
               {item}
             </span>
           ))}

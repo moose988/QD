@@ -8,7 +8,7 @@
 .qd-chat-root {
   --qd-bg: var(--obsidian, #0b0b0c);
   --qd-bg-2: var(--obsidian-2, #131418);
-  --qd-acid: var(--acid, #A6F04F);
+  --qd-acid: var(--acid, #E6E6EC);
   --qd-bone: var(--bone, #F4F1EA);
   --qd-fg-1: var(--fg1, #F4F1EA);
   --qd-fg-2: var(--fg2, rgba(244, 241, 234, 0.74));
