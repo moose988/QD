@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Hamza &amp; Madina — Authentic Halal Food in the UAE</title>
+<title>Restaurant Website</title>
+<meta name="description" content="Restaurant Website is a premium restaurant demo featuring menu browsing, ordering, booking-ready sections, and polished contact layouts." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet" />
@@ -78,7 +79,7 @@ header.nav.scrolled .nav-links a.lnk:hover{color:var(--blue)}
 .menu-toggle{display:none;background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:9px;cursor:pointer}
 .menu-toggle svg{width:22px;height:22px;stroke:var(--navy)}
 
-/* HERO — food-forward, video */
+/* HERO ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â food-forward, video */
 .hero{position:relative;min-height:100svh;background:var(--navy-deep)}
 .hero-shell{position:relative;min-height:100svh;display:flex;align-items:flex-end;overflow:hidden}
 .hero-photo{position:absolute;inset:0;overflow:hidden;background:var(--navy-deep)}
@@ -92,7 +93,7 @@ header.nav.scrolled .nav-links a.lnk:hover{color:var(--blue)}
 .hero-left .inner{max-width:760px}
 .hero-badge{display:inline-flex;align-items:center;gap:13px;margin-bottom:22px}
 .hero-badge img{height:56px;width:auto;border-radius:12px;background:#fff;padding:3px;box-shadow:0 10px 24px -10px rgba(0,0,0,.6);animation:badgeFloat 5.5s var(--ease) infinite}
-.hero-badge .hb-t{font-family:var(--font-ar);font-size:24px;color:#9FE08A;direction:rtl;letter-spacing:.02em}
+.hero-badge .hb-t{display:none}
 .hero h1{font-family:var(--font-display);font-weight:700;color:#fff;font-size:clamp(40px,5vw,66px);line-height:1.0;letter-spacing:-.018em;text-wrap:balance}
 .hero h1 .amp{color:var(--green)}
 .hero h1 .hl{position:relative;display:inline-block;color:#fff}
@@ -224,7 +225,7 @@ header.nav.scrolled .nav-links a.lnk:hover{color:var(--blue)}
 .about-lead{font-size:19px !important;color:var(--navy-ink) !important;font-weight:600;line-height:1.58;margin:0 0 18px;max-width:54ch}
 .about-copy p{position:relative;color:var(--muted);font-size:16.5px;line-height:1.66;margin:0 0 16px;max-width:56ch}
 .about-copy p strong{color:var(--navy);font-weight:700}
-/* values — clean divided icon list */
+/* values ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â clean divided icon list */
 .about-points{display:grid;gap:0;margin:32px 0 4px;border-top:1px solid var(--line)}
 .about-point{display:flex;align-items:center;gap:16px;padding:16px 2px;border-bottom:1px solid var(--line)}
 .about-point .pt-ic{width:44px;height:44px;flex:none;border-radius:14px;display:grid;place-items:center;background:rgba(75,166,54,.11);color:var(--green-deep);transition:transform .4s var(--ease),background .3s}
@@ -232,10 +233,10 @@ header.nav.scrolled .nav-links a.lnk:hover{color:var(--blue)}
 .about-point:hover .pt-ic{transform:translateY(-2px) scale(1.06);background:rgba(75,166,54,.18)}
 .about-point b{display:block;font-family:var(--font-display);font-weight:700;font-size:16px;color:var(--navy-ink);line-height:1.2}
 .about-point .pt-sub{display:block;margin-top:3px;font-size:13.5px;font-weight:500;color:var(--muted);line-height:1.4}
-/* pull quote — editorial bar + attribution */
+/* pull quote ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â editorial bar + attribution */
 .about-quote{position:relative;margin:32px 0;padding:4px 0 4px 24px;border-left:3px solid var(--green);background:none;border-radius:0;box-shadow:none;font-family:var(--font-display);font-weight:600;font-size:21px;line-height:1.4;color:var(--navy-ink)}
 .about-quote cite{display:block;margin-top:14px;font-family:var(--font-body);font-style:normal;font-size:12.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--green-deep)}
-/* stats — clean divided row */
+/* stats ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â clean divided row */
 .about-stats{display:flex;gap:0;margin-top:30px;padding-top:28px;border-top:1px solid var(--line)}
 .about-stats .st{flex:1;padding:0 22px;background:none;border:none;border-radius:0;box-shadow:none}
 .about-stats .st:first-child{padding-left:0}
@@ -441,9 +442,9 @@ header.nav.scrolled .nav-cart:hover{border-color:var(--blue);color:var(--blue)}
 <div class="scroll-prog" id="scrollProg"></div>
 <header class="nav" id="nav">
   <div class="nav-inner">
-    <a href="#top" class="brand" aria-label="Hamza and Madina Halal Food">
-      <img src="assets/logo-badge.png" alt="" class="brand-logo" />
-      <span class="bt"><b>Hamza <i>&amp;</i> Madina</b><span>Halal Food</span></span>
+    <a href="#top" class="brand" aria-label="Restaurant Website">
+      <span class="brand-logo" aria-hidden="true" style="display:grid;place-items:center;background:#fff;color:#232C6B;font:700 24px/46px var(--font-display);text-align:center;">R</span>
+      <span class="bt"><b>Restaurant Website</b><span>Restaurant - Menu - Ordering</span></span>
     </a>
     <nav class="nav-links">
       <a class="lnk" href="menu.html">Menu</a>
@@ -484,18 +485,18 @@ header.nav.scrolled .nav-cart:hover{border-color:var(--blue);color:var(--blue)}
         <div class="hero-left">
           <div class="inner">
             <div class="hero-badge">
-              <img src="assets/logo-badge.png" alt="Hamza and Madina" />
-              <span class="hb-t">حمزة ومدينة</span>
+              <span aria-hidden="true" style="display:grid;place-items:center;width:56px;height:56px;border-radius:12px;background:#fff;color:#232C6B;font:700 28px/56px var(--font-display);text-align:center;box-shadow:0 10px 24px -10px rgba(0,0,0,.6);">R</span>
+              <span class="hb-t" aria-hidden="true"></span>
             </div>
             <h1>Char-grilled halal,<br/>plated <span class="hl">generously</span>.</h1>
-            <p class="tagline">Chicken over rice, chapli kebab, loaded fries and wraps — cooked fresh to order with bold sauces and real charcoal flavour. Now serving Dubai &amp; Sharjah.</p>
+            <p class="tagline">Chicken over rice, chapli kebab, loaded fries, and wraps cooked fresh to order with bold sauces and real charcoal flavour.</p>
             <div class="hero-cta">
               <a class="btn btn-primary btn-lg" href="menu.html">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
                 Order Now
               </a>
               <a class="btn btn-outline btn-lg" href="#menu">
-                Our Menu
+                View Menu
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
               </a>
             </div>
@@ -521,55 +522,55 @@ header.nav.scrolled .nav-cart:hover{border-color:var(--blue);color:var(--blue)}
         <img src="assets/locations-platter-cutout.png" alt="" loading="lazy" />
       </div>
       <div class="sec-head center reveal">
-      <span class="eyebrow">Our Locations</span>
-      <h2>Two homes in the <span class="blue">Emirates</span></h2>
-      <p>Dine in, take away, or order online — the same kitchen and the same standard, in both branches.</p>
+      <span class="eyebrow">Locations</span>
+      <h2>Two polished <span class="blue">demo locations</span></h2>
+      <p>Dine in, take away, or order online with the same kitchen flow and premium presentation in both showcase branches.</p>
       </div>
     </div>
     <div class="loc-switch">
       <div class="loc-grid" data-stagger>
         <div class="loc-card reveal r-pop">
           <div class="loc-head">
-            <div class="ttl"><h3>Dubai</h3><div class="tag">Deira Branch</div></div>
-            <div class="ar">دبي</div>
+            <div class="ttl"><h3>Location One</h3><div class="tag">Demo branch</div></div>
+            <div class="ar">Demo</div>
           </div>
           <div class="loc-body">
             <div class="loc-row">
               <span class="ic"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
-              <div class="body"><span class="k">Address</span>Shop 12, Al Rigga Road, Deira, Dubai</div>
+              <div class="body"><span class="k">Address</span>Demo location</div>
             </div>
             <div class="loc-row">
               <span class="ic"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
-              <div class="body"><span class="k">Reservations</span><a href="tel:+97141234567">+971 4 123 4567</a></div>
+              <div class="body"><span class="k">Reservations</span><a href="#" onclick="return false;">Demo contact</a></div>
             </div>
             <div class="loc-row">
               <span class="ic"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span>
-              <div class="body"><span class="k">Hours</span>Sun–Thu · 11:00 – 23:00 · Fri–Sat · 11:00 – 01:00</div>
+              <div class="body"><span class="k">Hours</span>Sun-Thu - 11:00 - 23:00 | Fri-Sat - 11:00 - 01:00</div>
             </div>
-            <a class="btn btn-outline" href="https://maps.app.goo.gl/amyeQwHUToy2ut7bA" target="_blank" rel="noopener">Get Directions
+            <a class="btn btn-outline" href="#" onclick="return false;">Demo location
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg>
             </a>
           </div>
         </div>
         <div class="loc-card reveal r-pop">
           <div class="loc-head">
-            <div class="ttl"><h3>Sharjah</h3><div class="tag">Al Nasserya Branch</div></div>
-            <div class="ar">الشارقة</div>
+            <div class="ttl"><h3>Location Two</h3><div class="tag">Demo branch</div></div>
+            <div class="ar">Demo</div>
           </div>
           <div class="loc-body">
             <div class="loc-row">
               <span class="ic"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
-              <div class="body"><span class="k">Address</span>Al Nasserya, Sharjah</div>
+              <div class="body"><span class="k">Address</span>Demo location</div>
             </div>
             <div class="loc-row">
               <span class="ic"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
-              <div class="body"><span class="k">Reservations</span><a href="tel:+97161234567">+971 6 123 4567</a></div>
+              <div class="body"><span class="k">Reservations</span><a href="#" onclick="return false;">Demo contact</a></div>
             </div>
             <div class="loc-row">
               <span class="ic"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span>
-              <div class="body"><span class="k">Hours</span>Daily · 11:00 – 00:00</div>
+              <div class="body"><span class="k">Hours</span>Daily - 11:00 - 00:00</div>
             </div>
-            <a class="btn btn-outline" href="https://maps.app.goo.gl/amyeQwHUToy2ut7bA" target="_blank" rel="noopener">Get Directions
+            <a class="btn btn-outline" href="#" onclick="return false;">Demo location
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg>
             </a>
           </div>
@@ -714,8 +715,8 @@ header.nav.scrolled .nav-cart:hover{border-color:var(--blue);color:var(--blue)}
         <div class="dish-body"><div class="top"><h4>Masala French Fries</h4><span class="price">AED 16</span></div><p>Crispy golden fries tossed in our house masala spice blend.</p></div>
       </article>
       <article class="dish reveal">
-        <div class="dish-img"><span class="halal">Halal</span><img src="https://cloverstatic.com/menu-assets/items/4AZYXYE6WN60M.jpeg" alt="Chocolate brownie smoothie jar" loading="lazy"/></div>
-        <div class="dish-body"><div class="top"><h4>Chocolate Brownie Smoothie Jar</h4><span class="price">AED 24</span></div><p>Blended chocolate-brownie smoothie layered in a jar — rich, cold and indulgent.</p></div>
+        <div class="dish-img"><span class="halal">Halal</span><img src="https://images.unsplash.com/photo-1499636136210-6f4ee915583e?auto=format&amp;fit=crop&amp;w=1200&amp;q=80" alt="Chocolate brownie smoothie jar" loading="lazy"/></div>
+        <div class="dish-body"><div class="top"><h4>Chocolate Brownie Smoothie Jar</h4><span class="price">AED 24</span></div><p>Blended chocolate-brownie smoothie layered in a jar - rich, cold, and indulgent.</p></div>
       </article>
     </div>
     <div class="menu-foot reveal">
@@ -731,14 +732,14 @@ header.nav.scrolled .nav-cart:hover{border-color:var(--blue);color:var(--blue)}
     <div class="about-grid">
       <div class="about-copy reveal">
         <span class="eyebrow">Our Story</span>
-        <h2>Trusted halal, <span class="blue">from New York to the UAE</span></h2>
-        <p class="about-lead">What began as a humble New York counter became a kitchen people trusted for one reason above all: the food was honest, generous, and made the right way.</p>
-        <p>It started with a small counter in <strong>New York</strong> — a family recipe, real charcoal, and a simple rule: never cut a corner on quality or on what halal means.</p>
-        <p>Two decades later, Hamza &amp; Madina brings that same kitchen to the Emirates. Every cut of meat is fully halal-certified, every spice blend is made in-house, and every plate is cooked to order.</p>
+        <h2>Trusted halal, <span class="blue">built for modern ordering</span></h2>
+        <p class="about-lead">This showcase concept is built around generous portions, premium visual storytelling, and a smooth path from discovery to ordering.</p>
+        <p>The experience centers on real charcoal flavour, fresh prep, and a menu structure that feels easy to browse while still looking elevated.</p>
+        <p>Every section is designed to present a complete restaurant story without tying the demo to a live business identity.</p>
         <div class="about-points" aria-label="What sets us apart">
           <div class="about-point">
             <span class="pt-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></span>
-            <div><b>Charcoal grilled</b><span class="pt-sub">Real fire and smoke — never a flat-top shortcut.</span></div>
+            <div><b>Charcoal grilled</b><span class="pt-sub">Real fire and smoke - never a flat-top shortcut.</span></div>
           </div>
           <div class="about-point">
             <span class="pt-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
@@ -749,7 +750,7 @@ header.nav.scrolled .nav-cart:hover{border-color:var(--blue);color:var(--blue)}
             <div><b>Fresh daily prep</b><span class="pt-sub">Cut, marinated, and cooked to order.</span></div>
           </div>
         </div>
-        <blockquote class="about-quote">“Feed people the way you'd feed your own family. The rest takes care of itself.”<cite>The Hamza &amp; Madina family</cite></blockquote>
+        <blockquote class="about-quote">"Feed people generously, keep the experience smooth, and let the food do the talking."<cite>Restaurant Website</cite></blockquote>
         <div class="about-stats">
           <div class="st"><b>20+</b><span>Years of trust</span></div>
           <div class="st"><b>2</b><span>UAE branches</span></div>
@@ -757,7 +758,7 @@ header.nav.scrolled .nav-cart:hover{border-color:var(--blue);color:var(--blue)}
         </div>
       </div>
       <div class="about-media reveal">
-        <div class="about-story-chip">New York Original</div>
+        <div class="about-story-chip">Portfolio Ready</div>
         <div class="frame">
           <div class="slides" id="storySlides" data-interval="3500">
             <img class="on" src="https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?auto=format&amp;fit=crop&amp;w=1200&amp;q=80" alt="Golden fried chicken basket" decoding="async" />
@@ -768,12 +769,12 @@ header.nav.scrolled .nav-cart:hover{border-color:var(--blue);color:var(--blue)}
           <div class="dots" id="storyDots"></div>
         </div>
         <div class="logo-chip">
-          <img src="assets/logo-full.jpeg" alt="Hamza and Madina Halal Food" />
-          <div class="t"><b>Since '04</b><span>New York Original</span></div>
+          <span aria-hidden="true" style="display:grid;place-items:center;width:60px;height:60px;border-radius:18px;background:#fff;color:#232C6B;font:700 28px/60px var(--font-display);text-align:center;">R</span>
+          <div class="t"><b>Restaurant Website</b><span>Portfolio Ready</span></div>
         </div>
         <div class="about-side-note">
           <strong>Built on trust, not shortcuts.</strong>
-          <span>From halal sourcing to spice prep and portion size, the standard stays the same in every branch.</span>
+          <span>From sourcing to plating and ordering flow, the standard stays consistent across every demo touchpoint.</span>
         </div>
       </div>
     </div>
@@ -805,14 +806,14 @@ header.nav.scrolled .nav-cart:hover{border-color:var(--blue);color:var(--blue)}
     <video id="sauceVideo" src="uploads/vecteezy_vanilla-drip-motion-effect-animation-wipe-out-green-screen_73482413-78c45da1.mp4" muted playsinline preload="auto" style="display:none"></video>
     <video id="sauceVideo2" src="uploads/vecteezy_vanilla-drip-motion-effect-animation-wipe-out-green-screen_73482413-78c45da1.mp4" muted playsinline preload="auto" style="display:none"></video>
   </div>
-  <div class="watermark" aria-hidden="true">حلال</div>
+  <div class="watermark" aria-hidden="true">HALAL</div>
   <div class="cta-inner reveal" data-comment-anchor="69a40e0363-div">
-    <span class="eyebrow">Now in the UAE</span>
+    <span class="eyebrow">Order Demo</span>
     <h2>Hungry? <span class="green">We deliver.</span></h2>
-    <p>Get your favourites from the Dubai or Sharjah kitchen delivered hot to your door — or skip the queue with pickup.</p>
+    <p>Browse signature dishes, place a demo order, or preview pickup and delivery flows in a polished restaurant showcase.</p>
     <a class="btn btn-green btn-lg" href="menu.html">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-      Order from the Menu
+      Order Now
     </a>
   </div>
 </section>
@@ -821,36 +822,36 @@ header.nav.scrolled .nav-cart:hover{border-color:var(--blue);color:var(--blue)}
   <div class="wrap">
     <div class="foot-top">
       <div class="foot-brand">
-        <img src="assets/logo-full.jpeg" alt="Hamza and Madina Halal Food" class="foot-logo" />
-        <p>Authentic halal food in the UAE. Charcoal-grilled, family-made, trusted since the New York original.</p>
-        <div class="ar">حمزة ومدينة</div>
+        <span class="foot-logo" aria-hidden="true" style="display:grid;place-items:center;background:#fff;color:#232C6B;font:700 32px/72px var(--font-display);text-align:center;height:72px;width:72px;border-radius:16px;">R</span>
+        <p>Restaurant Website is a standalone premium demo built for menu browsing, ordering, gallery presentation, and contact layouts.</p>
+        <div class="ar">Demo</div>
       </div>
       <div class="foot-col">
-        <h5>Dubai</h5>
-        <p>Shop 12, Al Rigga Road,<br/>Deira, Dubai</p>
-        <a href="tel:+97141234567">+971 4 123 4567</a>
-        <p>Sun–Thu · 11:00 – 23:00<br/>Fri–Sat · 11:00 – 01:00</p>
+        <h5>Location One</h5>
+        <p>Demo location<br/>Available on request</p>
+        <a href="#" onclick="return false;">Demo contact</a>
+        <p>Sun-Thu - 11:00 - 23:00<br/>Fri-Sat - 11:00 - 01:00</p>
       </div>
       <div class="foot-col">
-        <h5>Sharjah</h5>
-        <p>Al Nasserya,<br/>Sharjah</p>
-        <a href="tel:+97161234567">+971 6 123 4567</a>
-        <p>Daily · 11:00 – 00:00</p>
+        <h5>Location Two</h5>
+        <p>Demo location<br/>Available on request</p>
+        <a href="#" onclick="return false;">Demo contact</a>
+        <p>Daily - 11:00 - 00:00</p>
       </div>
       <div class="foot-col">
-        <h5>Follow</h5>
-        <a href="menu.html">Order Online</a>
-        <a href="#about">Catering</a>
+        <h5>Explore</h5>
+        <a href="menu.html">View Menu</a>
+        <a href="#about">About</a>
         <div class="socials">
-          <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24"><path d="M12 2.2c3.2 0 3.6 0 4.9.07 1.2.06 1.8.26 2.2.43.6.2 1 .47 1.4.9.4.4.7.8.9 1.4.2.4.4 1 .4 2.2.1 1.3.1 1.7.1 4.9s0 3.6-.1 4.9c0 1.2-.2 1.8-.4 2.2-.2.6-.5 1-.9 1.4-.4.4-.8.7-1.4.9-.4.2-1 .4-2.2.4-1.3.1-1.7.1-4.9.1s-3.6 0-4.9-.1c-1.2 0-1.8-.2-2.2-.4-.6-.2-1-.5-1.4-.9-.4-.4-.7-.8-.9-1.4-.2-.4-.4-1-.4-2.2C2.6 15.6 2.6 15.2 2.6 12s0-3.6.06-4.9c.05-1.1.24-1.7.4-2.1.2-.5.44-.9.84-1.3.4-.4.8-.64 1.3-.84.4-.16 1-.35 2.1-.4C8.5 2.2 8.9 2.2 12 2.2zm0 1.8c-3.1 0-3.5 0-4.7.07-1.1.05-1.7.24-2.1.4-.5.2-.9.44-1.3.84-.4.4-.64.8-.84 1.3-.16.4-.35 1-.4 2.1C2.6 9.9 2.6 10.3 2.6 12s0 2.1.06 3.3c.05 1.1.24 1.7.4 2.1.2.5.44.9.84 1.3.4.4.8.64 1.3.84.4.16 1 .35 2.1.4 1.2.07 1.6.07 4.7.07s3.5 0 4.7-.07c1.1-.05 1.7-.24 2.1-.4.5-.2.9-.44 1.3-.84.4-.4.64-.8.84-1.3.16-.4.35-1 .4-2.1.06-1.2.06-1.6.06-3.3s0-2.1-.06-3.3c-.05-1.1-.24-1.7-.4-2.1-.2-.5-.44-.9-.84-1.3-.4-.4-.8-.64-1.3-.84-.4-.16-1-.35-2.1-.4C15.5 4 15.1 4 12 4zm0 3.1a4.9 4.9 0 1 1 0 9.8 4.9 4.9 0 0 1 0-9.8zm0 8.1a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4zm6.2-8.3a1.15 1.15 0 1 1-2.3 0 1.15 1.15 0 0 1 2.3 0z"/></svg></a>
-          <a href="#" aria-label="Facebook"><svg viewBox="0 0 24 24"><path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.78-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.44 2.89h-2.34v6.99A10 10 0 0 0 22 12z"/></svg></a>
-          <a href="#" aria-label="WhatsApp"><svg viewBox="0 0 24 24"><path d="M17.5 14.4c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.95 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.49 0 1.47 1.07 2.89 1.22 3.09.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.62.71.23 1.36.2 1.87.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.13-.27-.2-.57-.35zM12 2a10 10 0 0 0-8.6 15.07L2 22l5.05-1.32A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.18-1.14l-.3-.18-3 .78.8-2.92-.2-.3A8.2 8.2 0 1 1 12 20.2z"/></svg></a>
-          <a href="#" aria-label="TikTok"><svg viewBox="0 0 24 24"><path d="M16.6 5.82a4.28 4.28 0 0 1-1.05-2.82h-3.1v12.2a2.5 2.5 0 1 1-2.5-2.5c.2 0 .4.03.6.08v-3.16a5.66 5.66 0 0 0-.6-.04 5.62 5.62 0 1 0 5.62 5.62V9.01a7.32 7.32 0 0 0 4.27 1.37V7.25a4.28 4.28 0 0 1-3.24-1.43z"/></svg></a>
+          <a href="#" onclick="return false;" aria-label="Instagram placeholder"><svg viewBox="0 0 24 24"><path d="M12 2.2c3.2 0 3.6 0 4.9.07 1.2.06 1.8.26 2.2.43.6.2 1 .47 1.4.9.4.4.7.8.9 1.4.2.4.4 1 .4 2.2.1 1.3.1 1.7.1 4.9s0 3.6-.1 4.9c0 1.2-.2 1.8-.4 2.2-.2.6-.5 1-.9 1.4-.4.4-.8.7-1.4.9-.4.2-1 .4-2.2.4-1.3.1-1.7.1-4.9.1s-3.6 0-4.9-.1c-1.2 0-1.8-.2-2.2-.4-.6-.2-1-.5-1.4-.9-.4-.4-.7-.8-.9-1.4-.2-.4-.4-1-.4-2.2C2.6 15.6 2.6 15.2 2.6 12s0-3.6.06-4.9c.05-1.1.24-1.7.4-2.1.2-.5.44-.9.84-1.3.4-.4.8-.64 1.3-.84.4-.16 1-.35 2.1-.4C8.5 2.2 8.9 2.2 12 2.2zm0 1.8c-3.1 0-3.5 0-4.7.07-1.1.05-1.7.24-2.1.4-.5.2-.9.44-1.3.84-.4.4-.64.8-.84 1.3-.16.4-.35 1-.4 2.1C2.6 9.9 2.6 10.3 2.6 12s0 2.1.06 3.3c.05 1.1.24 1.7.4 2.1.2.5.44.9.84 1.3.4.4.8.64 1.3.84.4.16 1 .35 2.1.4 1.2.07 1.6.07 4.7.07s3.5 0 4.7-.07c1.1-.05 1.7-.24 2.1-.4.5-.2.9-.44 1.3-.84.4-.4.64-.8.84-1.3.16-.4.35-1 .4-2.1.06-1.2.06-1.6.06-3.3s0-2.1-.06-3.3c-.05-1.1-.24-1.7-.4-2.1-.2-.5-.44-.9-.84-1.3-.4-.4-.8-.64-1.3-.84-.4-.16-1-.35-2.1-.4C15.5 4 15.1 4 12 4zm0 3.1a4.9 4.9 0 1 1 0 9.8 4.9 4.9 0 0 1 0-9.8zm0 8.1a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4zm6.2-8.3a1.15 1.15 0 1 1-2.3 0 1.15 1.15 0 0 1 2.3 0z"/></svg></a>
+          <a href="#" onclick="return false;" aria-label="Facebook placeholder"><svg viewBox="0 0 24 24"><path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.78-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.44 2.89h-2.34v6.99A10 10 0 0 0 22 12z"/></svg></a>
+          <a href="#" onclick="return false;" aria-label="WhatsApp placeholder"><svg viewBox="0 0 24 24"><path d="M17.5 14.4c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.95 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.49 0 1.47 1.07 2.89 1.22 3.09.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.62.71.23 1.36.2 1.87.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.13-.27-.2-.57-.35zM12 2a10 10 0 0 0-8.6 15.07L2 22l5.05-1.32A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.18-1.14l-.3-.18-3 .78.8-2.92-.2-.3A8.2 8.2 0 1 1 12 20.2z"/></svg></a>
+          <a href="#" onclick="return false;" aria-label="TikTok placeholder"><svg viewBox="0 0 24 24"><path d="M16.6 5.82a4.28 4.28 0 0 1-1.05-2.82h-3.1v12.2a2.5 2.5 0 1 1-2.5-2.5c.2 0 .4.03.6.08v-3.16a5.66 5.66 0 0 0-.6-.04 5.62 5.62 0 1 0 5.62 5.62V9.01a7.32 7.32 0 0 0 4.27 1.37V7.25a4.28 4.28 0 0 1-3.24-1.43z"/></svg></a>
         </div>
       </div>
     </div>
     <div class="foot-bottom">
-      <p>© 2026 Hamza &amp; Madina Halal Food. All rights reserved.</p>
+      <p>? 2026 Restaurant Website. All rights reserved.</p>
       <div class="links">
         <a href="#">Privacy</a>
         <a href="#">Terms</a>
@@ -1001,9 +1002,9 @@ if(!RM){
 </div>
 
 <script>
-/* ── Cart system ───────────────────────────────────────────── */
+/* ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ Cart system ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ */
 (function(){
-  var CART_KEY='hm_cart';
+  var CART_KEY='restaurant_demo_cart';
   function getCart(){try{return JSON.parse(localStorage.getItem(CART_KEY))||[];}catch(e){return[];}}
   function saveCart(c){localStorage.setItem(CART_KEY,JSON.stringify(c));}
 
@@ -1072,7 +1073,7 @@ if(!RM){
 </script>
 
 <script>
-/* ── Sauce drip: dual video canvas ───────────────────────── */
+/* ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ Sauce drip: dual video canvas ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ */
 (function(){
   var reduced=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
 
@@ -1101,7 +1102,7 @@ if(!RM){
       if(video.readyState<2)return;
       var t=video.currentTime;
       if(t>=1.0){video.currentTime=0;}
-      /* crossfade driven by rAF — smooth 25fps opacity update */
+      /* crossfade driven by rAF ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â smooth 25fps opacity update */
       canvas.style.opacity=layerOp(t,baseOp).toFixed(4);
       var vw=video.videoWidth||CW,vh=video.videoHeight||CH;
       ctx.drawImage(video,0,0,vw,Math.round(vh*0.38),0,0,CW,CH);

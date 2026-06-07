@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hamza &amp; Madina Admin</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <title>Restaurant Website Admin</title>
+  <meta name="description" content="Restaurant Website Admin is a standalone demo back office for restaurant analytics, orders, menu management, and branch operations." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.3/chart.umd.min.js"></script>
@@ -1064,11 +1065,11 @@
     <aside class="sidebar" id="sidebar" aria-label="Primary navigation">
       <div class="brand-block">
         <div class="brand-mark">
-          <img src="hamza-madina-logo.jpeg" alt="Hamza and Madina Halal Food logo" />
+          <span aria-hidden="true" style="display:grid;place-items:center;background:#fff;color:#232C6B;font:700 28px/56px var(--font-display);text-align:center;height:56px;width:56px;border-radius:14px;">R</span>
         </div>
         <div class="brand-copy">
-          <strong>Hamza &amp; Madina</strong>
-          <span>Admin Control Room</span>
+          <strong>Restaurant Website</strong>
+          <span>Restaurant ? Menu ? Ordering</span>
         </div>
       </div>
 
@@ -1089,7 +1090,7 @@
           </button>
           <div>
             <h1 id="pageTitle">Dashboard</h1>
-            <p id="pageSubtitle">Today across Dubai and Sharjah</p>
+            <p id="pageSubtitle">Restaurant ? Menu ? Ordering</p>
           </div>
         </div>
         <div class="topbar-right">
@@ -1109,7 +1110,7 @@
           <h2 id="drawerTitle">Order details</h2>
           <p id="drawerSubtitle" class="topbar-copy"></p>
         </div>
-        <button class="drawer-close" id="drawerClose" type="button" aria-label="Close order details">×</button>
+        <button class="drawer-close" id="drawerClose" type="button" aria-label="Close order details">Ãƒâ€”</button>
       </div>
       <div class="drawer-body" id="drawerBody"></div>
     </div>
@@ -1122,7 +1123,7 @@
           <h2 id="modalTitle">Edit item</h2>
           <p id="modalSubtitle"></p>
         </div>
-        <button class="modal-close" id="modalClose" type="button" aria-label="Close dialog">×</button>
+        <button class="modal-close" id="modalClose" type="button" aria-label="Close dialog">Ãƒâ€”</button>
       </div>
       <form class="modal-body" id="modalForm"></form>
     </div>
@@ -1156,8 +1157,8 @@
           { category: "Wings", total: 3340 }
         ],
         branchPerformance: [
-          { branch: "Dubai Deira", revenue: 31140, orders: 366, avgPrep: "18 min" },
-          { branch: "Sharjah Al Nasserya", revenue: 25660, orders: 309, avgPrep: "16 min" }
+          { branch: "Demo Branch One", revenue: 31140, orders: 366, avgPrep: "18 min" },
+          { branch: "Demo Branch Two", revenue: 25660, orders: 309, avgPrep: "16 min" }
         ],
         channelPerformance: [
           { channel: "Talabat", orders: 218, revenue: 17640, conversion: "7.4%" },
@@ -1183,13 +1184,13 @@
       },
       branches: [
         {
-          id: "branch-dubai",
-          name: "Dubai Deira",
-          area: "Al Rigga Road, Deira",
-          phone: "+971 4 123 4567",
+          id: "branch-demo-1",
+          name: "Demo Branch One",
+          area: "Demo district one",
+          phone: "Demo phone",
           status: "Open",
           open: true,
-          manager: "Sara Khan",
+          manager: "Manager One",
           prepTime: "18-24 min",
           hours: [
             { day: "Mon", open: "11:00", close: "23:00", enabled: true },
@@ -1202,13 +1203,13 @@
           ]
         },
         {
-          id: "branch-sharjah",
-          name: "Sharjah Al Nasserya",
-          area: "Al Nasserya, Sharjah",
-          phone: "+971 6 123 4567",
+          id: "branch-demo-2",
+          name: "Demo Branch Two",
+          area: "Demo district two",
+          phone: "Demo phone",
           status: "Open",
           open: true,
-          manager: "Omar Siddiqui",
+          manager: "Manager Two",
           prepTime: "15-20 min",
           hours: [
             { day: "Mon", open: "11:00", close: "00:00", enabled: true },
@@ -1229,7 +1230,7 @@
           price: 38,
           image: "https://images.unsplash.com/photo-1511690743698-d9d85f2fbf38?auto=format&fit=crop&w=1200&q=80",
           description: "Char-grilled chicken, fragrant basmati, white sauce, and hot-sauce finish.",
-          branches: { "branch-dubai": true, "branch-sharjah": true },
+          branches: { "branch-demo-1": true, "branch-demo-2": true },
           halal: true
         },
         {
@@ -1239,7 +1240,7 @@
           price: 45,
           image: "https://images.unsplash.com/photo-1529006557810-274b9b2fc783?auto=format&fit=crop&w=1200&q=80",
           description: "Savoury lamb strips over rice with white sauce and deep spice.",
-          branches: { "branch-dubai": true, "branch-sharjah": false },
+          branches: { "branch-demo-1": true, "branch-demo-2": false },
           halal: true
         },
         {
@@ -1249,7 +1250,7 @@
           price: 42,
           image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=1200&q=80",
           description: "Loaded fries topped with smoky chicken, garlic sauce, and herbs.",
-          branches: { "branch-dubai": true, "branch-sharjah": true },
+          branches: { "branch-demo-1": true, "branch-demo-2": true },
           halal: true
         },
         {
@@ -1259,7 +1260,7 @@
           price: 32,
           image: "https://images.unsplash.com/photo-1534938665420-4193effeacc4?auto=format&fit=crop&w=1200&q=80",
           description: "Soft flatbread wrapped around juicy kofta, herbs, and tahina.",
-          branches: { "branch-dubai": true, "branch-sharjah": true },
+          branches: { "branch-demo-1": true, "branch-demo-2": true },
           halal: true
         },
         {
@@ -1269,7 +1270,7 @@
           price: 28,
           image: "https://images.unsplash.com/photo-1543339308-43e59d6b73a6?auto=format&fit=crop&w=1200&q=80",
           description: "Crisp falafel, pickles, tahina, and fresh herbs in warm bread.",
-          branches: { "branch-dubai": true, "branch-sharjah": true },
+          branches: { "branch-demo-1": true, "branch-demo-2": true },
           halal: true
         },
         {
@@ -1279,7 +1280,7 @@
           price: 55,
           image: "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=80",
           description: "A larger-format chicken feast with rice, salad, and double sauce.",
-          branches: { "branch-dubai": true, "branch-sharjah": true },
+          branches: { "branch-demo-1": true, "branch-demo-2": true },
           halal: true
         },
         {
@@ -1289,7 +1290,7 @@
           price: 62,
           image: "https://images.unsplash.com/photo-1529006557810-274b9b2fc783?auto=format&fit=crop&w=1200&q=80",
           description: "Premium lamb platter with rice, herbs, salad, and warm bread.",
-          branches: { "branch-dubai": true, "branch-sharjah": false },
+          branches: { "branch-demo-1": true, "branch-demo-2": false },
           halal: true
         },
         {
@@ -1299,7 +1300,7 @@
           price: 58,
           image: "https://images.unsplash.com/photo-1534938665420-4193effeacc4?auto=format&fit=crop&w=1200&q=80",
           description: "Spiced kofta with rice, tahina, herb salad, and warm bread.",
-          branches: { "branch-dubai": true, "branch-sharjah": true },
+          branches: { "branch-demo-1": true, "branch-demo-2": true },
           halal: true
         },
         {
@@ -1309,7 +1310,7 @@
           price: 36,
           image: "https://images.unsplash.com/photo-1559847844-d721426d6edc?auto=format&fit=crop&w=1200&q=80",
           description: "A tight wrap of chicken, rice, sauce, and fresh crunch.",
-          branches: { "branch-dubai": true, "branch-sharjah": true },
+          branches: { "branch-demo-1": true, "branch-demo-2": true },
           halal: true
         },
         {
@@ -1319,7 +1320,7 @@
           price: 28,
           image: "https://images.unsplash.com/photo-1604908811371-2d1bb0e3d7b7?auto=format&fit=crop&w=1200&q=80",
           description: "Crisp fries finished with chicken bits, sauce, and spice dust.",
-          branches: { "branch-dubai": true, "branch-sharjah": true },
+          branches: { "branch-demo-1": true, "branch-demo-2": true },
           halal: true
         },
         {
@@ -1329,7 +1330,7 @@
           price: 30,
           image: "https://images.unsplash.com/photo-1553979459-d2229ba7433b?auto=format&fit=crop&w=1200&q=80",
           description: "Toasted bread, seasoned chicken, crisp salad, and creamy sauce.",
-          branches: { "branch-dubai": true, "branch-sharjah": true },
+          branches: { "branch-demo-1": true, "branch-demo-2": true },
           halal: true
         },
         {
@@ -1339,34 +1340,34 @@
           price: 34,
           image: "https://images.unsplash.com/photo-1567620832903-9fc6debc209f?auto=format&fit=crop&w=1200&q=80",
           description: "Golden wings with smoky spice lacquer and cooling dip.",
-          branches: { "branch-dubai": false, "branch-sharjah": true },
+          branches: { "branch-demo-1": false, "branch-demo-2": true },
           halal: true
         }
       ],
       orders: [
         {
-          id: "HM-2401",
+          id: "RW-2401",
           customerId: "cust-1",
-          customer: "Aisha Rahman",
+          customer: "Customer 01",
           serviceDate: "2026-06-02",
-          branchId: "branch-dubai",
-          branch: "Dubai Deira",
+          branchId: "branch-demo-1",
+          branch: "Demo Branch One",
           type: "Delivery",
           status: "Preparing",
           total: 98,
           time: "11:18 AM",
           placedAt: "10:56 AM",
-          address: "Al Muraqqabat, Dubai",
+          address: "Demo district one",
           items: ["Chicken Over Rice", "Loaded Fries", "Saffron Lemonade"],
           payment: "Paid online"
         },
         {
-          id: "HM-2402",
+          id: "RW-2402",
           customerId: "cust-2",
-          customer: "Bilal Hussain",
+          customer: "Customer 02",
           serviceDate: "2026-06-02",
-          branchId: "branch-sharjah",
-          branch: "Sharjah Al Nasserya",
+          branchId: "branch-demo-2",
+          branch: "Demo Branch Two",
           type: "Pickup",
           status: "Ready",
           total: 62,
@@ -1377,44 +1378,44 @@
           payment: "Paid online"
         },
         {
-          id: "HM-2403",
+          id: "RW-2403",
           customerId: "cust-3",
-          customer: "Nadia Khan",
+          customer: "Customer 03",
           serviceDate: "2026-06-02",
-          branchId: "branch-sharjah",
-          branch: "Sharjah Al Nasserya",
+          branchId: "branch-demo-2",
+          branch: "Demo Branch Two",
           type: "Delivery",
           status: "Pending",
           total: 84,
           time: "11:42 AM",
           placedAt: "11:16 AM",
-          address: "Al Majaz 2, Sharjah",
+          address: "Demo district two",
           items: ["Kofta Gyro", "Falafel Gyro", "Loaded Fries"],
           payment: "Cash on delivery"
         },
         {
-          id: "HM-2404",
+          id: "RW-2404",
           customerId: "cust-4",
-          customer: "Yusuf Ali",
+          customer: "Customer 04",
           serviceDate: "2026-06-02",
-          branchId: "branch-dubai",
-          branch: "Dubai Deira",
+          branchId: "branch-demo-1",
+          branch: "Demo Branch One",
           type: "Delivery",
           status: "Delivered",
           total: 110,
           time: "10:58 AM",
           placedAt: "10:21 AM",
-          address: "Al Rigga, Dubai",
+          address: "Demo district three",
           items: ["Chicken Platter", "Chicken Burrito", "Saffron Lemonade"],
           payment: "Paid online"
         },
         {
-          id: "HM-2405",
+          id: "RW-2405",
           customerId: "cust-5",
-          customer: "Mariam Saeed",
+          customer: "Customer 05",
           serviceDate: "2026-06-02",
-          branchId: "branch-sharjah",
-          branch: "Sharjah Al Nasserya",
+          branchId: "branch-demo-2",
+          branch: "Demo Branch Two",
           type: "Pickup",
           status: "Preparing",
           total: 58,
@@ -1425,60 +1426,60 @@
           payment: "Paid online"
         },
         {
-          id: "HM-2406",
+          id: "RW-2406",
           customerId: "cust-6",
-          customer: "Omar Abdullah",
+          customer: "Customer 06",
           serviceDate: "2026-06-02",
-          branchId: "branch-dubai",
-          branch: "Dubai Deira",
+          branchId: "branch-demo-1",
+          branch: "Demo Branch One",
           type: "Delivery",
           status: "Ready",
           total: 72,
           time: "12:04 PM",
           placedAt: "11:33 AM",
-          address: "Port Saeed, Dubai",
+          address: "Demo district four",
           items: ["Chicken Over Fries", "Classic Chicken Sandwich"],
           payment: "Paid online"
         },
         {
-          id: "HM-2407",
+          id: "RW-2407",
           customerId: "cust-1",
-          customer: "Aisha Rahman",
+          customer: "Customer 01",
           serviceDate: "2026-06-01",
-          branchId: "branch-dubai",
-          branch: "Dubai Deira",
+          branchId: "branch-demo-1",
+          branch: "Demo Branch One",
           type: "Delivery",
           status: "Cancelled",
           total: 45,
           time: "Yesterday",
           placedAt: "Yesterday",
-          address: "Al Muraqqabat, Dubai",
+          address: "Demo district one",
           items: ["Lamb Over Rice"],
           payment: "Refunded"
         },
         {
-          id: "HM-2408",
+          id: "RW-2408",
           customerId: "cust-4",
-          customer: "Yusuf Ali",
+          customer: "Customer 04",
           serviceDate: "2026-06-02",
-          branchId: "branch-sharjah",
-          branch: "Sharjah Al Nasserya",
+          branchId: "branch-demo-2",
+          branch: "Demo Branch Two",
           type: "Delivery",
           status: "Preparing",
           total: 64,
           time: "12:12 PM",
           placedAt: "11:48 AM",
-          address: "Al Khan, Sharjah",
+          address: "Demo district five",
           items: ["Crispy Wings", "Saffron Lemonade", "Falafel Gyro"],
           payment: "Paid online"
         },
         {
-          id: "HM-2397",
+          id: "RW-2397",
           customerId: "cust-2",
-          customer: "Bilal Hussain",
+          customer: "Customer 02",
           serviceDate: "2026-06-01",
-          branchId: "branch-sharjah",
-          branch: "Sharjah Al Nasserya",
+          branchId: "branch-demo-2",
+          branch: "Demo Branch Two",
           type: "Pickup",
           status: "Delivered",
           total: 90,
@@ -1489,44 +1490,44 @@
           payment: "Paid online"
         },
         {
-          id: "HM-2396",
+          id: "RW-2396",
           customerId: "cust-5",
-          customer: "Mariam Saeed",
+          customer: "Customer 05",
           serviceDate: "2026-06-01",
-          branchId: "branch-dubai",
-          branch: "Dubai Deira",
+          branchId: "branch-demo-1",
+          branch: "Demo Branch One",
           type: "Delivery",
           status: "Delivered",
           total: 74,
           time: "6:48 PM",
           placedAt: "6:11 PM",
-          address: "Al Baraha, Dubai",
+          address: "Demo district six",
           items: ["Chicken Burrito", "Classic Chicken Sandwich", "Saffron Lemonade"],
           payment: "Paid online"
         },
         {
-          id: "HM-2395",
+          id: "RW-2395",
           customerId: "cust-6",
-          customer: "Omar Abdullah",
+          customer: "Customer 06",
           serviceDate: "2026-05-31",
-          branchId: "branch-dubai",
-          branch: "Dubai Deira",
+          branchId: "branch-demo-1",
+          branch: "Demo Branch One",
           type: "Delivery",
           status: "Delivered",
           total: 100,
           time: "9:22 PM",
           placedAt: "8:41 PM",
-          address: "Al Nahda 1, Dubai",
+          address: "Demo district seven",
           items: ["Chicken Over Rice", "Kofta Gyro", "Loaded Fries"],
           payment: "Paid online"
         },
         {
-          id: "HM-2394",
+          id: "RW-2394",
           customerId: "cust-3",
-          customer: "Nadia Khan",
+          customer: "Customer 03",
           serviceDate: "2026-05-31",
-          branchId: "branch-sharjah",
-          branch: "Sharjah Al Nasserya",
+          branchId: "branch-demo-2",
+          branch: "Demo Branch Two",
           type: "Pickup",
           status: "Delivered",
           total: 62,
@@ -1537,60 +1538,60 @@
           payment: "Paid online"
         },
         {
-          id: "HM-2393",
+          id: "RW-2393",
           customerId: "cust-4",
-          customer: "Yusuf Ali",
+          customer: "Customer 04",
           serviceDate: "2026-05-30",
-          branchId: "branch-dubai",
-          branch: "Dubai Deira",
+          branchId: "branch-demo-1",
+          branch: "Demo Branch One",
           type: "Delivery",
           status: "Delivered",
           total: 81,
           time: "2:06 PM",
           placedAt: "1:28 PM",
-          address: "Port Saeed, Dubai",
+          address: "Demo district four",
           items: ["Chicken Over Fries", "Falafel Gyro", "Saffron Lemonade"],
           payment: "Paid online"
         },
         {
-          id: "HM-2392",
+          id: "RW-2392",
           customerId: "cust-1",
-          customer: "Aisha Rahman",
+          customer: "Customer 01",
           serviceDate: "2026-05-30",
-          branchId: "branch-sharjah",
-          branch: "Sharjah Al Nasserya",
+          branchId: "branch-demo-2",
+          branch: "Demo Branch Two",
           type: "Delivery",
           status: "Delivered",
           total: 116,
           time: "8:54 PM",
           placedAt: "8:13 PM",
-          address: "Al Taawun, Sharjah",
+          address: "Demo district eight",
           items: ["Chicken Platter", "Kofta Platter"],
           payment: "Paid online"
         },
         {
-          id: "HM-2391",
+          id: "RW-2391",
           customerId: "cust-2",
-          customer: "Bilal Hussain",
+          customer: "Customer 02",
           serviceDate: "2026-05-29",
-          branchId: "branch-dubai",
-          branch: "Dubai Deira",
+          branchId: "branch-demo-1",
+          branch: "Demo Branch One",
           type: "Delivery",
           status: "Delivered",
           total: 96,
           time: "9:18 PM",
           placedAt: "8:42 PM",
-          address: "Al Rigga, Dubai",
+          address: "Demo district three",
           items: ["Lamb Over Rice", "Chicken Burrito", "Saffron Lemonade"],
           payment: "Paid online"
         },
         {
-          id: "HM-2390",
+          id: "RW-2390",
           customerId: "cust-5",
-          customer: "Mariam Saeed",
+          customer: "Customer 05",
           serviceDate: "2026-05-29",
-          branchId: "branch-sharjah",
-          branch: "Sharjah Al Nasserya",
+          branchId: "branch-demo-2",
+          branch: "Demo Branch Two",
           type: "Pickup",
           status: "Delivered",
           total: 60,
@@ -1601,60 +1602,60 @@
           payment: "Paid online"
         },
         {
-          id: "HM-2389",
+          id: "RW-2389",
           customerId: "cust-6",
-          customer: "Omar Abdullah",
+          customer: "Customer 06",
           serviceDate: "2026-05-28",
-          branchId: "branch-dubai",
-          branch: "Dubai Deira",
+          branchId: "branch-demo-1",
+          branch: "Demo Branch One",
           type: "Delivery",
           status: "Delivered",
           total: 87,
           time: "8:44 PM",
           placedAt: "8:09 PM",
-          address: "Deira, Dubai",
+          address: "Demo district nine",
           items: ["Chicken Over Rice", "Crispy Wings", "Saffron Lemonade"],
           payment: "Paid online"
         },
         {
-          id: "HM-2388",
+          id: "RW-2388",
           customerId: "cust-3",
-          customer: "Nadia Khan",
+          customer: "Customer 03",
           serviceDate: "2026-05-28",
-          branchId: "branch-sharjah",
-          branch: "Sharjah Al Nasserya",
+          branchId: "branch-demo-2",
+          branch: "Demo Branch Two",
           type: "Delivery",
           status: "Delivered",
           total: 60,
           time: "7:31 PM",
           placedAt: "6:58 PM",
-          address: "Al Qasimia, Sharjah",
+          address: "Demo district ten",
           items: ["Falafel Gyro", "Loaded Fries", "Saffron Lemonade"],
           payment: "Cash on delivery"
         },
         {
-          id: "HM-2387",
+          id: "RW-2387",
           customerId: "cust-4",
-          customer: "Yusuf Ali",
+          customer: "Customer 04",
           serviceDate: "2026-05-27",
-          branchId: "branch-dubai",
-          branch: "Dubai Deira",
+          branchId: "branch-demo-1",
+          branch: "Demo Branch One",
           type: "Delivery",
           status: "Delivered",
           total: 96,
           time: "9:04 PM",
           placedAt: "8:22 PM",
-          address: "Al Khabaisi, Dubai",
+          address: "Demo district eleven",
           items: ["Chicken Over Rice", "Kofta Platter"],
           payment: "Paid online"
         },
         {
-          id: "HM-2386",
+          id: "RW-2386",
           customerId: "cust-1",
-          customer: "Aisha Rahman",
+          customer: "Customer 01",
           serviceDate: "2026-05-27",
-          branchId: "branch-sharjah",
-          branch: "Sharjah Al Nasserya",
+          branchId: "branch-demo-2",
+          branch: "Demo Branch Two",
           type: "Pickup",
           status: "Delivered",
           total: 62,
@@ -1666,12 +1667,12 @@
         }
       ],
       customers: [
-        { id: "cust-1", name: "Aisha Rahman", email: "aisha.r@example.com", phone: "+971 50 220 1184", segment: "VIP", totalSpend: 646, lastOrder: "Today", favoriteDish: "Chicken Over Rice" },
-        { id: "cust-2", name: "Bilal Hussain", email: "bilal.h@example.com", phone: "+971 55 781 4400", segment: "Frequent", totalSpend: 384, lastOrder: "Today", favoriteDish: "Lamb Platter" },
-        { id: "cust-3", name: "Nadia Khan", email: "nadia.k@example.com", phone: "+971 56 991 7780", segment: "New", totalSpend: 84, lastOrder: "Today", favoriteDish: "Loaded Fries" },
-        { id: "cust-4", name: "Yusuf Ali", email: "yusuf.a@example.com", phone: "+971 52 448 2211", segment: "Frequent", totalSpend: 510, lastOrder: "Today", favoriteDish: "Chicken Platter" },
-        { id: "cust-5", name: "Mariam Saeed", email: "mariam.s@example.com", phone: "+971 54 722 6671", segment: "Loyal", totalSpend: 271, lastOrder: "Today", favoriteDish: "Kofta Platter" },
-        { id: "cust-6", name: "Omar Abdullah", email: "omar.a@example.com", phone: "+971 50 998 0102", segment: "Frequent", totalSpend: 332, lastOrder: "Today", favoriteDish: "Chicken Over Fries" }
+        { id: "cust-1", name: "Customer 01", email: "customer01@example.com", phone: "Demo phone", segment: "VIP", totalSpend: 646, lastOrder: "Today", favoriteDish: "Chicken Over Rice" },
+        { id: "cust-2", name: "Customer 02", email: "customer02@example.com", phone: "Demo phone", segment: "Frequent", totalSpend: 384, lastOrder: "Today", favoriteDish: "Lamb Platter" },
+        { id: "cust-3", name: "Customer 03", email: "customer03@example.com", phone: "Demo phone", segment: "New", totalSpend: 84, lastOrder: "Today", favoriteDish: "Loaded Fries" },
+        { id: "cust-4", name: "Customer 04", email: "customer04@example.com", phone: "Demo phone", segment: "Frequent", totalSpend: 510, lastOrder: "Today", favoriteDish: "Chicken Platter" },
+        { id: "cust-5", name: "Customer 05", email: "customer05@example.com", phone: "Demo phone", segment: "Loyal", totalSpend: 271, lastOrder: "Today", favoriteDish: "Kofta Platter" },
+        { id: "cust-6", name: "Customer 06", email: "customer06@example.com", phone: "Demo phone", segment: "Frequent", totalSpend: 332, lastOrder: "Today", favoriteDish: "Chicken Over Fries" }
       ],
       promotions: [
         { id: "promo-1", code: "HALAL10", type: "Percent", value: "10% off", usage: 112, active: true, expires: "2026-06-30" },
@@ -2030,7 +2031,7 @@
             </div>
             <div class="detail-list">
               ${channelPerformance.map((entry) => `
-                <div class="detail-item"><span>${entry.channel}</span><strong>${entry.orders} orders Â· ${formatCurrency(entry.revenue)} Â· ${entry.conversion}</strong></div>
+                <div class="detail-item"><span>${entry.channel}</span><strong>${entry.orders} orders Ãƒâ€šÃ‚Â· ${formatCurrency(entry.revenue)} Ãƒâ€šÃ‚Â· ${entry.conversion}</strong></div>
               `).join("")}
             </div>
           </article>
@@ -2043,7 +2044,7 @@
             </div>
             <div class="detail-list">
               ${daypartPerformance.map((entry) => `
-                <div class="detail-item"><span>${entry.slot} Â· ${entry.window}</span><strong>${entry.orders} orders Â· ${formatCurrency(entry.revenue)}</strong></div>
+                <div class="detail-item"><span>${entry.slot} Ãƒâ€šÃ‚Â· ${entry.window}</span><strong>${entry.orders} orders Ãƒâ€šÃ‚Â· ${formatCurrency(entry.revenue)}</strong></div>
               `).join("")}
             </div>
           </article>
@@ -2249,8 +2250,8 @@
             <div class="chart-box"><canvas id="revenueChart" aria-label="Revenue chart"></canvas></div>
             <div class="chart-notes">
               <div class="chart-note"><span>Total 7-day revenue</span><strong>${formatCurrency(totalWeekRevenue)}</strong></div>
-              <div class="chart-note"><span>Peak day</span><strong>${peakDay ? `${peakDay.day} · ${formatCurrency(peakDay.amount)}` : "No data yet"}</strong></div>
-              <div class="chart-note"><span>Strongest branch</span><strong>${branchPerformance[0].branch} · ${formatCurrency(branchPerformance[0].revenue)}</strong></div>
+              <div class="chart-note"><span>Peak day</span><strong>${peakDay ? `${peakDay.day} Ã‚Â· ${formatCurrency(peakDay.amount)}` : "No data yet"}</strong></div>
+              <div class="chart-note"><span>Strongest branch</span><strong>${branchPerformance[0].branch} Ã‚Â· ${formatCurrency(branchPerformance[0].revenue)}</strong></div>
             </div>
           </article>
           <article class="surface">
@@ -2263,7 +2264,7 @@
             <div class="chart-box"><canvas id="ordersBarChart" aria-label="Orders bar chart"></canvas></div>
             <div class="chart-notes">
               <div class="chart-note"><span>Total weekly orders</span><strong>${totalWeekOrders}</strong></div>
-              <div class="chart-note"><span>Busiest day</span><strong>${revenueSeries.slice().sort((a, b) => b.orders - a.orders)[0].day} · ${revenueSeries.slice().sort((a, b) => b.orders - a.orders)[0].orders} orders</strong></div>
+              <div class="chart-note"><span>Busiest day</span><strong>${revenueSeries.slice().sort((a, b) => b.orders - a.orders)[0].day} Ã‚Â· ${revenueSeries.slice().sort((a, b) => b.orders - a.orders)[0].orders} orders</strong></div>
               <div class="chart-note"><span>Average order value</span><strong>${formatCurrency(Math.round(totalWeekRevenue / totalWeekOrders))}</strong></div>
             </div>
           </article>
@@ -2291,14 +2292,14 @@
               </div>
             </div>
             <div class="detail-list">
-              <div class="detail-item"><span>Peak day</span><strong>${peakDay ? `${peakDay.day} · ${formatCurrency(peakDay.amount)}` : "No data yet"}</strong></div>
+              <div class="detail-item"><span>Peak day</span><strong>${peakDay ? `${peakDay.day} Ã‚Â· ${formatCurrency(peakDay.amount)}` : "No data yet"}</strong></div>
               <div class="detail-item"><span>Top revenue category</span><strong>${bestCategory}</strong></div>
               <div class="detail-item"><span>Fastest branch</span><strong>${branchPerformance[1].branch}</strong></div>
-              <div class="detail-item"><span>Best channel</span><strong>${strongestChannel.channel} Â· ${formatCurrency(strongestChannel.revenue)}</strong></div>
-              <div class="detail-item"><span>Best daypart</span><strong>${bestDaypart.slot} Â· ${formatCurrency(bestDaypart.revenue)}</strong></div>
-              <div class="detail-item"><span>Top menu item</span><strong>${topMenuItem.name} Â· ${formatCurrency(topMenuItem.revenue)}</strong></div>
-              <div class="detail-item"><span>Dubai branch</span><strong>${branchPerformance[0].orders} orders · ${branchPerformance[0].avgPrep}</strong></div>
-              <div class="detail-item"><span>Sharjah branch</span><strong>${branchPerformance[1].orders} orders · ${branchPerformance[1].avgPrep}</strong></div>
+              <div class="detail-item"><span>Best channel</span><strong>${strongestChannel.channel} Ãƒâ€šÃ‚Â· ${formatCurrency(strongestChannel.revenue)}</strong></div>
+              <div class="detail-item"><span>Best daypart</span><strong>${bestDaypart.slot} Ãƒâ€šÃ‚Â· ${formatCurrency(bestDaypart.revenue)}</strong></div>
+              <div class="detail-item"><span>Top menu item</span><strong>${topMenuItem.name} Ãƒâ€šÃ‚Â· ${formatCurrency(topMenuItem.revenue)}</strong></div>
+              <div class="detail-item"><span>Branch one</span><strong>${branchPerformance[0].orders} orders Ã‚Â· ${branchPerformance[0].avgPrep}</strong></div>
+              <div class="detail-item"><span>Branch two</span><strong>${branchPerformance[1].orders} orders Ã‚Â· ${branchPerformance[1].avgPrep}</strong></div>
             </div>
           </article>
         </section>
@@ -2503,8 +2504,8 @@
             </div>
             <div class="chart-notes">
               <div class="chart-note"><span>Total 7-day revenue</span><strong>${formatCurrency(totalWeekRevenue)}</strong></div>
-              <div class="chart-note"><span>Peak day</span><strong>${peakDay ? `${peakDay.day} Â· ${formatCurrency(peakDay.amount)}` : "No data yet"}</strong></div>
-              <div class="chart-note"><span>Strongest branch</span><strong>${branchPerformance[0].branch} Â· ${formatCurrency(branchPerformance[0].revenue)}</strong></div>
+              <div class="chart-note"><span>Peak day</span><strong>${peakDay ? `${peakDay.day} Ãƒâ€šÃ‚Â· ${formatCurrency(peakDay.amount)}` : "No data yet"}</strong></div>
+              <div class="chart-note"><span>Strongest branch</span><strong>${branchPerformance[0].branch} Ãƒâ€šÃ‚Â· ${formatCurrency(branchPerformance[0].revenue)}</strong></div>
             </div>
           </article>
           <article class="surface">
@@ -2526,7 +2527,7 @@
             </div>
             <div class="chart-notes">
               <div class="chart-note"><span>Total weekly orders</span><strong>${totalWeekOrders}</strong></div>
-              <div class="chart-note"><span>Busiest day</span><strong>${busiestDay.day} Â· ${busiestDay.orders} orders</strong></div>
+              <div class="chart-note"><span>Busiest day</span><strong>${busiestDay.day} Ãƒâ€šÃ‚Â· ${busiestDay.orders} orders</strong></div>
               <div class="chart-note"><span>Average order value</span><strong>${formatCurrency(Math.round(totalWeekRevenue / totalWeekOrders))}</strong></div>
             </div>
           </article>
@@ -2566,14 +2567,14 @@
               </div>
             </div>
             <div class="detail-list">
-              <div class="detail-item"><span>Peak day</span><strong>${peakDay ? `${peakDay.day} Â· ${formatCurrency(peakDay.amount)}` : "No data yet"}</strong></div>
+              <div class="detail-item"><span>Peak day</span><strong>${peakDay ? `${peakDay.day} Ãƒâ€šÃ‚Â· ${formatCurrency(peakDay.amount)}` : "No data yet"}</strong></div>
               <div class="detail-item"><span>Top revenue category</span><strong>${bestCategory}</strong></div>
               <div class="detail-item"><span>Fastest branch</span><strong>${branchPerformance[1].branch}</strong></div>
-              <div class="detail-item"><span>Best channel</span><strong>${strongestChannel.channel} Â· ${formatCurrency(strongestChannel.revenue)}</strong></div>
-              <div class="detail-item"><span>Best daypart</span><strong>${bestDaypart.slot} Â· ${formatCurrency(bestDaypart.revenue)}</strong></div>
-              <div class="detail-item"><span>Top menu item</span><strong>${topMenuItem.name} Â· ${formatCurrency(topMenuItem.revenue)}</strong></div>
-              <div class="detail-item"><span>Dubai branch</span><strong>${branchPerformance[0].orders} orders Â· ${branchPerformance[0].avgPrep}</strong></div>
-              <div class="detail-item"><span>Sharjah branch</span><strong>${branchPerformance[1].orders} orders Â· ${branchPerformance[1].avgPrep}</strong></div>
+              <div class="detail-item"><span>Best channel</span><strong>${strongestChannel.channel} Ãƒâ€šÃ‚Â· ${formatCurrency(strongestChannel.revenue)}</strong></div>
+              <div class="detail-item"><span>Best daypart</span><strong>${bestDaypart.slot} Ãƒâ€šÃ‚Â· ${formatCurrency(bestDaypart.revenue)}</strong></div>
+              <div class="detail-item"><span>Top menu item</span><strong>${topMenuItem.name} Ãƒâ€šÃ‚Â· ${formatCurrency(topMenuItem.revenue)}</strong></div>
+              <div class="detail-item"><span>Branch one</span><strong>${branchPerformance[0].orders} orders Ãƒâ€šÃ‚Â· ${branchPerformance[0].avgPrep}</strong></div>
+              <div class="detail-item"><span>Branch two</span><strong>${branchPerformance[1].orders} orders Ãƒâ€šÃ‚Â· ${branchPerformance[1].avgPrep}</strong></div>
             </div>
           </article>
         </section>
@@ -2587,7 +2588,7 @@
             </div>
             <div class="detail-list">
               ${channelPerformance.map((entry) => `
-                <div class="detail-item"><span>${entry.channel}</span><strong>${entry.orders} orders Â· ${formatCurrency(entry.revenue)} Â· ${entry.conversion}</strong></div>
+                <div class="detail-item"><span>${entry.channel}</span><strong>${entry.orders} orders Ãƒâ€šÃ‚Â· ${formatCurrency(entry.revenue)} Ãƒâ€šÃ‚Â· ${entry.conversion}</strong></div>
               `).join("")}
             </div>
           </article>
@@ -2600,7 +2601,7 @@
             </div>
             <div class="detail-list">
               ${daypartPerformance.map((entry) => `
-                <div class="detail-item"><span>${entry.slot} Â· ${entry.window}</span><strong>${entry.orders} orders Â· ${formatCurrency(entry.revenue)}</strong></div>
+                <div class="detail-item"><span>${entry.slot} Ãƒâ€šÃ‚Â· ${entry.window}</span><strong>${entry.orders} orders Ãƒâ€šÃ‚Â· ${formatCurrency(entry.revenue)}</strong></div>
               `).join("")}
             </div>
           </article>
@@ -2710,7 +2711,7 @@
               <div>
                 <span class="eyebrow">Guest profile</span>
                 <h3>${selectedCustomer.name}</h3>
-                <p style="color:var(--muted);margin:12px 0 0">${selectedCustomer.phone} · ${selectedCustomer.email}</p>
+                <p style="color:var(--muted);margin:12px 0 0">${selectedCustomer.phone} Ã‚Â· ${selectedCustomer.email}</p>
               </div>
               <div class="summary-list">
                 <div class="summary-item"><span>Segment</span><strong>${selectedCustomer.segment}</strong></div>
@@ -2723,7 +2724,7 @@
                 <div class="summary-list">
                   ${history.map((order) => `
                     <div class="summary-item">
-                      <span>${order.id} · ${order.status}</span>
+                      <span>${order.id} Ã‚Â· ${order.status}</span>
                       <strong>${formatCurrency(order.total)}</strong>
                     </div>
                   `).join("")}
@@ -2792,7 +2793,7 @@
           <div>
             <span class="eyebrow">Guest profile</span>
             <h3>${escapeHtml(customer.name)}</h3>
-            <p style="color:var(--muted);margin:12px 0 0">${escapeHtml(customer.phone)} · ${escapeHtml(customer.email)}</p>
+            <p style="color:var(--muted);margin:12px 0 0">${escapeHtml(customer.phone)} Ã‚Â· ${escapeHtml(customer.email)}</p>
           </div>
           <div class="summary-list">
             <div class="summary-item"><span>Segment</span><strong>${escapeHtml(customer.segment)}</strong></div>
@@ -2805,7 +2806,7 @@
             <div class="summary-list">
               ${history.map((order) => `
                 <div class="summary-item">
-                  <span>${escapeHtml(order.id)} · ${escapeHtml(order.status)}</span>
+                  <span>${escapeHtml(order.id)} Ã‚Â· ${escapeHtml(order.status)}</span>
                   <strong>${formatCurrency(order.total)}</strong>
                 </div>
               `).join("")}
@@ -2840,7 +2841,7 @@
                 <header>
                   <div>
                     <h4>${promo.code}</h4>
-                    <p>${promo.type} · Expires ${promo.expires}</p>
+                    <p>${promo.type} Ã‚Â· Expires ${promo.expires}</p>
                   </div>
                   <span class="status-badge ${promo.active ? "ready" : "cancelled"}">${promo.active ? "Active" : "Expired"}</span>
                 </header>
@@ -3001,7 +3002,7 @@
       renderNav();
       app.innerHTML = renderPage();
       if (state.route === "analytics") {
-        app.innerHTML = app.innerHTML.replace(/(?:Ã‚Â·|Â·)/g, "·");
+        app.innerHTML = app.innerHTML.replace(/(?:ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â·|Ãƒâ€šÃ‚Â·)/g, "Ã‚Â·");
       }
       renderCharts();
     }
@@ -3024,7 +3025,7 @@
       orderDrawer.classList.add("open");
       orderDrawer.setAttribute("aria-hidden", "false");
       document.body.classList.add("modal-open");
-      drawerSubtitle.textContent = `${order.customer} · ${order.branch}`;
+      drawerSubtitle.textContent = `${order.customer} Ã‚Â· ${order.branch}`;
       drawerBody.innerHTML = `
         <div class="detail-list">
           <div class="detail-item"><span>Status</span><strong><span class="status-badge ${order.status.toLowerCase()}">${order.status}</span></strong></div>
