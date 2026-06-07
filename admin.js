@@ -73,6 +73,7 @@ const INVITE_THEME_OPTIONS = ['royal-gold', 'minimal-white', 'modern-black', 'ar
 const INVITE_STATUS_OPTIONS = ['draft', 'active', 'disabled'];
 const DEMO_STATUS_OPTIONS = ['draft', 'active', 'expired', 'disabled'];
 const OUTREACH_STATUS_OPTIONS = [
+  { value: 'call_them', label: 'Call Them' },
   { value: 'setting_meeting', label: 'Setting Meeting' },
   { value: 'meeting', label: 'Meeting' },
   { value: 'declined', label: 'Declined' },
@@ -126,6 +127,7 @@ const activityActionLabels = {
   create_outreach_lead: 'Created outreach lead',
   edit_outreach_lead: 'Edited outreach lead',
   change_outreach_status: 'Changed outreach status',
+  extract_outreach_maps_lead: 'Extracted Google Maps lead',
   import_outreach_lead: 'Imported outreach lead to pipeline',
   delete_outreach_lead: 'Deleted outreach lead'
 };
@@ -246,6 +248,9 @@ const state = {
     draft: null,
     original: null,
     isSaving: false,
+    mapsLoading: false,
+    mapsError: '',
+    mapsUrl: '',
     error: ''
   },
   pendingLoginAudit: false
@@ -433,6 +438,7 @@ const rawValueLabels = {
   gallery_portfolio: 'Gallery / Portfolio',
   faq: 'FAQ',
   blog_news_offers: 'Blog / News / Offers',
+  call_them: 'Call Them',
   setting_meeting: 'Setting Meeting',
   meeting: 'Meeting',
   they_will_call_back: 'They Will Call Back',
@@ -553,7 +559,8 @@ const createEmptyOutreachLeadDraft = () => ({
   websiteUrl: '',
   meetingDateTime: '',
   meetingLocation: '',
-  status: 'setting_meeting',
+  notes: '',
+  status: 'call_them',
   importedSubmissionId: '',
   importedAt: null,
   importedFrom: ''
@@ -792,7 +799,8 @@ const getOutreachLeadLogState = (lead) => ({
   websiteUrl: lead?.websiteUrl || '',
   meetingDateTime: lead?.meetingDateTime || '',
   meetingLocation: lead?.meetingLocation || '',
-  status: lead?.status || 'setting_meeting',
+  notes: lead?.notes || '',
+  status: lead?.status || 'call_them',
   importedSubmissionId: lead?.importedSubmissionId || '',
   importedFrom: lead?.importedFrom || ''
 });
@@ -1155,10 +1163,11 @@ const formatPhoneForCall = (phone) => {
   return /^\+/.test(raw) ? `+${digits}` : digits;
 };
 
-const getOutreachStatusLabel = (value) => OUTREACH_STATUS_OPTIONS.find((option) => option.value === value)?.label || formatLabel(value || 'setting_meeting');
+const getOutreachStatusLabel = (value) => OUTREACH_STATUS_OPTIONS.find((option) => option.value === value)?.label || formatLabel(value || 'call_them');
 
 const getOutreachStatusTone = (value) => {
   if (value === 'confirmed') return 'accepted';
+  if (value === 'call_them') return 'contacted';
   if (value === 'meeting') return 'contacted';
   if (value === 'they_will_call_back') return 'quoted';
   if (value === 'declined') return 'archived';
@@ -1848,7 +1857,7 @@ const renderAnalyticsCards = (analytics) => {
 const renderSubmissionRows = (items, emptyTitle = 'No submissions match this view', emptyText = 'Try a broader search or reset the pipeline filters.') => {
   if (!items.length) {
     return `
-      <tr>
+      <tr class="qd-admin-outreach-row" data-outreach-open-id="${escapeHtml(lead.id)}">
         <td colspan="8">
           <div class="qd-admin-empty">
             <strong>${escapeHtml(emptyTitle)}</strong>
@@ -2167,13 +2176,17 @@ const renderOutreachRows = (items) => {
           <div class="qd-admin-card-person qd-admin-outreach-person">
             <div>
               <strong>${escapeHtml(lead.businessName || 'Untitled Lead')}</strong>
-              <span>${escapeHtml(lead.websiteUrl || 'No website listed')}</span>
+              <span>${lead.websiteUrl
+                ? `<a href="${escapeHtml(lead.websiteUrl)}" target="_blank" rel="noreferrer noopener">${escapeHtml(lead.websiteUrl)}</a>`
+                : 'No website listed'}</span>
             </div>
           </div>
         </td>
         <td>${escapeHtml(lead.ownerName || 'Not provided')}</td>
         <td>${escapeHtml(lead.phoneNumber || 'Not provided')}</td>
-        <td>${escapeHtml(lead.websiteUrl || 'No website')}</td>
+        <td>${lead.websiteUrl
+          ? `<a href="${escapeHtml(lead.websiteUrl)}" target="_blank" rel="noreferrer noopener">${escapeHtml(lead.websiteUrl)}</a>`
+          : 'No website'}</td>
         <td>
           ${escapeHtml(meetingDateLabel)}
           <div class="qd-admin-subline">${escapeHtml(meetingLocationLabel)}</div>
@@ -2211,7 +2224,7 @@ const renderOutreachCards = (items) => {
     const callLink = buildOutreachCallLink(lead);
     const meetingSummary = formatOutreachMeeting(lead);
     return `
-      <article class="qd-admin-mobile-card qd-admin-outreach-mobile-card">
+      <article class="qd-admin-mobile-card qd-admin-outreach-mobile-card" data-outreach-open-id="${escapeHtml(lead.id)}">
         <div class="qd-admin-mobile-card-head">
           <div>
             <div class="qd-admin-business-name">${escapeHtml(lead.businessName || 'Untitled Lead')}</div>
@@ -2222,7 +2235,9 @@ const renderOutreachCards = (items) => {
         <div class="qd-admin-mobile-card-grid">
           <div><strong>Owner</strong><span>${escapeHtml(lead.ownerName || 'Not provided')}</span></div>
           <div><strong>Phone</strong><span>${escapeHtml(lead.phoneNumber || 'Not provided')}</span></div>
-          <div><strong>Website</strong><span>${escapeHtml(lead.websiteUrl || 'No website')}</span></div>
+          <div><strong>Website</strong><span>${lead.websiteUrl
+            ? `<a href="${escapeHtml(lead.websiteUrl)}" target="_blank" rel="noreferrer noopener">${escapeHtml(lead.websiteUrl)}</a>`
+            : 'No website'}</span></div>
           <div><strong>Meeting</strong><span>${escapeHtml(meetingSummary || 'Not scheduled')}</span></div>
           <div><strong>Added</strong><span>${escapeHtml(formatDate(lead.createdAt))}</span></div>
         </div>
@@ -2257,11 +2272,95 @@ const getOutreachEditorDraftFromState = () => ({
   ...(state.outreachEditor?.draft || {})
 });
 
+const extractMapsLead = async () => {
+  const editor = state.outreachEditor;
+  const mapsUrl = String(editor.mapsUrl || '').trim();
+
+  if (!mapsUrl) {
+    editor.mapsError = 'Paste a Google Maps business URL first.';
+    render();
+    return;
+  }
+
+  editor.mapsLoading = true;
+  editor.mapsError = '';
+  render();
+
+  try {
+    const token = await auth.currentUser?.getIdToken();
+    if (!token) throw new Error('Your admin session expired. Please sign in again.');
+
+    const response = await fetch('/api/maps-extract', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ url: mapsUrl })
+    });
+
+    const payload = await response.json().catch(() => ({}));
+
+    if (!response.ok || payload.ok === false) {
+      throw new Error(payload.error || 'Could not extract this Google Maps listing.');
+    }
+
+    const lead = payload.lead || {};
+    const current = getOutreachEditorDraftFromState();
+    const importedWebsite = String(lead.websiteUrl || '').trim();
+    const nextWebsiteUrl = current.websiteUrl || importedWebsite || '';
+    const nextHasWebsite = nextWebsiteUrl
+      ? 'yes'
+      : current.hasWebsite === 'yes' || lead.hasWebsite === 'yes'
+        ? 'yes'
+        : 'no';
+
+    state.outreachEditor.draft = {
+      ...current,
+      businessName: current.businessName || lead.businessName || '',
+      phoneNumber: current.phoneNumber || lead.phoneNumber || '',
+      websiteUrl: nextWebsiteUrl,
+      hasWebsite: nextHasWebsite,
+      meetingLocation: current.meetingLocation || lead.meetingLocation || '',
+      notes: current.notes || ''
+    };
+
+    state.outreachEditor.mapsLoading = false;
+    state.outreachEditor.mapsError = '';
+
+    try {
+      await logAdminActivity({
+        action: 'extract_outreach_maps_lead',
+        targetType: 'outreach_lead',
+        targetId: state.outreachEditor.id || 'new',
+        targetLabel: state.outreachEditor.draft.businessName || 'Google Maps import',
+        metadata: {
+          sourceUrl: lead.sourceUrl || mapsUrl,
+          resolvedUrl: lead.resolvedUrl || '',
+          extractedFields: {
+            businessName: Boolean(lead.businessName),
+            phoneNumber: Boolean(lead.phoneNumber),
+            websiteUrl: Boolean(lead.websiteUrl),
+            meetingLocation: Boolean(lead.meetingLocation)
+          }
+        }
+      });
+    } catch (error) {
+      console.warn('[outreach] maps import activity log skipped:', error?.message || error);
+    }
+
+    render();
+  } catch (error) {
+    state.outreachEditor.mapsLoading = false;
+    state.outreachEditor.mapsError = error?.message || 'Could not import this Google Maps listing.';
+    render();
+  }
+};
+
 const renderOutreachEditor = () => {
   if (!state.outreachEditor.open) return '';
 
   const draft = getOutreachEditorDraftFromState();
-  const showWebsiteField = draft.hasWebsite === 'yes';
 
   return `
     <div class="qd-admin-modal-overlay">
@@ -2280,14 +2379,50 @@ const renderOutreachEditor = () => {
         ${state.outreachEditor.error ? `<div class="qd-admin-alert" role="alert">${escapeHtml(state.outreachEditor.error)}</div>` : ''}
 
         <form class="qd-admin-card-form" id="outreach-editor-form">
+          <section class="qd-admin-card qd-outreach-maps-import">
+            <div class="qd-admin-section-head">
+              <div>
+                <div class="qd-admin-card-label">Google Maps import</div>
+                <p>Paste a Google Maps business listing URL and import the visible lead details.</p>
+              </div>
+            </div>
+
+            <div class="qd-admin-form-grid">
+              <div class="qd-admin-field">
+                <label for="outreach-maps-url">Google Maps URL</label>
+                <input
+                  id="outreach-maps-url"
+                  class="qd-admin-input"
+                  type="url"
+                  data-outreach-editor-meta="mapsUrl"
+                  value="${escapeHtml(state.outreachEditor.mapsUrl || '')}"
+                  placeholder="https://maps.google.com/..."
+                >
+              </div>
+
+              <button
+                class="qd-btn qd-btn-sm qd-admin-action-primary"
+                type="button"
+                data-action="extract-maps-lead"
+                ${state.outreachEditor.mapsLoading ? 'disabled' : ''}
+              >
+                ${state.outreachEditor.mapsLoading ? 'Importing...' : 'Import from Maps'}
+              </button>
+            </div>
+
+            ${state.outreachEditor.mapsError ? `
+              <div class="qd-admin-alert" role="alert">${escapeHtml(state.outreachEditor.mapsError)}</div>
+            ` : ''}
+          </section>
+
           <div class="qd-admin-admin-grid qd-admin-card-grid-fields qd-admin-outreach-grid">
             <div class="qd-admin-field">
               <label for="outreach-business-name">Business Name</label>
               <input id="outreach-business-name" class="qd-admin-input" name="businessName" type="text" value="${escapeHtml(draft.businessName || '')}" required>
             </div>
             <div class="qd-admin-field">
-              <label for="outreach-owner-name">Owner Name</label>
-              <input id="outreach-owner-name" class="qd-admin-input" name="ownerName" type="text" value="${escapeHtml(draft.ownerName || '')}" required>
+              <label for="outreach-owner-name">Owner Name <span class="qd-admin-field-optional">(optional)</span></label>
+              <input id="outreach-owner-name" class="qd-admin-input" name="ownerName" type="text" value="${escapeHtml(draft.ownerName || '')}">
             </div>
             <div class="qd-admin-field">
               <label for="outreach-phone-number">Phone Number</label>
@@ -2305,29 +2440,18 @@ const renderOutreachEditor = () => {
               <label for="outreach-meeting-date-time">Meeting Date & Time <span class="qd-admin-field-optional">(optional)</span></label>
               <input id="outreach-meeting-date-time" class="qd-admin-input" name="meetingDateTime" type="datetime-local" value="${escapeHtml(draft.meetingDateTime || '')}">
             </div>
-            <fieldset class="qd-admin-field qd-admin-outreach-radio-field">
-              <legend>Has Website</legend>
-              <div class="qd-admin-outreach-radio-group">
-                <label class="qd-admin-toggle qd-admin-outreach-radio-option">
-                  <input type="radio" name="hasWebsite" value="yes" ${draft.hasWebsite === 'yes' ? 'checked' : ''}>
-                  <span>Yes</span>
-                </label>
-                <label class="qd-admin-toggle qd-admin-outreach-radio-option">
-                  <input type="radio" name="hasWebsite" value="no" ${draft.hasWebsite === 'yes' ? '' : 'checked'}>
-                  <span>No</span>
-                </label>
-              </div>
-            </fieldset>
+            <div class="qd-admin-field">
+              <label for="outreach-website-url">Website URL <span class="qd-admin-field-optional">(optional)</span></label>
+              <input id="outreach-website-url" class="qd-admin-input" name="websiteUrl" type="url" value="${escapeHtml(draft.websiteUrl || '')}" placeholder="https://example.com">
+            </div>
             <div class="qd-admin-field qd-admin-field-span-2">
               <label for="outreach-meeting-location">Meeting Location <span class="qd-admin-field-optional">(optional)</span></label>
               <input id="outreach-meeting-location" class="qd-admin-input" name="meetingLocation" type="text" value="${escapeHtml(draft.meetingLocation || '')}" placeholder="Office, cafe, Zoom link, address...">
             </div>
-            ${showWebsiteField ? `
-              <div class="qd-admin-field qd-admin-field-span-2">
-                <label for="outreach-website-url">Website URL</label>
-                <input id="outreach-website-url" class="qd-admin-input" name="websiteUrl" type="url" value="${escapeHtml(draft.websiteUrl || '')}" placeholder="https://example.com">
-              </div>
-            ` : ''}
+            <div class="qd-admin-field qd-admin-field-span-2">
+              <label for="outreach-notes">Notes <span class="qd-admin-field-optional">(optional)</span></label>
+              <textarea id="outreach-notes" class="qd-admin-textarea" name="notes" placeholder="Call outcome, reminders, website details, or anything useful...">${escapeHtml(draft.notes || '')}</textarea>
+            </div>
           </div>
 
           <div class="qd-admin-save-row">
@@ -4447,6 +4571,9 @@ const openOutreachEditor = (mode, lead = null) => {
     draft,
     original: lead ? deepCloneForLog(getOutreachLeadLogState(lead)) : null,
     isSaving: false,
+    mapsLoading: false,
+    mapsError: '',
+    mapsUrl: '',
     error: ''
   };
   render();
@@ -4460,6 +4587,9 @@ const closeOutreachEditor = () => {
     draft: null,
     original: null,
     isSaving: false,
+    mapsLoading: false,
+    mapsError: '',
+    mapsUrl: '',
     error: ''
   };
   render();
@@ -4469,19 +4599,20 @@ const captureOutreachDraftFromDom = () => {
   const form = document.getElementById('outreach-editor-form');
   if (!form) return getOutreachEditorDraftFromState();
 
-  const hasWebsite = form.elements.hasWebsite?.value === 'yes' ? 'yes' : 'no';
+  const websiteUrl = form.elements.websiteUrl?.value?.trim() || '';
   return {
     ...getOutreachEditorDraftFromState(),
     businessName: form.elements.businessName?.value?.trim() || '',
     ownerName: form.elements.ownerName?.value?.trim() || '',
     phoneNumber: sanitizePhoneValue(form.elements.phoneNumber?.value || ''),
-    hasWebsite,
-    websiteUrl: hasWebsite === 'yes' ? form.elements.websiteUrl?.value?.trim() || '' : '',
+    hasWebsite: websiteUrl ? 'yes' : 'no',
+    websiteUrl,
     meetingDateTime: form.elements.meetingDateTime?.value || '',
     meetingLocation: form.elements.meetingLocation?.value?.trim() || '',
+    notes: form.elements.notes?.value?.trim() || '',
     status: OUTREACH_STATUS_OPTIONS.some((option) => option.value === form.elements.status?.value)
       ? form.elements.status.value
-      : 'setting_meeting'
+      : 'call_them'
   };
 };
 
@@ -4567,25 +4698,16 @@ const saveOutreachLeadEditor = async () => {
     render();
     return;
   }
-  if (!draft.ownerName?.trim()) {
-    state.outreachEditor.error = 'Owner name is required.';
-    render();
-    return;
-  }
   const cleanPhone = sanitizePhoneValue(draft.phoneNumber || '');
+  const cleanWebsiteUrl = draft.websiteUrl?.trim() || '';
   if (!cleanPhone) {
     state.outreachEditor.error = 'Phone number is required.';
     render();
     return;
   }
-  if (draft.hasWebsite === 'yes' && !draft.websiteUrl?.trim()) {
-    state.outreachEditor.error = 'Website URL is required when Has Website is Yes.';
-    render();
-    return;
-  }
-  if (draft.hasWebsite === 'yes' && draft.websiteUrl?.trim()) {
+  if (cleanWebsiteUrl) {
     try {
-      new URL(draft.websiteUrl.trim());
+      new URL(cleanWebsiteUrl);
     } catch {
       state.outreachEditor.error = 'Please enter a valid website URL.';
       render();
@@ -4603,10 +4725,11 @@ const saveOutreachLeadEditor = async () => {
       businessName: draft.businessName.trim(),
       ownerName: draft.ownerName.trim(),
       phoneNumber: cleanPhone,
-      hasWebsite: draft.hasWebsite === 'yes' ? 'yes' : 'no',
-      websiteUrl: draft.hasWebsite === 'yes' ? draft.websiteUrl.trim() : '',
+      hasWebsite: cleanWebsiteUrl ? 'yes' : 'no',
+      websiteUrl: cleanWebsiteUrl,
       meetingDateTime: draft.meetingDateTime || '',
       meetingLocation: draft.meetingLocation?.trim() || '',
+      notes: draft.notes?.trim() || '',
       status: draft.status,
       updatedAt: serverTimestamp()
     };
@@ -4636,7 +4759,7 @@ const saveOutreachLeadEditor = async () => {
           targetLabel: getOutreachLeadActivityLabel(payload),
           metadata: {
             changedFields: ['status'],
-            before: { status: state.outreachEditor.original?.status || existing.status || 'setting_meeting' },
+            before: { status: state.outreachEditor.original?.status || existing.status || 'call_them' },
             after: { status: payload.status }
           }
         });
@@ -5582,6 +5705,16 @@ const saveDrawer = async (nextValues = {}) => {
 };
 
 const handleDocumentClick = async (event) => {
+  const outreachOpenTarget = event.target.closest('[data-outreach-open-id]');
+  const clickedInteractiveControl = event.target.closest('a, button, select, input, textarea, label');
+  if (outreachOpenTarget && !clickedInteractiveControl) {
+    const lead = getOutreachLeadById(outreachOpenTarget.dataset.outreachOpenId);
+    if (lead) {
+      openOutreachEditor('edit', lead);
+    }
+    return;
+  }
+
   const actionTarget = event.target.closest('[data-action]');
   if (!actionTarget) return;
   if (shouldIgnoreImmediateModalClose(actionTarget)) return;
@@ -5713,6 +5846,11 @@ const handleDocumentClick = async (event) => {
 
   if (action === 'close-outreach-editor') {
     closeOutreachEditor();
+    return;
+  }
+
+  if (action === 'extract-maps-lead') {
+    extractMapsLead();
     return;
   }
 
@@ -6075,9 +6213,9 @@ const handleDocumentInput = (event) => {
       return;
     }
 
-    if (event.target.name === 'hasWebsite') {
-      state.outreachEditor.draft = captureOutreachDraftFromDom();
-      render();
+    if (event.target.dataset.outreachEditorMeta === 'mapsUrl') {
+      state.outreachEditor.mapsUrl = event.target.value;
+      state.outreachEditor.mapsError = '';
       return;
     }
   }
@@ -6809,6 +6947,9 @@ onAuthStateChanged(auth, async (user) => {
       draft: null,
       original: null,
       isSaving: false,
+      mapsLoading: false,
+      mapsError: '',
+      mapsUrl: '',
       error: ''
     };
     state.dataLoading = false;

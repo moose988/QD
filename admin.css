@@ -190,6 +190,26 @@ body.qd-admin-page.qd-modal-open {
   margin-top: 24px;
 }
 
+.qd-outreach-maps-import {
+  margin-bottom: 18px;
+  border-color: rgba(166, 240, 79, 0.2);
+  background:
+    radial-gradient(circle at top left, rgba(166, 240, 79, 0.08), transparent 34%),
+    var(--qd-admin-glass, rgba(255, 255, 255, 0.02)),
+    var(--qd-admin-panel, rgba(255, 255, 255, 0.02));
+}
+
+.qd-outreach-maps-import .qd-admin-form-grid {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+}
+
+@media (max-width: 760px) {
+  .qd-outreach-maps-import .qd-admin-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .qd-admin-field label,
 .qd-admin-section-title,
 .qd-admin-drawer-group-head h3,
@@ -1958,6 +1978,14 @@ body.qd-admin-page.qd-modal-open {
   justify-content: center;
   text-align: center;
   white-space: nowrap;
+}
+
+.qd-admin-outreach-row {
+  cursor: pointer;
+}
+
+.qd-admin-outreach-row:hover td {
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .qd-admin-outreach-editor {
