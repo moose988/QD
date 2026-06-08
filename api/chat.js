@@ -209,6 +209,10 @@ export default async function handler(req, res) {
     res.write(`data: ${JSON.stringify(obj)}\n\n`);
   };
   const stage = makeStageTracker(send);
+  // Tracks whether we've already streamed visible text to the client. Once true,
+  // any later failure (DB writes, etc.) must NOT surface as a user-facing error
+  // bubble — the answer already arrived, so we close the stream cleanly instead.
+  let hasStreamedText = false;
   stage.mark('request_received', {
     sessionId,
     messageLength: message.length,
@@ -320,6 +324,7 @@ export default async function handler(req, res) {
 
       if (delta.content) {
         fullText += delta.content;
+        hasStreamedText = true;
         send({ type: 'text', delta: delta.content });
       }
 
@@ -341,10 +346,18 @@ export default async function handler(req, res) {
     });
     let leadSaved = false;
     let leadCaptured = false;
-    const db = getDb();
+    // Initialize Firestore defensively. The answer has already streamed to the
+    // user; a DB-init failure here must never turn into a user-facing error.
+    let db = null;
+    try {
+      db = getDb();
+    } catch (dbErr) {
+      console.error('[chat] getDb failed (answer already delivered):', dbErr);
+      stage.mark('db_init_failed', { message: dbErr?.message || 'Unknown DB init error' });
+    }
 
     for (const tc of Object.values(toolCallParts)) {
-      if (tc.name === 'capture_lead' && tc.args) {
+      if (tc.name === 'capture_lead' && tc.args && db) {
         try {
           stage.mark('lead_save_started');
           leadCaptured = true;
@@ -381,6 +394,7 @@ export default async function handler(req, res) {
 
     // ─── 5. Log conversation turn ───────────────────────────────────────────
     try {
+      if (!db) throw new Error('Firestore unavailable (db init failed)');
       stage.mark('conversation_log_started');
       const convoRef = db.collection('chatConversations').doc(sessionId);
       await convoRef.set(
@@ -419,6 +433,16 @@ export default async function handler(req, res) {
   } catch (err) {
     const errorDetails = extractErrorDetails(err);
     console.error('[chat] error:', errorDetails, err);
+    // If we already streamed a visible answer, don't tack on a scary error
+    // bubble — the user got their reply. Close the stream cleanly instead.
+    if (hasStreamedText) {
+      stage.mark('post_stream_error_suppressed', {
+        message: errorDetails.message,
+        code: errorDetails.code,
+      });
+      send({ type: 'done' });
+      return res.end();
+    }
     send({
       type: 'error',
       message: lang === 'ar'
