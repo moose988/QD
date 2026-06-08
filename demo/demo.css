@@ -6,8 +6,8 @@
   --qd-demo-fg-soft: rgba(244, 241, 234, 0.78);
   --qd-demo-fg-muted: rgba(244, 241, 234, 0.56);
   --qd-demo-border: rgba(255, 255, 255, 0.08);
-  --qd-demo-border-strong: rgba(166, 240, 79, 0.18);
-  --qd-demo-acid: #a6f04f;
+  --qd-demo-border-strong: rgba(232, 232, 238, 0.18);
+  --qd-demo-acid: #E6E6EC;
   --qd-demo-danger: #ffb3b3;
   --qd-demo-shadow: 0 28px 90px rgba(0, 0, 0, 0.52);
   --qd-demo-ease: cubic-bezier(.22, 1, .36, 1);
@@ -23,7 +23,7 @@ button, input { font: inherit; }
 .qd-demo-gate {
   min-height: 100vh;
   background:
-    radial-gradient(circle at top, rgba(166, 240, 79, 0.08), transparent 30%),
+    radial-gradient(circle at top, rgba(232, 232, 238, 0.08), transparent 30%),
     linear-gradient(180deg, #0d1013 0%, #0a0c10 100%);
 }
 
@@ -41,7 +41,7 @@ button, input { font: inherit; }
   border-radius: 28px;
   border: 1px solid var(--qd-demo-border-strong);
   background: linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.018)), var(--qd-demo-panel);
-  box-shadow: var(--qd-demo-shadow), 0 0 48px rgba(166, 240, 79, 0.06);
+  box-shadow: var(--qd-demo-shadow), 0 0 48px rgba(232, 232, 238, 0.06);
   text-align: center;
   display: grid;
   gap: 22px;
@@ -105,8 +105,8 @@ button, input { font: inherit; }
 
 .qd-demo-input:focus {
   outline: none;
-  border-color: rgba(166, 240, 79, 0.45);
-  box-shadow: 0 0 0 4px rgba(166, 240, 79, 0.12);
+  border-color: rgba(232, 232, 238, 0.45);
+  box-shadow: 0 0 0 4px rgba(232, 232, 238, 0.12);
 }
 
 .qd-demo-button,
@@ -118,8 +118,8 @@ button, input { font: inherit; }
   min-height: 54px;
   padding: 0 22px;
   border-radius: 16px;
-  border: 1px solid rgba(166, 240, 79, 0.28);
-  background: rgba(166, 240, 79, 0.12);
+  border: 1px solid rgba(232, 232, 238, 0.28);
+  background: rgba(232, 232, 238, 0.12);
   color: var(--qd-demo-acid);
   text-decoration: none;
   cursor: pointer;
@@ -129,8 +129,8 @@ button, input { font: inherit; }
 .qd-demo-button:hover,
 .qd-demo-link:hover {
   transform: translateY(-1px);
-  background: rgba(166, 240, 79, 0.18);
-  border-color: rgba(166, 240, 79, 0.44);
+  background: rgba(232, 232, 238, 0.18);
+  border-color: rgba(232, 232, 238, 0.44);
 }
 
 .qd-demo-button[disabled] {
@@ -223,8 +223,8 @@ button, input { font: inherit; }
 }
 
 .qd-demo-device-btn.is-active {
-  border-color: rgba(166,240,79,0.42);
-  background: rgba(166,240,79,0.1);
+  border-color: rgba(232,232,238,0.42);
+  background: rgba(232,232,238,0.1);
   color: var(--qd-demo-acid);
 }
 

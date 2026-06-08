@@ -1,0 +1,949 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QD · Smart Solutions</title>
+  <link rel="icon" href="assets/favicon.svg">
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- React 18 + Babel (JSX in-browser) -->
+  <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin></script>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     LOADER — shown immediately, fades once React mounts
+═══════════════════════════════════════════════════════════ -->
+<div id="qd-loader" style="position:fixed;inset:0;z-index:9999;background:var(--obsidian);display:grid;place-items:center;transition:opacity 600ms var(--ease-out),visibility 600ms;">
+  <div style="text-align:center;font-family:var(--font-display);color:var(--fg1);">
+    <div style="font-size:clamp(120px,18vw,240px);font-weight:700;letter-spacing:-0.06em;line-height:0.85;color:transparent;-webkit-text-stroke:2px rgba(232,232,238,0.4);animation:qd-load-pulse 1.4s ease-in-out infinite;filter:drop-shadow(0 0 40px rgba(232,232,238,0.4));">QD</div>
+    <div style="margin-top:32px;font-family:var(--font-mono);font-size:11px;letter-spacing:0.3em;text-transform:uppercase;color:var(--acid);">
+      <span id="qd-loader-text">BOOTING SYSTEM</span><span class="qd-loader-dots"></span>
+    </div>
+    <div style="width:240px;height:1px;background:rgba(244,241,234,0.1);margin:24px auto 0;position:relative;overflow:hidden;">
+      <div id="qd-loader-bar" style="position:absolute;top:0;left:0;height:100%;background:var(--acid);width:0%;transition:width 200ms ease-out;box-shadow:0 0 12px var(--acid);"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var stages=[{p:25,t:'BOOTING SYSTEM'},{p:55,t:'LOADING MODULES'},{p:80,t:'CALIBRATING'},{p:100,t:'READY'}];
+  var i=0;
+  function tick(){
+    if(i>=stages.length){
+      setTimeout(function(){
+        var l=document.getElementById('qd-loader');
+        l.style.opacity='0'; l.style.visibility='hidden';
+        setTimeout(function(){l.remove();},600);
+      },250); return;
+    }
+    document.getElementById('qd-loader-bar').style.width=stages[i].p+'%';
+    document.getElementById('qd-loader-text').textContent=stages[i].t;
+    i++; setTimeout(tick,380);
+  }
+  if(document.readyState!=='loading') tick();
+  else document.addEventListener('DOMContentLoaded',tick);
+})();
+</script>
+
+<div id="qd-root"></div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SHARED UI PRIMITIVES
+═══════════════════════════════════════════════════════════ -->
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback, Children } = React;
+
+const HOMEPAGE_COPY = {
+  en: {
+    nav: {
+      links: [
+        { label: 'Services', href: '#services' },
+        { label: 'Live Systems', href: '#live-websites' },
+        { label: 'Process', href: '#process' },
+        { label: 'Contact', href: '#contact' },
+      ],
+      brandSubtitle: 'WEB · BRAND · DIGITAL SYSTEMS',
+      build: 'Book a Free Call',
+      buildShort: 'Book'
+    },
+    footer: {
+      studio: 'Digital systems studio',
+      builtIn: 'Built in UAE'
+    },
+    hero: {
+      eyebrow: 'SYSTEMS-FIRST WEB STUDIO · UAE',
+      titleLead: 'Websites that win.',
+      titleAccent: 'Systems',
+      titleTail: 'that run your',
+      titleEmphasis: 'business',
+      subtitle: 'Most studios hand you a pretty page. We build the engine behind it — booking, order tracking, automation, and AI chat that closes leads while you sleep.',
+      primaryCta: 'Book a Free Call',
+      secondaryCta: 'Try the live demo',
+      checks: [
+        'World-class custom websites — and the systems behind them. Never templates.',
+        'Booking, order tracking, automation, AI chat & dashboards.',
+        'Bilingual EN / AR, built for the UAE.'
+      ],
+      speedBadges: [
+        { t: '1–3 hrs', l: 'Working demo' },
+        { t: 'In 24h', l: 'Website' },
+        { t: '1–3 days', l: 'Full system' }
+      ],
+      speedNote: 'Timelines depend on scope — we commit to your exact timeline in writing before we start.',
+      stats: [
+        { n: '2', l: 'brands live in the UAE' },
+        { n: '24h', l: 'website turnaround' },
+        { n: '<1h', l: 'reply time' }
+      ],
+      scroll: 'SCROLL'
+    }
+  },
+  ar: {
+    nav: {
+      links: [
+        { label: 'الخدمات', href: '#services' },
+        { label: 'أنظمة مباشرة', href: '#live-websites' },
+        { label: 'آلية العمل', href: '#process' },
+        { label: 'تواصل', href: '#contact' },
+      ],
+      brandSubtitle: 'WEB · BRAND · DIGITAL SYSTEMS',
+      build: 'احجز مكالمة',
+      buildShort: 'احجز'
+    },
+    footer: {
+      studio: 'استوديو أنظمة رقمية',
+      builtIn: 'صُنع في الإمارات'
+    },
+    hero: {
+      eyebrow: 'استوديو يبني الأنظمة أولاً · الإمارات',
+      titleLead: 'مواقع تكسب.',
+      titleAccent: 'أنظمة',
+      titleTail: 'تدير',
+      titleEmphasis: 'أعمالك',
+      subtitle: 'أغلب الاستوديوهات تسلّمك صفحة جميلة فقط. نحن نبني المحرك خلفها — حجوزات وتتبّع طلبات وأتمتة وردود ذكية تغلق العملاء وأنت نائم.',
+      primaryCta: 'احجز مكالمة مجانية',
+      secondaryCta: 'جرّب العرض المباشر',
+      checks: [
+        'مواقع مخصصة بمستوى عالمي — والأنظمة خلفها. وليست قوالب جاهزة.',
+        'حجوزات وتتبّع طلبات وأتمتة وشات بوت ولوحات تحكم.',
+        'بالعربية والإنجليزية، ومصممة للإمارات.'
+      ],
+      speedBadges: [
+        { t: '١–٣ ساعات', l: 'عرض تجريبي' },
+        { t: 'خلال ٢٤ ساعة', l: 'موقع' },
+        { t: '١–٣ أيام', l: 'نظام كامل' }
+      ],
+      speedNote: 'تعتمد المدة على حجم المشروع — ونلتزم بالموعد كتابياً قبل أن نبدأ.',
+      stats: [
+        { n: '2', l: 'علامتان مباشرتان في الإمارات' },
+        { n: '24h', l: 'تسليم الموقع' },
+        { n: '<1h', l: 'زمن الرد' }
+      ],
+      scroll: 'تابع'
+    }
+  }
+};
+
+const MOBILE_BREAKPOINT = 760;
+
+const useViewportFlag = (breakpoint = MOBILE_BREAKPOINT) => {
+  const [matches, setMatches] = useState(() => window.innerWidth <= breakpoint);
+  useEffect(() => {
+    const media = window.matchMedia(`(max-width: ${breakpoint}px)`);
+    const update = () => setMatches(media.matches);
+    update();
+    if (media.addEventListener) media.addEventListener('change', update);
+    else media.addListener(update);
+    return () => {
+      if (media.removeEventListener) media.removeEventListener('change', update);
+      else media.removeListener(update);
+    };
+  }, [breakpoint]);
+  return matches;
+};
+
+const usePrefersReducedMotion = () => {
+  const [reduced, setReduced] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const update = () => setReduced(media.matches);
+    update();
+    if (media.addEventListener) media.addEventListener('change', update);
+    else media.addListener(update);
+    return () => {
+      if (media.removeEventListener) media.removeEventListener('change', update);
+      else media.removeListener(update);
+    };
+  }, []);
+  return reduced;
+};
+
+// ── Reveal ──────────────────────────────────────────────────
+const Reveal = ({ children, delay=0, lift=32, duration=800, once=true, as:Tag='div', style, ...rest }) => {
+  const ref = useRef(null);
+  const [shown, setShown] = useState(false);
+  const isMobile = useViewportFlag();
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const effectiveDelay = prefersReducedMotion ? 0 : (isMobile ? Math.min(delay, 80) : delay);
+  const effectiveLift = prefersReducedMotion ? 0 : (isMobile ? Math.min(lift, 18) : lift);
+  const effectiveDuration = prefersReducedMotion ? 1 : (isMobile ? Math.min(duration, 520) : duration);
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { setShown(true); if (once) io.unobserve(e.target); }
+        else if (!once) setShown(false);
+      });
+    }, { threshold: isMobile ? 0.08 : 0.15, rootMargin: isMobile ? '0px 0px -4% 0px' : '0px 0px -10% 0px' });
+    io.observe(el); return () => io.disconnect();
+  }, [isMobile, once]);
+  return (
+    <Tag ref={ref} style={{
+      ...style,
+      opacity: shown ? 1 : 0,
+      transform: shown ? 'translateY(0)' : `translateY(${effectiveLift}px)`,
+      transition: `opacity ${effectiveDuration}ms cubic-bezier(0.22,1,0.36,1) ${effectiveDelay}ms, transform ${effectiveDuration}ms cubic-bezier(0.22,1,0.36,1) ${effectiveDelay}ms`,
+      willChange: shown ? 'auto' : 'opacity, transform',
+    }} {...rest}>{children}</Tag>
+  );
+};
+
+// ── Stagger ──────────────────────────────────────────────────
+const Stagger = ({ children, step=80, base=0, lift=32, duration=800 }) =>
+  Children.toArray(children).map((child, i) =>
+    <Reveal key={i} delay={base+i*step} lift={lift} duration={duration}>{child}</Reveal>
+  );
+
+// ── Marquee ──────────────────────────────────────────────────
+const Marquee = ({ children, speed=45, style, className='' }) => (
+  <div className={className} style={{ overflow:'hidden', position:'relative', ...style }}>
+    <div className="qd-marquee-track" style={{ animationDuration:`${speed}s` }}>
+      <div className="qd-marquee-copy">{children}</div>
+      <div className="qd-marquee-copy" aria-hidden="true">{children}</div>
+    </div>
+  </div>
+);
+
+// ── Eyebrow ──────────────────────────────────────────────────
+const Eyebrow = ({ children, color }) => (
+  <div className="qd-eyebrow" style={color ? { color } : {}}>{children}</div>
+);
+
+// ── Btn ──────────────────────────────────────────────────────
+const Btn = ({ variant='primary', size='md', children, onClick, icon, className='' }) => (
+  <button onClick={onClick} className={`qd-btn qd-btn-${variant} qd-btn-${size} ${className}`.trim()}>
+    {children}{icon && <span style={{fontWeight:400}}>{icon}</span>}
+  </button>
+);
+
+// ── Tag ──────────────────────────────────────────────────────
+const Tag = ({ children }) => <span className="qd-tag">{children}</span>;
+
+// ── Hooks ────────────────────────────────────────────────────
+const useInView = (ref, threshold=0.2) => {
+  const [seen, setSeen] = useState(false);
+  useEffect(() => {
+    if (!ref.current) return;
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) { setSeen(true); io.disconnect(); } });
+    }, { threshold });
+    io.observe(ref.current); return () => io.disconnect();
+  }, []);
+  return seen;
+};
+
+const useMouseTilt = (ref) => {
+  const [m, setM] = useState({ x:0, y:0 });
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    const disableTilt = window.matchMedia('(hover: none), (pointer: coarse), (max-width: 768px), (prefers-reduced-motion: reduce)').matches;
+    if (disableTilt) return;
+    const onMove = e => {
+      const r = el.getBoundingClientRect();
+      setM({ x:((e.clientX-r.left)/r.width-0.5)*2, y:((e.clientY-r.top)/r.height-0.5)*2 });
+    };
+    const onLeave = () => setM({ x:0, y:0 });
+    el.addEventListener('mousemove', onMove);
+    el.addEventListener('mouseleave', onLeave);
+    return () => { el.removeEventListener('mousemove', onMove); el.removeEventListener('mouseleave', onLeave); };
+  }, []);
+  return m;
+};
+
+const useScrollProgress = (ref) => {
+  const [p, setP] = useState(0);
+  useEffect(() => {
+    const onScroll = () => {
+      if (!ref.current) return;
+      const r = ref.current.getBoundingClientRect(), vh = window.innerHeight;
+      setP(Math.max(-1, Math.min(1, (r.top+r.height/2-vh/2)/(vh/2+r.height/2))));
+    };
+    window.addEventListener('scroll', onScroll, { passive:true }); onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+  return p;
+};
+
+window.__QD = { Reveal, Stagger, Marquee, Eyebrow, Btn, Tag, useInView, useMouseTilt, useScrollProgress, useViewportFlag, usePrefersReducedMotion, HOMEPAGE_COPY };
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MOCKUPS — animated faux UIs
+═══════════════════════════════════════════════════════════ -->
+<script type="text/babel">
+// ── ChatbotWindow ─────────────────────────────────────────
+const ChatbotWindow = () => {
+  const [step, setStep] = useState(0);
+  useEffect(() => { const id = setInterval(() => setStep(s => (s+1)%5), 2200); return () => clearInterval(id); }, []);
+  const msgs = [
+    { f:'them', t:'Hi! Looking for a 2BR rental in Lisbon for August.' },
+    { f:'us',   t:'Got it — what budget range and how many guests?' },
+    { f:'them', t:'€2,200/wk, 4 people, must allow dogs.' },
+    { f:'us',   t:'Found 3 matches. Want me to hold the top one?' },
+    { f:'them', t:'Yes please.' },
+  ];
+  return (
+    <div style={{ background:'var(--obsidian-1)',border:'1px solid var(--border-2)',borderRadius:10,padding:'14px 16px',fontFamily:'var(--font-body)',fontSize:13,color:'var(--fg1)',display:'flex',flexDirection:'column',gap:8,minHeight:220 }}>
+      <div style={{ display:'flex',alignItems:'center',gap:8,paddingBottom:10,borderBottom:'1px solid var(--border-1)',marginBottom:4 }}>
+        <div style={{ width:8,height:8,borderRadius:'50%',background:'var(--ok)',boxShadow:'0 0 6px var(--ok)' }} />
+        <span style={{ fontFamily:'var(--font-mono)',fontSize:10,color:'var(--fg3)',letterSpacing:'0.1em',textTransform:'uppercase' }}>STAY · CONCIERGE</span>
+        <span style={{ marginLeft:'auto',fontFamily:'var(--font-mono)',fontSize:10,color:'var(--acid)' }}>● LIVE</span>
+      </div>
+      {msgs.slice(0,step+1).map((m,i) => (
+        <div key={i} style={{ alignSelf:m.f==='us'?'flex-end':'flex-start',background:m.f==='us'?'var(--acid)':'var(--obsidian-3)',color:m.f==='us'?'var(--obsidian)':'var(--fg1)',padding:'7px 11px',borderRadius:10,maxWidth:'88%',fontSize:12,lineHeight:1.35,animation:'qd-msg-in 280ms cubic-bezier(0.22,1,0.36,1)' }}>{m.t}</div>
+      ))}
+    </div>
+  );
+};
+
+// ── DashboardMini ─────────────────────────────────────────
+const DashboardMini = () => {
+  const [t, setT] = useState(0);
+  const isMobile = window.__QD.useViewportFlag(768);
+  const prefersReducedMotion = window.__QD.usePrefersReducedMotion();
+  useEffect(() => {
+    if (isMobile || prefersReducedMotion) return;
+    let raf; const start = performance.now();
+    const loop = now => { setT((now-start)/1000); raf = requestAnimationFrame(loop); };
+    raf = requestAnimationFrame(loop); return () => cancelAnimationFrame(raf);
+  }, [isMobile, prefersReducedMotion]);
+  const bars = [0,1,2,3,4,5,6,7].map(i => 30+Math.sin(t*0.8+i*0.5)*25+Math.cos(t*0.4+i)*15);
+  return (
+    <div style={{ background:'var(--obsidian-1)',border:'1px solid var(--border-2)',borderRadius:10,padding:14,minHeight:180,display:'flex',flexDirection:'column',gap:10 }}>
+      <div style={{ display:'flex',justifyContent:'space-between',alignItems:'center' }}>
+        <span style={{ fontFamily:'var(--font-mono)',fontSize:10,color:'var(--fg3)',letterSpacing:'0.1em',textTransform:'uppercase' }}>FLEET / 24H</span>
+        <span style={{ fontFamily:'var(--font-display)',fontWeight:600,fontSize:22,color:'var(--acid)' }}>{(60+Math.sin(t)*10).toFixed(0)}<span style={{fontSize:12,color:'var(--fg3)'}}>%</span></span>
+      </div>
+      <div style={{ display:'flex',alignItems:'flex-end',gap:4,height:90 }}>
+        {bars.map((h,i) => <div key={i} style={{ flex:1,height:`${h}%`,background:i===bars.length-1?'var(--acid)':'var(--obsidian-3)',borderTop:i===bars.length-1?'none':'1px solid var(--border-2)',transition:'height 80ms linear' }} />)}
+      </div>
+      <div style={{ display:'flex',justifyContent:'space-between',fontFamily:'var(--font-mono)',fontSize:9,color:'var(--fg3)' }}>
+        <span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>NOW</span>
+      </div>
+    </div>
+  );
+};
+
+// ── CodeBlock ─────────────────────────────────────────────
+const CodeBlock = () => {
+  const lines = [
+    { t:'$ qd init custom-system',         c:'var(--fg2)' },
+    { t:'✓ Scoped requirements (3 files)', c:'var(--ok)'  },
+    { t:'✓ Built schema · 14 tables',      c:'var(--ok)'  },
+    { t:'→ Deploying to production…',      c:'var(--acid)' },
+    { t:'✓ LIVE · us-west-2 · 142ms',     c:'var(--acid)' },
+  ];
+  const [shown, setShown] = useState(0);
+  useEffect(() => { const id = setInterval(() => setShown(s=>(s+1)%(lines.length+2)),1100); return ()=>clearInterval(id); },[]);
+  return (
+    <div style={{ background:'var(--obsidian-1)',border:'1px solid var(--border-2)',borderRadius:10,padding:14,fontFamily:'var(--font-mono)',fontSize:12,minHeight:180,display:'flex',flexDirection:'column',gap:4 }}>
+      <div style={{ display:'flex',gap:6,paddingBottom:8,marginBottom:4,borderBottom:'1px solid var(--border-1)' }}>
+        <span style={{ width:10,height:10,borderRadius:'50%',background:'var(--obsidian-3)' }} />
+        <span style={{ width:10,height:10,borderRadius:'50%',background:'var(--obsidian-3)' }} />
+        <span style={{ width:10,height:10,borderRadius:'50%',background:'var(--acid)' }} />
+        <span style={{ marginLeft:'auto',fontSize:10,color:'var(--fg3)',letterSpacing:'0.1em' }}>BUILD.LOG</span>
+      </div>
+      {lines.slice(0,Math.min(shown,lines.length)).map((l,i) => <div key={i} style={{ color:l.c,lineHeight:1.5 }}>{l.t}</div>)}
+      {shown < lines.length && <span style={{ color:'var(--acid)' }}>▍</span>}
+    </div>
+  );
+};
+
+// ── BrowserMini ───────────────────────────────────────────
+const BrowserMini = () => (
+  <div style={{ background:'var(--obsidian-1)',border:'1px solid var(--border-2)',borderRadius:10,overflow:'hidden',minHeight:200,display:'flex',flexDirection:'column' }}>
+    <div style={{ display:'flex',alignItems:'center',gap:8,padding:'10px 12px',borderBottom:'1px solid var(--border-1)',background:'var(--obsidian-2)' }}>
+      <span style={{ display:'flex',gap:5 }}>
+        {['var(--obsidian-3)','var(--obsidian-3)','var(--obsidian-3)'].map((c,i)=><span key={i} style={{ width:8,height:8,borderRadius:'50%',background:c }} />)}
+      </span>
+      <span style={{ flex:1,fontFamily:'var(--font-mono)',fontSize:10,color:'var(--fg3)',textAlign:'center' }}>marlow.co</span>
+    </div>
+    <div style={{ flex:1,padding:16,display:'flex',flexDirection:'column',gap:8 }}>
+      <div style={{ height:6,width:'60%',background:'var(--fg1)',borderRadius:2 }} />
+      <div style={{ height:6,width:'40%',background:'var(--fg1)',borderRadius:2 }} />
+      <div style={{ height:4,width:'85%',background:'var(--fg3)',borderRadius:2,marginTop:6 }} />
+      <div style={{ height:4,width:'70%',background:'var(--fg3)',borderRadius:2 }} />
+      <div style={{ marginTop:'auto',display:'flex',gap:6 }}>
+        <div style={{ flex:1,height:28,background:'var(--acid)',borderRadius:4 }} />
+        <div style={{ width:60,height:28,border:'1px solid var(--border-2)',borderRadius:4 }} />
+      </div>
+    </div>
+  </div>
+);
+
+// ── CountUp ───────────────────────────────────────────────
+const CountUp = ({ end, prefix='', suffix='', duration=1400 }) => {
+  const ref = useRef(null);
+  const [val, setVal] = useState(0);
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) {
+        const start = performance.now();
+        const tick = now => {
+          const p = Math.min(1,(now-start)/duration);
+          setVal(end*(1-Math.pow(1-p,3)));
+          if (p<1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick); io.disconnect();
+      }
+    },{ threshold:0.4 });
+    io.observe(el); return () => io.disconnect();
+  },[end,duration]);
+  return <span ref={ref}>{prefix}{val.toFixed(0)}{suffix}</span>;
+};
+
+window.__QD = { ...window.__QD, ChatbotWindow, DashboardMini, CodeBlock, BrowserMini, CountUp };
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════
+     NAV + FOOTER
+═══════════════════════════════════════════════════════════ -->
+<script type="text/babel">
+const navLinks = [
+  { label:'Services', href:'#services' },
+  { label:'Live Systems', href:'#live-websites' },
+  { label:'Process', href:'#process' },
+  // WORK LINK TEMPORARILY DISABLED
+  // { label:'Work', href:'#work' },
+  { label:'Contact', href:'#contact' },
+];
+
+const Nav = () => (
+  <nav className="qd-nav" style={{ position:'fixed',top:0,left:0,right:0,zIndex:100,padding:'20px 40px',display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(10,11,13,0.7)',backdropFilter:'blur(20px)',borderBottom:'1px solid var(--border-1)' }}>
+    <a href="/" className="qd-nav-logo qd-brand-ltr" dir="ltr" style={{ display:'flex',alignItems:'center',gap:12,textDecoration:'none',position:'relative' }}>
+      <span style={{ position:'relative',display:'flex',alignItems:'center',justifyContent:'center',height:48,width:48,borderRadius:10,overflow:'hidden',boxShadow:'0 0 0 1px var(--border-1)' }}>
+        <img src="assets/qd-logo.jpeg" alt="QD Systems" className="qd-logo-img" style={{ height:'100%',width:'100%',objectFit:'cover',objectPosition:'center',display:'block',borderRadius:'inherit',filter:'contrast(1.08) brightness(1.05)' }} />
+        <span className="qd-sheen" />
+      </span>
+      <span className="qd-nav-lockup" style={{ display:'flex',flexDirection:'column',justifyContent:'center',minWidth:0 }}>
+        <span className="qd-nav-subtitle" style={{ fontFamily:'var(--font-mono)',fontSize:9,letterSpacing:'0.22em',textTransform:'uppercase',lineHeight:1.2,color:'rgba(244,241,234,0.58)',marginTop:5,whiteSpace:'nowrap' }}>WEB · BRAND · DIGITAL SYSTEMS</span>
+      </span>
+    </a>
+    <div className="qd-nav-links qd-mobile-hide" style={{ display:'flex',alignItems:'center',gap:28 }}>
+      {navLinks.map(({ label, href }) => (
+        <a key={label} href={href} style={{ fontFamily:'var(--font-display)',fontSize:14,fontWeight:500,color:'var(--fg2)',textDecoration:'none',transition:'color 200ms ease' }}
+          onMouseEnter={e=>e.target.style.color='var(--acid)'} onMouseLeave={e=>e.target.style.color='var(--fg2)'}>{label}</a>
+      ))}
+      <Btn variant="primary" size="sm" icon="→" onClick={() => { (window.__QD.openBooking ? window.__QD.openBooking() : (window.location.href = window.__QD.getContactHref())); }}>Build it</Btn>
+    </div>
+    <Btn variant="primary" size="sm" className="qd-nav-cta qd-mobile-only" icon="→" onClick={() => { (window.__QD.openBooking ? window.__QD.openBooking() : (window.location.href = window.__QD.getContactHref())); }}>
+      <>
+        <span className="qd-desktop-label">Build it</span>
+        <span className="qd-mobile-label">Build</span>
+      </>
+    </Btn>
+  </nav>
+);
+
+const Footer = () => {
+  const socials = [
+    { label:'Instagram', url:'https://instagram.com/qdsystems' },
+    { label:'TikTok', url:'https://tiktok.com/@qdsystems' },
+  ];
+
+  return (
+    <footer className="qd-footer">
+      <div className="qd-footer-inner">
+        <div className="qd-footer-top">
+          <a href="/" className="qd-footer-brand">
+            <span className="qd-footer-mark">
+              <img src="assets/qd-logo.jpeg" alt="QD Systems" className="qd-footer-mark-img" />
+              <span className="qd-footer-logo-sheen" />
+            </span>
+            <span className="qd-footer-brand-copy">
+              <span className="qd-footer-brand-name">QD SYSTEMS</span>
+              <span className="qd-footer-brand-sub">Digital systems studio</span>
+            </span>
+          </a>
+
+          <div className="qd-footer-links-wrap">
+            <nav className="qd-footer-links" aria-label="Footer navigation">
+              {navLinks.map(({ label, href }) => (
+                <a key={label} href={href} className="qd-footer-link">{label}</a>
+              ))}
+            </nav>
+            <div className="qd-footer-links qd-footer-socials" aria-label="Social links">
+              {socials.map(({ label, url }) => (
+                <a key={label} href={url} target="_blank" rel="noreferrer" className="qd-footer-link">{label}</a>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="qd-footer-bottom">
+          <div className="qd-footer-meta">{'\u00A9 2026 QD Systems'}</div>
+          <div className="qd-footer-meta">Built in UAE</div>
+          <div className="qd-footer-meta">V2.0</div>
+        </div>
+      </div>
+    </footer>
+  );
+};
+
+window.__QD = { ...window.__QD, Nav, Footer };
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════
+     HERO
+═══════════════════════════════════════════════════════════ -->
+<script type="text/babel">
+const easeInOut = x => x<0.5?2*x*x:1-Math.pow(-2*x+2,2)/2;
+const easeIn    = x => x*x*x;
+const easeOut   = x => 1-Math.pow(1-x,3);
+const useHeroScrollProgress = () => {
+  const [scroll, setScroll] = useState(0);
+  const frameRef = useRef(null);
+  const latestRef = useRef(-1);
+
+  useEffect(() => {
+    const update = () => {
+      frameRef.current = null;
+      const next = Math.min(1, window.scrollY / (window.innerHeight * 0.8));
+      if (Math.abs(next - latestRef.current) > 0.003) {
+        latestRef.current = next;
+        setScroll(next);
+      }
+    };
+
+    const onScroll = () => {
+      if (frameRef.current) return;
+      frameRef.current = requestAnimationFrame(update);
+    };
+
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive:true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      if (frameRef.current) cancelAnimationFrame(frameRef.current);
+    };
+  }, []);
+
+  return scroll;
+};
+
+const useHeroMotionClock = (enabled) => {
+  const [t, setT] = useState(0);
+
+  useEffect(() => {
+    if (!enabled) return;
+    let raf;
+    let last = 0;
+    const start = performance.now();
+    const loop = now => {
+      if (now - last >= 33) {
+        setT((now - start) / 1000);
+        last = now;
+      }
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, [enabled]);
+
+  return t;
+};
+
+const Hero = () => {
+  const scroll = useHeroScrollProgress();
+  const isMobile = window.__QD.useViewportFlag(768);
+  const prefersReducedMotion = window.__QD.usePrefersReducedMotion();
+  const t = useHeroMotionClock(!isMobile && !prefersReducedMotion);
+
+  const p = easeInOut(Math.max(0,Math.min(1,scroll/0.4)));
+  const iry = Math.sin(t*0.4)*6, irx = Math.cos(t*0.3)*2;
+  const ry = iry+p*6, rx = irx-p*4;
+
+  const sideAlpha = 0.28*(1-easeIn(p));
+  const sideOff   = easeIn(p)*80;
+  const qScale    = 1+easeIn(p)*24;
+  const qAlpha    = 0.32+p*0.55;
+  const qFade     = p<0.7?1:Math.max(0,1-Math.pow((p-0.7)/0.3,1.4));
+  const washA     = p<0.6?0:Math.min(1,(p-0.6)/0.25);
+  const washF     = p<0.9?1:Math.max(0,1-(p-0.9)*10);
+  const cOp       = 1-easeIn(Math.min(1,scroll*1.6));
+  const cLift     = -easeOut(Math.min(1,scroll*2))*80;
+  const wordGlow  = 52 + p * 22;
+  const wordGlowAlpha = 0.2 + p * 0.16;
+
+  const L = (alpha, extra={}) => ({
+    fontFamily:'var(--font-display)',fontWeight:700,
+    fontSize:'clamp(220px,30vw,460px)',letterSpacing:'-0.06em',lineHeight:0.85,
+    color:'transparent',WebkitTextStroke:`1.6px rgba(232,232,238,${alpha})`,
+    transition:'transform 600ms cubic-bezier(0.22,1,0.36,1)',
+    willChange:'transform,opacity',transform:'translateZ(0)',backfaceVisibility:'hidden',userSelect:'none',...extra,
+  });
+
+  return (
+    <section className="qd-hero-section" style={{ position:'relative',minHeight:'100vh',paddingTop:80,overflow:'hidden',perspective:2000,background:'linear-gradient(180deg,#0d1013 0%,#0a0c10 46%,#090b0d 100%)' }}>
+      <div style={{ position:'absolute',inset:0,zIndex:0,pointerEvents:'none',background:'radial-gradient(circle at 18% 24%, rgba(232,232,238,0.08), transparent 26%), radial-gradient(circle at 82% 20%, rgba(232,232,238,0.05), transparent 24%), radial-gradient(circle at 58% 72%, rgba(232,232,238,0.06), transparent 22%)' }} />
+      <div style={{ position:'absolute',inset:0,zIndex:0,pointerEvents:'none',opacity:0.28,backgroundImage:'linear-gradient(rgba(244,241,234,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(244,241,234,0.025) 1px,transparent 1px)',backgroundSize:'72px 72px',maskImage:'linear-gradient(180deg, rgba(0,0,0,0.95), rgba(0,0,0,0.45))' }} />
+      <div style={{ position:'absolute',inset:'0 auto 0 54%',zIndex:0,width:'32vw',minWidth:260,maxWidth:520,pointerEvents:'none',background:'linear-gradient(180deg, transparent, rgba(232,232,238,0.06), transparent)',filter:'blur(28px)',transform:'skewX(-10deg)' }} />
+      {/* Ambient QD wordmark */}
+      <div className="qd-hero-ambient" style={{ position:'fixed',inset:0,zIndex:0,pointerEvents:'none',display:'grid',placeItems:'center',transformStyle:'preserve-3d' }}>
+        <div className="qd-hero-ambient-wordmark qd-brand-ltr" dir="ltr" style={{ display:'flex',alignItems:'center',gap:'0.02em',filter:`drop-shadow(0 0 ${wordGlow}px rgba(232,232,238,${wordGlowAlpha}))`,willChange:'transform,filter',transform:'translateZ(0)' }}>
+          <div style={L(sideAlpha,{ transform:`translateX(-${sideOff}vw) rotateY(${ry-10}deg) rotateX(${rx}deg)` })}>Q</div>
+          <div style={L(qAlpha,{ transform:`rotateY(${ry}deg) rotateX(${rx}deg) scale(${qScale})`,opacity:qFade })}>D</div>
+        </div>
+      </div>
+
+      {/* Acid wash */}
+      <div style={{ position:'fixed',inset:0,zIndex:1,pointerEvents:'none',background:`radial-gradient(circle at center,rgba(232,232,238,${0.52*washA*washF}) 0%,rgba(232,232,238,${0.24*washA*washF}) 34%,rgba(14,18,18,${washA*washF*0.82}) 72%,rgba(11,11,12,0) 100%)`,opacity:washA*washF,mixBlendMode:'screen',willChange:'opacity' }} />
+      <div style={{ position:'fixed',inset:0,zIndex:1,pointerEvents:'none',background:'linear-gradient(180deg, rgba(8,10,12,0.08), rgba(8,10,12,0.42))',opacity:0.9 }} />
+      <div style={{ position:'fixed',inset:0,zIndex:1,pointerEvents:'none',background:'linear-gradient(180deg,#0b0d10 0%,#090b0d 100%)',opacity:p<0.85?0:Math.min(1,(p-0.85)/0.1)*(1-Math.max(0,(p-0.95)*10)) }} />
+
+      {/* Foreground */}
+      <div className="qd-hero-wrap" style={{ position:'relative',zIndex:2,maxWidth:1280,margin:'0 auto',padding:'120px 40px 60px',opacity:cOp,transform:`translateY(${cLift}px)`,transition:'opacity 400ms ease-out' }}>
+        <div style={{ display:'flex',alignItems:'center',gap:12,marginBottom:24 }}>
+          <span style={{ width:8,height:8,background:'var(--acid)',borderRadius:2,boxShadow:'0 0 12px var(--acid)',animation:'qd-pulse 1.6s ease-in-out infinite',display:'inline-block' }} />
+          <Eyebrow color="var(--acid)">// SYSTEM ONLINE · 2026</Eyebrow>
+        </div>
+        <h1 className="qd-hero-title" style={{ fontFamily:'var(--font-display)',fontSize:'clamp(48px,8vw,112px)',fontWeight:600,letterSpacing:'-0.04em',lineHeight:0.95,margin:0,maxWidth:1100,color:'var(--bone)' }}>
+          Tell us the problem.<br/>
+          <span style={{ color:'var(--acid)' }}>We ship</span> the <em style={{ fontFamily:'var(--font-serif)',fontWeight:400 }}>system</em>.
+        </h1>
+        <p className="qd-hero-subtitle" style={{ fontFamily:'var(--font-body)',fontSize:22,color:'var(--fg2)',maxWidth:580,marginTop:32,lineHeight:1.4 }}>
+          Chatbots that close. Sites that convert. Tracking that holds. Built for owners, not committees.
+        </p>
+        <div className="qd-hero-actions" style={{ display:'flex',gap:14,marginTop:40 }}>
+          <Btn variant="primary" size="lg" icon="→" onClick={() => { (window.__QD.openBooking ? window.__QD.openBooking() : (window.location.href = window.__QD.getContactHref())); }}>Build it</Btn>
+          <Btn variant="ghost" size="lg" icon="↗" onClick={() => { window.location.href = '#live-websites'; }}>See the work</Btn>
+        </div>
+        <div className="qd-hero-stats" style={{ marginTop:96,display:'grid',gridTemplateColumns:'repeat(3,1fr)',borderTop:'1px solid var(--border-1)',borderBottom:'1px solid var(--border-1)' }}>
+          {[{n:'5–7d',l:'avg. build time'},{n:'99.9%',l:'uptime'},{n:'24/7',l:'support'}].map((s,i)=>(
+            <div key={i} style={{ padding:'24px 20px',borderLeft:i===0?'none':'1px solid var(--border-1)' }}>
+              <div style={{ fontFamily:'var(--font-display)',fontWeight:600,fontSize:36,letterSpacing:'-0.02em',color:'var(--bone)' }}>{s.n}</div>
+              <div className="qd-eyebrow" style={{ marginTop:6 }}>{s.l}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Scroll hint */}
+      <div className="qd-hero-scroll-hint" style={{ position:'fixed',bottom:32,left:'50%',transform:'translateX(-50%)',zIndex:3,fontFamily:'var(--font-mono)',fontSize:11,letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--fg3)',opacity:Math.max(0,1-scroll*5),display:'flex',alignItems:'center',gap:10,pointerEvents:'none' }}>
+        <span style={{ width:24,height:1,background:'var(--fg3)',display:'inline-block' }} />SCROLL<span style={{ width:24,height:1,background:'var(--fg3)',display:'inline-block' }} />
+      </div>
+    </section>
+  );
+};
+window.__QD = { ...window.__QD, Hero };
+window.__QD.HomepageNav = ({ language, setLanguage }) => {
+  const navCopy = window.__QD.HOMEPAGE_COPY[language].nav;
+  return (
+    <nav className="qd-nav" style={{ position:'fixed',top:0,left:0,right:0,zIndex:100,padding:'20px 40px',display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(10,11,13,0.7)',backdropFilter:'blur(20px)',borderBottom:'1px solid var(--border-1)' }}>
+      <a href="/" className="qd-nav-logo qd-brand-ltr" dir="ltr" style={{ display:'flex',alignItems:'center',gap:12,textDecoration:'none',position:'relative' }}>
+        <span style={{ position:'relative',display:'flex',alignItems:'center',justifyContent:'center',height:48,width:48,borderRadius:10,overflow:'hidden',boxShadow:'0 0 0 1px var(--border-1)' }}>
+          <img src="assets/qd-logo.jpeg" alt="QD Systems" className="qd-logo-img" style={{ height:'100%',width:'100%',objectFit:'cover',objectPosition:'center',display:'block',borderRadius:'inherit',filter:'contrast(1.08) brightness(1.05)' }} />
+          <span className="qd-sheen" />
+        </span>
+        <span className="qd-nav-lockup" style={{ display:'flex',flexDirection:'column',justifyContent:'center',minWidth:0 }}>
+          <span className="qd-nav-subtitle" style={{ fontFamily:'var(--font-mono)',fontSize:9,letterSpacing:'0.22em',textTransform:'uppercase',lineHeight:1.2,color:'rgba(244,241,234,0.58)',marginTop:5,whiteSpace:'nowrap' }}>{navCopy.brandSubtitle}</span>
+        </span>
+      </a>
+      <div className="qd-nav-links qd-mobile-hide" style={{ display:'flex',alignItems:'center',gap:28 }}>
+        {navCopy.links.map(({ label, href }) => (
+          <a key={label} href={href} style={{ fontFamily:'var(--font-display)',fontSize:14,fontWeight:500,color:'var(--fg2)',textDecoration:'none',transition:'color 200ms ease' }} onMouseEnter={e=>e.target.style.color='var(--acid)'} onMouseLeave={e=>e.target.style.color='var(--fg2)'}>{label}</a>
+        ))}
+        <div className="qd-lang-toggle" role="group" aria-label={language === 'ar' ? 'تبديل اللغة' : 'Language switcher'}>
+          {['en', 'ar'].map((code) => (
+            <button key={code} type="button" className={`qd-lang-toggle-btn ${language === code ? 'is-active' : ''}`} onClick={() => setLanguage(code)}>{code.toUpperCase()}</button>
+          ))}
+        </div>
+        <Btn variant="primary" size="sm" icon="→" onClick={() => { (window.__QD.openBooking ? window.__QD.openBooking() : (window.location.href = window.__QD.getContactHref())); }}>{navCopy.build}</Btn>
+      </div>
+      <div className="qd-nav-mobile-actions qd-mobile-only">
+        <div className="qd-lang-toggle" role="group" aria-label={language === 'ar' ? 'تبديل اللغة' : 'Language switcher'}>
+          {['en', 'ar'].map((code) => (
+            <button key={code} type="button" className={`qd-lang-toggle-btn ${language === code ? 'is-active' : ''}`} onClick={() => setLanguage(code)}>{code.toUpperCase()}</button>
+          ))}
+        </div>
+        <Btn variant="primary" size="sm" className="qd-nav-cta" icon="→" onClick={() => { (window.__QD.openBooking ? window.__QD.openBooking() : (window.location.href = window.__QD.getContactHref())); }}>
+          <span>{navCopy.buildShort}</span>
+        </Btn>
+      </div>
+    </nav>
+  );
+};
+window.__QD.HomepageHero = ({ language }) => {
+  const copy = window.__QD.HOMEPAGE_COPY[language].hero;
+  const scroll = useHeroScrollProgress();
+  const isMobile = window.__QD.useViewportFlag(768);
+  const prefersReducedMotion = window.__QD.usePrefersReducedMotion();
+  const t = useHeroMotionClock(!isMobile && !prefersReducedMotion);
+  const p = easeInOut(Math.max(0,Math.min(1,scroll/0.4)));
+  const iry = Math.sin(t*0.4)*6, irx = Math.cos(t*0.3)*2;
+  const ry = iry+p*6, rx = irx-p*4;
+  const sideAlpha = 0.28*(1-easeIn(p));
+  const sideOff = easeIn(p)*80;
+  const qScale = 1+easeIn(p)*24;
+  const qAlpha = 0.32+p*0.55;
+  const qFade = p<0.7?1:Math.max(0,1-Math.pow((p-0.7)/0.3,1.4));
+  const washA = p<0.6?0:Math.min(1,(p-0.6)/0.25);
+  const washF = p<0.9?1:Math.max(0,1-(p-0.9)*10);
+  const cOp = 1-easeIn(Math.min(1,scroll*1.6));
+  const cLift = -easeOut(Math.min(1,scroll*2))*80;
+  const wordGlow = 52 + p * 22;
+  const wordGlowAlpha = 0.2 + p * 0.16;
+  const L = (alpha, extra={}) => ({
+    fontFamily:'var(--font-display)',fontWeight:700,fontSize:'clamp(220px,30vw,460px)',letterSpacing:'-0.06em',lineHeight:0.85,color:'transparent',
+    WebkitTextStroke:`1.6px rgba(232,232,238,${alpha})`,transition:'transform 600ms cubic-bezier(0.22,1,0.36,1)',willChange:'transform,opacity',transform:'translateZ(0)',backfaceVisibility:'hidden',userSelect:'none',...extra,
+  });
+  return (
+    <section className="qd-hero-section" style={{ position:'relative',minHeight:'100vh',paddingTop:80,overflow:'hidden',perspective:2000,background:'linear-gradient(180deg,#0d1013 0%,#0a0c10 46%,#090b0d 100%)' }}>
+      <div style={{ position:'absolute',inset:0,zIndex:0,pointerEvents:'none',background:'radial-gradient(circle at 18% 24%, rgba(232,232,238,0.08), transparent 26%), radial-gradient(circle at 82% 20%, rgba(232,232,238,0.05), transparent 24%), radial-gradient(circle at 58% 72%, rgba(232,232,238,0.06), transparent 22%)' }} />
+      <div style={{ position:'absolute',inset:0,zIndex:0,pointerEvents:'none',opacity:0.28,backgroundImage:'linear-gradient(rgba(244,241,234,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(244,241,234,0.025) 1px,transparent 1px)',backgroundSize:'72px 72px',maskImage:'linear-gradient(180deg, rgba(0,0,0,0.95), rgba(0,0,0,0.45))' }} />
+      <div style={{ position:'absolute',inset:'0 auto 0 54%',zIndex:0,width:'32vw',minWidth:260,maxWidth:520,pointerEvents:'none',background:'linear-gradient(180deg, transparent, rgba(232,232,238,0.06), transparent)',filter:'blur(28px)',transform:'skewX(-10deg)' }} />
+      <div className="qd-hero-ambient" style={{ position:'fixed',inset:0,zIndex:0,pointerEvents:'none',display:'grid',placeItems:'center',transformStyle:'preserve-3d' }}>
+        <div className="qd-hero-ambient-wordmark qd-brand-ltr" dir="ltr" style={{ display:'flex',alignItems:'center',gap:'0.02em',filter:`drop-shadow(0 0 ${wordGlow}px rgba(232,232,238,${wordGlowAlpha}))`,willChange:'transform,filter',transform:'translateZ(0)' }}>
+          <div style={L(sideAlpha,{ transform:`translateX(-${sideOff}vw) rotateY(${ry-10}deg) rotateX(${rx}deg)` })}>Q</div>
+          <div style={L(qAlpha,{ transform:`rotateY(${ry}deg) rotateX(${rx}deg) scale(${qScale})`,opacity:qFade })}>D</div>
+        </div>
+      </div>
+      <div style={{ position:'fixed',inset:0,zIndex:1,pointerEvents:'none',background:`radial-gradient(circle at center,rgba(232,232,238,${0.52*washA*washF}) 0%,rgba(232,232,238,${0.24*washA*washF}) 34%,rgba(14,18,18,${washA*washF*0.82}) 72%,rgba(11,11,12,0) 100%)`,opacity:washA*washF,mixBlendMode:'screen',willChange:'opacity' }} />
+      <div style={{ position:'fixed',inset:0,zIndex:1,pointerEvents:'none',background:'linear-gradient(180deg, rgba(8,10,12,0.08), rgba(8,10,12,0.42))',opacity:0.9 }} />
+      <div style={{ position:'fixed',inset:0,zIndex:1,pointerEvents:'none',background:'linear-gradient(180deg,#0b0d10 0%,#090b0d 100%)',opacity:p<0.85?0:Math.min(1,(p-0.85)/0.1)*(1-Math.max(0,(p-0.95)*10)) }} />
+      <div className="qd-hero-wrap" style={{ position:'relative',zIndex:2,maxWidth:1280,margin:'0 auto',padding:'120px 40px 60px',opacity:cOp,transform:`translateY(${cLift}px)`,transition:'opacity 400ms ease-out' }}>
+        <div style={{ display:'flex',alignItems:'center',gap:12,marginBottom:24 }}>
+          <span style={{ width:8,height:8,background:'var(--acid)',borderRadius:2,boxShadow:'0 0 12px var(--acid)',animation:'qd-pulse 1.6s ease-in-out infinite',display:'inline-block' }} />
+          <Eyebrow color="var(--acid)">{copy.eyebrow}</Eyebrow>
+        </div>
+        <h1 className="qd-hero-title" style={{ fontFamily:'var(--font-display)',fontSize:'clamp(48px,8vw,112px)',fontWeight:600,letterSpacing:'-0.04em',lineHeight:0.95,margin:0,maxWidth:1100,color:'var(--bone)' }}>
+          {copy.titleLead}<br/><span style={{ color:'var(--acid)' }}>{copy.titleAccent}</span> {copy.titleTail} <em style={{ fontFamily:'var(--font-serif)',fontWeight:400 }}>{copy.titleEmphasis}</em>.
+        </h1>
+        <p className="qd-hero-subtitle" style={{ fontFamily:'var(--font-body)',fontSize:22,color:'var(--fg2)',maxWidth:580,marginTop:32,lineHeight:1.4 }}>{copy.subtitle}</p>
+        <ul style={{ listStyle:'none',display:'flex',flexDirection:'column',gap:11,margin:'28px 0 0',padding:0,maxWidth:620 }}>
+          {(copy.checks||[]).map((c,i)=>(
+            <li key={i} style={{ display:'flex',gap:11,alignItems:'flex-start',fontSize:15,color:'#d6d6db',lineHeight:1.45 }}>
+              <span style={{ flex:'none',width:20,height:20,borderRadius:6,background:'linear-gradient(135deg,#fdfdff,#c9c9d0 45%,#9a9aa1 70%,#e6e6ec)',color:'#0a0a0b',display:'grid',placeItems:'center',fontSize:12,fontWeight:700,marginTop:1 }}>✓</span>
+              <span>{c}</span>
+            </li>
+          ))}
+        </ul>
+        <div className="qd-hero-actions" style={{ display:'flex',gap:14,marginTop:36,flexWrap:'wrap' }}>
+          <Btn variant="primary" size="lg" icon="→" onClick={() => { (window.__QD.openBooking ? window.__QD.openBooking() : (window.location.href = window.__QD.getContactHref())); }}>{copy.primaryCta}</Btn>
+          <Btn variant="ghost" size="lg" icon="↗" onClick={() => { window.location.href = '#live-websites'; }}>{copy.secondaryCta}</Btn>
+        </div>
+        <div style={{ display:'flex',gap:10,flexWrap:'wrap',marginTop:30 }}>
+          {(copy.speedBadges||[]).map((b,i)=>(
+            <div key={i} style={{ display:'flex',flexDirection:'column',gap:2,padding:'12px 16px',border:'1px solid var(--border-2)',borderRadius:12,background:'linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01))',minWidth:118 }}>
+              <span style={{ fontFamily:'var(--font-display)',fontSize:'1.25rem',fontWeight:600,color:'var(--bone)' }}>{b.t}</span>
+              <span style={{ fontSize:11,letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--fg3)' }}>{b.l}</span>
+            </div>
+          ))}
+        </div>
+        {copy.speedNote && <div style={{ fontSize:12,color:'var(--fg3)',marginTop:12,maxWidth:460 }}>{copy.speedNote}</div>}
+        <div className="qd-hero-stats" style={{ marginTop:96,display:'grid',gridTemplateColumns:'repeat(3,1fr)',borderTop:'1px solid var(--border-1)',borderBottom:'1px solid var(--border-1)' }}>
+          {copy.stats.map((s,i)=>(<div key={i} style={{ padding:'24px 20px',borderLeft:i===0?'none':'1px solid var(--border-1)' }}><div style={{ fontFamily:'var(--font-display)',fontWeight:600,fontSize:36,letterSpacing:'-0.02em',color:'var(--bone)' }}>{s.n}</div><div className="qd-eyebrow" style={{ marginTop:6 }}>{s.l}</div></div>))}
+        </div>
+      </div>
+      <div className="qd-hero-scroll-hint" style={{ position:'fixed',bottom:32,left:'50%',transform:'translateX(-50%)',zIndex:3,fontFamily:'var(--font-mono)',fontSize:11,letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--fg3)',opacity:Math.max(0,1-scroll*5),display:'flex',alignItems:'center',gap:10,pointerEvents:'none' }}>
+        <span style={{ width:24,height:1,background:'var(--fg3)',display:'inline-block' }} />{copy.scroll}<span style={{ width:24,height:1,background:'var(--fg3)',display:'inline-block' }} />
+      </div>
+    </section>
+  );
+};
+window.__QD.HomepageFooter = ({ language }) => {
+  const navCopy = window.__QD.HOMEPAGE_COPY[language].nav;
+  const footerCopy = window.__QD.HOMEPAGE_COPY[language].footer;
+  const socials = [{ label:'Instagram', url:'https://instagram.com/qdsystems' }, { label:'TikTok', url:'https://tiktok.com/@qdsystems' }];
+  return (
+    <footer className="qd-footer">
+      <div className="qd-footer-inner">
+        <div className="qd-footer-top">
+          <a href="/" className="qd-footer-brand qd-brand-ltr" dir="ltr">
+            <span className="qd-footer-mark"><img src="assets/qd-logo.jpeg" alt="QD Systems" className="qd-footer-mark-img" /><span className="qd-footer-logo-sheen" /></span>
+            <span className="qd-footer-brand-copy"><span className="qd-footer-brand-name">QD SYSTEMS</span><span className="qd-footer-brand-sub">{footerCopy.studio}</span></span>
+          </a>
+          <div className="qd-footer-links-wrap">
+            <nav className="qd-footer-links" aria-label="Footer navigation">
+              {navCopy.links.map(({ label, href }) => <a key={label} href={href} className="qd-footer-link">{label}</a>)}
+            </nav>
+            <div className="qd-footer-links qd-footer-socials" aria-label="Social links">
+              {socials.map(({ label, url }) => <a key={label} href={url} target="_blank" rel="noreferrer" className="qd-footer-link">{label}</a>)}
+            </div>
+          </div>
+        </div>
+        <div className="qd-footer-bottom">
+          <div className="qd-footer-meta" dir="ltr">{'\u00A9 2026 QD Systems'}</div>
+          <div className="qd-footer-meta">{footerCopy.builtIn}</div>
+          <div className="qd-footer-meta">V2.0</div>
+        </div>
+      </div>
+    </footer>
+  );
+};
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════
+     PROBLEM + SERVICES + BEFORE/AFTER + PROCESS + WORK + CTA
+═══════════════════════════════════════════════════════════ -->
+<script type="text/babel" src="components/problem.jsx"></script>
+<script type="text/babel" src="components/services.jsx"></script>
+<script type="text/babel" src="components/beforeafter.jsx"></script>
+<script type="text/babel" src="components/process.jsx"></script>
+<script type="text/babel" src="components/work.jsx"></script>
+<script type="text/babel" src="components/livewebsites.jsx"></script>
+<script type="text/babel" src="components/cta.jsx"></script>
+
+<!-- ═══════════════════════════════════════════════════════════
+     APP MOUNT
+═══════════════════════════════════════════════════════════ -->
+<script type="text/babel">
+const { HomepageNav, HomepageFooter, HomepageHero, Problem, Services, BeforeAfter, Process, Work, WorkMarqueeOnly, LiveWebsites, CTA } = window.__QD;
+
+window.__QD.LANGUAGE_STORAGE_KEY = 'qdLang';
+window.__QD.getSavedLanguage = () => {
+  const savedLanguage = localStorage.getItem(window.__QD.LANGUAGE_STORAGE_KEY);
+  return savedLanguage === 'ar' || savedLanguage === 'en' ? savedLanguage : 'en';
+};
+window.__QD.applyLanguageDocumentState = (language) => {
+  const normalizedLanguage = language === 'ar' ? 'ar' : 'en';
+  const direction = normalizedLanguage === 'ar' ? 'rtl' : 'ltr';
+  document.documentElement.lang = normalizedLanguage;
+  document.documentElement.dir = direction;
+  document.body.classList.toggle('qd-lang-ar', normalizedLanguage === 'ar');
+  document.body.classList.toggle('qd-lang-en', normalizedLanguage !== 'ar');
+};
+window.__QD.getContactHref = () => `contact?lang=${window.__QD.getSavedLanguage()}`;
+
+window.__QD.applyLanguageDocumentState(window.__QD.getSavedLanguage());
+
+const App = () => {
+  const [language, setLanguage] = useState(() => window.__QD.getSavedLanguage());
+
+  useEffect(() => {
+    localStorage.setItem(window.__QD.LANGUAGE_STORAGE_KEY, language);
+    window.__QD.applyLanguageDocumentState(language);
+  }, [language]);
+
+  return (
+    <>
+      <HomepageNav language={language} setLanguage={setLanguage} />
+      <HomepageHero language={language} />
+      <Problem language={language} />
+      <Services language={language} />
+      <LiveWebsites language={language} />
+      <Process language={language} />
+      <WorkMarqueeOnly language={language} />
+      {/* WORK SECTION TEMPORARILY DISABLED */}
+      {/* <Work language={language} /> */}
+      <CTA language={language} />
+      <HomepageFooter language={language} />
+    </>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('qd-root')).render(<App />);
+</script>
+
+<!-- QD Chatbot widget -->
+<link rel="stylesheet" href="/chatbot/chatbot.css">
+<script src="/chatbot/chatbot.js" defer></script>
+
+
+<style>
+.qdbk-overlay{position:fixed;inset:0;z-index:9000;background:rgba(4,4,6,.72);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .3s var(--ease-out)}
+.qdbk-overlay.open{opacity:1;pointer-events:auto}
+.qdbk{position:relative;width:100%;max-width:470px;background:linear-gradient(180deg,var(--obsidian-2),var(--obsidian-1));border:1px solid var(--border-2);border-radius:22px;padding:30px;box-shadow:0 50px 120px rgba(0,0,0,.7);transform:translateY(20px) scale(.985);transition:transform .3s var(--ease-out);max-height:90vh;overflow-y:auto}
+.qdbk-overlay.open .qdbk{transform:none}
+.qdbk h3{font-family:var(--font-display);font-size:1.5rem;margin-bottom:6px;letter-spacing:-.02em}
+.qdbk .qdbk-sub{color:var(--fg2);font-size:14px;margin-bottom:22px;line-height:1.5}
+.qdbk-x{position:absolute;top:16px;right:16px;width:34px;height:34px;border-radius:50%;border:1px solid var(--border-2);background:rgba(255,255,255,.03);color:var(--fg2);cursor:pointer;display:grid;place-items:center;font-size:15px}
+.qdbk-x:hover{background:rgba(255,255,255,.08);color:var(--fg1)}
+.qdbk label{font-size:12px;color:var(--fg2);display:block;margin-bottom:6px}
+.qdbk input,.qdbk select{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border-2);border-radius:12px;padding:13px 15px;color:var(--fg1);font-family:inherit;font-size:14.5px;margin-bottom:15px}
+.qdbk input:focus,.qdbk select:focus{outline:none;border-color:var(--border-3);background:rgba(255,255,255,.07)}
+.qdbk .qdbk-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:460px){.qdbk .qdbk-row{grid-template-columns:1fr}}
+.qdbk-btn{width:100%;justify-content:center;display:inline-flex;align-items:center;gap:8px;padding:15px;font-size:15px;font-weight:600;border-radius:12px;border:none;cursor:pointer;background:linear-gradient(135deg,#fdfdff,#c9c9d0 45%,#9a9aa1 70%,#e6e6ec);color:#0a0a0b;font-family:inherit}
+.qdbk-hint{font-size:12px;color:var(--fg3);text-align:center;margin-top:13px}
+.qdbk-ok{text-align:center;padding:8px 0}
+.qdbk-ok .ic{width:60px;height:60px;border-radius:50%;background:rgba(74,191,138,.12);border:1px solid rgba(74,191,138,.35);color:var(--ok);display:grid;place-items:center;font-size:28px;margin:0 auto 18px}
+body.qd-lang-ar .qdbk-x{right:auto;left:16px}
+</style>
+<div class="qdbk-overlay" id="qdbk" role="dialog" aria-modal="true" aria-label="Book a free call">
+  <div class="qdbk">
+    <button class="qdbk-x" id="qdbkX" aria-label="Close">&#10005;</button>
+    <div id="qdbkForm">
+      <h3 data-en="Book your free call" data-ar="احجز مكالمتك المجانية">Book your free call</h3>
+      <p class="qdbk-sub" data-en="15 minutes, no obligation. Drop your details and we'll email you a Google Meet link — usually within the hour." data-ar="١٥ دقيقة، دون التزام. اترك بياناتك وسنرسل لك رابط Google Meet — عادةً خلال ساعة.">15 minutes, no obligation. Drop your details and we'll email you a Google Meet link &mdash; usually within the hour.</p>
+      <form id="qdbkF">
+        <div class="qdbk-row">
+          <div><label data-en="Name" data-ar="الاسم">Name</label><input id="qdbkName" required placeholder="e.g. Ahmed"></div>
+          <div><label data-en="WhatsApp" data-ar="واتساب">WhatsApp</label><input id="qdbkPhone" inputmode="tel" placeholder="+971 ..."></div>
+        </div>
+        <label data-en="Email" data-ar="البريد الإلكتروني">Email</label><input id="qdbkEmail" type="email" required placeholder="you@business.com">
+        <label data-en="What's it about?" data-ar="ما الموضوع؟">What's it about?</label>
+        <select id="qdbkPurpose"><option>A new website</option><option>A full system (booking / automation / dashboard)</option><option>Not sure yet &mdash; I'd like advice</option></select>
+        <label data-en="Preferred time (optional)" data-ar="الوقت المفضل (اختياري)">Preferred time (optional)</label><input id="qdbkTime" placeholder="e.g. Tomorrow afternoon">
+        <button type="submit" class="qdbk-btn" data-en="Confirm &mdash; send my Meet link &rarr;" data-ar="تأكيد — أرسل رابط الاجتماع">Confirm &mdash; send my Meet link &rarr;</button>
+        <div class="qdbk-hint">Free &middot; no obligation &middot; your link arrives by email</div>
+      </form>
+    </div>
+    <div id="qdbkDone" class="qdbk-ok" style="display:none">
+      <div class="ic">&#10003;</div>
+      <h3>You're booked<span id="qdbkDoneName"></span>!</h3>
+      <p class="qdbk-sub" id="qdbkDoneMsg">Check your inbox &mdash; your Google Meet link is on its way.</p>
+      <a class="qdbk-btn" id="qdbkWa" href="#" target="_blank" style="text-decoration:none">Prefer WhatsApp? Message us &rarr;</a>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  window.__QD = window.__QD || {};
+  var ov=document.getElementById('qdbk');if(!ov)return;var last=null;
+  var isAr=document.body.classList.contains('qd-lang-ar');
+  if(isAr){ov.querySelectorAll('[data-ar]').forEach(function(el){el.innerHTML=el.getAttribute('data-ar');});}
+  function open(){ov.classList.add('open');document.body.style.overflow='hidden';last=document.activeElement;setTimeout(function(){var n=document.getElementById('qdbkName');if(n)n.focus();},120);}
+  function close(){ov.classList.remove('open');document.body.style.overflow='';if(last&&last.focus)last.focus();}
+  window.__QD.openBooking=open;
+  document.getElementById('qdbkX').addEventListener('click',close);
+  ov.addEventListener('click',function(e){if(e.target===ov)close();});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&ov.classList.contains('open'))close();});
+  var wa=(window.__QD.getWhatsAppHref&&window.__QD.getWhatsAppHref())||'https://wa.me/971505349907';
+  document.getElementById('qdbkF').addEventListener('submit',function(e){e.preventDefault();
+    var name=(document.getElementById('qdbkName').value||'there').trim();
+    var email=document.getElementById('qdbkEmail').value.trim();
+    var phone=document.getElementById('qdbkPhone').value.trim();
+    var purpose=document.getElementById('qdbkPurpose').value;
+    var time=document.getElementById('qdbkTime').value.trim();
+    var payload={name:name,email:email,phone:phone,purpose:purpose,time:time,source:'booking-modal'};
+    try{ fetch('/api/book',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}).catch(function(){}); }catch(_){}
+    document.getElementById('qdbkDoneName').textContent=', '+name;
+    document.getElementById('qdbkDoneMsg').innerHTML='Check <b>'+email.replace(/[<>]/g,'')+'</b> &mdash; your Google Meet link is on its way, usually within the hour.';
+    document.getElementById('qdbkWa').href=wa+'?text='+encodeURIComponent("Hi QD - I'm "+name+", I just booked a call ("+purpose+")."+(time?(' Preferred: '+time+'.'):''));
+    document.getElementById('qdbkForm').style.display='none';
+    document.getElementById('qdbkDone').style.display='block';
+  });
+})();
+</script>
+
+</body>
+</html>

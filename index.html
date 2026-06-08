@@ -1,832 +1,728 @@
-<!doctype html>
-<html lang="en" dir="ltr">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>QD · Smart Solutions</title>
-  <link rel="icon" href="assets/favicon.svg">
-  <link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QD Systems · Websites & systems for UAE businesses</title>
+<link rel="icon" href="assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070708; --panel:#131316; --fg:#F4F4F6; --muted:#A6A6AD; --dim:#8b8b93;
+  --line:rgba(255,255,255,.10); --line2:rgba(255,255,255,.06); --live:#35d27e;
+  --silver:linear-gradient(135deg,#ffffff 0%,#ececed 28%,#a9a9b0 58%,#f0f0f3 100%);
+  --silver-text:linear-gradient(120deg,#ffffff 0%,#f6f6f9 45%,#e4e4ea 70%,#ffffff 100%);
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:88px}
+body{background:var(--bg);color:var(--fg);font-family:Inter,system-ui,sans-serif;line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+h1,h2,h3,.disp{font-family:"Space Grotesk",sans-serif;line-height:1.03;letter-spacing:-.02em}
+.wrap{max-width:1200px;margin:0 auto;padding:0 28px}
+a{color:inherit;text-decoration:none}
+.metal{background:var(--silver-text);-webkit-background-clip:text;background-clip:text;color:transparent}
 
-  <!-- React 18 + Babel (JSX in-browser) -->
-  <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin></script>
+/* intro */
+#intro{position:fixed;inset:0;z-index:90;background:var(--bg);display:grid;place-items:center;transition:opacity .45s var(--ease),visibility .45s}
+#intro.gone{opacity:0;visibility:hidden}
+#intro .mk{font-family:"Space Grotesk";font-weight:700;font-size:clamp(3rem,10vw,7rem);letter-spacing:.1em;position:relative;overflow:hidden}
+#intro .mk::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.9) 50%,transparent 65%);-webkit-background-clip:text;background-clip:text;color:transparent;background-size:250% 100%;animation:sweep 1.6s ease-in-out infinite}
+.iload{position:absolute;bottom:42px;left:0;right:0;text-align:center;font-size:11px;letter-spacing:.3em;color:var(--dim);text-transform:uppercase}
+
+/* fx */
+.bg-fx{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.glow{position:absolute;border-radius:50%;filter:blur(80px);mix-blend-mode:screen}
+.glow.a{width:820px;height:820px;left:-220px;top:-260px;background:radial-gradient(circle,rgba(255,255,255,.14),transparent 62%);animation:drift1 24s var(--ease) infinite alternate}
+.glow.c{width:640px;height:640px;left:38%;bottom:-300px;background:radial-gradient(circle,rgba(255,255,255,.05),transparent 62%);animation:drift1 30s var(--ease) infinite alternate}
+.glow.b{width:760px;height:760px;right:-220px;top:120px;background:radial-gradient(circle,rgba(255,255,255,.09),transparent 60%);animation:drift2 28s var(--ease) infinite alternate}
+@keyframes drift1{to{transform:translate(120px,80px) scale(1.15)}}
+@keyframes drift2{to{transform:translate(-120px,60px) scale(1.1)}}
+@keyframes sweep{0%{background-position:180% 0}100%{background-position:-120% 0}}
+.grid-fx{position:absolute;inset:0;background-image:linear-gradient(var(--line2) 1px,transparent 1px),linear-gradient(90deg,var(--line2) 1px,transparent 1px);background-size:66px 66px;mask-image:radial-gradient(circle at 60% 18%,#000,transparent 76%);opacity:.45}
+.grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.05;mix-blend-mode:overlay;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>")}
+.vignette{position:fixed;inset:0;z-index:1;pointer-events:none;box-shadow:inset 0 0 240px 60px rgba(0,0,0,.7)}
+.cursor-glow{position:fixed;width:460px;height:460px;border-radius:50%;z-index:2;pointer-events:none;background:radial-gradient(circle,rgba(255,255,255,.05),transparent 60%);transform:translate(-50%,-50%);left:-999px}
+#px{position:fixed;inset:0;z-index:1;pointer-events:none}
+.marquee{position:relative;z-index:5;overflow:hidden;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);background:rgba(255,255,255,.015);padding:18px 0}
+.marquee .track{display:inline-flex;gap:42px;white-space:nowrap;animation:scrollx 24s linear infinite}
+.marquee span{font-family:"Space Grotesk";font-weight:600;font-size:1.05rem;letter-spacing:.04em;background:var(--silver-text);-webkit-background-clip:text;background-clip:text;color:transparent;display:inline-flex;align-items:center;gap:42px}
+.marquee span::after{content:"◆";color:var(--dim);font-size:.6rem;-webkit-text-fill-color:var(--dim)}
+@keyframes scrollx{to{transform:translateX(-50%)}}
+.word{display:inline-block;opacity:0;transform:translateY(40px);filter:blur(8px)}
+body.ready .word{opacity:1;transform:none;filter:none;transition:opacity .7s var(--ease),transform .7s var(--ease),filter .7s var(--ease)}
+/* giant ghost marquee (premium take on the original's banner) */
+.ghost{position:relative;z-index:5;overflow:hidden;padding:30px 0;background:var(--bg)}
+.ghost .track{display:inline-flex;gap:60px;white-space:nowrap;animation:scrollx 30s linear infinite}
+.ghost .track.rev{animation-direction:reverse;animation-duration:38s}
+.ghost b{font-family:"Space Grotesk";font-weight:700;font-size:clamp(1.8rem,4vw,3rem);letter-spacing:-.01em;-webkit-text-stroke:1px rgba(255,255,255,.14);color:transparent;text-transform:uppercase;display:inline-block}
+.ghost b.fill{-webkit-text-stroke:0;background:var(--silver-text);-webkit-background-clip:text;background-clip:text;color:transparent}
+/* kinetic statement banner */
+.statement{position:relative;z-index:5;text-align:center;padding:120px 28px;background:linear-gradient(180deg,var(--bg),#0c0c10,var(--bg))}
+.statement h2{font-size:clamp(2rem,5.5vw,4.4rem);font-weight:700;line-height:1.05;max-width:1000px;margin:0 auto}
+.statement .muted{color:var(--dim);-webkit-text-fill-color:var(--dim)}
+
+/* 3D canvas */
+#gl{position:absolute;top:0;left:52vw;right:auto;width:48vw;height:100vh;z-index:2;pointer-events:none}
+@media(max-width:1280px){#gl{width:54vw}}
+@media(max-width:1100px){#gl{width:50vw;opacity:.85}.qd-hero::before{background:linear-gradient(90deg,rgba(7,7,8,.95) 36%,rgba(7,7,8,.6) 60%,transparent 82%)}}
+@media(max-width:980px){#gl{left:0;right:auto;width:100vw;height:50vh;top:46px;opacity:.3}.qd-hero::before{background:linear-gradient(180deg,rgba(7,7,8,.5),rgba(7,7,8,.92) 46%)}.qd-hero .wrap{grid-template-columns:1fr;padding:0 28px;max-width:720px}}
+@media(max-width:768px){#gl{display:none}}
+/* short laptops */
+@media(min-width:981px) and (max-height:780px){.qd-hero{min-height:auto;padding:138px 0 76px}.statement{padding:88px 24px}}
+/* laptop type scaling */
+@media(max-width:1100px){h1.hero{font-size:clamp(2rem,3.5vw,3.1rem)}}
+/* phones polish */
+@media(max-width:480px){
+  body>nav{padding:13px 16px}.brand b{font-size:12px}.brand img{width:34px;height:34px}
+  h1.hero{font-size:clamp(2rem,8.6vw,2.7rem)}.sub{font-size:.99rem}
+  .ghost{padding:20px 0}.ghost b{font-size:2.3rem}.ghost .track{gap:40px}
+  .statement{padding:72px 20px}.statement h2{font-size:1.85rem}
+  .demo{border-radius:14px}.chat{min-height:300px}
+  .badge{min-width:0;flex:1}.speed{gap:8px}
+  body>section{padding:64px 0}.h2{font-size:1.75rem}
+  .stat .n{font-size:2rem}.stat{padding:20px 16px}
+}
+
+body>nav{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:16px 28px;backdrop-filter:blur(14px);background:linear-gradient(180deg,rgba(7,7,8,.86),rgba(7,7,8,.3));border-bottom:1px solid var(--line2)}
+.brand{display:flex;align-items:center;gap:12px}
+.brand img{width:38px;height:38px;border-radius:9px;object-fit:cover;box-shadow:0 0 0 1px var(--line)}
+.brand b{font-family:"Space Grotesk";letter-spacing:.22em;font-size:14px;font-weight:600}
+.nav-links{display:flex;gap:30px;font-size:14px;color:var(--muted)}
+.nav-links a{transition:color .25s}.nav-links a:hover{color:var(--fg)}
+@media(max-width:880px){.nav-links{display:none}}
+
+.btn{display:inline-flex;align-items:center;gap:9px;padding:13px 22px;border-radius:11px;font-weight:600;font-size:14.5px;cursor:pointer;border:1px solid transparent;transition:transform .25s var(--ease),box-shadow .3s,background .3s}
+.btn-silver{background:var(--silver);color:#0a0a0b;box-shadow:0 10px 30px rgba(255,255,255,.10),inset 0 1px 0 rgba(255,255,255,.6)}
+.btn-silver:hover{box-shadow:0 16px 48px rgba(255,255,255,.2),inset 0 1px 0 rgba(255,255,255,.7)}
+.btn-ghost{background:rgba(255,255,255,.03);border-color:var(--line);color:var(--fg)}
+.btn-ghost:hover{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.22)}
+
+.qd-hero{position:relative;z-index:5;padding:172px 0 96px;min-height:100vh;display:flex;align-items:center}
+.qd-hero::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(7,7,8,.99) 0%,rgba(7,7,8,.98) 52%,rgba(7,7,8,.85) 64%,rgba(7,7,8,.3) 80%,transparent 92%);pointer-events:none}
+.qd-hero .wrap{max-width:1320px;margin:0 auto;padding:0 40px;display:grid;grid-template-columns:1.04fr .96fr;gap:48px;align-items:center}
+.eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);padding:7px 14px;border-radius:100px;background:rgba(255,255,255,.02)}
+.eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--live);box-shadow:0 0 10px var(--live)}
+.hero-col{max-width:680px;position:relative}
+h1.hero{font-size:clamp(2.4rem,4.1vw,3.9rem);font-weight:700;margin:22px 0 22px;letter-spacing:-.025em}
+.shine{position:relative;display:inline-block}
+.shine::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 32%,rgba(255,255,255,.85) 50%,transparent 62%);-webkit-background-clip:text;background-clip:text;color:transparent;mix-blend-mode:screen;background-size:250% 100%;animation:sweep 6s ease-in-out 1.6s infinite}
+.sub{color:var(--muted);font-size:1.1rem;max-width:540px;margin-bottom:26px}
+.checks{display:flex;flex-direction:column;gap:11px;margin:24px 0 30px}
+.check{display:flex;gap:11px;align-items:flex-start;font-size:14.5px;color:#d6d6db}
+.check .ic{flex:none;width:20px;height:20px;border-radius:6px;background:var(--silver);display:grid;place-items:center;color:#0a0a0b;font-size:12px;font-weight:700;margin-top:1px}
+.cta-row{display:flex;gap:14px;flex-wrap:wrap}
+.speed{display:flex;gap:10px;flex-wrap:wrap;margin-top:30px}
+.badge{display:flex;flex-direction:column;gap:2px;padding:12px 16px;border:1px solid var(--line);border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01));min-width:118px;transition:transform .3s var(--ease),border-color .3s}
+.badge:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.22)}
+.badge .k{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.badge .v{font-family:"Space Grotesk";font-size:1.25rem;font-weight:600;background:var(--silver-text);-webkit-background-clip:text;background-clip:text;color:transparent}
+.speed-note{font-size:12px;color:var(--dim);margin-top:12px;max-width:420px}
+
+body>section:nth-of-type(even){background:radial-gradient(1200px 520px at 32% -12%,rgba(255,255,255,.05),transparent 62%),linear-gradient(180deg,#0e0f12 0%,#090a0b 100%)!important}
+body>section{position:relative;z-index:5;padding:100px 0;border-top:1px solid var(--line2);box-shadow:inset 0 1px 0 rgba(255,255,255,.045);background:radial-gradient(1200px 520px at 68% -12%,rgba(255,255,255,.045),transparent 62%),linear-gradient(180deg,#0b0c0e 0%,#060607 100%)}
+.tag{display:inline-block;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin-bottom:14px}
+.h2{font-size:clamp(1.9rem,3.6vw,3rem);font-weight:700;margin-bottom:14px}
+.lead{color:var(--muted);max-width:620px;margin-bottom:42px}
+
+/* live demo */
+.demo{max-width:520px;margin:0 auto;background:linear-gradient(180deg,var(--panel),#0d0d10);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 40px 90px rgba(0,0,0,.55)}
+.demo-bar{display:flex;align-items:center;gap:9px;padding:14px 16px;border-bottom:1px solid var(--line2);background:rgba(255,255,255,.02)}
+.demo-bar .d{width:11px;height:11px;border-radius:50%;background:#2c2c31}
+.demo-bar .title{margin-left:8px;font-size:12.5px;color:var(--muted)}
+.demo-bar .live{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:11px;letter-spacing:.1em;color:var(--live)}
+.demo-bar .live i{width:7px;height:7px;border-radius:50%;background:var(--live);box-shadow:0 0 10px var(--live);animation:pulse 1.6s infinite}
+@keyframes pulse{50%{opacity:.35}}
+.chat{padding:20px 18px;min-height:330px;display:flex;flex-direction:column;gap:12px}
+.msg{max-width:82%;padding:11px 15px;border-radius:14px;font-size:14px;opacity:0;transform:translateY(8px);animation:msgin .5s var(--ease) forwards}
+.msg.them{align-self:flex-start;background:rgba(255,255,255,.05);border:1px solid var(--line2);border-bottom-left-radius:5px}
+.msg.us{align-self:flex-end;background:var(--silver);color:#0a0a0b;font-weight:500;border-bottom-right-radius:5px}
+@keyframes msgin{to{opacity:1;transform:none}}
+.typing{align-self:flex-start;display:flex;gap:4px;padding:13px 16px;background:rgba(255,255,255,.05);border-radius:14px;border-bottom-left-radius:5px}
+.typing span{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:bnc 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.15s}.typing span:nth-child(3){animation-delay:.3s}
+@keyframes bnc{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-5px);opacity:1}}
+.chips-bar{display:flex;flex-wrap:wrap;gap:8px;padding:0 18px 18px}
+.qchip{font-size:12.5px;padding:9px 14px;border:1px solid var(--line);border-radius:100px;color:#d6d6db;background:rgba(255,255,255,.03);cursor:pointer;transition:transform .2s var(--ease),border-color .2s,background .2s;font-family:inherit}
+.qchip:hover{border-color:rgba(255,255,255,.32);background:rgba(255,255,255,.08);transform:translateY(-2px)}
+.qchip:disabled{opacity:.4;cursor:default;transform:none}
+.qchip.book{background:var(--silver);color:#0a0a0b;font-weight:600;border-color:transparent}
+.booked{margin-top:auto;display:flex;align-items:center;gap:10px;padding:13px 15px;border:1px solid rgba(53,210,126,.3);background:rgba(53,210,126,.08);border-radius:12px;font-size:13.5px;opacity:0;transform:translateY(8px);transition:.5s var(--ease)}
+.booked.show{opacity:1;transform:none}
+.booked .tick{width:22px;height:22px;border-radius:50%;background:var(--live);color:#06140c;display:grid;place-items:center;font-weight:700;flex:none}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+@media(max-width:760px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{padding:26px 20px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.03),transparent)}
+.stat .n{font-family:"Space Grotesk";font-size:2.4rem;font-weight:700;background:var(--silver-text);-webkit-background-clip:text;background-clip:text;color:transparent}
+.stat .l{font-size:13px;color:var(--muted);margin-top:6px}
+
+.cases{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+@media(max-width:820px){.cases{grid-template-columns:1fr}}
+.case{position:relative;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:var(--panel);transition:transform .2s var(--ease),border-color .4s;transform-style:preserve-3d}
+.case:hover{border-color:rgba(255,255,255,.24)}
+.case .sheen{position:absolute;inset:0;background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.08) 50%,transparent 60%);transform:translateX(-100%);transition:transform .7s var(--ease);pointer-events:none}
+.case:hover .sheen{transform:translateX(100%)}
+.case .top{height:150px;background:linear-gradient(135deg,#1d1d23,#0e0e12);display:grid;place-items:center;color:var(--dim);font-size:13px;border-bottom:1px solid var(--line2)}
+.case .body{padding:22px}
+.case h3{font-size:1.3rem;margin-bottom:4px}
+.case .domain{font-size:12.5px;color:var(--dim);margin-bottom:14px}
+.case p{font-size:14px;color:var(--muted);margin-bottom:8px}
+.case .r{font-size:13.5px;color:#d6d6db;border-left:2px solid rgba(255,255,255,.3);padding-left:10px;margin:14px 0}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
+.chip{font-size:11px;padding:5px 10px;border:1px solid var(--line);border-radius:100px;color:var(--muted)}
+.visit{display:inline-flex;gap:7px;align-items:center;margin-top:16px;font-size:13.5px;font-weight:600;color:var(--fg)}
+.visit span{transition:transform .25s}.case:hover .visit span{transform:translateX(4px)}
+
+.offers{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+@media(max-width:820px){.offers{grid-template-columns:1fr}}
+.offer{padding:26px 22px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.03),transparent);transition:transform .35s var(--ease),border-color .35s}
+.offer:hover{transform:translateY(-5px);border-color:rgba(255,255,255,.2)}
+.offer .ic{width:44px;height:44px;border-radius:12px;background:var(--silver);display:grid;place-items:center;color:#0a0a0b;font-size:20px;margin-bottom:16px}
+.offer h3{font-size:1.2rem;margin-bottom:8px}
+.offer p{font-size:14px;color:var(--muted)}
+
+.cta-band{text-align:center;border:1px solid var(--line);border-radius:24px;padding:64px 28px;background:radial-gradient(700px 300px at 50% 0,rgba(255,255,255,.06),transparent 70%),var(--panel)}
+.cta-band h2{font-size:clamp(2rem,4vw,3.3rem);margin-bottom:14px}
+.guarantee{margin-top:24px;font-size:13.5px;color:var(--muted)}
+footer{position:relative;z-index:5;border-top:1px solid var(--line2);padding:40px 0 96px;color:var(--dim);font-size:13px;background:var(--bg)}
+.footer-in{display:flex;justify-content:space-between;flex-wrap:wrap;gap:18px}
+
+/* sticky mobile conversion bar */
+.mbar{display:none}
+@media(max-width:768px){
+  .qd-hero{padding:120px 0 64px;min-height:auto}
+  h1.hero{font-size:clamp(2.3rem,9vw,3.2rem);margin:18px 0}
+  .sub{font-size:1.02rem}
+  body>section{padding:72px 0}
+  .nav-cta-btn,nav .btn-silver{display:none}
+  .mbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:60;gap:10px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(7,7,8,.4),rgba(7,7,8,.96));backdrop-filter:blur(14px);border-top:1px solid var(--line)}
+  .mbar a{flex:1;justify-content:center;padding:14px}
+  .mbar .btn-ghost{flex:0 0 auto}
+}
+
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
+.reveal.in{opacity:1;transform:none}
+.rise{opacity:0;transform:translateY(24px)}
+body.ready .rise{opacity:1;transform:none;transition:opacity .9s var(--ease),transform .9s var(--ease)}
+body.ready .rise:nth-child(2){transition-delay:.08s}
+body.ready .rise:nth-child(3){transition-delay:.16s}
+/* conversion elements */
+.avail{display:inline-flex;align-items:center;gap:8px;margin-left:10px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#cfcfd6}
+.avail i{width:7px;height:7px;border-radius:50%;background:var(--live);box-shadow:0 0 10px var(--live);animation:pulse 1.6s infinite}
+.cta-note{font-size:12.5px;color:var(--muted);margin-top:14px;display:flex;align-items:center;gap:8px}
+.cta-note .g{width:6px;height:6px;border-radius:50%;background:var(--live);box-shadow:0 0 8px var(--live);flex:none}
+.trustrow{margin-top:24px;font-size:12px;letter-spacing:.03em;color:var(--dim);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.trustrow b{color:#cfcfd6;font-weight:600;font-family:"Space Grotesk"}
+.btn-silver.pulse{animation:breathe 3.2s var(--ease) infinite}
+@keyframes breathe{0%,100%{box-shadow:0 10px 30px rgba(255,255,255,.10),inset 0 1px 0 rgba(255,255,255,.6)}50%{box-shadow:0 16px 50px rgba(255,255,255,.30),inset 0 1px 0 rgba(255,255,255,.75)}}
+.scrollcue{position:absolute;left:0;right:0;bottom:24px;z-index:6;display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--dim);font-size:10px;letter-spacing:.28em;text-transform:uppercase}
+.scrollcue .m{width:22px;height:34px;border:1px solid var(--line);border-radius:12px;position:relative}
+.scrollcue .m::after{content:"";position:absolute;left:50%;top:7px;width:3px;height:6px;border-radius:2px;background:var(--muted);transform:translateX(-50%);animation:scrolld 1.8s ease-in-out infinite}
+@keyframes scrolld{0%{opacity:0;transform:translate(-50%,0)}30%{opacity:1}100%{opacity:0;transform:translate(-50%,12px)}}
+.quote{max-width:780px;margin:44px auto 0;text-align:center}
+.quote p{font-family:"Space Grotesk";font-weight:500;font-size:clamp(1.25rem,2.4vw,1.7rem);line-height:1.42;color:#e8e8ec}
+.quote .who{margin-top:18px;display:inline-flex;align-items:center;gap:11px;font-size:13px;color:var(--muted)}
+.quote .av{width:36px;height:36px;border-radius:50%;background:var(--silver);color:#0a0a0b;display:grid;place-items:center;font-weight:700;font-size:13px}
+@media(max-width:768px){.scrollcue{display:none}}
+/* compare */
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:920px;margin:0 auto}
+@media(max-width:700px){.compare{grid-template-columns:1fr}}
+.col{border:1px solid var(--line);border-radius:16px;padding:26px 22px}
+.col.us{border-color:rgba(255,255,255,.3);background:linear-gradient(180deg,rgba(255,255,255,.05),transparent)}
+.col h4{font-family:"Space Grotesk";font-size:1.05rem;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.col.us h4 .mini{font-size:10px;letter-spacing:.12em;text-transform:uppercase;background:var(--silver);color:#0a0a0b;padding:3px 9px;border-radius:100px}
+.col ul{list-style:none;display:flex;flex-direction:column;gap:12px}
+.col li{font-size:14px;color:var(--muted);display:flex;gap:10px;line-height:1.45}
+.col li .m{flex:none;width:18px;height:18px;border-radius:5px;display:grid;place-items:center;font-size:11px;font-weight:700;margin-top:1px}
+.col.them li .m{background:rgba(255,255,255,.06);color:var(--dim)}
+.col.us li{color:#dcdce0}.col.us li .m{background:var(--silver);color:#0a0a0b}
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+@media(max-width:820px){.steps{grid-template-columns:1fr 1fr}}@media(max-width:480px){.steps{grid-template-columns:1fr}}
+.step{border:1px solid var(--line);border-radius:16px;padding:24px 20px;background:linear-gradient(180deg,rgba(255,255,255,.03),transparent)}
+.step .num{font-family:"Space Grotesk";font-weight:700;font-size:1.5rem;background:var(--silver-text);-webkit-background-clip:text;background-clip:text;color:transparent}
+.step h4{font-size:1.05rem;margin:10px 0 6px}.step p{font-size:13.5px;color:var(--muted)}
+/* faq */
+.faq{max-width:820px;margin:0 auto}
+.qa{border-bottom:1px solid var(--line2)}
+.qa button{width:100%;text-align:left;background:none;border:none;color:var(--fg);font-family:"Space Grotesk";font-size:1.06rem;padding:22px 0;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.qa button .pl{transition:transform .3s var(--ease);color:var(--muted);font-size:1.4rem;line-height:1}
+.qa.open button .pl{transform:rotate(45deg)}
+.qa .ans{max-height:0;overflow:hidden;transition:max-height .4s var(--ease)}
+.qa .ans p{color:var(--muted);font-size:14.5px;padding:0 0 22px;max-width:680px}
+/* guarantee badges */
+.guards{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:26px}
+.guard{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:#dcdce0;border:1px solid var(--line);border-radius:100px;padding:9px 15px;background:rgba(255,255,255,.02)}
+.guard .t{color:var(--live);font-weight:700}
+/* progress + nav states */
+a:focus-visible,button:focus-visible{outline:2px solid #d2d2d9;outline-offset:3px;border-radius:8px}
+#progress{position:fixed;top:0;left:0;height:2px;width:0;z-index:50;background:var(--silver);box-shadow:0 0 12px rgba(255,255,255,.4)}
+body>nav{transition:padding .3s var(--ease),background .3s}
+body>nav.scrolled{padding:10px 28px;background:rgba(7,7,8,.94)}
+.nav-links a.active{color:var(--fg)}
+.nav-links a.active::after{content:"";position:absolute;left:0;right:0;bottom:-7px;height:1px;background:var(--silver)}
+/* persistent desktop CTA */
+.floatcta{position:fixed;left:26px;bottom:26px;z-index:55;opacity:0;transform:translateY(18px);pointer-events:none;transition:opacity .4s var(--ease),transform .4s var(--ease)}
+.floatcta.show{opacity:1;transform:none;pointer-events:auto}
+@media(max-width:768px){.floatcta{display:none}}
+/* intent selector */
+.needs{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;align-items:center;margin:0 auto 18px}
+.needs .lbl{color:var(--dim);font-size:13px}
+.need{font-size:13px;padding:10px 16px;border:1px solid var(--line);border-radius:100px;color:#d6d6db;background:rgba(255,255,255,.03);cursor:pointer;transition:transform .2s var(--ease),border-color .2s,background .2s;font-family:inherit}
+.need:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.32);background:rgba(255,255,255,.07)}
+.need.sel{background:var(--silver);color:#0a0a0b;font-weight:600;border-color:transparent}
+/* quick-quote card */
+.qform{max-width:460px;margin:0 auto 18px;display:flex;flex-direction:column;gap:14px;text-align:left;background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.015));border:1px solid var(--line);border-radius:20px;padding:24px;box-shadow:0 30px 70px rgba(0,0,0,.4)}
+.qform-head{display:flex;align-items:center;justify-content:space-between;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+.qform-head .t{color:#e8e8ec;letter-spacing:.02em;text-transform:none;font-size:15px;font-family:"Space Grotesk";font-weight:600}
+.qfield{display:flex;flex-direction:column;gap:6px}
+.qfield label{font-size:12px;color:var(--muted)}
+.qrow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:480px){.qrow{grid-template-columns:1fr}}
+.qform input{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:12px;padding:14px 15px;color:var(--fg);font-family:inherit;font-size:14.5px;transition:border-color .2s,box-shadow .2s,background .2s}
+.qform input::placeholder{color:var(--dim)}
+.qform input:focus{outline:none;border-color:rgba(255,255,255,.45);background:rgba(255,255,255,.07);box-shadow:0 0 0 3px rgba(255,255,255,.08)}
+.qsubmit{width:100%;justify-content:center;padding:15px;font-size:15px;margin-top:2px}
+.qhint{font-size:12px;color:var(--dim);text-align:center;display:flex;align-items:center;justify-content:center;gap:7px}
+.qhint .g{width:6px;height:6px;border-radius:50%;background:var(--live);box-shadow:0 0 8px var(--live)}
+.qform .needs{justify-content:flex-start;margin:0;gap:8px}
+/* booking modal */
+.modal-overlay{position:fixed;inset:0;z-index:80;background:rgba(4,4,6,.72);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .3s var(--ease)}
+.modal-overlay.open{opacity:1;pointer-events:auto}
+.modal{position:relative;width:100%;max-width:470px;background:linear-gradient(180deg,#15151a,#0e0e11);border:1px solid var(--line);border-radius:22px;padding:30px;box-shadow:0 50px 120px rgba(0,0,0,.7);transform:translateY(20px) scale(.985);transition:transform .3s var(--ease);max-height:90vh;overflow-y:auto}
+.modal-overlay.open .modal{transform:none}
+.modal h3{font-family:"Space Grotesk";font-size:1.55rem;margin-bottom:6px;letter-spacing:-.02em}
+.modal .msub{color:var(--muted);font-size:14px;margin-bottom:22px;line-height:1.5}
+.mx{position:absolute;top:16px;right:16px;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--muted);cursor:pointer;display:grid;place-items:center;font-size:15px;transition:.2s}
+.mx:hover{background:rgba(255,255,255,.08);color:var(--fg)}
+.modal label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
+.modal input,.modal select{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:12px;padding:13px 15px;color:var(--fg);font-family:inherit;font-size:14.5px;margin-bottom:15px;transition:border-color .2s,box-shadow .2s,background .2s}
+.modal select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 18px) 19px,calc(100% - 13px) 19px;background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+.modal option{background:#15151a;color:var(--fg)}
+.modal input:focus,.modal select:focus{outline:none;border-color:rgba(255,255,255,.45);background:rgba(255,255,255,.07);box-shadow:0 0 0 3px rgba(255,255,255,.08)}
+.modal .mrow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:460px){.modal .mrow{grid-template-columns:1fr}}
+.modal .full{width:100%;justify-content:center;padding:15px;font-size:15px}
+.msuccess{text-align:center;padding:8px 0 4px}
+.msuccess .ic{width:60px;height:60px;border-radius:50%;background:rgba(53,210,126,.12);border:1px solid rgba(53,210,126,.35);color:var(--live);display:grid;place-items:center;font-size:28px;margin:0 auto 18px}
+/* scan line + card hover overlay (from review of alt build) */
+.scanline{position:absolute;left:0;right:0;top:0;height:1px;z-index:4;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(255,255,255,.28) 50%,transparent);animation:scanmove 9s linear 2.5s infinite}
+@keyframes scanmove{0%{transform:translateY(-8vh);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(108vh);opacity:0}}
+.case .top{position:relative}
+.case .ov{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(8,8,10,.55);backdrop-filter:blur(3px);opacity:0;transition:opacity .3s var(--ease)}
+.case:hover .ov{opacity:1}
+.ov .pvbtn{font-size:13px;font-weight:600;padding:10px 17px;border-radius:100px;background:var(--silver);color:#0a0a0b;display:inline-flex;align-items:center;gap:7px}
+@supports not ((-webkit-background-clip:text) or (background-clip:text)){.metal,.stat .n,.badge .v,.step .num,.ghost b.fill{color:#e8e8ec!important;-webkit-text-fill-color:#e8e8ec!important}}
+@media(prefers-reduced-motion:reduce){.reveal,.rise{opacity:1;transform:none}.shine::after,.glow,.btn-silver.pulse,.scrollcue .m::after,.scanline,.marquee .track,.ghost .track,#intro .mk::after{animation:none}}
+</style>
 </head>
 <body>
+<div id="intro"><div class="mk metal">QD</div><div class="iload">Loading experience</div></div>
 
-<!-- ═══════════════════════════════════════════════════════════
-     LOADER — shown immediately, fades once React mounts
-═══════════════════════════════════════════════════════════ -->
-<div id="qd-loader" style="position:fixed;inset:0;z-index:9999;background:var(--obsidian);display:grid;place-items:center;transition:opacity 600ms var(--ease-out),visibility 600ms;">
-  <div style="text-align:center;font-family:var(--font-display);color:var(--fg1);">
-    <div style="font-size:clamp(120px,18vw,240px);font-weight:700;letter-spacing:-0.06em;line-height:0.85;color:transparent;-webkit-text-stroke:2px rgba(232,232,238,0.4);animation:qd-load-pulse 1.4s ease-in-out infinite;filter:drop-shadow(0 0 40px rgba(232,232,238,0.4));">QD</div>
-    <div style="margin-top:32px;font-family:var(--font-mono);font-size:11px;letter-spacing:0.3em;text-transform:uppercase;color:var(--acid);">
-      <span id="qd-loader-text">BOOTING SYSTEM</span><span class="qd-loader-dots"></span>
+<div class="bg-fx" aria-hidden="true"><div class="glow a"></div><div class="glow b"></div><div class="glow c"></div><div class="grid-fx"></div></div>
+<canvas id="gl" aria-hidden="true"></canvas>
+<canvas id="px" aria-hidden="true"></canvas>
+<div class="grain" aria-hidden="true"></div><div class="vignette" aria-hidden="true"></div>
+<div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
+<div id="progress" aria-hidden="true"></div>
+
+<nav>
+  <div class="brand"><img src="assets/qd-logo.jpeg" alt="QD" width="38" height="38" decoding="async"><b>QD&nbsp;SYSTEMS</b></div>
+  <div class="nav-links"><a href="#work">Work</a><a href="#demo">Live demo</a><a href="#build">What we build</a><a href="#contact">Contact</a></div>
+  <a class="btn btn-silver" href="#contact" data-magnetic data-book>Book a Free Call →</a>
+</nav>
+
+<header class="qd-hero">
+  <div class="wrap">
+    <div class="hero-col">
+      <span class="eyebrow rise"><span class="dot"></span> SYSTEMS-FIRST WEB STUDIO · UAE</span>
+      <span class="avail rise"><i></i> Now booking · we take a limited number of builds at a time</span>
+      <h1 class="hero">
+        <span class="metal shine"><span class="word">Websites</span> <span class="word">that</span> <span class="word">win.</span></span><br>
+        <span class="metal"><span class="word">Systems</span> <span class="word">that</span> <span class="word">run</span><br><span class="word">your</span> <span class="word">business.</span></span>
+      </h1>
+      <p class="sub rise">Most studios hand you a pretty page. We build the engine behind it — booking, order tracking, automation, and AI chat that closes leads while you sleep — shipped in days, not months.</p>
+      <div class="checks rise">
+        <div class="check"><span class="ic">✓</span> World-class custom websites — and the systems behind them. Never templates.</div>
+        <div class="check"><span class="ic">✓</span> Booking, order tracking, automation, AI chat & dashboards.</div>
+        <div class="check"><span class="ic">✓</span> Bilingual EN / AR, built for the UAE.</div>
+      </div>
+      <div class="cta-row rise">
+        <a class="btn btn-silver" href="#contact" data-magnetic data-book>Book a Free Call →</a>
+        <a class="btn btn-ghost" href="#demo">Try the live demo</a>
+      </div>
+      <div class="cta-note rise"><span class="g"></span> Free 15-min call · no obligation · we reply within the hour</div>
+      <div class="trustrow rise">Trusted by <b>Al Taj Al Malaki</b> · <b>Evo Creation</b> · live in the UAE</div>
+      <div class="speed rise">
+        <div class="badge"><span class="k">Working demo</span><span class="v">1–3 hrs</span></div>
+        <div class="badge"><span class="k">Website</span><span class="v">In 24h</span></div>
+        <div class="badge"><span class="k">Full system</span><span class="v">1–3 days</span></div>
+      </div>
     </div>
-    <div style="width:240px;height:1px;background:rgba(244,241,234,0.1);margin:24px auto 0;position:relative;overflow:hidden;">
-      <div id="qd-loader-bar" style="position:absolute;top:0;left:0;height:100%;background:var(--acid);width:0%;transition:width 200ms ease-out;box-shadow:0 0 12px var(--acid);"></div>
+  </div>
+  <div class="scrollcue"><div class="m"></div>Scroll</div>
+</header>
+
+<div class="ghost">
+  <div class="track">
+    <b>Websites</b><b class="fill">Booking systems</b><b>Order tracking</b><b class="fill">Automation</b><b>AI chat</b><b class="fill">Dashboards</b>
+    <b>Websites</b><b class="fill">Booking systems</b><b>Order tracking</b><b class="fill">Automation</b><b>AI chat</b><b class="fill">Dashboards</b>
+  </div>
+</div>
+
+<section id="demo">
+  <div class="wrap reveal" style="text-align:center">
+    <span class="tag">See it work</span><h2 class="h2">An assistant that books while you sleep.</h2>
+    <p class="lead" style="margin:0 auto 36px">Not a screenshot — a live example of the assistant handling a customer request.</p>
+  </div>
+  <div class="reveal">
+    <div class="demo">
+      <div class="demo-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="title">QD Booking Assistant</span><span class="live"><i></i>LIVE</span></div>
+      <div class="chat" id="chat"></div>
+      <div class="chips-bar" id="chips"></div>
+    </div>
+    <p class="lead" style="text-align:center;max-width:540px;margin:20px auto 0;font-size:13px">Tap a question above to try it. On the live site, this same assistant — bilingual EN/AR, capturing every lead — answers <i>your</i> customers 24/7.</p>
+  </div>
+</section>
+
+<section id="proof">
+  <div class="wrap reveal">
+    <span class="tag">Trusted across the UAE</span>
+    <div class="stats">
+      <div class="stat"><div class="n" data-count="2">0</div><div class="l">Brands live in the UAE</div></div>
+      <div class="stat"><div class="n" data-count="24" data-suffix="h">0</div><div class="l">Website turnaround</div></div>
+      <div class="stat"><div class="n" data-count="100" data-suffix="%">0</div><div class="l">Custom-built, never templates</div></div>
+      <div class="stat"><div class="n" data-text="&lt;1h">0</div><div class="l">Reply time</div></div>
+    </div>
+    <!-- TESTIMONIAL: add a real client quote here (name + role + business) once collected — do not ship a placeholder as if real. -->
+
+  </div>
+</section>
+
+<div class="statement">
+  <h2 class="reveal"><span class="metal">You don't need <span class="muted">more complexity.</span></span><br><span class="metal">You need a system that just works.</span></h2>
+</div>
+
+<section id="work">
+  <div class="wrap">
+    <div class="reveal"><span class="tag">Selected work</span><h2 class="h2">Live systems, running in the real world.</h2><p class="lead">Two custom builds serving real customers today — click in and try them yourself.</p></div>
+    <div class="cases reveal">
+      <a class="case tilt" href="https://tajalmalaki.ae" target="_blank"><div class="sheen"></div>
+        <div class="top">Al Taj Al Malaki — live site<div class="ov"><span class="pvbtn">Visit live site ↗</span></div></div>
+        <div class="body"><h3>Al Taj Al Malaki</h3><div class="domain">Event Rentals · UAE · tajalmalaki.ae</div>
+          <p><b style="color:#d6d6db">Challenge:</b> browse premium inventory and place & track orders without endless phone calls.</p>
+          <p><b style="color:#d6d6db">Built:</b> a Firebase backend, real-time order tracking, mobile-first booking and a premium catalogue.</p>
+          <div class="r">A live booking & tracking system, bilingual EN/AR, running across the UAE.</div>
+          <div class="chips"><span class="chip">Firebase</span><span class="chip">Real-time tracking</span><span class="chip">Mobile-first</span></div>
+          <div class="visit">Try the live order tracking <span>→</span></div></div></a>
+      <a class="case tilt" href="https://evocreation.ae" target="_blank"><div class="sheen"></div>
+        <div class="top">Evo Creation — live site<div class="ov"><span class="pvbtn">Visit live site ↗</span></div></div>
+        <div class="body"><h3>Evo Creation</h3><div class="domain">Luxury Events · UAE · evocreation.ae</div>
+          <p><b style="color:#d6d6db">Challenge:</b> a high-budget audience needed to feel the brand before ever speaking to the team.</p>
+          <p><b style="color:#d6d6db">Built:</b> a cinematic, motion-rich brand presentation with a conversion-focused lead flow.</p>
+          <div class="r">A premium site that sells the brand around the clock and captures qualified leads.</div>
+          <div class="chips"><span class="chip">Motion design</span><span class="chip">Lead capture</span><span class="chip">Responsive</span></div>
+          <div class="visit">Visit the live site <span>→</span></div></div></a>
+    </div>
+  </div>
+</section>
+
+<section id="build">
+  <div class="wrap">
+    <div class="reveal"><span class="tag">What we build</span><h2 class="h2">Three things, done properly.</h2><p class="lead">Websites better than the competition — plus the systems that make them earn.</p></div>
+    <div class="offers reveal">
+      <div class="offer"><div class="ic">◆</div><h3>Websites that win</h3><p>Premium, fast, custom-built sites that make customers trust you in seconds. Never a template.</p></div>
+      <div class="offer"><div class="ic">⚙</div><h3>Systems that run it</h3><p>Booking, order tracking, payments, portals and dashboards — the engine your business runs on.</p></div>
+      <div class="offer"><div class="ic">✦</div><h3>Automation & AI chat</h3><p>WhatsApp flows, lead capture and an assistant that answers and books while you sleep.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="why">
+  <div class="wrap">
+    <div class="reveal" style="text-align:center"><span class="tag">Why QD</span><h2 class="h2">A pretty page, or a system that earns?</h2><p class="lead" style="margin:0 auto 42px">Most studios stop at the page. We build what happens after the click.</p></div>
+    <div class="compare reveal">
+      <div class="col them"><h4>A typical studio</h4><ul>
+        <li><span class="m">–</span> Hands you a page, then disappears</li>
+        <li><span class="m">–</span> Templates dressed up as "custom"</li>
+        <li><span class="m">–</span> No booking, tracking or automation</li>
+        <li><span class="m">–</span> Weeks of back-and-forth</li>
+        <li><span class="m">–</span> English only</li>
+      </ul></div>
+      <div class="col us"><h4>QD Systems <span class="mini">You</span></h4><ul>
+        <li><span class="m">✓</span> A site plus the system that runs your business</li>
+        <li><span class="m">✓</span> 100% custom-coded — never a template</li>
+        <li><span class="m">✓</span> Booking, tracking, automation & AI chat built in</li>
+        <li><span class="m">✓</span> Live in days, timeline agreed in writing</li>
+        <li><span class="m">✓</span> Bilingual EN / AR, built for the UAE</li>
+      </ul></div>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <div class="reveal"><span class="tag">What happens next</span><h2 class="h2">From hello to live in four steps.</h2><p class="lead">No mystery, no endless meetings — here's exactly how it goes.</p></div>
+    <div class="steps reveal">
+      <div class="step"><div class="num">01</div><h4>Free call</h4><p>15 minutes. You tell us the problem; we tell you straight if we can solve it.</p></div>
+      <div class="step"><div class="num">02</div><h4>Fixed quote</h4><p>One clear scope and price in writing — no hourly games, no surprises.</p></div>
+      <div class="step"><div class="num">03</div><h4>We build</h4><p>Demo in hours, site in 24h, full system in 1–3 days. You watch it take shape.</p></div>
+      <div class="step"><div class="num">04</div><h4>Go live</h4><p>We launch, test and support it. You pay the final invoice only when you're happy.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <div class="reveal" style="text-align:center"><span class="tag">Questions</span><h2 class="h2">Everything owners ask us.</h2></div>
+    <div class="faq reveal">
+      <div class="qa"><button>How fast can you really deliver?<span class="pl">+</span></button><div class="ans"><p>A working demo in 1–3 hours, a full website in 24 hours, and a complete system in 1–3 days — depending on scope. We commit to your exact timeline in writing before we start.</p></div></div>
+      <div class="qa"><button>What if I don't like it?<span class="pl">+</span></button><div class="ans"><p>You only pay the final invoice once it's live and you're happy. We refine until it's right.</p></div></div>
+      <div class="qa"><button>Do you build in Arabic?<span class="pl">+</span></button><div class="ans"><p>Yes — every build is bilingual EN/AR with full right-to-left support, made for the UAE market.</p></div></div>
+      <div class="qa"><button>Is it really custom, or a template?<span class="pl">+</span></button><div class="ans"><p>100% custom. We design and code from scratch around your business — no themes, no page builders.</p></div></div>
+      <div class="qa"><button>What does it cost?<span class="pl">+</span></button><div class="ans"><p>Most projects land between <b style="color:#e8e8ec">[AED ___ and AED ___]</b> depending on scope. You get one fixed, itemized quote up front — no hourly games, no hidden fees. <span style="color:var(--dim)">(Set your real range here.)</span></p></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="wrap reveal"><div class="cta-band">
+    <h2 class="metal">Tell us the problem.<br>We'll build the system.</h2>
+    <p class="sub" style="margin:18px auto 0">One free 15-minute call. You leave with a clear plan, timeline, and price — most quotes go out the same day.</p>
+    <div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin:22px 0 0;font-size:13px;color:var(--dim)"><span>Book</span><span style="opacity:.45">→</span><span>15-min call</span><span style="opacity:.45">→</span><span>Your plan &amp; fixed price</span></div>
+    <div class="cta-row" style="justify-content:center;margin-top:28px">
+      <a class="btn btn-silver" href="#" data-book data-magnetic style="padding:18px 36px;font-size:16px">Book a Free Call →</a>
+    </div>
+    <div class="cta-note" style="justify-content:center;margin-top:14px"><span class="g"></span> Free · no obligation · we reply within the hour</div>
+    <div style="margin-top:16px"><a id="contactCta" href="https://wa.me/971505349907" target="_blank" style="font-size:13.5px;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:2px">Prefer WhatsApp? Message us →</a></div>
+    <div class="guards" style="margin-top:32px">
+      <span class="guard"><span class="t">✓</span> Timeline agreed in writing</span>
+      <span class="guard"><span class="t">✓</span> Pay the final invoice only when you're happy</span>
+      <span class="guard"><span class="t">✓</span> 100% custom — no templates</span>
+    </div>
+  </div></div>
+</section>
+
+<footer><div class="wrap footer-in">
+  <div class="brand"><img src="assets/qd-logo.jpeg" alt="QD" width="30" height="30" decoding="async" style="width:30px;height:30px;border-radius:7px;object-fit:cover"><b style="letter-spacing:.18em;font-size:12px">QD SYSTEMS</b></div>
+  <div>© 2026 QD Systems · Built in the UAE · WhatsApp +971 50 534 9907</div>
+</div></footer>
+
+<div class="mbar">
+  <a class="btn btn-silver" href="#contact" data-book>Book a Free Call →</a>
+  <a class="btn btn-ghost" href="#work">Work</a>
+</div>
+<a class="floatcta btn btn-silver" id="floatCta" href="#contact" data-book>Book a Free Call →</a>
+
+<div class="modal-overlay" id="bookModal" role="dialog" aria-modal="true" aria-label="Book a free call">
+  <div class="modal">
+    <button class="mx" id="bookClose" aria-label="Close">✕</button>
+    <div id="bookForm">
+      <h3>Book your free call</h3>
+      <p class="msub">15 minutes, no obligation. Drop your details and we'll email you a Google Meet link — usually within the hour.</p>
+      <form id="bForm">
+        <div class="mrow">
+          <div><label for="bName">Name</label><input id="bName" required placeholder="e.g. Ahmed"></div>
+          <div><label for="bPhone">WhatsApp</label><input id="bPhone" inputmode="tel" placeholder="+971 ..."></div>
+        </div>
+        <label for="bEmail">Email</label><input id="bEmail" type="email" required placeholder="you@business.com">
+        <label for="bPurpose">What's it about?</label>
+        <select id="bPurpose"><option>A new website</option><option>A full system (booking / automation / dashboard)</option><option>Not sure yet — I'd like advice</option></select>
+        <label for="bTime">Preferred time (optional)</label><input id="bTime" placeholder="e.g. Tomorrow afternoon">
+        <button type="submit" class="btn btn-silver full">Confirm — send my Meet link →</button>
+        <div class="qhint" style="margin-top:13px"><span class="g"></span> Free · no obligation · your link arrives by email</div>
+      </form>
+    </div>
+    <div id="bookDone" class="msuccess" style="display:none">
+      <div class="ic">✓</div>
+      <h3>You're booked<span id="bDoneName"></span>!</h3>
+      <p class="msub" id="bDoneMsg">Check your inbox — your Google Meet link is on its way.</p>
+      <a class="btn btn-ghost full" id="bWa" href="https://wa.me/971505349907" target="_blank">Prefer WhatsApp? Message us →</a>
     </div>
   </div>
 </div>
 
-<script>
-(function(){
-  var stages=[{p:25,t:'BOOTING SYSTEM'},{p:55,t:'LOADING MODULES'},{p:80,t:'CALIBRATING'},{p:100,t:'READY'}];
-  var i=0;
-  function tick(){
-    if(i>=stages.length){
-      setTimeout(function(){
-        var l=document.getElementById('qd-loader');
-        l.style.opacity='0'; l.style.visibility='hidden';
-        setTimeout(function(){l.remove();},600);
-      },250); return;
-    }
-    document.getElementById('qd-loader-bar').style.width=stages[i].p+'%';
-    document.getElementById('qd-loader-text').textContent=stages[i].t;
-    i++; setTimeout(tick,380);
-  }
-  if(document.readyState!=='loading') tick();
-  else document.addEventListener('DOMContentLoaded',tick);
-})();
-</script>
-
-<div id="qd-root"></div>
-
-<!-- ═══════════════════════════════════════════════════════════
-     SHARED UI PRIMITIVES
-═══════════════════════════════════════════════════════════ -->
-<script type="text/babel">
-const { useState, useEffect, useRef, useCallback, Children } = React;
-
-const HOMEPAGE_COPY = {
-  en: {
-    nav: {
-      links: [
-        { label: 'Services', href: '#services' },
-        { label: 'Live Systems', href: '#live-websites' },
-        { label: 'Process', href: '#process' },
-        { label: 'Contact', href: '#contact' },
-      ],
-      brandSubtitle: 'WEB · BRAND · DIGITAL SYSTEMS',
-      build: 'Build it',
-      buildShort: 'Build'
-    },
-    footer: {
-      studio: 'Digital systems studio',
-      builtIn: 'Built in UAE'
-    },
-    hero: {
-      eyebrow: '// SYSTEM ONLINE · 2026',
-      titleLead: 'Tell us the problem.',
-      titleAccent: 'We ship',
-      titleTail: 'the',
-      titleEmphasis: 'system',
-      subtitle: 'Chatbots that close. Sites that convert. Tracking that holds. Built for owners, not committees.',
-      primaryCta: 'Build it',
-      secondaryCta: 'See the work',
-      stats: [
-        { n: '5–7d', l: 'avg. build time' },
-        { n: '99.9%', l: 'uptime' },
-        { n: '24/7', l: 'support' }
-      ],
-      scroll: 'SCROLL'
-    }
-  },
-  ar: {
-    nav: {
-      links: [
-        { label: 'الخدمات', href: '#services' },
-        { label: 'أنظمة مباشرة', href: '#live-websites' },
-        { label: 'آلية العمل', href: '#process' },
-        { label: 'تواصل', href: '#contact' },
-      ],
-      brandSubtitle: 'WEB · BRAND · DIGITAL SYSTEMS',
-      build: 'ابدأ الآن',
-      buildShort: 'ابدأ'
-    },
-    footer: {
-      studio: 'استوديو أنظمة رقمية',
-      builtIn: 'صُنع في الإمارات'
-    },
-    hero: {
-      eyebrow: '// النظام يعمل · 2026',
-      titleLead: 'قل لنا المشكلة.',
-      titleAccent: 'ونحن نبني',
-      titleTail: 'لك',
-      titleEmphasis: 'النظام',
-      subtitle: 'شات بوت ينجز. مواقع تحوّل. وأنظمة متابعة تثبت نفسها. مبنية لأصحاب الأعمال، لا للجان.',
-      primaryCta: 'ابدأ الآن',
-      secondaryCta: 'شاهد الأعمال',
-      stats: [
-        { n: '5–7d', l: 'متوسط التنفيذ' },
-        { n: '99.9%', l: 'الاستقرار' },
-        { n: '24/7', l: 'الدعم' }
-      ],
-      scroll: 'تابع'
-    }
-  }
-};
-
-const MOBILE_BREAKPOINT = 760;
-
-const useViewportFlag = (breakpoint = MOBILE_BREAKPOINT) => {
-  const [matches, setMatches] = useState(() => window.innerWidth <= breakpoint);
-  useEffect(() => {
-    const media = window.matchMedia(`(max-width: ${breakpoint}px)`);
-    const update = () => setMatches(media.matches);
-    update();
-    if (media.addEventListener) media.addEventListener('change', update);
-    else media.addListener(update);
-    return () => {
-      if (media.removeEventListener) media.removeEventListener('change', update);
-      else media.removeListener(update);
-    };
-  }, [breakpoint]);
-  return matches;
-};
-
-const usePrefersReducedMotion = () => {
-  const [reduced, setReduced] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-  useEffect(() => {
-    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const update = () => setReduced(media.matches);
-    update();
-    if (media.addEventListener) media.addEventListener('change', update);
-    else media.addListener(update);
-    return () => {
-      if (media.removeEventListener) media.removeEventListener('change', update);
-      else media.removeListener(update);
-    };
-  }, []);
-  return reduced;
-};
-
-// ── Reveal ──────────────────────────────────────────────────
-const Reveal = ({ children, delay=0, lift=32, duration=800, once=true, as:Tag='div', style, ...rest }) => {
-  const ref = useRef(null);
-  const [shown, setShown] = useState(false);
-  const isMobile = useViewportFlag();
-  const prefersReducedMotion = usePrefersReducedMotion();
-  const effectiveDelay = prefersReducedMotion ? 0 : (isMobile ? Math.min(delay, 80) : delay);
-  const effectiveLift = prefersReducedMotion ? 0 : (isMobile ? Math.min(lift, 18) : lift);
-  const effectiveDuration = prefersReducedMotion ? 1 : (isMobile ? Math.min(duration, 520) : duration);
-  useEffect(() => {
-    const el = ref.current; if (!el) return;
-    const io = new IntersectionObserver(entries => {
-      entries.forEach(e => {
-        if (e.isIntersecting) { setShown(true); if (once) io.unobserve(e.target); }
-        else if (!once) setShown(false);
-      });
-    }, { threshold: isMobile ? 0.08 : 0.15, rootMargin: isMobile ? '0px 0px -4% 0px' : '0px 0px -10% 0px' });
-    io.observe(el); return () => io.disconnect();
-  }, [isMobile, once]);
-  return (
-    <Tag ref={ref} style={{
-      ...style,
-      opacity: shown ? 1 : 0,
-      transform: shown ? 'translateY(0)' : `translateY(${effectiveLift}px)`,
-      transition: `opacity ${effectiveDuration}ms cubic-bezier(0.22,1,0.36,1) ${effectiveDelay}ms, transform ${effectiveDuration}ms cubic-bezier(0.22,1,0.36,1) ${effectiveDelay}ms`,
-      willChange: shown ? 'auto' : 'opacity, transform',
-    }} {...rest}>{children}</Tag>
-  );
-};
-
-// ── Stagger ──────────────────────────────────────────────────
-const Stagger = ({ children, step=80, base=0, lift=32, duration=800 }) =>
-  Children.toArray(children).map((child, i) =>
-    <Reveal key={i} delay={base+i*step} lift={lift} duration={duration}>{child}</Reveal>
-  );
-
-// ── Marquee ──────────────────────────────────────────────────
-const Marquee = ({ children, speed=45, style, className='' }) => (
-  <div className={className} style={{ overflow:'hidden', position:'relative', ...style }}>
-    <div className="qd-marquee-track" style={{ animationDuration:`${speed}s` }}>
-      <div className="qd-marquee-copy">{children}</div>
-      <div className="qd-marquee-copy" aria-hidden="true">{children}</div>
-    </div>
-  </div>
-);
-
-// ── Eyebrow ──────────────────────────────────────────────────
-const Eyebrow = ({ children, color }) => (
-  <div className="qd-eyebrow" style={color ? { color } : {}}>{children}</div>
-);
-
-// ── Btn ──────────────────────────────────────────────────────
-const Btn = ({ variant='primary', size='md', children, onClick, icon, className='' }) => (
-  <button onClick={onClick} className={`qd-btn qd-btn-${variant} qd-btn-${size} ${className}`.trim()}>
-    {children}{icon && <span style={{fontWeight:400}}>{icon}</span>}
-  </button>
-);
-
-// ── Tag ──────────────────────────────────────────────────────
-const Tag = ({ children }) => <span className="qd-tag">{children}</span>;
-
-// ── Hooks ────────────────────────────────────────────────────
-const useInView = (ref, threshold=0.2) => {
-  const [seen, setSeen] = useState(false);
-  useEffect(() => {
-    if (!ref.current) return;
-    const io = new IntersectionObserver(entries => {
-      entries.forEach(e => { if (e.isIntersecting) { setSeen(true); io.disconnect(); } });
-    }, { threshold });
-    io.observe(ref.current); return () => io.disconnect();
-  }, []);
-  return seen;
-};
-
-const useMouseTilt = (ref) => {
-  const [m, setM] = useState({ x:0, y:0 });
-  useEffect(() => {
-    const el = ref.current; if (!el) return;
-    const disableTilt = window.matchMedia('(hover: none), (pointer: coarse), (max-width: 768px), (prefers-reduced-motion: reduce)').matches;
-    if (disableTilt) return;
-    const onMove = e => {
-      const r = el.getBoundingClientRect();
-      setM({ x:((e.clientX-r.left)/r.width-0.5)*2, y:((e.clientY-r.top)/r.height-0.5)*2 });
-    };
-    const onLeave = () => setM({ x:0, y:0 });
-    el.addEventListener('mousemove', onMove);
-    el.addEventListener('mouseleave', onLeave);
-    return () => { el.removeEventListener('mousemove', onMove); el.removeEventListener('mouseleave', onLeave); };
-  }, []);
-  return m;
-};
-
-const useScrollProgress = (ref) => {
-  const [p, setP] = useState(0);
-  useEffect(() => {
-    const onScroll = () => {
-      if (!ref.current) return;
-      const r = ref.current.getBoundingClientRect(), vh = window.innerHeight;
-      setP(Math.max(-1, Math.min(1, (r.top+r.height/2-vh/2)/(vh/2+r.height/2))));
-    };
-    window.addEventListener('scroll', onScroll, { passive:true }); onScroll();
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-  return p;
-};
-
-window.__QD = { Reveal, Stagger, Marquee, Eyebrow, Btn, Tag, useInView, useMouseTilt, useScrollProgress, useViewportFlag, usePrefersReducedMotion, HOMEPAGE_COPY };
-</script>
-
-<!-- ═══════════════════════════════════════════════════════════
-     MOCKUPS — animated faux UIs
-═══════════════════════════════════════════════════════════ -->
-<script type="text/babel">
-// ── ChatbotWindow ─────────────────────────────────────────
-const ChatbotWindow = () => {
-  const [step, setStep] = useState(0);
-  useEffect(() => { const id = setInterval(() => setStep(s => (s+1)%5), 2200); return () => clearInterval(id); }, []);
-  const msgs = [
-    { f:'them', t:'Hi! Looking for a 2BR rental in Lisbon for August.' },
-    { f:'us',   t:'Got it — what budget range and how many guests?' },
-    { f:'them', t:'€2,200/wk, 4 people, must allow dogs.' },
-    { f:'us',   t:'Found 3 matches. Want me to hold the top one?' },
-    { f:'them', t:'Yes please.' },
-  ];
-  return (
-    <div style={{ background:'var(--obsidian-1)',border:'1px solid var(--border-2)',borderRadius:10,padding:'14px 16px',fontFamily:'var(--font-body)',fontSize:13,color:'var(--fg1)',display:'flex',flexDirection:'column',gap:8,minHeight:220 }}>
-      <div style={{ display:'flex',alignItems:'center',gap:8,paddingBottom:10,borderBottom:'1px solid var(--border-1)',marginBottom:4 }}>
-        <div style={{ width:8,height:8,borderRadius:'50%',background:'var(--ok)',boxShadow:'0 0 6px var(--ok)' }} />
-        <span style={{ fontFamily:'var(--font-mono)',fontSize:10,color:'var(--fg3)',letterSpacing:'0.1em',textTransform:'uppercase' }}>STAY · CONCIERGE</span>
-        <span style={{ marginLeft:'auto',fontFamily:'var(--font-mono)',fontSize:10,color:'var(--acid)' }}>● LIVE</span>
-      </div>
-      {msgs.slice(0,step+1).map((m,i) => (
-        <div key={i} style={{ alignSelf:m.f==='us'?'flex-end':'flex-start',background:m.f==='us'?'var(--acid)':'var(--obsidian-3)',color:m.f==='us'?'var(--obsidian)':'var(--fg1)',padding:'7px 11px',borderRadius:10,maxWidth:'88%',fontSize:12,lineHeight:1.35,animation:'qd-msg-in 280ms cubic-bezier(0.22,1,0.36,1)' }}>{m.t}</div>
-      ))}
-    </div>
-  );
-};
-
-// ── DashboardMini ─────────────────────────────────────────
-const DashboardMini = () => {
-  const [t, setT] = useState(0);
-  const isMobile = window.__QD.useViewportFlag(768);
-  const prefersReducedMotion = window.__QD.usePrefersReducedMotion();
-  useEffect(() => {
-    if (isMobile || prefersReducedMotion) return;
-    let raf; const start = performance.now();
-    const loop = now => { setT((now-start)/1000); raf = requestAnimationFrame(loop); };
-    raf = requestAnimationFrame(loop); return () => cancelAnimationFrame(raf);
-  }, [isMobile, prefersReducedMotion]);
-  const bars = [0,1,2,3,4,5,6,7].map(i => 30+Math.sin(t*0.8+i*0.5)*25+Math.cos(t*0.4+i)*15);
-  return (
-    <div style={{ background:'var(--obsidian-1)',border:'1px solid var(--border-2)',borderRadius:10,padding:14,minHeight:180,display:'flex',flexDirection:'column',gap:10 }}>
-      <div style={{ display:'flex',justifyContent:'space-between',alignItems:'center' }}>
-        <span style={{ fontFamily:'var(--font-mono)',fontSize:10,color:'var(--fg3)',letterSpacing:'0.1em',textTransform:'uppercase' }}>FLEET / 24H</span>
-        <span style={{ fontFamily:'var(--font-display)',fontWeight:600,fontSize:22,color:'var(--acid)' }}>{(60+Math.sin(t)*10).toFixed(0)}<span style={{fontSize:12,color:'var(--fg3)'}}>%</span></span>
-      </div>
-      <div style={{ display:'flex',alignItems:'flex-end',gap:4,height:90 }}>
-        {bars.map((h,i) => <div key={i} style={{ flex:1,height:`${h}%`,background:i===bars.length-1?'var(--acid)':'var(--obsidian-3)',borderTop:i===bars.length-1?'none':'1px solid var(--border-2)',transition:'height 80ms linear' }} />)}
-      </div>
-      <div style={{ display:'flex',justifyContent:'space-between',fontFamily:'var(--font-mono)',fontSize:9,color:'var(--fg3)' }}>
-        <span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>NOW</span>
-      </div>
-    </div>
-  );
-};
-
-// ── CodeBlock ─────────────────────────────────────────────
-const CodeBlock = () => {
-  const lines = [
-    { t:'$ qd init custom-system',         c:'var(--fg2)' },
-    { t:'✓ Scoped requirements (3 files)', c:'var(--ok)'  },
-    { t:'✓ Built schema · 14 tables',      c:'var(--ok)'  },
-    { t:'→ Deploying to production…',      c:'var(--acid)' },
-    { t:'✓ LIVE · us-west-2 · 142ms',     c:'var(--acid)' },
-  ];
-  const [shown, setShown] = useState(0);
-  useEffect(() => { const id = setInterval(() => setShown(s=>(s+1)%(lines.length+2)),1100); return ()=>clearInterval(id); },[]);
-  return (
-    <div style={{ background:'var(--obsidian-1)',border:'1px solid var(--border-2)',borderRadius:10,padding:14,fontFamily:'var(--font-mono)',fontSize:12,minHeight:180,display:'flex',flexDirection:'column',gap:4 }}>
-      <div style={{ display:'flex',gap:6,paddingBottom:8,marginBottom:4,borderBottom:'1px solid var(--border-1)' }}>
-        <span style={{ width:10,height:10,borderRadius:'50%',background:'var(--obsidian-3)' }} />
-        <span style={{ width:10,height:10,borderRadius:'50%',background:'var(--obsidian-3)' }} />
-        <span style={{ width:10,height:10,borderRadius:'50%',background:'var(--acid)' }} />
-        <span style={{ marginLeft:'auto',fontSize:10,color:'var(--fg3)',letterSpacing:'0.1em' }}>BUILD.LOG</span>
-      </div>
-      {lines.slice(0,Math.min(shown,lines.length)).map((l,i) => <div key={i} style={{ color:l.c,lineHeight:1.5 }}>{l.t}</div>)}
-      {shown < lines.length && <span style={{ color:'var(--acid)' }}>▍</span>}
-    </div>
-  );
-};
-
-// ── BrowserMini ───────────────────────────────────────────
-const BrowserMini = () => (
-  <div style={{ background:'var(--obsidian-1)',border:'1px solid var(--border-2)',borderRadius:10,overflow:'hidden',minHeight:200,display:'flex',flexDirection:'column' }}>
-    <div style={{ display:'flex',alignItems:'center',gap:8,padding:'10px 12px',borderBottom:'1px solid var(--border-1)',background:'var(--obsidian-2)' }}>
-      <span style={{ display:'flex',gap:5 }}>
-        {['var(--obsidian-3)','var(--obsidian-3)','var(--obsidian-3)'].map((c,i)=><span key={i} style={{ width:8,height:8,borderRadius:'50%',background:c }} />)}
-      </span>
-      <span style={{ flex:1,fontFamily:'var(--font-mono)',fontSize:10,color:'var(--fg3)',textAlign:'center' }}>marlow.co</span>
-    </div>
-    <div style={{ flex:1,padding:16,display:'flex',flexDirection:'column',gap:8 }}>
-      <div style={{ height:6,width:'60%',background:'var(--fg1)',borderRadius:2 }} />
-      <div style={{ height:6,width:'40%',background:'var(--fg1)',borderRadius:2 }} />
-      <div style={{ height:4,width:'85%',background:'var(--fg3)',borderRadius:2,marginTop:6 }} />
-      <div style={{ height:4,width:'70%',background:'var(--fg3)',borderRadius:2 }} />
-      <div style={{ marginTop:'auto',display:'flex',gap:6 }}>
-        <div style={{ flex:1,height:28,background:'var(--acid)',borderRadius:4 }} />
-        <div style={{ width:60,height:28,border:'1px solid var(--border-2)',borderRadius:4 }} />
-      </div>
-    </div>
-  </div>
-);
-
-// ── CountUp ───────────────────────────────────────────────
-const CountUp = ({ end, prefix='', suffix='', duration=1400 }) => {
-  const ref = useRef(null);
-  const [val, setVal] = useState(0);
-  useEffect(() => {
-    const el = ref.current; if (!el) return;
-    const io = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) {
-        const start = performance.now();
-        const tick = now => {
-          const p = Math.min(1,(now-start)/duration);
-          setVal(end*(1-Math.pow(1-p,3)));
-          if (p<1) requestAnimationFrame(tick);
-        };
-        requestAnimationFrame(tick); io.disconnect();
-      }
-    },{ threshold:0.4 });
-    io.observe(el); return () => io.disconnect();
-  },[end,duration]);
-  return <span ref={ref}>{prefix}{val.toFixed(0)}{suffix}</span>;
-};
-
-window.__QD = { ...window.__QD, ChatbotWindow, DashboardMini, CodeBlock, BrowserMini, CountUp };
-</script>
-
-<!-- ═══════════════════════════════════════════════════════════
-     NAV + FOOTER
-═══════════════════════════════════════════════════════════ -->
-<script type="text/babel">
-const navLinks = [
-  { label:'Services', href:'#services' },
-  { label:'Live Systems', href:'#live-websites' },
-  { label:'Process', href:'#process' },
-  // WORK LINK TEMPORARILY DISABLED
-  // { label:'Work', href:'#work' },
-  { label:'Contact', href:'#contact' },
-];
-
-const Nav = () => (
-  <nav className="qd-nav" style={{ position:'fixed',top:0,left:0,right:0,zIndex:100,padding:'20px 40px',display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(10,11,13,0.7)',backdropFilter:'blur(20px)',borderBottom:'1px solid var(--border-1)' }}>
-    <a href="/" className="qd-nav-logo qd-brand-ltr" dir="ltr" style={{ display:'flex',alignItems:'center',gap:12,textDecoration:'none',position:'relative' }}>
-      <span style={{ position:'relative',display:'flex',alignItems:'center',justifyContent:'center',height:48,width:48,borderRadius:10,overflow:'hidden',boxShadow:'0 0 0 1px var(--border-1)' }}>
-        <img src="assets/qd-logo.jpeg" alt="QD Systems" className="qd-logo-img" style={{ height:'100%',width:'100%',objectFit:'cover',objectPosition:'center',display:'block',borderRadius:'inherit',filter:'contrast(1.08) brightness(1.05)' }} />
-        <span className="qd-sheen" />
-      </span>
-      <span className="qd-nav-lockup" style={{ display:'flex',flexDirection:'column',justifyContent:'center',minWidth:0 }}>
-        <span className="qd-nav-subtitle" style={{ fontFamily:'var(--font-mono)',fontSize:9,letterSpacing:'0.22em',textTransform:'uppercase',lineHeight:1.2,color:'rgba(244,241,234,0.58)',marginTop:5,whiteSpace:'nowrap' }}>WEB · BRAND · DIGITAL SYSTEMS</span>
-      </span>
-    </a>
-    <div className="qd-nav-links qd-mobile-hide" style={{ display:'flex',alignItems:'center',gap:28 }}>
-      {navLinks.map(({ label, href }) => (
-        <a key={label} href={href} style={{ fontFamily:'var(--font-display)',fontSize:14,fontWeight:500,color:'var(--fg2)',textDecoration:'none',transition:'color 200ms ease' }}
-          onMouseEnter={e=>e.target.style.color='var(--acid)'} onMouseLeave={e=>e.target.style.color='var(--fg2)'}>{label}</a>
-      ))}
-      <Btn variant="primary" size="sm" icon="→" onClick={() => { window.location.href = window.__QD.getContactHref(); }}>Build it</Btn>
-    </div>
-    <Btn variant="primary" size="sm" className="qd-nav-cta qd-mobile-only" icon="→" onClick={() => { window.location.href = window.__QD.getContactHref(); }}>
-      <>
-        <span className="qd-desktop-label">Build it</span>
-        <span className="qd-mobile-label">Build</span>
-      </>
-    </Btn>
-  </nav>
-);
-
-const Footer = () => {
-  const socials = [
-    { label:'Instagram', url:'https://instagram.com/qdsystems' },
-    { label:'TikTok', url:'https://tiktok.com/@qdsystems' },
-  ];
-
-  return (
-    <footer className="qd-footer">
-      <div className="qd-footer-inner">
-        <div className="qd-footer-top">
-          <a href="/" className="qd-footer-brand">
-            <span className="qd-footer-mark">
-              <img src="assets/qd-logo.jpeg" alt="QD Systems" className="qd-footer-mark-img" />
-              <span className="qd-footer-logo-sheen" />
-            </span>
-            <span className="qd-footer-brand-copy">
-              <span className="qd-footer-brand-name">QD SYSTEMS</span>
-              <span className="qd-footer-brand-sub">Digital systems studio</span>
-            </span>
-          </a>
-
-          <div className="qd-footer-links-wrap">
-            <nav className="qd-footer-links" aria-label="Footer navigation">
-              {navLinks.map(({ label, href }) => (
-                <a key={label} href={href} className="qd-footer-link">{label}</a>
-              ))}
-            </nav>
-            <div className="qd-footer-links qd-footer-socials" aria-label="Social links">
-              {socials.map(({ label, url }) => (
-                <a key={label} href={url} target="_blank" rel="noreferrer" className="qd-footer-link">{label}</a>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="qd-footer-bottom">
-          <div className="qd-footer-meta">{'\u00A9 2026 QD Systems'}</div>
-          <div className="qd-footer-meta">Built in UAE</div>
-          <div className="qd-footer-meta">V2.0</div>
-        </div>
-      </div>
-    </footer>
-  );
-};
-
-window.__QD = { ...window.__QD, Nav, Footer };
-</script>
-
-<!-- ═══════════════════════════════════════════════════════════
-     HERO
-═══════════════════════════════════════════════════════════ -->
-<script type="text/babel">
-const easeInOut = x => x<0.5?2*x*x:1-Math.pow(-2*x+2,2)/2;
-const easeIn    = x => x*x*x;
-const easeOut   = x => 1-Math.pow(1-x,3);
-const useHeroScrollProgress = () => {
-  const [scroll, setScroll] = useState(0);
-  const frameRef = useRef(null);
-  const latestRef = useRef(-1);
-
-  useEffect(() => {
-    const update = () => {
-      frameRef.current = null;
-      const next = Math.min(1, window.scrollY / (window.innerHeight * 0.8));
-      if (Math.abs(next - latestRef.current) > 0.003) {
-        latestRef.current = next;
-        setScroll(next);
-      }
-    };
-
-    const onScroll = () => {
-      if (frameRef.current) return;
-      frameRef.current = requestAnimationFrame(update);
-    };
-
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive:true });
-    window.addEventListener('resize', onScroll);
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
-      if (frameRef.current) cancelAnimationFrame(frameRef.current);
-    };
-  }, []);
-
-  return scroll;
-};
-
-const useHeroMotionClock = (enabled) => {
-  const [t, setT] = useState(0);
-
-  useEffect(() => {
-    if (!enabled) return;
-    let raf;
-    let last = 0;
-    const start = performance.now();
-    const loop = now => {
-      if (now - last >= 33) {
-        setT((now - start) / 1000);
-        last = now;
-      }
-      raf = requestAnimationFrame(loop);
-    };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
-  }, [enabled]);
-
-  return t;
-};
-
-const Hero = () => {
-  const scroll = useHeroScrollProgress();
-  const isMobile = window.__QD.useViewportFlag(768);
-  const prefersReducedMotion = window.__QD.usePrefersReducedMotion();
-  const t = useHeroMotionClock(!isMobile && !prefersReducedMotion);
-
-  const p = easeInOut(Math.max(0,Math.min(1,scroll/0.4)));
-  const iry = Math.sin(t*0.4)*6, irx = Math.cos(t*0.3)*2;
-  const ry = iry+p*6, rx = irx-p*4;
-
-  const sideAlpha = 0.28*(1-easeIn(p));
-  const sideOff   = easeIn(p)*80;
-  const qScale    = 1+easeIn(p)*24;
-  const qAlpha    = 0.32+p*0.55;
-  const qFade     = p<0.7?1:Math.max(0,1-Math.pow((p-0.7)/0.3,1.4));
-  const washA     = p<0.6?0:Math.min(1,(p-0.6)/0.25);
-  const washF     = p<0.9?1:Math.max(0,1-(p-0.9)*10);
-  const cOp       = 1-easeIn(Math.min(1,scroll*1.6));
-  const cLift     = -easeOut(Math.min(1,scroll*2))*80;
-  const wordGlow  = 52 + p * 22;
-  const wordGlowAlpha = 0.2 + p * 0.16;
-
-  const L = (alpha, extra={}) => ({
-    fontFamily:'var(--font-display)',fontWeight:700,
-    fontSize:'clamp(220px,30vw,460px)',letterSpacing:'-0.06em',lineHeight:0.85,
-    color:'transparent',WebkitTextStroke:`1.6px rgba(232,232,238,${alpha})`,
-    transition:'transform 600ms cubic-bezier(0.22,1,0.36,1)',
-    willChange:'transform,opacity',transform:'translateZ(0)',backfaceVisibility:'hidden',userSelect:'none',...extra,
-  });
-
-  return (
-    <section className="qd-hero-section" style={{ position:'relative',minHeight:'100vh',paddingTop:80,overflow:'hidden',perspective:2000,background:'linear-gradient(180deg,#0d1013 0%,#0a0c10 46%,#090b0d 100%)' }}>
-      <div style={{ position:'absolute',inset:0,zIndex:0,pointerEvents:'none',background:'radial-gradient(circle at 18% 24%, rgba(232,232,238,0.08), transparent 26%), radial-gradient(circle at 82% 20%, rgba(232,232,238,0.05), transparent 24%), radial-gradient(circle at 58% 72%, rgba(232,232,238,0.06), transparent 22%)' }} />
-      <div style={{ position:'absolute',inset:0,zIndex:0,pointerEvents:'none',opacity:0.28,backgroundImage:'linear-gradient(rgba(244,241,234,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(244,241,234,0.025) 1px,transparent 1px)',backgroundSize:'72px 72px',maskImage:'linear-gradient(180deg, rgba(0,0,0,0.95), rgba(0,0,0,0.45))' }} />
-      <div style={{ position:'absolute',inset:'0 auto 0 54%',zIndex:0,width:'32vw',minWidth:260,maxWidth:520,pointerEvents:'none',background:'linear-gradient(180deg, transparent, rgba(232,232,238,0.06), transparent)',filter:'blur(28px)',transform:'skewX(-10deg)' }} />
-      {/* Ambient QD wordmark */}
-      <div className="qd-hero-ambient" style={{ position:'fixed',inset:0,zIndex:0,pointerEvents:'none',display:'grid',placeItems:'center',transformStyle:'preserve-3d' }}>
-        <div className="qd-hero-ambient-wordmark qd-brand-ltr" dir="ltr" style={{ display:'flex',alignItems:'center',gap:'0.02em',filter:`drop-shadow(0 0 ${wordGlow}px rgba(232,232,238,${wordGlowAlpha}))`,willChange:'transform,filter',transform:'translateZ(0)' }}>
-          <div style={L(sideAlpha,{ transform:`translateX(-${sideOff}vw) rotateY(${ry-10}deg) rotateX(${rx}deg)` })}>Q</div>
-          <div style={L(qAlpha,{ transform:`rotateY(${ry}deg) rotateX(${rx}deg) scale(${qScale})`,opacity:qFade })}>D</div>
-        </div>
-      </div>
-
-      {/* Acid wash */}
-      <div style={{ position:'fixed',inset:0,zIndex:1,pointerEvents:'none',background:`radial-gradient(circle at center,rgba(232,232,238,${0.52*washA*washF}) 0%,rgba(232,232,238,${0.24*washA*washF}) 34%,rgba(14,18,18,${washA*washF*0.82}) 72%,rgba(11,11,12,0) 100%)`,opacity:washA*washF,mixBlendMode:'screen',willChange:'opacity' }} />
-      <div style={{ position:'fixed',inset:0,zIndex:1,pointerEvents:'none',background:'linear-gradient(180deg, rgba(8,10,12,0.08), rgba(8,10,12,0.42))',opacity:0.9 }} />
-      <div style={{ position:'fixed',inset:0,zIndex:1,pointerEvents:'none',background:'linear-gradient(180deg,#0b0d10 0%,#090b0d 100%)',opacity:p<0.85?0:Math.min(1,(p-0.85)/0.1)*(1-Math.max(0,(p-0.95)*10)) }} />
-
-      {/* Foreground */}
-      <div className="qd-hero-wrap" style={{ position:'relative',zIndex:2,maxWidth:1280,margin:'0 auto',padding:'120px 40px 60px',opacity:cOp,transform:`translateY(${cLift}px)`,transition:'opacity 400ms ease-out' }}>
-        <div style={{ display:'flex',alignItems:'center',gap:12,marginBottom:24 }}>
-          <span style={{ width:8,height:8,background:'var(--acid)',borderRadius:2,boxShadow:'0 0 12px var(--acid)',animation:'qd-pulse 1.6s ease-in-out infinite',display:'inline-block' }} />
-          <Eyebrow color="var(--acid)">// SYSTEM ONLINE · 2026</Eyebrow>
-        </div>
-        <h1 className="qd-hero-title" style={{ fontFamily:'var(--font-display)',fontSize:'clamp(48px,8vw,112px)',fontWeight:600,letterSpacing:'-0.04em',lineHeight:0.95,margin:0,maxWidth:1100,color:'var(--bone)' }}>
-          Tell us the problem.<br/>
-          <span style={{ color:'var(--acid)' }}>We ship</span> the <em style={{ fontFamily:'var(--font-serif)',fontWeight:400 }}>system</em>.
-        </h1>
-        <p className="qd-hero-subtitle" style={{ fontFamily:'var(--font-body)',fontSize:22,color:'var(--fg2)',maxWidth:580,marginTop:32,lineHeight:1.4 }}>
-          Chatbots that close. Sites that convert. Tracking that holds. Built for owners, not committees.
-        </p>
-        <div className="qd-hero-actions" style={{ display:'flex',gap:14,marginTop:40 }}>
-          <Btn variant="primary" size="lg" icon="→" onClick={() => { window.location.href = window.__QD.getContactHref(); }}>Build it</Btn>
-          <Btn variant="ghost" size="lg" icon="↗" onClick={() => { window.location.href = '#live-websites'; }}>See the work</Btn>
-        </div>
-        <div className="qd-hero-stats" style={{ marginTop:96,display:'grid',gridTemplateColumns:'repeat(3,1fr)',borderTop:'1px solid var(--border-1)',borderBottom:'1px solid var(--border-1)' }}>
-          {[{n:'5–7d',l:'avg. build time'},{n:'99.9%',l:'uptime'},{n:'24/7',l:'support'}].map((s,i)=>(
-            <div key={i} style={{ padding:'24px 20px',borderLeft:i===0?'none':'1px solid var(--border-1)' }}>
-              <div style={{ fontFamily:'var(--font-display)',fontWeight:600,fontSize:36,letterSpacing:'-0.02em',color:'var(--bone)' }}>{s.n}</div>
-              <div className="qd-eyebrow" style={{ marginTop:6 }}>{s.l}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Scroll hint */}
-      <div className="qd-hero-scroll-hint" style={{ position:'fixed',bottom:32,left:'50%',transform:'translateX(-50%)',zIndex:3,fontFamily:'var(--font-mono)',fontSize:11,letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--fg3)',opacity:Math.max(0,1-scroll*5),display:'flex',alignItems:'center',gap:10,pointerEvents:'none' }}>
-        <span style={{ width:24,height:1,background:'var(--fg3)',display:'inline-block' }} />SCROLL<span style={{ width:24,height:1,background:'var(--fg3)',display:'inline-block' }} />
-      </div>
-    </section>
-  );
-};
-window.__QD = { ...window.__QD, Hero };
-window.__QD.HomepageNav = ({ language, setLanguage }) => {
-  const navCopy = window.__QD.HOMEPAGE_COPY[language].nav;
-  return (
-    <nav className="qd-nav" style={{ position:'fixed',top:0,left:0,right:0,zIndex:100,padding:'20px 40px',display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(10,11,13,0.7)',backdropFilter:'blur(20px)',borderBottom:'1px solid var(--border-1)' }}>
-      <a href="/" className="qd-nav-logo qd-brand-ltr" dir="ltr" style={{ display:'flex',alignItems:'center',gap:12,textDecoration:'none',position:'relative' }}>
-        <span style={{ position:'relative',display:'flex',alignItems:'center',justifyContent:'center',height:48,width:48,borderRadius:10,overflow:'hidden',boxShadow:'0 0 0 1px var(--border-1)' }}>
-          <img src="assets/qd-logo.jpeg" alt="QD Systems" className="qd-logo-img" style={{ height:'100%',width:'100%',objectFit:'cover',objectPosition:'center',display:'block',borderRadius:'inherit',filter:'contrast(1.08) brightness(1.05)' }} />
-          <span className="qd-sheen" />
-        </span>
-        <span className="qd-nav-lockup" style={{ display:'flex',flexDirection:'column',justifyContent:'center',minWidth:0 }}>
-          <span className="qd-nav-subtitle" style={{ fontFamily:'var(--font-mono)',fontSize:9,letterSpacing:'0.22em',textTransform:'uppercase',lineHeight:1.2,color:'rgba(244,241,234,0.58)',marginTop:5,whiteSpace:'nowrap' }}>{navCopy.brandSubtitle}</span>
-        </span>
-      </a>
-      <div className="qd-nav-links qd-mobile-hide" style={{ display:'flex',alignItems:'center',gap:28 }}>
-        {navCopy.links.map(({ label, href }) => (
-          <a key={label} href={href} style={{ fontFamily:'var(--font-display)',fontSize:14,fontWeight:500,color:'var(--fg2)',textDecoration:'none',transition:'color 200ms ease' }} onMouseEnter={e=>e.target.style.color='var(--acid)'} onMouseLeave={e=>e.target.style.color='var(--fg2)'}>{label}</a>
-        ))}
-        <div className="qd-lang-toggle" role="group" aria-label={language === 'ar' ? 'تبديل اللغة' : 'Language switcher'}>
-          {['en', 'ar'].map((code) => (
-            <button key={code} type="button" className={`qd-lang-toggle-btn ${language === code ? 'is-active' : ''}`} onClick={() => setLanguage(code)}>{code.toUpperCase()}</button>
-          ))}
-        </div>
-        <Btn variant="primary" size="sm" icon="→" onClick={() => { window.location.href = window.__QD.getContactHref(); }}>{navCopy.build}</Btn>
-      </div>
-      <div className="qd-nav-mobile-actions qd-mobile-only">
-        <div className="qd-lang-toggle" role="group" aria-label={language === 'ar' ? 'تبديل اللغة' : 'Language switcher'}>
-          {['en', 'ar'].map((code) => (
-            <button key={code} type="button" className={`qd-lang-toggle-btn ${language === code ? 'is-active' : ''}`} onClick={() => setLanguage(code)}>{code.toUpperCase()}</button>
-          ))}
-        </div>
-        <Btn variant="primary" size="sm" className="qd-nav-cta" icon="→" onClick={() => { window.location.href = window.__QD.getContactHref(); }}>
-          <span>{navCopy.buildShort}</span>
-        </Btn>
-      </div>
-    </nav>
-  );
-};
-window.__QD.HomepageHero = ({ language }) => {
-  const copy = window.__QD.HOMEPAGE_COPY[language].hero;
-  const scroll = useHeroScrollProgress();
-  const isMobile = window.__QD.useViewportFlag(768);
-  const prefersReducedMotion = window.__QD.usePrefersReducedMotion();
-  const t = useHeroMotionClock(!isMobile && !prefersReducedMotion);
-  const p = easeInOut(Math.max(0,Math.min(1,scroll/0.4)));
-  const iry = Math.sin(t*0.4)*6, irx = Math.cos(t*0.3)*2;
-  const ry = iry+p*6, rx = irx-p*4;
-  const sideAlpha = 0.28*(1-easeIn(p));
-  const sideOff = easeIn(p)*80;
-  const qScale = 1+easeIn(p)*24;
-  const qAlpha = 0.32+p*0.55;
-  const qFade = p<0.7?1:Math.max(0,1-Math.pow((p-0.7)/0.3,1.4));
-  const washA = p<0.6?0:Math.min(1,(p-0.6)/0.25);
-  const washF = p<0.9?1:Math.max(0,1-(p-0.9)*10);
-  const cOp = 1-easeIn(Math.min(1,scroll*1.6));
-  const cLift = -easeOut(Math.min(1,scroll*2))*80;
-  const wordGlow = 52 + p * 22;
-  const wordGlowAlpha = 0.2 + p * 0.16;
-  const L = (alpha, extra={}) => ({
-    fontFamily:'var(--font-display)',fontWeight:700,fontSize:'clamp(220px,30vw,460px)',letterSpacing:'-0.06em',lineHeight:0.85,color:'transparent',
-    WebkitTextStroke:`1.6px rgba(232,232,238,${alpha})`,transition:'transform 600ms cubic-bezier(0.22,1,0.36,1)',willChange:'transform,opacity',transform:'translateZ(0)',backfaceVisibility:'hidden',userSelect:'none',...extra,
-  });
-  return (
-    <section className="qd-hero-section" style={{ position:'relative',minHeight:'100vh',paddingTop:80,overflow:'hidden',perspective:2000,background:'linear-gradient(180deg,#0d1013 0%,#0a0c10 46%,#090b0d 100%)' }}>
-      <div style={{ position:'absolute',inset:0,zIndex:0,pointerEvents:'none',background:'radial-gradient(circle at 18% 24%, rgba(232,232,238,0.08), transparent 26%), radial-gradient(circle at 82% 20%, rgba(232,232,238,0.05), transparent 24%), radial-gradient(circle at 58% 72%, rgba(232,232,238,0.06), transparent 22%)' }} />
-      <div style={{ position:'absolute',inset:0,zIndex:0,pointerEvents:'none',opacity:0.28,backgroundImage:'linear-gradient(rgba(244,241,234,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(244,241,234,0.025) 1px,transparent 1px)',backgroundSize:'72px 72px',maskImage:'linear-gradient(180deg, rgba(0,0,0,0.95), rgba(0,0,0,0.45))' }} />
-      <div style={{ position:'absolute',inset:'0 auto 0 54%',zIndex:0,width:'32vw',minWidth:260,maxWidth:520,pointerEvents:'none',background:'linear-gradient(180deg, transparent, rgba(232,232,238,0.06), transparent)',filter:'blur(28px)',transform:'skewX(-10deg)' }} />
-      <div className="qd-hero-ambient" style={{ position:'fixed',inset:0,zIndex:0,pointerEvents:'none',display:'grid',placeItems:'center',transformStyle:'preserve-3d' }}>
-        <div className="qd-hero-ambient-wordmark qd-brand-ltr" dir="ltr" style={{ display:'flex',alignItems:'center',gap:'0.02em',filter:`drop-shadow(0 0 ${wordGlow}px rgba(232,232,238,${wordGlowAlpha}))`,willChange:'transform,filter',transform:'translateZ(0)' }}>
-          <div style={L(sideAlpha,{ transform:`translateX(-${sideOff}vw) rotateY(${ry-10}deg) rotateX(${rx}deg)` })}>Q</div>
-          <div style={L(qAlpha,{ transform:`rotateY(${ry}deg) rotateX(${rx}deg) scale(${qScale})`,opacity:qFade })}>D</div>
-        </div>
-      </div>
-      <div style={{ position:'fixed',inset:0,zIndex:1,pointerEvents:'none',background:`radial-gradient(circle at center,rgba(232,232,238,${0.52*washA*washF}) 0%,rgba(232,232,238,${0.24*washA*washF}) 34%,rgba(14,18,18,${washA*washF*0.82}) 72%,rgba(11,11,12,0) 100%)`,opacity:washA*washF,mixBlendMode:'screen',willChange:'opacity' }} />
-      <div style={{ position:'fixed',inset:0,zIndex:1,pointerEvents:'none',background:'linear-gradient(180deg, rgba(8,10,12,0.08), rgba(8,10,12,0.42))',opacity:0.9 }} />
-      <div style={{ position:'fixed',inset:0,zIndex:1,pointerEvents:'none',background:'linear-gradient(180deg,#0b0d10 0%,#090b0d 100%)',opacity:p<0.85?0:Math.min(1,(p-0.85)/0.1)*(1-Math.max(0,(p-0.95)*10)) }} />
-      <div className="qd-hero-wrap" style={{ position:'relative',zIndex:2,maxWidth:1280,margin:'0 auto',padding:'120px 40px 60px',opacity:cOp,transform:`translateY(${cLift}px)`,transition:'opacity 400ms ease-out' }}>
-        <div style={{ display:'flex',alignItems:'center',gap:12,marginBottom:24 }}>
-          <span style={{ width:8,height:8,background:'var(--acid)',borderRadius:2,boxShadow:'0 0 12px var(--acid)',animation:'qd-pulse 1.6s ease-in-out infinite',display:'inline-block' }} />
-          <Eyebrow color="var(--acid)">{copy.eyebrow}</Eyebrow>
-        </div>
-        <h1 className="qd-hero-title" style={{ fontFamily:'var(--font-display)',fontSize:'clamp(48px,8vw,112px)',fontWeight:600,letterSpacing:'-0.04em',lineHeight:0.95,margin:0,maxWidth:1100,color:'var(--bone)' }}>
-          {copy.titleLead}<br/><span style={{ color:'var(--acid)' }}>{copy.titleAccent}</span> {copy.titleTail} <em style={{ fontFamily:'var(--font-serif)',fontWeight:400 }}>{copy.titleEmphasis}</em>.
-        </h1>
-        <p className="qd-hero-subtitle" style={{ fontFamily:'var(--font-body)',fontSize:22,color:'var(--fg2)',maxWidth:580,marginTop:32,lineHeight:1.4 }}>{copy.subtitle}</p>
-        <div className="qd-hero-actions" style={{ display:'flex',gap:14,marginTop:40 }}>
-          <Btn variant="primary" size="lg" icon="→" onClick={() => { window.location.href = window.__QD.getContactHref(); }}>{copy.primaryCta}</Btn>
-          <Btn variant="ghost" size="lg" icon="↗" onClick={() => { window.location.href = '#live-websites'; }}>{copy.secondaryCta}</Btn>
-        </div>
-        <div className="qd-hero-stats" style={{ marginTop:96,display:'grid',gridTemplateColumns:'repeat(3,1fr)',borderTop:'1px solid var(--border-1)',borderBottom:'1px solid var(--border-1)' }}>
-          {copy.stats.map((s,i)=>(<div key={i} style={{ padding:'24px 20px',borderLeft:i===0?'none':'1px solid var(--border-1)' }}><div style={{ fontFamily:'var(--font-display)',fontWeight:600,fontSize:36,letterSpacing:'-0.02em',color:'var(--bone)' }}>{s.n}</div><div className="qd-eyebrow" style={{ marginTop:6 }}>{s.l}</div></div>))}
-        </div>
-      </div>
-      <div className="qd-hero-scroll-hint" style={{ position:'fixed',bottom:32,left:'50%',transform:'translateX(-50%)',zIndex:3,fontFamily:'var(--font-mono)',fontSize:11,letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--fg3)',opacity:Math.max(0,1-scroll*5),display:'flex',alignItems:'center',gap:10,pointerEvents:'none' }}>
-        <span style={{ width:24,height:1,background:'var(--fg3)',display:'inline-block' }} />{copy.scroll}<span style={{ width:24,height:1,background:'var(--fg3)',display:'inline-block' }} />
-      </div>
-    </section>
-  );
-};
-window.__QD.HomepageFooter = ({ language }) => {
-  const navCopy = window.__QD.HOMEPAGE_COPY[language].nav;
-  const footerCopy = window.__QD.HOMEPAGE_COPY[language].footer;
-  const socials = [{ label:'Instagram', url:'https://instagram.com/qdsystems' }, { label:'TikTok', url:'https://tiktok.com/@qdsystems' }];
-  return (
-    <footer className="qd-footer">
-      <div className="qd-footer-inner">
-        <div className="qd-footer-top">
-          <a href="/" className="qd-footer-brand qd-brand-ltr" dir="ltr">
-            <span className="qd-footer-mark"><img src="assets/qd-logo.jpeg" alt="QD Systems" className="qd-footer-mark-img" /><span className="qd-footer-logo-sheen" /></span>
-            <span className="qd-footer-brand-copy"><span className="qd-footer-brand-name">QD SYSTEMS</span><span className="qd-footer-brand-sub">{footerCopy.studio}</span></span>
-          </a>
-          <div className="qd-footer-links-wrap">
-            <nav className="qd-footer-links" aria-label="Footer navigation">
-              {navCopy.links.map(({ label, href }) => <a key={label} href={href} className="qd-footer-link">{label}</a>)}
-            </nav>
-            <div className="qd-footer-links qd-footer-socials" aria-label="Social links">
-              {socials.map(({ label, url }) => <a key={label} href={url} target="_blank" rel="noreferrer" className="qd-footer-link">{label}</a>)}
-            </div>
-          </div>
-        </div>
-        <div className="qd-footer-bottom">
-          <div className="qd-footer-meta" dir="ltr">{'\u00A9 2026 QD Systems'}</div>
-          <div className="qd-footer-meta">{footerCopy.builtIn}</div>
-          <div className="qd-footer-meta">V2.0</div>
-        </div>
-      </div>
-    </footer>
-  );
-};
-</script>
-
-<!-- ═══════════════════════════════════════════════════════════
-     PROBLEM + SERVICES + BEFORE/AFTER + PROCESS + WORK + CTA
-═══════════════════════════════════════════════════════════ -->
-<script type="text/babel" src="components/problem.jsx"></script>
-<script type="text/babel" src="components/services.jsx"></script>
-<script type="text/babel" src="components/beforeafter.jsx"></script>
-<script type="text/babel" src="components/process.jsx"></script>
-<script type="text/babel" src="components/work.jsx"></script>
-<script type="text/babel" src="components/livewebsites.jsx"></script>
-<script type="text/babel" src="components/cta.jsx"></script>
-
-<!-- ═══════════════════════════════════════════════════════════
-     APP MOUNT
-═══════════════════════════════════════════════════════════ -->
-<script type="text/babel">
-const { HomepageNav, HomepageFooter, HomepageHero, Problem, Services, BeforeAfter, Process, Work, WorkMarqueeOnly, LiveWebsites, CTA } = window.__QD;
-
-window.__QD.LANGUAGE_STORAGE_KEY = 'qdLang';
-window.__QD.getSavedLanguage = () => {
-  const savedLanguage = localStorage.getItem(window.__QD.LANGUAGE_STORAGE_KEY);
-  return savedLanguage === 'ar' || savedLanguage === 'en' ? savedLanguage : 'en';
-};
-window.__QD.applyLanguageDocumentState = (language) => {
-  const normalizedLanguage = language === 'ar' ? 'ar' : 'en';
-  const direction = normalizedLanguage === 'ar' ? 'rtl' : 'ltr';
-  document.documentElement.lang = normalizedLanguage;
-  document.documentElement.dir = direction;
-  document.body.classList.toggle('qd-lang-ar', normalizedLanguage === 'ar');
-  document.body.classList.toggle('qd-lang-en', normalizedLanguage !== 'ar');
-};
-window.__QD.getContactHref = () => `contact?lang=${window.__QD.getSavedLanguage()}`;
-
-window.__QD.applyLanguageDocumentState(window.__QD.getSavedLanguage());
-
-const App = () => {
-  const [language, setLanguage] = useState(() => window.__QD.getSavedLanguage());
-
-  useEffect(() => {
-    localStorage.setItem(window.__QD.LANGUAGE_STORAGE_KEY, language);
-    window.__QD.applyLanguageDocumentState(language);
-  }, [language]);
-
-  return (
-    <>
-      <HomepageNav language={language} setLanguage={setLanguage} />
-      <HomepageHero language={language} />
-      <Problem language={language} />
-      <Services language={language} />
-      <LiveWebsites language={language} />
-      <Process language={language} />
-      <WorkMarqueeOnly language={language} />
-      {/* WORK SECTION TEMPORARILY DISABLED */}
-      {/* <Work language={language} /> */}
-      <CTA language={language} />
-      <HomepageFooter language={language} />
-    </>
-  );
-};
-
-ReactDOM.createRoot(document.getElementById('qd-root')).render(<App />);
-</script>
-
-<!-- QD Chatbot widget -->
+<!-- Real QD chatbot widget — uncomment on the live site (needs the /chatbot/ folder + /api/chat backend):
 <link rel="stylesheet" href="/chatbot/chatbot.css">
 <script src="/chatbot/chatbot.js" defer></script>
+-->
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* intro — never gated on window.load (so it can't hang on Three.js/fonts) */
+var isMobile=innerWidth<768;
+var introDelay=isMobile?250:450;
+function qdReveal(){const i=document.getElementById('intro');if(i)i.classList.add('gone');document.body.classList.add('ready');}
+setTimeout(qdReveal,introDelay);
+addEventListener('load',()=>setTimeout(qdReveal,150));
+
+/* cursor glow + magnetic */
+const cg=document.getElementById('cursorGlow');
+const fine=matchMedia('(pointer:fine)').matches;
+let mx=.5,my=.5;
+window.addEventListener('pointermove',e=>{mx=e.clientX/innerWidth;my=e.clientY/innerHeight;if(fine){cg.style.left=e.clientX+'px';cg.style.top=e.clientY+'px';}});
+document.querySelectorAll('[data-magnetic]').forEach(b=>{
+  b.addEventListener('pointermove',e=>{const r=b.getBoundingClientRect();b.style.transform=`translate(${(e.clientX-r.left-r.width/2)*.25}px,${(e.clientY-r.top-r.height/2)*.4}px)`;});
+  b.addEventListener('pointerleave',()=>b.style.transform='');
+});
+
+/* headline word stagger */
+document.querySelectorAll('.word').forEach((w,i)=>{w.style.transitionDelay=(.15+i*.09)+'s';});
+
+/* scroll progress + nav condense + active link */
+const prog=document.getElementById('progress');const navEl=document.querySelector('nav');const heroCol=document.querySelector('.hero-col');
+const navMap={};document.querySelectorAll('.nav-links a').forEach(a=>{navMap[a.getAttribute('href').slice(1)]=a;});
+const secObs=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting){Object.values(navMap).forEach(a=>a.classList.remove('active'));const a=navMap[en.target.id];if(a)a.classList.add('active');}}),{rootMargin:'-35% 0px -55% 0px'});
+['work','demo','build','contact'].forEach(id=>{const el=document.getElementById(id);if(el)secObs.observe(el);});
+
+/* persistent desktop CTA: appears after hero, hides over contact */
+const floatCta=document.getElementById('floatCta');let contactInView=false;
+const cObs=new IntersectionObserver(es=>es.forEach(en=>{contactInView=en.isIntersecting;}),{threshold:.2});
+const contactEl=document.getElementById('contact');if(contactEl)cObs.observe(contactEl);
+const noMotion=matchMedia('(prefers-reduced-motion:reduce)').matches;let ticking=false;
+function onScroll(){const h=document.documentElement,top=h.scrollTop,m=h.scrollHeight-h.clientHeight;
+  prog.style.width=(m>0?top/m*100:0)+'%';
+  navEl.classList.toggle('scrolled',top>40);
+  if(heroCol&&!noMotion){const p=Math.min(1,top/640);heroCol.style.transform='translateY('+(p*-56)+'px)';heroCol.style.opacity=String(1-p*0.85);}
+  if(floatCta)floatCta.classList.toggle('show',top>innerHeight*0.85&&!contactInView);
+  ticking=false;}
+addEventListener('scroll',()=>{if(!ticking){ticking=true;requestAnimationFrame(onScroll);}},{passive:true});
+
+/* intent selector + quick-quote form → pre-filled WhatsApp */
+const waBase='https://wa.me/971505349907';const ccta=document.getElementById('contactCta');
+let selectedNeed='';
+document.querySelectorAll('.need').forEach(n=>n.addEventListener('click',()=>{
+  document.querySelectorAll('.need').forEach(x=>x.classList.remove('sel'));n.classList.add('sel');
+  selectedNeed=n.dataset.type;
+  const url=waBase+'?text='+encodeURIComponent('Hi QD — I’d like '+selectedNeed+'.');
+  [ccta,floatCta].forEach(a=>{if(a)a.href=url;});
+  document.querySelectorAll('.mbar a.btn-silver').forEach(a=>a.href=url);
+}));
+const qform=document.getElementById('qform');
+if(qform)qform.addEventListener('submit',e=>{e.preventDefault();
+  const name=(document.getElementById('qname').value||'').trim()||'there';
+  const phone=(document.getElementById('qphone').value||'').trim();
+  const need=selectedNeed?('I’d like '+selectedNeed+'.'):'I’d like to discuss a project.';
+  const txt='Hi QD — I’m '+name+'. '+need+(phone?(' My WhatsApp: '+phone+'.'):'');
+  window.open(waBase+'?text='+encodeURIComponent(txt),'_blank');
+});
+
+/* reveal */
+const io=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting){en.target.classList.add('in');io.unobserve(en.target);}}),{threshold:.14});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+/* count up */
+function countUp(el){const t=+el.dataset.count,suf=el.dataset.suffix||'';let n=0;const s=Math.max(1,t/40);(function tick(){n+=s;if(n>=t){el.textContent=t+suf;}else{el.textContent=Math.floor(n)+suf;requestAnimationFrame(tick);}})();}
+const sio=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting){const el=en.target;el.dataset.text?el.textContent=el.dataset.text:countUp(el);sio.unobserve(el);}}),{threshold:.6});
+document.querySelectorAll('[data-count],[data-text]').forEach(el=>sio.observe(el));
+
+/* 3D tilt cards */
+document.querySelectorAll('.tilt').forEach(c=>{
+  c.addEventListener('pointermove',e=>{const r=c.getBoundingClientRect();const px=(e.clientX-r.left)/r.width-.5,py=(e.clientY-r.top)/r.height-.5;c.style.transform=`perspective(800px) rotateY(${px*8}deg) rotateX(${-py*8}deg) translateY(-6px)`;});
+  c.addEventListener('pointerleave',()=>c.style.transform='');
+});
+
+/* drifting particle field — continuous ambient motion */
+var reduceMotion=matchMedia('(prefers-reduced-motion:reduce)').matches;
+(function(){
+  const cv=document.getElementById('px');if(!cv)return;
+  if(reduceMotion){cv.style.display='none';return;}
+  const ctx=cv.getContext('2d');
+  let W,H,parts=[];const N=isMobile?16:28;
+  function size(){W=cv.width=innerWidth*Math.min(devicePixelRatio,2);H=cv.height=innerHeight*Math.min(devicePixelRatio,2);}
+  size();addEventListener('resize',size);
+  for(let i=0;i<N;i++)parts.push({x:Math.random()*1,y:Math.random()*1,r:(Math.random()*1.6+.4),vy:-(Math.random()*.0006+.0002),vx:(Math.random()-.5)*.0003,a:Math.random()*.5+.2});
+  (function draw(){requestAnimationFrame(draw);ctx.clearRect(0,0,W,H);
+    for(const p of parts){p.y+=p.vy;p.x+=p.vx;if(p.y<-.02){p.y=1.02;p.x=Math.random();}
+      const x=p.x*W,y=p.y*H,r=p.r*Math.min(devicePixelRatio,2);
+      ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fillStyle='rgba(255,255,255,'+(p.a*.5)+')';ctx.fill();}
+  })();
+})();
+
+/* faq accordion */
+document.querySelectorAll('.qa button').forEach(b=>{b.setAttribute('aria-expanded','false');b.addEventListener('click',()=>{
+  const qa=b.parentElement;const ans=qa.querySelector('.ans');const open=qa.classList.contains('open');
+  document.querySelectorAll('.qa.open').forEach(o=>{o.classList.remove('open');o.querySelector('.ans').style.maxHeight=null;o.querySelector('button').setAttribute('aria-expanded','false');});
+  if(!open){qa.classList.add('open');ans.style.maxHeight=ans.scrollHeight+'px';b.setAttribute('aria-expanded','true');}
+});});
+addEventListener('resize',()=>{const o=document.querySelector('.qa.open .ans');if(o)o.style.maxHeight=o.scrollHeight+'px';});
+
+/* interactive chat — factory powers the in-page demo section */
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+const flows={
+  intro:[{who:'them',t:"Hi! Do you have round tables for 200 guests this weekend?"},{who:'us',t:"Yes — 25 round tables available Sat. Want me to hold them?"},{who:'them',t:"Please. And can someone call me?"},{who:'us',t:"Done ✅ Booked a callback for today 4:00 PM."},{book:"Callback booked automatically — while you were reading this."}],
+  avail:[{who:'us',t:"Which date are you looking at?"},{who:'them',t:"Next Friday evening."},{who:'us',t:"We have availability Fri evening. Shall I pencil you in and send a quote?"},{book:"Slot held for Friday — quote on its way."}],
+  quote:[{who:'us',t:"Tell me the package and guest count and I'll price it instantly."},{who:'them',t:"Gold package, 150 guests."},{who:'us',t:"Gold · 150 guests → AED 18,500, all-in. Want me to lock it?"},{book:"Instant quote delivered — no waiting on email."}],
+  arabic:[{who:'them',t:"تقدرون تسوون الموقع بالعربي؟"},{who:'us',t:"أكيد — نبنيه بالعربي والإنجليزي مع دعم كامل للاتجاه RTL."},{book:"Bilingual EN / AR — handled natively."}]
+};
+const chipDefs=[{k:'avail',t:'📅 Check availability'},{k:'quote',t:'💸 Get an instant quote'},{k:'arabic',t:'🌐 Need it in Arabic?'}];
+function createChat(chat,chips){let busy=false;const rm=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  const typing=()=>{const d=document.createElement('div');d.className='typing';d.innerHTML='<span></span><span></span><span></span>';chat.appendChild(d);chat.scrollTop=chat.scrollHeight;return d;};
+  const msg=m=>{const d=document.createElement('div');d.className='msg '+m.who;d.textContent=m.t;chat.appendChild(d);chat.scrollTop=chat.scrollHeight;};
+  const booked=t=>{const d=document.createElement('div');d.className='booked';d.innerHTML='<span class="tick">✓</span> '+t;chat.appendChild(d);requestAnimationFrame(()=>d.classList.add('show'));chat.scrollTop=chat.scrollHeight;};
+  async function run(steps,clear){busy=true;setChips(true);if(clear)chat.innerHTML='';
+    for(const m of steps){if(m.book){await wait(rm?0:400);booked(m.book);continue;}
+      if(m.who==='us'){if(!rm){const tp=typing();await wait(950);tp.remove();}}else{await wait(rm?0:450);}msg(m);await wait(rm?0:550);}
+    busy=false;setChips(false);}
+  function setChips(disabled){if(!chips)return;chips.innerHTML='';
+    chipDefs.forEach(c=>{const b=document.createElement('button');b.className='qchip';b.textContent=c.t;b.disabled=disabled;b.onclick=()=>{if(busy)return;msg({who:'them',t:c.t.replace(/^[^ ]+ /,'')});run(flows[c.k],false);};chips.appendChild(b);});
+    const wa=document.createElement('button');wa.type='button';wa.className='qchip book';wa.textContent='Book a free call →';wa.onclick=()=>{if(window.qdOpenBooking)window.qdOpenBooking();};chips.appendChild(wa);}
+  return {play:()=>run(flows.intro,true)};
+}
+createChat(document.getElementById('chat'),document.getElementById('chips')).play();
+
+/* booking modal — Book a Free Call (and chatbot) → collect details → backend emails a Google Meet link */
+const bookModal=document.getElementById('bookModal');let bookLast=null;
+function openBooking(){if(!bookModal)return;bookModal.classList.add('open');document.body.style.overflow='hidden';bookLast=document.activeElement;setTimeout(()=>{const n=document.getElementById('bName');if(n)n.focus();},120);}
+function closeBooking(){if(!bookModal)return;bookModal.classList.remove('open');document.body.style.overflow='';if(bookLast)bookLast.focus();}
+window.qdOpenBooking=openBooking;
+document.querySelectorAll('[data-book]').forEach(el=>el.addEventListener('click',e=>{e.preventDefault();openBooking();}));
+const bookClose=document.getElementById('bookClose');if(bookClose)bookClose.addEventListener('click',closeBooking);
+if(bookModal){bookModal.addEventListener('click',e=>{if(e.target===bookModal)closeBooking();});}
+addEventListener('keydown',e=>{if(e.key==='Escape'&&bookModal&&bookModal.classList.contains('open'))closeBooking();});
+const bForm=document.getElementById('bForm');
+if(bForm)bForm.addEventListener('submit',async e=>{e.preventDefault();
+  const data={name:(document.getElementById('bName').value||'there').trim(),email:document.getElementById('bEmail').value.trim(),phone:document.getElementById('bPhone').value.trim(),purpose:document.getElementById('bPurpose').value,time:document.getElementById('bTime').value.trim()};
+  try{ fetch('/api/book',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).catch(function(){}); }catch(e){}
+  document.getElementById('bDoneName').textContent=', '+data.name;
+  document.getElementById('bDoneMsg').innerHTML='Check <b>'+data.email.replace(/[<>]/g,'')+'</b> — your Google Meet link is on its way, usually within the hour.';
+  document.getElementById('bWa').href='https://wa.me/971505349907?text='+encodeURIComponent('Hi QD — I’m '+data.name+', I just booked a call ('+data.purpose+').'+(data.time?(' Preferred: '+data.time+'.'):''));
+  document.getElementById('bookForm').style.display='none';
+  document.getElementById('bookDone').style.display='block';
+});
+
+/* ---------- WebGL chrome (lights-only, reliable) ---------- */
+(function(){
+  if(!window.THREE) return;
+  const canvas=document.getElementById('gl'); if(!canvas) return;
+  if(innerWidth<768 || matchMedia('(prefers-reduced-motion:reduce)').matches){ canvas.style.display='none'; return; }
+  const renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  const scene=new THREE.Scene();
+  const camera=new THREE.PerspectiveCamera(45,1,0.1,100); camera.position.z=4.6;
+  const mat=new THREE.MeshStandardMaterial({color:0xd9dce3,metalness:0.55,roughness:0.28});
+  const knot=new THREE.Mesh(new THREE.TorusKnotGeometry(1.05,0.34,220,32,2,3),mat); scene.add(knot);
+  scene.add(new THREE.AmbientLight(0xffffff,0.75));
+  const d1=new THREE.DirectionalLight(0xffffff,2.6); d1.position.set(4,5,5); scene.add(d1);
+  const d2=new THREE.DirectionalLight(0xbfd0ff,1.6); d2.position.set(-6,2,3); scene.add(d2);
+  const p1=new THREE.PointLight(0xffffff,0.8); p1.position.set(0,-4,3); scene.add(p1);
+  function resize(){const w=canvas.clientWidth||1,h=canvas.clientHeight||1;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+  resize(); addEventListener('resize',resize);
+  let t=0,tx=0,ty=0;
+  (function loop(){ requestAnimationFrame(loop); t+=0.016;
+    knot.rotation.y+=0.005; knot.rotation.x+=0.002;
+    knot.position.y=Math.sin(t*0.8)*0.15;
+    tx+=(((typeof mx!=="undefined"?mx:0.5)-0.5)*0.6 - tx)*0.05;
+    ty+=(((typeof my!=="undefined"?my:0.5)-0.5)*0.5 - ty)*0.05;
+    camera.position.x=tx*1.2; camera.position.y=-ty*1.0; camera.lookAt(0,0,0);
+    renderer.render(scene,camera);
+  })();
+})();
+</script>
+<style>@media(max-width:768px){.qd-chat-launcher{bottom:86px!important}.qd-chat-panel{bottom:86px!important}}</style>
+<link rel="stylesheet" href="/chatbot/chatbot.css">
+<script src="/chatbot/chatbot.js" defer></script>
 </body>
 </html>

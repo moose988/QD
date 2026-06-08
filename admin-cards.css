@@ -30,8 +30,8 @@
 }
 
 .qd-admin-tab.is-active {
-  border-color: rgba(166, 240, 79, 0.28);
-  background: rgba(166, 240, 79, 0.08);
+  border-color: rgba(232, 232, 238, 0.28);
+  background: rgba(232, 232, 238, 0.08);
   color: var(--acid);
 }
 
@@ -70,8 +70,8 @@
 }
 
 .qd-admin-row-button:hover {
-  border-color: rgba(166, 240, 79, 0.26);
-  background: rgba(166, 240, 79, 0.08);
+  border-color: rgba(232, 232, 238, 0.26);
+  background: rgba(232, 232, 238, 0.08);
   color: var(--acid);
   transform: translateY(-1px);
 }
@@ -118,8 +118,8 @@
   display: grid;
   place-items: center;
   border-radius: 50%;
-  border: 1px solid rgba(166, 240, 79, 0.24);
-  background: rgba(166, 240, 79, 0.08);
+  border: 1px solid rgba(232, 232, 238, 0.24);
+  background: rgba(232, 232, 238, 0.08);
   color: var(--acid);
   font-family: var(--font-mono);
   font-size: 13px;
@@ -140,8 +140,8 @@
 }
 
 .qd-admin-card-status.is-active {
-  border: 1px solid rgba(166, 240, 79, 0.24);
-  background: rgba(166, 240, 79, 0.08);
+  border: 1px solid rgba(232, 232, 238, 0.24);
+  background: rgba(232, 232, 238, 0.08);
   color: var(--acid);
 }
 
@@ -184,7 +184,7 @@
 
 .qd-admin-card-editor-preview {
   padding: 16px;
-  border: 1px solid rgba(166, 240, 79, 0.12);
+  border: 1px solid rgba(232, 232, 238, 0.12);
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.03);
 }
@@ -264,7 +264,7 @@
 .qd-admin-field-hint.is-valid,
 .qd-admin-input.is-valid {
   color: var(--acid);
-  border-color: rgba(166, 240, 79, 0.35);
+  border-color: rgba(232, 232, 238, 0.35);
 }
 
 .qd-admin-field-hint.is-invalid {

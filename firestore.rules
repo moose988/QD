@@ -35,6 +35,11 @@ service cloud.firestore {
       allow read, update, delete: if isAllowedAdmin();
     }
 
+    match /bookings/{document} {
+      allow create: if true;
+      allow read, update, delete: if isAllowedAdmin();
+    }
+
     match /chatConversations/{document} {
       allow create, update: if true;
       allow read, delete: if isAllowedAdmin();
