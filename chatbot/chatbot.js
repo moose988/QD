@@ -24,6 +24,7 @@
   const HISTORY_KEY = 'qd_chat_history_v1';
   const OPEN_KEY = 'qd_chat_open_v1';
   const DEBUG_KEY = 'qd_chat_debug_v1';
+  const LEAD_KEY = 'qd_chat_lead_v1';
   const MAX_HISTORY = 12;
   const REQUEST_TIMEOUT_MS = 45000;
   const STREAM_STALL_TIMEOUT_MS = 15000;
@@ -37,7 +38,14 @@
       footer: 'Powered by QD Systems',
       open: 'Open chat with QD',
       close: 'Close chat',
+      newChat: 'New chat',
       send: 'Send',
+      gateTitle: 'Before we start',
+      gateSub: 'Leave your details so the team can follow up — even if the chat gets cut off.',
+      gName: 'Your name',
+      gEmail: 'Email',
+      gPhone: 'WhatsApp / phone (optional)',
+      gStart: 'Start chat →',
       greeting:
         "Hey — I'm QD's AI assistant. I can answer questions about our services, process, work, and timelines — and book you in with the team if you're ready to start. What are you working on?",
       chips: [
@@ -56,7 +64,14 @@
       footer: 'مدعوم بـ QD Systems',
       open: 'فتح محادثة QD',
       close: 'إغلاق المحادثة',
+      newChat: 'محادثة جديدة',
       send: 'إرسال',
+      gateTitle: 'قبل ما نبدأ',
+      gateSub: 'اترك بياناتك حتى يتواصل معك الفريق — حتى لو انقطعت المحادثة.',
+      gName: 'الاسم',
+      gEmail: 'البريد الإلكتروني',
+      gPhone: 'واتساب / رقم الهاتف (اختياري)',
+      gStart: 'ابدأ المحادثة →',
       greeting:
         'مرحباً — أنا المساعد الذكي لـ QD. أقدر أرد على أسئلتك عن خدماتنا وعمليتنا وأعمالنا والمدد الزمنية — وأوصلك بالفريق إذا كنت جاهزاً للبدء. على شو تشتغل؟',
       chips: ['شو تبنون؟', 'كم تأخذ مدة المشروع؟', 'اعرض أعمالكم', 'أحتاج موقع'],
@@ -86,6 +101,7 @@
     history: JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'),
     sending: false,
     debugStages: JSON.parse(sessionStorage.getItem(DEBUG_KEY) || '[]'),
+    lead: JSON.parse(localStorage.getItem(LEAD_KEY) || 'null'),
   };
 
   if (!state.sessionId) {
@@ -117,6 +133,9 @@
             <span data-i18n="status">${STRINGS[state.lang].status}</span>
           </div>
         </div>
+        <button class="qd-chat-new" type="button" aria-label="${STRINGS[state.lang].newChat}" title="${STRINGS[state.lang].newChat}">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 4v5h-5"/></svg>
+        </button>
         <button class="qd-chat-close" type="button" aria-label="${STRINGS[state.lang].close}">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
         </button>
@@ -152,6 +171,7 @@
     launcher: root.querySelector('.qd-chat-launcher'),
     panel: root.querySelector('.qd-chat-panel'),
     close: root.querySelector('.qd-chat-close'),
+    newChatBtn: root.querySelector('.qd-chat-new'),
     messages: root.querySelector('.qd-chat-messages'),
     chips: root.querySelector('.qd-chat-chips'),
     form: root.querySelector('form'),
@@ -166,6 +186,7 @@
     root.querySelector('[data-i18n="title"]').textContent = s.title;
     root.querySelector('[data-i18n="status"]').textContent = s.status;
     root.querySelector('[data-i18n="footer"]').textContent = s.footer;
+    if (els.newChatBtn) { els.newChatBtn.setAttribute('aria-label', s.newChat); els.newChatBtn.setAttribute('title', s.newChat); }
     els.input.placeholder = s.placeholder;
     els.launcher.setAttribute('aria-label', s.open);
     els.close.setAttribute('aria-label', s.close);
@@ -174,6 +195,7 @@
   }
 
   function renderChips() {
+    if (root.getAttribute('data-gate') === 'true') { els.chips.hidden = true; els.chips.innerHTML = ''; return; }
     // Show chips only when there's no user-sent history yet
     const hasUserTurn = state.history.some(m => m.role === 'user');
     if (hasUserTurn) {
@@ -312,6 +334,49 @@
   }
 
   // ─── Sending ──────────────────────────────────────────────────────────────
+  function saveLead(lead) {
+    state.lead = lead;
+    try { localStorage.setItem(LEAD_KEY, JSON.stringify(lead)); } catch (e) {}
+    // Persist immediately so the lead is caught even if the visitor disconnects mid-chat.
+    try {
+      fetch('/api/lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: lead.name, email: lead.email, phone: lead.phone, sessionId: state.sessionId, language: state.lang, pageUrl: location.href }),
+        keepalive: true,
+      }).catch(() => {});
+    } catch (e) {}
+  }
+
+  function renderLeadGate() {
+    const s = STRINGS[state.lang];
+    root.setAttribute('data-gate', 'true');
+    els.chips.hidden = true;
+    els.messages.innerHTML = '';
+    const form = document.createElement('form');
+    form.className = 'qd-chat-gate';
+    form.innerHTML =
+      '<div class="qd-chat-gate-title">' + escapeHtml(s.gateTitle) + '</div>' +
+      '<div class="qd-chat-gate-sub">' + escapeHtml(s.gateSub) + '</div>' +
+      '<input class="qd-chat-gate-input" name="name" autocomplete="name" placeholder="' + escapeHtml(s.gName) + '" required>' +
+      '<input class="qd-chat-gate-input" name="email" type="email" autocomplete="email" placeholder="' + escapeHtml(s.gEmail) + '" required>' +
+      '<input class="qd-chat-gate-input" name="phone" inputmode="tel" autocomplete="tel" placeholder="' + escapeHtml(s.gPhone) + '">' +
+      '<button class="qd-chat-gate-btn" type="submit">' + escapeHtml(s.gStart) + '</button>';
+    els.messages.appendChild(form);
+    setTimeout(function () { var n = form.querySelector('input[name="name"]'); if (n) n.focus(); }, 60);
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var name = (form.querySelector('[name="name"]').value || '').trim();
+      var email = (form.querySelector('[name="email"]').value || '').trim();
+      var phone = (form.querySelector('[name="phone"]').value || '').trim();
+      if (!name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return;
+      saveLead({ name: name, email: email, phone: phone });
+      root.removeAttribute('data-gate');
+      renderHistory();
+      els.input.focus();
+    });
+  }
+
   async function send(messageText) {
     const text = (messageText ?? els.input.value).trim();
     if (!text || state.sending) return;
@@ -512,7 +577,7 @@
     state.open = true;
     root.setAttribute('data-open', 'true');
     sessionStorage.setItem(OPEN_KEY, '1');
-    setTimeout(() => els.input.focus(), 200);
+    setTimeout(() => { const gn = root.querySelector('.qd-chat-gate input[name="name"]'); (gn || els.input).focus(); }, 200);
   }
   function closePanel() {
     state.open = false;
@@ -520,8 +585,21 @@
     sessionStorage.removeItem(OPEN_KEY);
   }
 
+  // Start a fresh conversation (keeps the captured lead so the gate isn't shown again).
+  function newChat() {
+    state.history = [];
+    state.sessionId = `qd-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    localStorage.setItem(SESSION_KEY, state.sessionId);
+    persist();
+    resetDebugStages();
+    root.removeAttribute('data-gate');
+    renderHistory();
+    if (state.open) setTimeout(() => els.input.focus(), 50);
+  }
+
   els.launcher.addEventListener('click', () => (state.open ? closePanel() : openPanel()));
   els.close.addEventListener('click', closePanel);
+  els.newChatBtn.addEventListener('click', newChat);
 
   // ─── Input handling ───────────────────────────────────────────────────────
   function autosize() {
@@ -547,7 +625,11 @@
   });
 
   // ─── Initial render ───────────────────────────────────────────────────────
-  renderHistory();
+  if (state.lead || (state.history && state.history.length)) {
+    renderHistory();
+  } else {
+    renderLeadGate();
+  }
   refreshStrings();
   if (sessionStorage.getItem(OPEN_KEY)) openPanel();
 

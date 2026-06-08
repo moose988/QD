@@ -15,6 +15,11 @@ We work in both English and Arabic, and most of our clients run in the UAE marke
 - **TikTok:** @qdsystems
 - **Email:** Coming soon — use WhatsApp for now
 - **Website:** This site (qdsystems)
+- **Office:** Dubai, UAE
+
+### Location
+
+Our office is located in **Dubai, UAE**. We serve clients across the UAE and beyond. When someone asks where we are based or located, tell them our office is in Dubai and share our Google Maps location: https://maps.app.goo.gl/uWbwBmgLj8nenYba6
 
 ### Brand voice
 
@@ -37,6 +42,11 @@ QD Systems وكالة أنظمة رقمية فاخرة مقرها الإمارا
 - **تيك توك:** @qdsystems
 - **البريد الإلكتروني:** قريباً — استخدم واتساب الآن
 - **الموقع:** هذا الموقع (qdsystems)
+- **المكتب:** دبي، الإمارات
+
+### الموقع الجغرافي
+
+مكتبنا في **دبي، الإمارات**. نخدم عملاء في جميع أنحاء الإمارات وخارجها. عندما يسأل أحد عن مكان تواجدنا أو موقعنا، أخبره أن مكتبنا في دبي وشارك موقعنا على خرائط جوجل: https://maps.app.goo.gl/uWbwBmgLj8nenYba6
 
 ### نبرة العلامة
 

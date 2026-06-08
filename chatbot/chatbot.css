@@ -474,3 +474,30 @@
 .qd-chat-root section::before,
 .qd-chat-root section::after{ content: none !important; display: none !important; }
 .qd-chat-header{ padding: 16px 18px !important; align-items: center !important; min-height: 0 !important; }
+
+/* pre-chat lead gate */
+.qd-chat-root[data-gate="true"] .qd-chat-input-wrap,
+.qd-chat-root[data-gate="true"] .qd-chat-chips { display: none !important; }
+.qd-chat-gate { display: flex; flex-direction: column; gap: 12px; padding: 8px 2px 4px; }
+.qd-chat-gate-title { font-family: var(--qd-font-display, inherit); font-size: 16px; font-weight: 600; color: var(--fg1, rgba(244,241,234,0.96)); }
+.qd-chat-gate-sub { font-size: 13px; line-height: 1.5; color: var(--fg2, rgba(244,241,234,0.62)); margin-bottom: 2px; }
+.qd-chat-gate-input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--qd-border, rgba(244,241,234,0.16)); border-radius: 12px; padding: 12px 14px; color: var(--fg1, rgba(244,241,234,0.96)); font: inherit; font-size: 14px; transition: border-color 160ms ease, background 160ms ease; }
+.qd-chat-gate-input::placeholder { color: var(--fg3, rgba(244,241,234,0.4)); }
+.qd-chat-gate-input:focus { outline: none; border-color: rgba(232,232,238,0.42); background: rgba(255,255,255,0.07); }
+.qd-chat-gate-btn { margin-top: 4px; background: linear-gradient(135deg,#ffffff,#ececed 30%,#a9a9b0 60%,#f0f0f3); color: #0a0a0b; border: none; border-radius: 12px; padding: 13px; font: inherit; font-size: 14.5px; font-weight: 600; cursor: pointer; transition: filter 160ms ease, transform 160ms ease; }
+.qd-chat-gate-btn:hover { filter: brightness(1.04); }
+.qd-chat-gate-btn:active { transform: scale(0.99); }
+
+/* new chat button (header) */
+.qd-chat-new {
+  background: transparent;
+  border: 1px solid var(--qd-border-soft);
+  color: var(--qd-fg-2);
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: grid; place-items: center;
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+.qd-chat-new svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.qd-chat-new:hover { background: rgba(255,255,255,0.06); color: var(--qd-bone); border-color: var(--qd-border); }
