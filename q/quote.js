@@ -104,6 +104,7 @@ function renderQuote(data) {
         <div class="name">${escape(data.customer?.businessName || '')}</div>
         <div class="contact">${escape([data.customer?.email, data.customer?.phone].filter(Boolean).join(' · '))}</div>
       </div>
+      <div class="line-items-wrap">
       <table class="line-items">
         <thead>
           <tr>
@@ -123,6 +124,7 @@ function renderQuote(data) {
             </tr>`).join('')}
         </tbody>
       </table>
+      </div>
       <div class="totals-row">
         <div class="totals-box">
           <div class="row"><span>${L(currentLang,'pagesPrice')}</span><span>${formatAED(totals.pagesSubtotal)}</span></div>

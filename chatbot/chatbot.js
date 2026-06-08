@@ -576,12 +576,14 @@
   function openPanel() {
     state.open = true;
     root.setAttribute('data-open', 'true');
+    document.body.classList.add('qd-chat-open');
     sessionStorage.setItem(OPEN_KEY, '1');
     setTimeout(() => { const gn = root.querySelector('.qd-chat-gate input[name="name"]'); (gn || els.input).focus(); }, 200);
   }
   function closePanel() {
     state.open = false;
     root.setAttribute('data-open', 'false');
+    document.body.classList.remove('qd-chat-open');
     sessionStorage.removeItem(OPEN_KEY);
   }
 

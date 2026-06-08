@@ -2269,13 +2269,16 @@
 
     @media (max-width: 767px) {
       body.qd-contact-page .qd-chat-root .qd-chat-launcher {
-        bottom: 20px;
+        bottom: calc(20px + env(safe-area-inset-bottom, 0px));
         right: 16px;
       }
 
       body.qd-contact-page .qd-chat-root .qd-chat-panel {
-        bottom: 20px;
+        bottom: calc(20px + env(safe-area-inset-bottom, 0px));
         right: 16px;
+        left: 16px;
+        width: auto;
+        max-height: min(78dvh, 78vh);
       }
 
       body.qd-contact-page[dir="rtl"] .qd-chat-root .qd-chat-launcher,
@@ -2283,6 +2286,51 @@
         right: auto;
         left: 16px;
       }
+    }
+
+    @media (max-width: 430px) {
+      .qd-step-pill {
+        min-width: 180px;
+      }
+
+      .qd-contact-actions {
+        display: grid;
+        grid-template-columns: 1fr auto;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .qd-step-pill {
+        min-width: 156px;
+        padding: 11px 12px;
+      }
+
+      .qd-hero-copy h1 {
+        font-size: clamp(32px, 11vw, 40px) !important;
+      }
+    }
+
+    body.qd-contact-page .qd-input,
+    body.qd-contact-page .qd-textarea,
+    body.qd-contact-page .qd-counter-input,
+    body.qd-contact-page select.qd-input {
+      font-size: 16px;
+    }
+
+    body.qd-contact-page[dir="rtl"] .qd-input-wrap.has-paste .qd-input,
+    body.qd-contact-page[dir="rtl"] .qd-input-wrap.has-paste .qd-textarea {
+      padding-right: 16px;
+      padding-left: 56px;
+    }
+
+    body.qd-contact-page[dir="rtl"] .qd-paste-icon-btn {
+      right: auto;
+      left: 14px;
+    }
+
+    .qd-step-list-wrap {
+      overscroll-behavior-x: contain;
+      -webkit-overflow-scrolling: touch;
     }
   </style>
 </head>

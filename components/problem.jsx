@@ -101,6 +101,9 @@ const Problem = ({ language = 'en' }) => {
   const reframeRef = useRef(null);
   const reframeSeen = useInView(reframeRef, 0.4);
   const reframeBox = useRef(null);
+  const isMobile = useViewportFlag(760);
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const reframeInteractive = !isMobile && !prefersReducedMotion;
   const pillMouse = useMouseTilt(reframeBox);
 
   return (
@@ -136,9 +139,9 @@ const Problem = ({ language = 'en' }) => {
         </div>
 
         <div ref={reframeRef} style={{ marginTop:96,textAlign:'center',opacity:reframeSeen?1:0,transform:reframeSeen?'translateY(0)':'translateY(30px)',transition:'opacity 800ms ease,transform 800ms cubic-bezier(0.22,1,0.36,1)' }}>
-          <div ref={reframeBox} style={{ fontFamily:'var(--font-display)',fontSize:'clamp(24px,2.6vw,36px)',lineHeight:1.3,fontWeight:500,letterSpacing:'-0.02em',maxWidth:880,margin:'0 auto',display:'inline-block',padding:'12px 8px',transformStyle:'preserve-3d',transform:`perspective(1000px) rotateX(${pillMouse.y*-3}deg) rotateY(${pillMouse.x*4}deg)`,transition:'transform 200ms ease-out',color:'var(--bone)' }}>
+          <div ref={reframeBox} style={{ fontFamily:'var(--font-display)',fontSize:'clamp(24px,2.6vw,36px)',lineHeight:1.3,fontWeight:500,letterSpacing:'-0.02em',maxWidth:880,margin:'0 auto',display:'inline-block',padding:'12px 8px',transformStyle:reframeInteractive?'preserve-3d':'flat',transform:reframeInteractive?`perspective(1000px) rotateX(${pillMouse.y*-3}deg) rotateY(${pillMouse.x*4}deg)`:'none',transition:'transform 200ms ease-out',color:'var(--bone)' }}>
             {copy.reframeA}{' '}
-            <span style={{ color:'var(--obsidian)',background:'var(--acid)',padding:'2px 14px',display:'inline-block',borderRadius:4,transform:reframeSeen?`translate(${pillMouse.x*8}px,${pillMouse.y*6}px) scale(1) rotate(${pillMouse.x*2}deg)`:'translate(0,0) scale(0)',transition:reframeSeen?'transform 200ms ease-out':'transform 700ms cubic-bezier(0.34,1.56,0.64,1) 700ms',boxShadow:'0 8px 24px rgba(232,232,238,0.3)' }}>{copy.reframeB}</span>
+            <span style={{ color:'var(--obsidian)',background:'var(--acid)',padding:'2px 14px',display:'inline-block',borderRadius:4,transform:reframeSeen?(reframeInteractive?`translate(${pillMouse.x*8}px,${pillMouse.y*6}px) scale(1) rotate(${pillMouse.x*2}deg)`:'scale(1)'):'translate(0,0) scale(0)',transition:reframeSeen?'transform 200ms ease-out':'transform 700ms cubic-bezier(0.34,1.56,0.64,1) 700ms',boxShadow:'0 8px 24px rgba(232,232,238,0.3)' }}>{copy.reframeB}</span>
           </div>
         </div>
       </div>

@@ -1,8 +1,9 @@
 .qd-admin-drawer {
   width: min(1180px, calc(100vw - 40px));
-  max-height: 92vh;
+  max-height: min(92vh, 92dvh);
   padding: 0 0 32px;
   border-radius: 24px;
+  -webkit-overflow-scrolling: touch;
 }
 
 .qd-admin-drawer-close-floating {
@@ -200,7 +201,7 @@
 @media (max-width: 768px) {
   .qd-admin-drawer {
     width: calc(100% - 24px);
-    max-height: 94vh;
+    max-height: min(94vh, 94dvh);
     padding-bottom: 24px;
   }
 
@@ -216,5 +217,32 @@
   .qd-admin-drawer-hero {
     padding-left: 16px;
     padding-right: 16px;
+    position: relative;
+  }
+
+  .qd-admin-drawer-close-floating {
+    top: 12px;
+    right: 12px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .qd-admin-drawer-action-strip .qd-admin-action-primary,
+  .qd-admin-drawer-action-strip .qd-admin-action-secondary,
+  .qd-admin-drawer-action-strip .qd-admin-action-call,
+  .qd-admin-drawer-action-strip .qd-admin-action-whatsapp,
+  .qd-admin-drawer-action-strip .qd-admin-action-danger {
+    flex: 1 1 calc(50% - 5px);
+    min-height: 48px;
+  }
+}
+
+@media (max-width: 430px) {
+  .qd-admin-drawer-action-strip .qd-admin-action-primary,
+  .qd-admin-drawer-action-strip .qd-admin-action-secondary,
+  .qd-admin-drawer-action-strip .qd-admin-action-call,
+  .qd-admin-drawer-action-strip .qd-admin-action-whatsapp,
+  .qd-admin-drawer-action-strip .qd-admin-action-danger {
+    flex: 1 1 100%;
   }
 }

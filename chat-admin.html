@@ -16,7 +16,29 @@
       min-height: calc(100vh - 80px);
     }
     @media (max-width: 880px) {
-      .qd-chat-admin { grid-template-columns: 1fr; }
+      .qd-chat-admin {
+        grid-template-columns: 1fr;
+        padding: 16px;
+        gap: 16px;
+        min-height: auto;
+      }
+
+      .qd-chat-admin-list,
+      .qd-chat-admin-detail {
+        max-height: none;
+      }
+
+      .qd-chat-admin-field {
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+
+      .qd-chat-admin-actions a {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
     }
     .qd-chat-admin-tabs {
       display: flex;

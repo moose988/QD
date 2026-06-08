@@ -15,7 +15,9 @@ body {
 }
 
 body.qd-admin-page {
+  min-height: 100dvh;
   min-height: 100vh;
+  overflow-x: clip;
   background:
     radial-gradient(circle at top left, rgba(232, 232, 238, 0.1), transparent 24%),
     radial-gradient(circle at bottom right, rgba(232, 232, 238, 0.05), transparent 24%),
@@ -903,8 +905,12 @@ body.qd-admin-page.qd-modal-open {
 }
 
 .qd-admin-table-wrap {
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: visible;
   border-radius: 20px;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  max-width: 100%;
 }
 
 .qd-admin-table {
@@ -1132,9 +1138,10 @@ body.qd-admin-page.qd-modal-open {
   position: relative;
   z-index: 21;
   width: min(1080px, calc(100vw - 56px));
-  max-height: 88vh;
+  max-height: min(88vh, 88dvh);
   padding: 20px 20px 28px;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   border-radius: 28px;
   background:
     radial-gradient(circle at top center, rgba(232, 232, 238, 0.08), transparent 32%),
@@ -1731,15 +1738,20 @@ body.qd-admin-page.qd-modal-open {
 
   .qd-admin-drawer {
     width: calc(100% - 24px);
-    max-height: 92vh;
+    max-height: min(92vh, 92dvh);
     padding: 16px 14px 24px;
     border-radius: 22px;
   }
 
   .qd-quote-drawer {
     width: calc(100vw - 20px);
-    max-height: 94vh;
+    max-height: min(94vh, 94dvh);
     border-radius: 18px;
+  }
+
+  .qd-admin-modal-overlay {
+    padding: 12px;
+    align-items: flex-end;
   }
 
   .qd-quote-head,
@@ -1806,7 +1818,7 @@ body.qd-admin-page.qd-modal-open {
   right: auto; bottom: auto;
   transform: translate(-50%, -50%);
   width: min(920px, calc(100vw - 40px));
-  max-height: min(88vh, 980px);
+  max-height: min(88vh, 88dvh, 980px);
   background: #ffffff;
   z-index: 201;
   border-radius: 24px;
@@ -2045,5 +2057,42 @@ body.qd-admin-page.qd-modal-open {
 @media (max-width: 768px) {
   .qd-admin-outreach-action-links {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1024px) {
+  .qd-admin-table-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .qd-admin-outreach-toolbar {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .qd-quote-body {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .qd-quote-line-items {
+    width: 100%;
+    min-width: 640px;
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .qd-admin-kpi-card:hover,
+  .qd-admin-dashboard-section-card:hover,
+  .qd-admin-budget-project:hover,
+  .qd-admin-row-button:hover,
+  .qd-admin-action-primary:hover,
+  .qd-admin-action-secondary:hover,
+  .qd-admin-action-call:hover,
+  .qd-admin-action-whatsapp:hover,
+  .qd-admin-action-danger:hover,
+  .qd-admin-drawer-close:hover {
+    transform: none;
   }
 }
