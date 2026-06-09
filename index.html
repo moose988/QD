@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>QD Systems · Websites & systems for UAE businesses</title>
-<link rel="icon" href="assets/favicon.svg">
+<link rel="icon" href="assets/qd-logo.jpeg" type="image/jpeg">
+<link rel="apple-touch-icon" href="assets/qd-logo.jpeg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -23,7 +24,8 @@ body.modal-open{overflow:hidden;touch-action:none}
 h1,h2,h3,.disp{font-family:"Space Grotesk",sans-serif;line-height:1.03;letter-spacing:-.02em}
 .wrap{max-width:1200px;margin:0 auto;padding:0 28px}
 a{color:inherit;text-decoration:none}
-.metal{background:var(--silver-text);-webkit-background-clip:text;background-clip:text;color:transparent}
+.metal{background:var(--silver-text);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+.hero-line{display:block}
 
 /* intro */
 #intro{position:fixed;inset:0;z-index:90;background:var(--bg);display:grid;place-items:center;transition:opacity .45s var(--ease),visibility .45s}
@@ -308,7 +310,7 @@ footer{position:relative;z-index:5;padding:40px 0 96px;color:var(--dim);font-siz
     display:block;
     padding:108px 0 52px;
     min-height:auto;
-    overflow:hidden;
+    overflow:visible;
   }
   .qd-hero::before{
     background:linear-gradient(180deg,rgba(7,7,8,.45) 0%,rgba(7,7,8,.82) 38%,rgba(7,7,8,.97) 62%,var(--bg) 100%)!important;
@@ -342,6 +344,16 @@ footer{position:relative;z-index:5;padding:40px 0 96px;color:var(--dim);font-siz
     margin:12px 0 18px;
     letter-spacing:-.03em;
   }
+  h1.hero .hero-line+.hero-line{margin-top:.06em}
+  h1.hero .metal .word{
+    background:var(--silver-text);
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+    color:transparent;
+  }
+  h1.hero .word{filter:none}
+  body.ready h1.hero .word{opacity:1;transform:none}
   .checks{margin:0 0 20px;gap:10px}
   .check{font-size:13.5px;line-height:1.52}
   .cta-row{flex-direction:column;gap:10px;width:100%}
@@ -684,8 +696,9 @@ body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:b
     <div class="hero-col">
       <span class="avail rise"><i></i> Now booking · we take a limited number of builds at a time</span>
       <h1 class="hero">
-        <span class="metal shine"><span class="word">Websites</span> <span class="word">that</span> <span class="word">win.</span></span><br>
-        <span class="metal"><span class="word">Systems</span> <span class="word">that</span> <span class="word">run</span><br><span class="word">your</span> <span class="word">business.</span></span>
+        <span class="metal shine hero-line"><span class="word">Websites</span> <span class="word">that</span> <span class="word">win.</span></span>
+        <span class="metal hero-line"><span class="word">Systems</span> <span class="word">that</span> <span class="word">run</span></span>
+        <span class="metal hero-line"><span class="word">your</span> <span class="word">business.</span></span>
       </h1>
       <div class="checks rise">
         <div class="check"><span class="ic">✓</span> World-class custom websites — and the systems behind them. Never templates.</div>

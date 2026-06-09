@@ -4,17 +4,28 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>QD SYSTEMS Card</title>
-  <meta name="theme-color" content="#030303">
-  <link rel="icon" href="/assets/favicon.svg">
+  <meta name="theme-color" content="#070708">
+  <link rel="icon" href="/assets/qd-logo.jpeg" type="image/jpeg">
+  <link rel="apple-touch-icon" href="/assets/qd-logo.jpeg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="/card/card.css">
 </head>
 <body>
-  <header class="card-header">
-    <span class="card-header-logo">QD SYSTEMS</span>
-    <a class="card-header-url" href="https://qdsystems.ae" target="_blank" rel="noreferrer noopener">QDSYSTEMS.AE</a>
-  </header>
+  <div class="card-bg-fx" aria-hidden="true">
+    <div class="card-bg-glow a"></div>
+    <div class="card-bg-glow b"></div>
+    <div class="card-bg-grid"></div>
+  </div>
+  <div class="card-grain" aria-hidden="true"></div>
 
-  <div class="card-glow" aria-hidden="true"></div>
+  <header class="card-header">
+    <a class="card-brand" href="https://qdsystems.ae">
+      <img src="/assets/qd-logo.jpeg" alt="QD" width="38" height="38" decoding="async">
+      <b>QD&nbsp;SYSTEMS</b>
+    </a>
+    <a class="card-header-url" href="https://qdsystems.ae" target="_blank" rel="noreferrer noopener">qdsystems.ae</a>
+  </header>
 
   <main class="card-container">
     <div id="card-skeleton">
@@ -27,7 +38,6 @@
       <div class="skeleton-line" style="width: 100%; height: 58px; border-radius: 12px;"></div>
       <div class="skeleton-line" style="width: 100%; height: 58px; border-radius: 12px;"></div>
       <div class="skeleton-line" style="width: 100%; height: 50px; border-radius: 12px;"></div>
-      <div class="skeleton-line" style="width: 100%; height: 54px; border-radius: 12px;"></div>
     </div>
 
     <div id="card-content" style="display: none; flex-direction: column; align-items: center; width: 100%;"></div>

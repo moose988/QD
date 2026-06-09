@@ -8,8 +8,6 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const SITE_URL = 'https://qdsystems.ae';
-const DEFAULT_CTA_LABEL = 'Start a Build';
-const DEFAULT_CTA_URL = '/contact';
 const skeletonEl = document.getElementById('card-skeleton');
 const contentEl = document.getElementById('card-content');
 const emptyEl = document.getElementById('card-empty');
@@ -102,21 +100,18 @@ const renderAvatar = (card) => {
   if (card.avatar) {
     return `<img src="${escapeHtml(card.avatar)}" alt="${escapeHtml(card.name)}">`;
   }
-  return `${escapeHtml(getInitials(card.name))}`;
+  return `<span class="card-avatar-initials">${escapeHtml(getInitials(card.name))}</span>`;
 };
 
 const renderCard = (id, rawCard) => {
   const card = {
     company: 'QD SYSTEMS',
     website: SITE_URL,
-    ctaLabel: DEFAULT_CTA_LABEL,
-    ctaUrl: DEFAULT_CTA_URL,
     ...rawCard,
     id
   };
   const links = buildCardLinks(card);
   const whatsappPhone = normalizePhoneForWhatsapp(card.phone);
-  const ctaHref = /^https?:\/\//i.test(card.ctaUrl || '') ? card.ctaUrl : new URL(card.ctaUrl || DEFAULT_CTA_URL, SITE_URL).toString();
 
   document.title = `${card.name} | QD SYSTEMS`;
 
@@ -145,7 +140,6 @@ const renderCard = (id, rawCard) => {
     </div>
 
     <button class="card-save-btn card-animate" type="button" id="card-save-btn">${iconMarkup.contact}<span>Save to Contacts</span></button>
-    <a class="card-cta-btn card-animate" id="card-cta-btn" href="${escapeHtml(ctaHref)}" target="${/^https?:\/\//i.test(card.ctaUrl || '') ? '_blank' : '_self'}" rel="noreferrer noopener">${escapeHtml(card.ctaLabel || DEFAULT_CTA_LABEL)}</a>
   `;
 
   const avatarHost = document.getElementById('card-avatar-el');
