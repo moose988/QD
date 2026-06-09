@@ -20,6 +20,7 @@
       "what_we_built_ru": "Кастомный бэкенд на Firebase для отслеживания заказов в реальном времени, оптимизированный под мобильные интерфейс бронирования, премиальный каталог, клиентский дашборд.",
       "stack": ["Firebase", "Realtime tracking", "Mobile-first responsive", "Inventory system", "Booking flows"],
       "highlights": ["Real-time order tracking", "Mobile optimized", "Firebase backend"],
+      "highlights_ar": ["تتبع مباشر للطلبات", "محسّن للجوال", "خلفية Firebase"],
       "highlights_zh": ["实时订单追踪", "移动端优化", "Firebase 后端"],
       "highlights_ru": ["Отслеживание заказов в реальном времени", "Оптимизация под мобильные", "Бэкенд на Firebase"],
       "status": "Live"
@@ -29,7 +30,7 @@
       "name": "Evo Creation",
       "category": "Luxury Events",
       "category_ar": "فعاليات فاخرة",
-      "category_zh": "奢华活动",
+      "category_zh": "高端活动",
       "category_ru": "Люксовые мероприятия",
       "url": "https://evocreation.ae/",
       "domain": "evocreation.ae",
@@ -44,6 +45,7 @@
       "what_we_built_ru": "Кинематографичная люкс-UI-система, насыщенная анимацией презентация бренда, генерация заявок с упором на конверсию, полностью адаптивный премиальный опыт.",
       "stack": ["Luxury UI system", "Motion design", "Responsive", "Brand-first", "Lead generation"],
       "highlights": ["Cinematic experience", "High-end UI system", "Conversion focused"],
+      "highlights_ar": ["تجربة سينمائية", "نظام واجهة راقٍ", "موجّه للتحويل"],
       "highlights_zh": ["电影级体验", "高端界面系统", "以转化为导向"],
       "highlights_ru": ["Кинематографичный опыт", "Высококлассная UI-система", "Упор на конверсию"],
       "status": "Live"
@@ -51,6 +53,6 @@
   ],
   "summary_en": "We currently have 2 live client deployments serving real customers in the UAE market. Both are customer-facing systems running 24/7. More projects in production — ask us for current availability.",
   "summary_ar": "لدينا حالياً مشروعان حيّان لعملاء يخدمان عملاء حقيقيين في السوق الإماراتي. كلاهما أنظمة تواجه العملاء وتعمل على مدار الساعة. مشاريع أخرى قيد التنفيذ — اسألنا عن التوفر الحالي.",
-  "summary_zh": "我们目前有 2 个已上线的客户项目，在阿联酋市场服务真实客户。两者都是面向客户、全天候 24/7 运行的系统。还有更多项目正在开发中——欢迎询问当前的可承接情况。",
+  "summary_zh": "我们目前有 2 个已上线的客户项目，正在为阿联酋市场的真实客户提供服务。两者都是面向客户、全天候 24/7 运行的系统。还有更多项目正在开发中——欢迎询问当前的可承接情况。",
   "summary_ru": "Сейчас у нас 2 запущенных клиентских проекта, обслуживающих реальных клиентов на рынке ОАЭ. Оба — клиентские системы, работающие 24/7. В разработке ещё проекты — спросите о текущей доступности."
 }

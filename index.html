@@ -959,7 +959,7 @@ const fine=matchMedia('(pointer:fine)').matches;
 const coarse=matchMedia('(hover:none),(pointer:coarse)').matches;
 let mx=.5,my=.5;
 window.addEventListener('pointermove',e=>{mx=e.clientX/innerWidth;my=e.clientY/innerHeight;if(fine&&cg){cg.style.left=e.clientX+'px';cg.style.top=e.clientY+'px';}},{passive:true});
-if(!coarse.matches)document.querySelectorAll('[data-magnetic]').forEach(b=>{
+if(!coarse)document.querySelectorAll('[data-magnetic]').forEach(b=>{
   b.addEventListener('pointermove',e=>{const r=b.getBoundingClientRect();b.style.transform=`translate(${(e.clientX-r.left-r.width/2)*.25}px,${(e.clientY-r.top-r.height/2)*.4}px)`;});
   b.addEventListener('pointerleave',()=>b.style.transform='');
 });

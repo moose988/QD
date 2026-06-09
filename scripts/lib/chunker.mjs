@@ -121,7 +121,7 @@ export function chunkPortfolio(json) {
         p.description_ar,
         `ما بنيناه: ${p.what_we_built_ar}`,
         `التقنيات: ${(p.stack || []).join('، ')}.`,
-        `النقاط البارزة: ${(p.highlights || []).join('؛ ')}.`,
+        `النقاط البارزة: ${(p.highlights_ar || p.highlights || []).join('؛ ')}.`,
         `الحالة: ${p.status === 'Live' ? 'مباشر' : p.status}.`,
       ].filter(Boolean).join('\n\n'),
     });

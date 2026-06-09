@@ -300,7 +300,7 @@
         intro: [{ who: 'them', t: '你好！这周末有能坐 200 位客人的圆桌吗？' }, { who: 'us', t: '有的——周六有 25 张圆桌可用。需要我先帮你留着吗？' }, { who: 'them', t: '麻烦了。能安排人给我打电话吗？' }, { who: 'us', t: '搞定 ✅ 已为你预约今天下午 4:00 回电。' }, { book: '回电已自动预约——就在你阅读这段话的时候。' }],
         avail: [{ who: 'us', t: '你看的是哪一天？' }, { who: 'them', t: '下周五晚上。' }, { who: 'us', t: '周五晚上有空档。要我先帮你留位并发报价吗？' }, { book: '周五时段已保留——报价马上送达。' }],
         quote: [{ who: 'us', t: '告诉我套餐和人数，我立刻报价。' }, { who: 'them', t: '黄金套餐，150 位。' }, { who: 'us', t: '黄金套餐 · 150 位 → 全包 18,500 迪拉姆。要锁定吗？' }, { book: '即时报价——无需等待邮件。' }],
-        lang: [{ who: 'them', t: '你们能做中文网站吗？' }, { who: 'us', t: '当然——我们用中文和英文搭建，并完整支持多语言切换。' }, { book: '多语言——原生支持。' }]
+        lang: [{ who: 'them', t: '你们能做中文版网站吗？' }, { who: 'us', t: '可以——我们的网站默认支持英语和阿拉伯语双语，中文等其他语言可按需添加。' }, { book: '多语言支持——按需提供。' }]
       },
       chips: [{ k: 'avail', t: '📅 查询空档' }, { k: 'quote', t: '💸 获取即时报价' }, { k: 'lang', t: '🌐 需要中文版？' }],
       bookChip: '预约免费通话 →'
@@ -310,7 +310,7 @@
         intro: [{ who: 'them', t: 'Здравствуйте! Есть круглые столы на 200 гостей в эти выходные?' }, { who: 'us', t: 'Да — 25 круглых столов свободны в субботу. Забронировать для вас?' }, { who: 'them', t: 'Да, пожалуйста. И может кто-нибудь позвонить мне?' }, { who: 'us', t: 'Готово ✅ Записал обратный звонок на сегодня в 16:00.' }, { book: 'Обратный звонок забронирован автоматически — пока вы это читали.' }],
         avail: [{ who: 'us', t: 'На какую дату смотрите?' }, { who: 'them', t: 'Следующая пятница, вечер.' }, { who: 'us', t: 'В пятницу вечером есть места. Забронировать и прислать смету?' }, { book: 'Слот на пятницу зарезервирован — смета в пути.' }],
         quote: [{ who: 'us', t: 'Назовите пакет и число гостей — посчитаю мгновенно.' }, { who: 'them', t: 'Золотой пакет, 150 гостей.' }, { who: 'us', t: 'Золотой · 150 гостей → 18 500 AED, всё включено. Зафиксировать?' }, { book: 'Мгновенная смета — без ожидания письма.' }],
-        lang: [{ who: 'them', t: 'Вы делаете сайты на русском?' }, { who: 'us', t: 'Конечно — собираем на русском и английском с полной поддержкой нескольких языков.' }, { book: 'Несколько языков — изначально.' }]
+        lang: [{ who: 'them', t: 'Вы можете сделать сайт на русском?' }, { who: 'us', t: 'Да — наши сайты по умолчанию двуязычные (английский / арабский), а русский и другие языки добавляем по запросу.' }, { book: 'Мультиязычность — по запросу.' }]
       },
       chips: [{ k: 'avail', t: '📅 Проверить даты' }, { k: 'quote', t: '💸 Мгновенная смета' }, { k: 'lang', t: '🌐 Нужно на русском?' }],
       bookChip: 'Бесплатный звонок →'
@@ -438,6 +438,9 @@
       '[dir="rtl"] .modal select{background-position:18px 19px,13px 19px}',
       '[dir="rtl"] .iwork-result{border-left:0;border-right:2px solid rgba(53,210,126,.45);padding-left:0;padding-right:10px}',
       '[dir="rtl"] .qform{text-align:right}',
+      /* Keep the scrolling keyword ribbon LTR in Arabic so its -50% loop stays seamless
+         (each Arabic word still renders RTL internally; only the marquee flow is LTR). */
+      '[dir="rtl"] .ghost .track,[dir="rtl"] .marquee .track{direction:ltr}',
       /* Hero mirror for Arabic: text anchored on the RIGHT, 3D object on the LEFT,
          readability gradient flipped to sit under the right-hand text. */
       '[dir="rtl"] .hero-col{align-items:flex-start;text-align:right}',

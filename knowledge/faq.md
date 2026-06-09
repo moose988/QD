@@ -3,7 +3,7 @@
 ## EN
 
 ### How long does a build take?
-Our average build time is 5–7 days for standard projects. Larger custom systems (booking platforms, complex dashboards) typically take 2–4 weeks. We'll give you a real timeline after the intake form.
+It depends on scope — and we give you the real number up front. Typically: a working demo in 1–3 hours, a full website in under 24 hours, and a complete custom system in about 3 days (usually 1–3). Larger, more complex builds can take longer; we commit to your exact timeline in writing before we start.
 
 ### How much does a website cost?
 We don't list fixed prices because every build is custom. Pricing depends on scope, integrations, and timeline. After the intake form we send a clear, itemized quote with no surprises. For a fast ballpark, WhatsApp +971 50 534 9907.
@@ -48,7 +48,7 @@ Yes, on request. Most of our work is public, but we're happy to sign an NDA befo
 ## AR
 
 ### كم تستغرق مدة البناء؟
-متوسط مدة البناء لدينا 5–7 أيام للمشاريع القياسية. الأنظمة المخصصة الأكبر (منصات حجز، لوحات معقدة) عادة تأخذ 2–4 أسابيع. سنعطيك جدولاً زمنياً حقيقياً بعد نموذج البداية.
+يعتمد على النطاق — ونعطيك الرقم الحقيقي مقدماً. عادةً: نموذج عملي خلال ١–٣ ساعات، موقع كامل خلال أقل من ٢٤ ساعة، ونظام مخصص متكامل خلال نحو ٣ أيام (غالباً ١–٣). المشاريع الأكبر والأكثر تعقيداً قد تأخذ وقتاً أطول؛ نلتزم بجدولك الزمني بدقة وكتابياً قبل أن نبدأ.
 
 ### كم تكلفة الموقع؟
 لا ننشر أسعاراً ثابتة لأن كل مشروع مخصص. السعر يعتمد على النطاق والتكاملات والمدة. بعد نموذج البداية نرسل عرض سعر واضح ومفصّل، بدون مفاجآت. لتقدير سريع راسلنا على واتساب +971 50 534 9907.
@@ -93,7 +93,7 @@ Yes, on request. Most of our work is public, but we're happy to sign an NDA befo
 ## ZH
 
 ### 一个项目需要多久？
-标准项目的平均开发时间为 5–7 天。更大的定制系统（预订平台、复杂看板）通常需要 2–4 周。填写咨询表单后，我们会给你一个真实的时间表。
+取决于范围——我们会预先给你真实的数字。通常：1–3 小时出可用演示，24 小时内出完整网站，约 3 天（一般 1–3 天）出完整定制系统。更大、更复杂的项目可能需要更长时间；开工前我们会以书面形式承诺你的确切时间表。
 
 ### 一个网站要多少钱？
 我们不列固定价格，因为每个项目都是定制的。价格取决于范围、集成和时间表。填写咨询表单后，我们会发送清晰、逐项列明、没有意外的报价。想要快速估算，请 WhatsApp +971 50 534 9907。
@@ -128,7 +128,7 @@ Yes, on request. Most of our work is public, but we're happy to sign an NDA befo
 或直接通过 WhatsApp 联系我们 +971 50 534 9907——最快的方式。
 
 ### 如果我不确定自己到底需要什么怎么办？
-没关系——带着问题来，而不是带着规格说明。咨询表单里有"我还不确定"的选项。我们会在通话中确定合适的系统。
+没关系——带着问题来，而不是带着规格说明。咨询表单里有“我还不确定”的选项。我们会在通话中确定合适的系统。
 
 ### 你们签保密协议（NDA）吗？
 签，应要求即可。我们大多数工作是公开的，但在讨论敏感细节前我们很乐意签署 NDA。
@@ -138,7 +138,7 @@ Yes, on request. Most of our work is public, but we're happy to sign an NDA befo
 ## RU
 
 ### Сколько занимает разработка?
-Среднее время разработки — 5–7 дней для стандартных проектов. Более крупные кастомные системы (платформы бронирования, сложные дашборды) обычно занимают 2–4 недели. Реальные сроки мы назовём после формы заявки.
+Зависит от объёма — реальную цифру называем сразу. Обычно: рабочее демо за 1–3 часа, полный сайт менее чем за 24 часа, и готовая кастомная система примерно за 3 дня (как правило 1–3). Более крупные и сложные проекты могут занять дольше; перед стартом письменно фиксируем точные сроки.
 
 ### Сколько стоит сайт?
 Мы не публикуем фиксированные цены, потому что каждый проект индивидуален. Цена зависит от объёма, интеграций и сроков. После формы заявки присылаем понятную детализированную смету без сюрпризов. Для быстрой оценки — WhatsApp +971 50 534 9907.

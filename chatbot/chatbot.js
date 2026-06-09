@@ -73,8 +73,8 @@
       gPhone: 'واتساب / رقم الهاتف (اختياري)',
       gStart: 'ابدأ المحادثة →',
       greeting:
-        'مرحباً — أنا المساعد الذكي لـ QD. أقدر أرد على أسئلتك عن خدماتنا وعمليتنا وأعمالنا والمدد الزمنية — وأوصلك بالفريق إذا كنت جاهزاً للبدء. على شو تشتغل؟',
-      chips: ['شو تبنون؟', 'كم تأخذ مدة المشروع؟', 'اعرض أعمالكم', 'أحتاج موقع'],
+        'مرحباً — أنا المساعد الذكي لـ QD. أستطيع الإجابة عن أسئلتك حول خدماتنا وطريقة عملنا وأعمالنا والمدد الزمنية — وأوصلك بالفريق إذا كنت جاهزاً للبدء. ما الذي تعمل عليه؟',
+      chips: ['ماذا تبنون؟', 'كم تستغرق مدة المشروع؟', 'اعرض أعمالكم', 'أحتاج موقعاً'],
       leadSaved: 'تم — بياناتك وصلت لفريق QD. سنتواصل معك قريباً.',
       errorNetwork: 'انقطاع بسيط في الاتصال. جرّب مرة ثانية، أو راسلنا واتساب +971 50 534 9907.',
     },
@@ -124,12 +124,15 @@
 
   const SUPPORTED_LANGS = ['en', 'ar', 'zh', 'ru'];
 
+  // Returns a language code ONLY when the text carries a clear script signal,
+  // otherwise null — so a contactless message (e.g. a phone number) never
+  // resets an in-progress Chinese/Russian/Arabic chat back to English.
   function detectLang(text) {
     const t = text || '';
     if (/[؀-ۿ]/.test(t)) return 'ar';      // Arabic
     if (/[一-鿿]/.test(t)) return 'zh';      // Chinese (CJK)
     if (/[Ѐ-ӿ]/.test(t)) return 'ru';      // Russian (Cyrillic)
-    return 'en';
+    return null;
   }
 
   function getPageLang() {
@@ -434,9 +437,10 @@
     const text = (messageText ?? els.input.value).trim();
     if (!text || state.sending) return;
 
-    // Switch language to match the user if they switched
+    // Switch language to match the user only on a clear signal; an ambiguous
+    // message (digits, a bare email) keeps the current conversation language.
     const detected = detectLang(text);
-    if (detected !== state.lang) {
+    if (detected && detected !== state.lang) {
       state.lang = detected;
       refreshStrings();
     }

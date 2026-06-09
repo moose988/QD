@@ -442,7 +442,10 @@ export default async function handler(req, res) {
           lastMessage: message,
           lastResponse: fullText,
           lastUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
-          hasLead: leadSaved ? true : admin.firestore.FieldValue.increment(0),
+          // Only set hasLead when a lead actually saved. (Writing increment(0)
+          // on a turn after the field is already boolean `true` throws in
+          // Firestore and would silently kill all later conversation logging.)
+          ...(leadSaved ? { hasLead: true } : {}),
         },
         { merge: true }
       );
