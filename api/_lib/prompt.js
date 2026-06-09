@@ -177,8 +177,8 @@ export const LEAD_TOOL = {
         },
         language: {
           type: 'string',
-          enum: ['en', 'ar'],
-          description: 'Language they were chatting in.',
+          enum: ['en', 'ar', 'zh', 'ru'],
+          description: 'Language they were chatting in (en, ar, zh, or ru).',
         },
       },
       required: ['contact', 'contact_type', 'project_brief', 'language'],

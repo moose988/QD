@@ -667,6 +667,23 @@ body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:b
 @supports not ((-webkit-background-clip:text) or (background-clip:text)){.metal,.stat .n,.badge .v,.step .num,.ghost b.fill{color:#e8e8ec!important;-webkit-text-fill-color:#e8e8ec!important}}
 @media(prefers-reduced-motion:reduce){.reveal,.rise{opacity:1;transform:none}.shine::after,.glow,.btn-silver.pulse,.scrollcue .m::after,.scanline,.marquee .track,.ghost .track,#intro .mk::after,.iwork-live i,.iwork-skeleton-bar,.iwork-skeleton-block,.iwork-skeleton-lines span{animation:none}.iwork-card.is-hovered{transform:none}}
 @media(hover:none),(pointer:coarse){.badge:hover,.offer:hover,.qchip:hover,.need:hover,.btn-silver:hover,.btn-ghost:hover,.iwork-card.is-hovered{transform:none;box-shadow:inherit}.cursor-glow{display:none!important}}
+/* ── Large-screen fitment (placed last so it wins source-order over the base rules) ──
+   The hero .wrap is a flex item that otherwise shrinks to its content and centers,
+   stranding it in a sea of black on wide monitors. Force it to fill, scale the type,
+   and widen the section container so nothing looks lost on big displays. */
+@media(min-width:1500px){
+  .qd-hero .wrap{width:100%;max-width:min(1640px,92vw)}
+  .hero-col{max-width:780px}
+  h1.hero{font-size:clamp(3rem,3.2vw,4.4rem)}
+  .check{font-size:15px}
+  .wrap{max-width:1340px}
+}
+@media(min-width:2000px){
+  .qd-hero .wrap{max-width:min(2040px,90vw)}
+  .hero-col{max-width:900px}
+  h1.hero{font-size:clamp(3.6rem,3vw,5rem)}
+  .wrap{max-width:1480px}
+}
 </style>
 </head>
 <body>
@@ -1133,7 +1150,9 @@ if(bForm)bForm.addEventListener('submit',async e=>{e.preventDefault();
     const layout=glLayout();
     if(layout){
       const fullWidth=innerWidth*layout.oldWidth;
-      const shiftRight=innerWidth*0.055;
+      // In RTL the canvas sits on the LEFT, so shift the object the other way.
+      const rtl=document.documentElement.getAttribute('dir')==='rtl';
+      const shiftRight=innerWidth*0.055*(rtl?-1:1);
       camera.setViewOffset(fullWidth,h,-shiftRight,0,w,h);
     }else{
       camera.clearViewOffset();
@@ -1142,6 +1161,7 @@ if(bForm)bForm.addEventListener('submit',async e=>{e.preventDefault();
     camera.updateProjectionMatrix();
   }
   resize(); addEventListener('resize',resize);
+  addEventListener('qd:langchange',()=>setTimeout(resize,60));
   let t=0,tx=0,ty=0;
   (function loop(){ requestAnimationFrame(loop); t+=0.016;
     knot.rotation.y+=mobileGl?0.0035:0.005; knot.rotation.x+=mobileGl?0.0015:0.002;

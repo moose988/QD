@@ -438,11 +438,14 @@
       '[dir="rtl"] .modal select{background-position:18px 19px,13px 19px}',
       '[dir="rtl"] .iwork-result{border-left:0;border-right:2px solid rgba(53,210,126,.45);padding-left:0;padding-right:10px}',
       '[dir="rtl"] .qform{text-align:right}',
-      /* keep the hero column visually on the dark/left side; only its text reads RTL */
-      '[dir="rtl"] .qd-hero .wrap{direction:ltr}',
-      '[dir="rtl"] .hero-col{direction:rtl;text-align:right}',
+      /* Hero mirror for Arabic: text anchored on the RIGHT, 3D object on the LEFT,
+         readability gradient flipped to sit under the right-hand text. */
+      '[dir="rtl"] .hero-col{align-items:flex-start;text-align:right}',
       '[dir="rtl"] .cta-row,[dir="rtl"] .speed,[dir="rtl"] .checks{justify-content:flex-start}',
-      '@media(max-width:768px){[dir="rtl"] .qd-hero .wrap{direction:rtl}}'
+      '[dir="rtl"] .qd-hero::before{transform:scaleX(-1)}',
+      '@media(min-width:981px){[dir="rtl"] #gl{left:auto;right:34vw}}',
+      '@media(min-width:981px) and (max-width:1280px){[dir="rtl"] #gl{left:auto;right:52vw}}',
+      '@media(min-width:981px) and (max-width:1100px){[dir="rtl"] #gl{left:auto;right:46vw}}'
     ].join('\n');
     var s = document.createElement('style');
     s.id = 'qd-i18n-styles';

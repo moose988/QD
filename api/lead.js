@@ -46,7 +46,7 @@ export default async function handler(req, res) {
       business_type: '',
       project_brief: 'Pre-chat capture — visitor opened the assistant.',
       urgency: 'unknown',
-      language: body.language === 'ar' ? 'ar' : 'en',
+      language: ['ar', 'zh', 'ru'].includes(body.language) ? body.language : 'en',
       source: 'chatbot-prechat',
       sessionId: (body.sessionId || '').toString().slice(0, 80),
       sourceUrl: (body.pageUrl || '').toString().slice(0, 400),
