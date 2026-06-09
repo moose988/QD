@@ -65,6 +65,70 @@ const WORK_COPY = {
       },
     ],
   },
+  zh: {
+    tag: '精选案例',
+    title: '在真实世界运行的实时系统。',
+    lead: '两个为真实客户服务的定制项目——在每个预览中滚动查看，或打开线上网站。',
+    live: '在线',
+    loading: '正在加载预览…',
+    viewLive: '访问线上网站',
+    fallbackTitle: '无法在框架内预览',
+    fallbackBody: '该网站禁止嵌入预览。请在新标签页中打开以浏览。',
+    projects: [
+      {
+        id: 'taj',
+        name: 'Al Taj Al Malaki',
+        category: '活动租赁 · 阿联酋',
+        domain: 'tajalmalaki.ae',
+        url: 'https://www.tajalmalaki.ae/',
+        description: '浏览高端库存、下单并追踪配送——无需没完没了的电话。',
+        result: '一套实时预订与追踪系统，支持英 / 阿双语，覆盖整个阿联酋。',
+        tags: ['实时追踪', '移动优先', '双语'],
+      },
+      {
+        id: 'evo',
+        name: 'Evo Creation',
+        category: '奢华活动 · 阿联酋',
+        domain: 'evocreation.ae',
+        url: 'https://evocreation.ae/',
+        description: '一种电影般的品牌体验，在第一次对话之前就卖出奢华感。',
+        result: '高端线索捕获与富有动效的叙事，全天候在线。',
+        tags: ['动效设计', '线索捕获', '响应式', '奢华界面'],
+      },
+    ],
+  },
+  ru: {
+    tag: 'Избранные работы',
+    title: 'Живые системы, работающие в реальном мире.',
+    lead: 'Два кастомных проекта, обслуживающих реальных клиентов сегодня — прокрутите внутри каждого превью или откройте сайт.',
+    live: 'LIVE',
+    loading: 'Загрузка превью…',
+    viewLive: 'Открыть сайт',
+    fallbackTitle: 'Превью недоступно во фрейме',
+    fallbackBody: 'Этот сайт блокирует встроенный просмотр. Откройте его в новой вкладке.',
+    projects: [
+      {
+        id: 'taj',
+        name: 'Al Taj Al Malaki',
+        category: 'Аренда для мероприятий · ОАЭ',
+        domain: 'tajalmalaki.ae',
+        url: 'https://www.tajalmalaki.ae/',
+        description: 'Просматривайте премиальный каталог, оформляйте заказы и отслеживайте доставку — без бесконечных звонков.',
+        result: 'Живая система брони и трекинга, двуязычная EN/AR, работает по всем ОАЭ.',
+        tags: ['Трекинг в реальном времени', 'Mobile-first', 'Двуязычно'],
+      },
+      {
+        id: 'evo',
+        name: 'Evo Creation',
+        category: 'Люксовые мероприятия · ОАЭ',
+        domain: 'evocreation.ae',
+        url: 'https://evocreation.ae/',
+        description: 'Кинематографичный бренд-опыт, который продаёт люкс ещё до первого разговора.',
+        result: 'Премиальный захват заявок и насыщенный анимацией сторителлинг, доступно круглосуточно.',
+        tags: ['Моушн-дизайн', 'Захват заявок', 'Адаптивность', 'Люкс-интерфейс'],
+      },
+    ],
+  },
 };
 
 const useInView = (threshold = 0.12) => {
@@ -303,5 +367,12 @@ window.__QD = { ...window.__QD, SelectedWorkSection, InteractiveWorkPreview, WOR
 
 const workRoot = document.getElementById('work-root');
 if (workRoot) {
-  ReactDOM.createRoot(workRoot).render(<SelectedWorkSection language={document.documentElement.lang === 'ar' ? 'ar' : 'en'} />);
+  const workReactRoot = ReactDOM.createRoot(workRoot);
+  const pickWorkLang = () => {
+    const l = window.QD_LANG || document.documentElement.lang || 'en';
+    return WORK_COPY[l] ? l : 'en';
+  };
+  const renderWork = () => workReactRoot.render(<SelectedWorkSection language={pickWorkLang()} />);
+  renderWork();
+  window.addEventListener('qd:langchange', renderWork);
 }

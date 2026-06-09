@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>QD Systems · Websites & systems for UAE businesses</title>
+<script>
+/* Early language detect — runs before paint so RTL/lang are correct from frame 1 */
+(function(){try{var supported=['en','ar','zh','ru'];var l=localStorage.getItem('qd_lang');if(!l){var n=(navigator.language||'en').toLowerCase();l=n.indexOf('ar')===0?'ar':n.indexOf('zh')===0?'zh':n.indexOf('ru')===0?'ru':'en';}if(supported.indexOf(l)<0)l='en';var d=document.documentElement;d.lang=l;d.setAttribute('dir',l==='ar'?'rtl':'ltr');window.QD_LANG=l;}catch(e){}})();
+</script>
 <link rel="icon" href="assets/qd-logo.jpeg" type="image/jpeg">
 <link rel="apple-touch-icon" href="assets/qd-logo.jpeg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -666,7 +670,7 @@ body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:b
 </style>
 </head>
 <body>
-<div id="intro"><div class="mk metal">QD</div><div class="iload">Loading experience</div></div>
+<div id="intro"><div class="mk metal">QD</div><div class="iload" data-i18n="intro.loading">Loading experience</div></div>
 
 <div class="bg-fx" aria-hidden="true"><div class="glow a"></div><div class="glow b"></div><div class="glow c"></div><div class="grid-fx"></div></div>
 <canvas id="gl" aria-hidden="true"></canvas>
@@ -677,23 +681,41 @@ body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:b
 
 <nav>
   <div class="brand"><img src="assets/qd-logo.jpeg" alt="QD" width="38" height="38" decoding="async"><b>QD&nbsp;SYSTEMS</b></div>
-  <div class="nav-links"><a href="#work">Work</a><a href="#demo">Live demo</a><a href="#build">What we build</a><a href="#contact">Contact</a></div>
+  <div class="nav-links"><a href="#work" data-i18n="nav.work">Work</a><a href="#demo" data-i18n="nav.demo">Live demo</a><a href="#build" data-i18n="nav.build">What we build</a><a href="#contact" data-i18n="nav.contact">Contact</a></div>
   <div class="nav-actions">
+    <div class="lang-switch" id="langSwitch">
+      <button type="button" class="lang-btn" id="langBtn" aria-haspopup="listbox" aria-expanded="false" aria-label="Choose language">
+        <svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
+        <span class="lang-cur" id="langCur">EN</span>
+      </button>
+      <div class="lang-menu" id="langMenu" role="listbox" aria-label="Language">
+        <button type="button" role="option" data-lang="en"><span class="lang-flag">🇬🇧</span> English</button>
+        <button type="button" role="option" data-lang="ar"><span class="lang-flag">🇦🇪</span> العربية</button>
+        <button type="button" role="option" data-lang="zh"><span class="lang-flag">🇨🇳</span> 简体中文</button>
+        <button type="button" role="option" data-lang="ru"><span class="lang-flag">🇷🇺</span> Русский</button>
+      </div>
+    </div>
     <button type="button" class="nav-menu-btn" id="navMenuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="navMobilePanel"><span></span><span></span><span></span></button>
-    <a class="btn btn-silver nav-cta-btn" href="#contact" data-magnetic data-book>Book a Free Call →</a>
+    <a class="btn btn-silver nav-cta-btn" href="#contact" data-magnetic data-book data-i18n="cta.book">Book a Free Call →</a>
   </div>
 </nav>
 <div class="nav-mobile-overlay" id="navMobileOverlay" aria-hidden="true">
   <nav class="nav-mobile-panel" id="navMobilePanel" aria-label="Site sections">
     <div class="nav-mobile-head">
-      <span class="nav-mobile-title">Navigate</span>
+      <span class="nav-mobile-title" data-i18n="nav.navigate">Navigate</span>
       <button type="button" class="nav-mobile-close" id="navMobileClose" aria-label="Close menu">✕</button>
     </div>
     <div class="nav-mobile-links">
-      <a href="#work">Work</a>
-      <a href="#demo">Live demo</a>
-      <a href="#build">What we build</a>
-      <a href="#contact">Contact</a>
+      <a href="#work" data-i18n="nav.work">Work</a>
+      <a href="#demo" data-i18n="nav.demo">Live demo</a>
+      <a href="#build" data-i18n="nav.build">What we build</a>
+      <a href="#contact" data-i18n="nav.contact">Contact</a>
+    </div>
+    <div class="nav-mobile-langs" id="navMobileLangs" role="group" aria-label="Language">
+      <button type="button" data-lang="en"><span class="lang-flag">🇬🇧</span> English</button>
+      <button type="button" data-lang="ar"><span class="lang-flag">🇦🇪</span> العربية</button>
+      <button type="button" data-lang="zh"><span class="lang-flag">🇨🇳</span> 简体中文</button>
+      <button type="button" data-lang="ru"><span class="lang-flag">🇷🇺</span> Русский</button>
     </div>
   </nav>
 </div>
@@ -701,35 +723,35 @@ body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:b
 <header class="qd-hero">
   <div class="wrap">
     <div class="hero-col">
-      <span class="avail rise"><i></i> Now booking · we take a limited number of builds at a time</span>
-      <h1 class="hero">
+      <span class="avail rise"><i></i> <span data-i18n="hero.avail">Now booking · we take a limited number of builds at a time</span></span>
+      <h1 class="hero" data-i18n-html="hero.h1">
         <span class="metal shine hero-line"><span class="word">Websites</span> <span class="word">that</span> <span class="word">win.</span></span>
         <span class="metal hero-line"><span class="word">Systems</span> <span class="word">that</span> <span class="word">run</span></span>
         <span class="metal hero-line"><span class="word">your</span> <span class="word">business.</span></span>
       </h1>
       <div class="checks rise">
-        <div class="check"><span class="ic">✓</span> World-class custom websites — and the systems behind them. Never templates.</div>
-        <div class="check"><span class="ic">✓</span> Booking, order tracking, automation, AI chat & dashboards.</div>
-        <div class="check"><span class="ic">✓</span> Bilingual EN / AR, built for the UAE.</div>
+        <div class="check"><span class="ic">✓</span> <span data-i18n="hero.check1">World-class custom websites — and the systems behind them. Never templates.</span></div>
+        <div class="check"><span class="ic">✓</span> <span data-i18n="hero.check2">Booking, order tracking, automation, AI chat & dashboards.</span></div>
+        <div class="check"><span class="ic">✓</span> <span data-i18n="hero.check3">Bilingual EN / AR, built for the UAE.</span></div>
       </div>
       <div class="cta-row rise">
-        <a class="btn btn-silver" href="#contact" data-magnetic data-book>Book a Free Call →</a>
-        <a class="btn btn-ghost" href="#demo">Try the live demo</a>
+        <a class="btn btn-silver" href="#contact" data-magnetic data-book data-i18n="cta.book">Book a Free Call →</a>
+        <a class="btn btn-ghost" href="#demo" data-i18n="cta.demo">Try the live demo</a>
       </div>
-      <div class="cta-note rise"><span class="g"></span> Free 15-min call · no obligation · we reply within the hour</div>
-      <div class="trustrow rise">Trusted by <b>Al Taj Al Malaki</b> · <b>Evo Creation</b> · live in the UAE</div>
+      <div class="cta-note rise"><span class="g"></span> <span data-i18n="hero.ctanote">Free 15-min call · no obligation · we reply within the hour</span></div>
+      <div class="trustrow rise" data-i18n-html="hero.trust">Trusted by <b>Al Taj Al Malaki</b> · <b>Evo Creation</b> · live in the UAE</div>
       <div class="speed rise">
-        <div class="badge"><span class="k">Working demo</span><span class="v">1–3 hrs</span></div>
-        <div class="badge"><span class="k">Website</span><span class="v">In 24h</span></div>
-        <div class="badge"><span class="k">Full system</span><span class="v">1–3 days</span></div>
+        <div class="badge"><span class="k" data-i18n="hero.badge.demo.k">Working demo</span><span class="v" data-i18n="hero.badge.demo.v">1–3 hrs</span></div>
+        <div class="badge"><span class="k" data-i18n="hero.badge.web.k">Website</span><span class="v" data-i18n="hero.badge.web.v">In 24h</span></div>
+        <div class="badge"><span class="k" data-i18n="hero.badge.sys.k">Full system</span><span class="v" data-i18n="hero.badge.sys.v">1–3 days</span></div>
       </div>
     </div>
   </div>
-  <div class="scrollcue"><div class="m"></div>Scroll</div>
+  <div class="scrollcue"><div class="m"></div><span data-i18n="hero.scroll">Scroll</span></div>
 </header>
 
 <div class="ghost">
-  <div class="track">
+  <div class="track" data-i18n-html="ghost.track">
     <b>Websites</b><b class="fill">Booking systems</b><b>Order tracking</b><b class="fill">Automation</b><b>AI chat</b><b class="fill">Dashboards</b>
     <b>Websites</b><b class="fill">Booking systems</b><b>Order tracking</b><b class="fill">Automation</b><b>AI chat</b><b class="fill">Dashboards</b>
   </div>
@@ -737,27 +759,27 @@ body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:b
 
 <section id="demo">
   <div class="wrap reveal" style="text-align:center">
-    <span class="tag">See it work</span><h2 class="h2">An assistant that books while you sleep.</h2>
-    <p class="lead" style="margin:0 auto 36px">Not a screenshot — a live example of the assistant handling a customer request.</p>
+    <span class="tag" data-i18n="demo.tag">See it work</span><h2 class="h2" data-i18n="demo.h2">An assistant that books while you sleep.</h2>
+    <p class="lead" style="margin:0 auto 36px" data-i18n="demo.lead">Not a screenshot — a live example of the assistant handling a customer request.</p>
   </div>
   <div class="reveal">
     <div class="demo">
-      <div class="demo-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="title">QD Booking Assistant</span><span class="live"><i></i>LIVE</span></div>
+      <div class="demo-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="title" data-i18n="demo.bartitle">QD Booking Assistant</span><span class="live"><i></i><span data-i18n="demo.live">LIVE</span></span></div>
       <div class="chat" id="chat"></div>
       <div class="chips-bar" id="chips"></div>
     </div>
-    <p class="lead" style="text-align:center;max-width:540px;margin:20px auto 0;font-size:13px">Tap a question above to try it. On the live site, this same assistant — bilingual EN/AR, capturing every lead — answers <i>your</i> customers 24/7.</p>
+    <p class="lead" style="text-align:center;max-width:540px;margin:20px auto 0;font-size:13px" data-i18n-html="demo.footnote">Tap a question above to try it. On the live site, this same assistant — bilingual EN/AR, capturing every lead — answers <i>your</i> customers 24/7.</p>
   </div>
 </section>
 
 <section id="proof">
   <div class="wrap reveal">
-    <span class="tag">Trusted across the UAE</span>
+    <span class="tag" data-i18n="proof.tag">Trusted across the UAE</span>
     <div class="stats">
-      <div class="stat"><div class="n" data-count="2">0</div><div class="l">Brands live in the UAE</div></div>
-      <div class="stat"><div class="n" data-count="24" data-suffix="h">0</div><div class="l">Website turnaround</div></div>
-      <div class="stat"><div class="n" data-count="100" data-suffix="%">0</div><div class="l">Custom-built, never templates</div></div>
-      <div class="stat"><div class="n" data-text="&lt;1h">0</div><div class="l">Reply time</div></div>
+      <div class="stat"><div class="n" data-count="2">0</div><div class="l" data-i18n="proof.stat1">Brands live in the UAE</div></div>
+      <div class="stat"><div class="n" data-count="24" data-suffix="h">0</div><div class="l" data-i18n="proof.stat2">Website turnaround</div></div>
+      <div class="stat"><div class="n" data-count="100" data-suffix="%">0</div><div class="l" data-i18n="proof.stat3">Custom-built, never templates</div></div>
+      <div class="stat"><div class="n" data-text="&lt;1h">0</div><div class="l" data-i18n="proof.stat4">Reply time</div></div>
     </div>
     <!-- TESTIMONIAL: add a real client quote here (name + role + business) once collected — do not ship a placeholder as if real. -->
 
@@ -765,7 +787,7 @@ body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:b
 </section>
 
 <div class="statement">
-  <h2 class="reveal"><span class="metal">You don't need <span class="muted">more complexity.</span></span><br><span class="metal">You need a system that just works.</span></h2>
+  <h2 class="reveal" data-i18n-html="statement"><span class="metal">You don't need <span class="muted">more complexity.</span></span><br><span class="metal">You need a system that just works.</span></h2>
 </div>
 
 <section id="work">
@@ -776,32 +798,32 @@ body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:b
 
 <section id="build">
   <div class="wrap">
-    <div class="reveal"><span class="tag">What we build</span><h2 class="h2">Three things, done properly.</h2><p class="lead">Websites better than the competition — plus the systems that make them earn.</p></div>
+    <div class="reveal"><span class="tag" data-i18n="build.tag">What we build</span><h2 class="h2" data-i18n="build.h2">Three things, done properly.</h2><p class="lead" data-i18n="build.lead">Websites better than the competition — plus the systems that make them earn.</p></div>
     <div class="offers reveal">
-      <div class="offer"><div class="ic">◆</div><h3>Websites that win</h3><p>Premium, fast, custom-built sites that make customers trust you in seconds. Never a template.</p></div>
-      <div class="offer"><div class="ic">⚙</div><h3>Systems that run it</h3><p>Booking, order tracking, payments, portals and dashboards — the engine your business runs on.</p></div>
-      <div class="offer"><div class="ic">✦</div><h3>Automation & AI chat</h3><p>WhatsApp flows, lead capture and an assistant that answers and books while you sleep.</p></div>
+      <div class="offer"><div class="ic">◆</div><h3 data-i18n="build.o1.h">Websites that win</h3><p data-i18n="build.o1.p">Premium, fast, custom-built sites that make customers trust you in seconds. Never a template.</p></div>
+      <div class="offer"><div class="ic">⚙</div><h3 data-i18n="build.o2.h">Systems that run it</h3><p data-i18n="build.o2.p">Booking, order tracking, payments, portals and dashboards — the engine your business runs on.</p></div>
+      <div class="offer"><div class="ic">✦</div><h3 data-i18n="build.o3.h">Automation & AI chat</h3><p data-i18n="build.o3.p">WhatsApp flows, lead capture and an assistant that answers and books while you sleep.</p></div>
     </div>
   </div>
 </section>
 
 <section id="why">
   <div class="wrap">
-    <div class="reveal" style="text-align:center"><span class="tag">Why QD</span><h2 class="h2">A pretty page, or a system that earns?</h2><p class="lead" style="margin:0 auto 42px">Most studios stop at the page. We build what happens after the click.</p></div>
+    <div class="reveal" style="text-align:center"><span class="tag" data-i18n="why.tag">Why QD</span><h2 class="h2" data-i18n="why.h2">A pretty page, or a system that earns?</h2><p class="lead" style="margin:0 auto 42px" data-i18n="why.lead">Most studios stop at the page. We build what happens after the click.</p></div>
     <div class="compare reveal">
-      <div class="col them"><h4>A typical studio</h4><ul>
-        <li><span class="m">–</span> Hands you a page, then disappears</li>
-        <li><span class="m">–</span> Templates dressed up as "custom"</li>
-        <li><span class="m">–</span> No booking, tracking or automation</li>
-        <li><span class="m">–</span> Weeks of back-and-forth</li>
-        <li><span class="m">–</span> English only</li>
+      <div class="col them"><h4 data-i18n="why.them.title">A typical studio</h4><ul>
+        <li><span class="m">–</span> <span data-i18n="why.them1">Hands you a page, then disappears</span></li>
+        <li><span class="m">–</span> <span data-i18n="why.them2">Templates dressed up as "custom"</span></li>
+        <li><span class="m">–</span> <span data-i18n="why.them3">No booking, tracking or automation</span></li>
+        <li><span class="m">–</span> <span data-i18n="why.them4">Weeks of back-and-forth</span></li>
+        <li><span class="m">–</span> <span data-i18n="why.them5">English only</span></li>
       </ul></div>
-      <div class="col us"><h4>QD Systems <span class="mini">You</span></h4><ul>
-        <li><span class="m">✓</span> A site plus the system that runs your business</li>
-        <li><span class="m">✓</span> 100% custom-coded — never a template</li>
-        <li><span class="m">✓</span> Booking, tracking, automation & AI chat built in</li>
-        <li><span class="m">✓</span> Live in days, timeline agreed in writing</li>
-        <li><span class="m">✓</span> Bilingual EN / AR, built for the UAE</li>
+      <div class="col us"><h4>QD Systems <span class="mini" data-i18n="why.us.badge">You</span></h4><ul>
+        <li><span class="m">✓</span> <span data-i18n="why.us1">A site plus the system that runs your business</span></li>
+        <li><span class="m">✓</span> <span data-i18n="why.us2">100% custom-coded — never a template</span></li>
+        <li><span class="m">✓</span> <span data-i18n="why.us3">Booking, tracking, automation & AI chat built in</span></li>
+        <li><span class="m">✓</span> <span data-i18n="why.us4">Live in days, timeline agreed in writing</span></li>
+        <li><span class="m">✓</span> <span data-i18n="why.us5">Bilingual EN / AR, built for the UAE</span></li>
       </ul></div>
     </div>
   </div>
@@ -809,43 +831,43 @@ body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:b
 
 <section id="how">
   <div class="wrap">
-    <div class="reveal"><span class="tag">What happens next</span><h2 class="h2">From hello to live in four steps.</h2><p class="lead">No mystery, no endless meetings — here's exactly how it goes.</p></div>
+    <div class="reveal"><span class="tag" data-i18n="how.tag">What happens next</span><h2 class="h2" data-i18n="how.h2">From hello to live in four steps.</h2><p class="lead" data-i18n="how.lead">No mystery, no endless meetings — here's exactly how it goes.</p></div>
     <div class="steps reveal">
-      <div class="step" data-step="01"><div class="num">01</div><h4>Free call</h4><p>15 minutes. You tell us the problem; we tell you straight if we can solve it.</p></div>
-      <div class="step" data-step="02"><div class="num">02</div><h4>Fixed quote</h4><p>One clear scope and price in writing — no hourly games, no surprises.</p></div>
-      <div class="step" data-step="03"><div class="num">03</div><h4>We build</h4><p>Demo in hours, site in 24h, full system in 1–3 days. You watch it take shape.</p></div>
-      <div class="step" data-step="04"><div class="num">04</div><h4>Go live</h4><p>We launch, test and support it. You pay the final invoice only when you're happy.</p></div>
+      <div class="step" data-step="01"><div class="num">01</div><h4 data-i18n="how.s1.h">Free call</h4><p data-i18n="how.s1.p">15 minutes. You tell us the problem; we tell you straight if we can solve it.</p></div>
+      <div class="step" data-step="02"><div class="num">02</div><h4 data-i18n="how.s2.h">Fixed quote</h4><p data-i18n="how.s2.p">One clear scope and price in writing — no hourly games, no surprises.</p></div>
+      <div class="step" data-step="03"><div class="num">03</div><h4 data-i18n="how.s3.h">We build</h4><p data-i18n="how.s3.p">Demo in hours, site in 24h, full system in 1–3 days. You watch it take shape.</p></div>
+      <div class="step" data-step="04"><div class="num">04</div><h4 data-i18n="how.s4.h">Go live</h4><p data-i18n="how.s4.p">We launch, test and support it. You pay the final invoice only when you're happy.</p></div>
     </div>
   </div>
 </section>
 
 <section id="faq">
   <div class="wrap">
-    <div class="reveal" style="text-align:center"><span class="tag">Questions</span><h2 class="h2">Everything owners ask us.</h2></div>
+    <div class="reveal" style="text-align:center"><span class="tag" data-i18n="faq.tag">Questions</span><h2 class="h2" data-i18n="faq.h2">Everything owners ask us.</h2></div>
     <div class="faq reveal">
-      <div class="qa"><button>How fast can you really deliver?<span class="pl">+</span></button><div class="ans"><p>A working demo in 1–3 hours, a full website in 24 hours, and a complete system in 1–3 days — depending on scope. We commit to your exact timeline in writing before we start.</p></div></div>
-      <div class="qa"><button>What if I don't like it?<span class="pl">+</span></button><div class="ans"><p>You only pay the final invoice once it's live and you're happy. We refine until it's right.</p></div></div>
-      <div class="qa"><button>Do you build in Arabic?<span class="pl">+</span></button><div class="ans"><p>Yes — every build is bilingual EN/AR with full right-to-left support, made for the UAE market.</p></div></div>
-      <div class="qa"><button>Is it really custom, or a template?<span class="pl">+</span></button><div class="ans"><p>100% custom. We design and code from scratch around your business — no themes, no page builders.</p></div></div>
-      <div class="qa"><button>What does it cost?<span class="pl">+</span></button><div class="ans"><p>Most projects land between <b style="color:#e8e8ec">[AED ___ and AED ___]</b> depending on scope. You get one fixed, itemized quote up front — no hourly games, no hidden fees. <span style="color:var(--dim)">(Set your real range here.)</span></p></div></div>
+      <div class="qa"><button><span data-i18n="faq.q1">How fast can you really deliver?</span><span class="pl">+</span></button><div class="ans"><p data-i18n="faq.a1">A working demo in 1–3 hours, a full website in 24 hours, and a complete system in 1–3 days — depending on scope. We commit to your exact timeline in writing before we start.</p></div></div>
+      <div class="qa"><button><span data-i18n="faq.q2">What if I don't like it?</span><span class="pl">+</span></button><div class="ans"><p data-i18n="faq.a2">You only pay the final invoice once it's live and you're happy. We refine until it's right.</p></div></div>
+      <div class="qa"><button><span data-i18n="faq.q3">Do you build in Arabic?</span><span class="pl">+</span></button><div class="ans"><p data-i18n="faq.a3">Yes — every build is bilingual EN/AR with full right-to-left support, made for the UAE market.</p></div></div>
+      <div class="qa"><button><span data-i18n="faq.q4">Is it really custom, or a template?</span><span class="pl">+</span></button><div class="ans"><p data-i18n="faq.a4">100% custom. We design and code from scratch around your business — no themes, no page builders.</p></div></div>
+      <div class="qa"><button><span data-i18n="faq.q5">What does it cost?</span><span class="pl">+</span></button><div class="ans"><p data-i18n-html="faq.a5">Most projects land between <b style="color:#e8e8ec">[AED ___ and AED ___]</b> depending on scope. You get one fixed, itemized quote up front — no hourly games, no hidden fees. <span style="color:var(--dim)">(Set your real range here.)</span></p></div></div>
     </div>
   </div>
 </section>
 
 <section id="contact">
   <div class="wrap reveal"><div class="cta-band">
-    <h2 class="metal">Tell us the problem.<br>We'll build the system.</h2>
-    <p class="sub" style="margin:18px auto 0">One free 15-minute call. You leave with a clear plan, timeline, and price — most quotes go out the same day.</p>
-    <div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin:22px 0 0;font-size:13px;color:var(--dim)"><span>Book</span><span style="opacity:.45">→</span><span>15-min call</span><span style="opacity:.45">→</span><span>Your plan &amp; fixed price</span></div>
+    <h2 class="metal" data-i18n-html="contact.h2">Tell us the problem.<br>We'll build the system.</h2>
+    <p class="sub" style="margin:18px auto 0" data-i18n="contact.sub">One free 15-minute call. You leave with a clear plan, timeline, and price — most quotes go out the same day.</p>
+    <div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin:22px 0 0;font-size:13px;color:var(--dim)"><span data-i18n="contact.step1">Book</span><span style="opacity:.45">→</span><span data-i18n="contact.step2">15-min call</span><span style="opacity:.45">→</span><span data-i18n="contact.step3">Your plan &amp; fixed price</span></div>
     <div class="cta-row" style="justify-content:center;margin-top:28px">
-      <a class="btn btn-silver" href="#" data-book data-magnetic style="padding:18px 36px;font-size:16px">Book a Free Call →</a>
+      <a class="btn btn-silver" href="#" data-book data-magnetic style="padding:18px 36px;font-size:16px" data-i18n="cta.book">Book a Free Call →</a>
     </div>
-    <div class="cta-note" style="justify-content:center;margin-top:14px"><span class="g"></span> Free · no obligation · we reply within the hour</div>
-    <div style="margin-top:16px"><a id="contactCta" href="https://wa.me/971505349907?text=Hi%20QD%20%E2%80%94%20I%27d%20like%20to%20discuss%20a%20project%20with%20you." target="_blank" rel="noopener noreferrer" style="font-size:13.5px;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:2px">Prefer WhatsApp? Message us →</a></div>
+    <div class="cta-note" style="justify-content:center;margin-top:14px"><span class="g"></span> <span data-i18n="contact.note">Free · no obligation · we reply within the hour</span></div>
+    <div style="margin-top:16px"><a id="contactCta" href="https://wa.me/971505349907?text=Hi%20QD%20%E2%80%94%20I%27d%20like%20to%20discuss%20a%20project%20with%20you." target="_blank" rel="noopener noreferrer" style="font-size:13.5px;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:2px" data-i18n="contact.wa">Prefer WhatsApp? Message us →</a></div>
     <div class="guards" style="margin-top:32px">
-      <span class="guard"><span class="t">✓</span> Timeline agreed in writing</span>
-      <span class="guard"><span class="t">✓</span> Pay the final invoice only when you're happy</span>
-      <span class="guard"><span class="t">✓</span> 100% custom — no templates</span>
+      <span class="guard"><span class="t">✓</span> <span data-i18n="contact.g1">Timeline agreed in writing</span></span>
+      <span class="guard"><span class="t">✓</span> <span data-i18n="contact.g2">Pay the final invoice only when you're happy</span></span>
+      <span class="guard"><span class="t">✓</span> <span data-i18n="contact.g3">100% custom — no templates</span></span>
     </div>
   </div></div>
 </section>
@@ -857,7 +879,7 @@ body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:b
     <a href="https://tiktok.com/@qdsystems" target="_blank" rel="noopener noreferrer">TikTok</a>
     <a class="footer-wa" href="https://wa.me/971505349907?text=Hi%20QD%20%E2%80%94%20I%27d%20like%20to%20discuss%20a%20project%20with%20you." target="_blank" rel="noopener noreferrer">WhatsApp +971 50 534 9907</a>
   </div>
-  <div class="footer-copy">© 2026 QD Systems · Built in the UAE</div>
+  <div class="footer-copy" data-i18n="footer.copy">© 2026 QD Systems · Built in the UAE</div>
 </div></footer>
 
 <button type="button" class="qd-call-fab" id="qdCallFab" aria-label="Book a free call" data-book>
@@ -869,29 +891,29 @@ body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:b
   <div class="modal">
     <button class="mx" id="bookClose" aria-label="Close">✕</button>
     <div id="bookForm">
-      <h3>Book your free call</h3>
-      <p class="msub">15 minutes, no obligation. Drop your details and we'll email you a Google Meet link — usually within the hour.</p>
+      <h3 data-i18n="book.title">Book your free call</h3>
+      <p class="msub" data-i18n="book.sub">15 minutes, no obligation. Drop your details and we'll email you a Google Meet link — usually within the hour.</p>
       <form id="bForm">
         <div class="mrow">
-          <div><label for="bName">Name</label><input id="bName" required placeholder="e.g. Ahmed"></div>
-          <div><label for="bPhone">Phone number</label><input id="bPhone" type="tel" inputmode="numeric" pattern="[0-9]*" autocomplete="tel" placeholder="971501234567" maxlength="15"></div>
+          <div><label for="bName" data-i18n="book.name">Name</label><input id="bName" required placeholder="e.g. Ahmed" data-i18n-ph="book.name.ph"></div>
+          <div><label for="bPhone" data-i18n="book.phone">Phone number</label><input id="bPhone" type="tel" inputmode="numeric" pattern="[0-9]*" autocomplete="tel" placeholder="971501234567" maxlength="15"></div>
         </div>
-        <label for="bEmail">Email</label><input id="bEmail" type="email" required placeholder="you@business.com">
-        <label for="bPurpose">What's it about?</label>
-        <select id="bPurpose"><option>A new website</option><option>A full system (booking / automation / dashboard)</option><option>Not sure yet — I'd like advice</option></select>
+        <label for="bEmail" data-i18n="book.email">Email</label><input id="bEmail" type="email" required placeholder="you@business.com">
+        <label for="bPurpose" data-i18n="book.purpose">What's it about?</label>
+        <select id="bPurpose"><option data-i18n="book.opt1">A new website</option><option data-i18n="book.opt2">A full system (booking / automation / dashboard)</option><option data-i18n="book.opt3">Not sure yet — I'd like advice</option></select>
         <div class="mrow" style="margin-top:0">
-          <div><label for="bDate">Preferred date (optional)</label><input id="bDate" type="date"></div>
-          <div><label for="bTime">Preferred time (optional)</label><input id="bTime" type="time"></div>
+          <div><label for="bDate" data-i18n="book.date">Preferred date (optional)</label><input id="bDate" type="date"></div>
+          <div><label for="bTime" data-i18n="book.time">Preferred time (optional)</label><input id="bTime" type="time"></div>
         </div>
-        <button type="submit" class="btn btn-silver full">Confirm — send my Meet link →</button>
-        <div class="qhint" style="margin-top:13px"><span class="g"></span> Free · no obligation · your link arrives by email</div>
+        <button type="submit" class="btn btn-silver full" data-i18n="book.submit">Confirm — send my Meet link →</button>
+        <div class="qhint" style="margin-top:13px"><span class="g"></span> <span data-i18n="book.hint">Free · no obligation · your link arrives by email</span></div>
       </form>
     </div>
     <div id="bookDone" class="msuccess" style="display:none">
       <div class="ic">✓</div>
-      <h3>You're booked<span id="bDoneName"></span>!</h3>
+      <h3><span data-i18n="book.done.title">You're booked</span><span id="bDoneName"></span>!</h3>
       <p class="msub" id="bDoneMsg">Check your inbox — your Google Meet link is on its way.</p>
-      <a class="btn btn-ghost full" id="bWa" href="https://wa.me/971505349907" target="_blank">Prefer WhatsApp? Message us →</a>
+      <a class="btn btn-ghost full" id="bWa" href="https://wa.me/971505349907" target="_blank" data-i18n="contact.wa">Prefer WhatsApp? Message us →</a>
     </div>
   </div>
 </div>
@@ -901,6 +923,7 @@ body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:b
 <script src="/chatbot/chatbot.js" defer></script>
 -->
 
+<script src="i18n.js"></script>
 <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin></script>
@@ -1011,15 +1034,9 @@ document.querySelectorAll('.qa button').forEach(b=>{b.setAttribute('aria-expande
 });});
 addEventListener('resize',()=>{const o=document.querySelector('.qa.open .ans');if(o)o.style.maxHeight=o.scrollHeight+'px';});
 
-/* interactive chat — factory powers the in-page demo section */
+/* interactive chat — factory powers the in-page demo section (language-aware via window.QD_DEMO) */
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
-const flows={
-  intro:[{who:'them',t:"Hi! Do you have round tables for 200 guests this weekend?"},{who:'us',t:"Yes — 25 round tables available Sat. Want me to hold them?"},{who:'them',t:"Please. And can someone call me?"},{who:'us',t:"Done ✅ Booked a callback for today 4:00 PM."},{book:"Callback booked automatically — while you were reading this."}],
-  avail:[{who:'us',t:"Which date are you looking at?"},{who:'them',t:"Next Friday evening."},{who:'us',t:"We have availability Fri evening. Shall I pencil you in and send a quote?"},{book:"Slot held for Friday — quote on its way."}],
-  quote:[{who:'us',t:"Tell me the package and guest count and I'll price it instantly."},{who:'them',t:"Gold package, 150 guests."},{who:'us',t:"Gold · 150 guests → AED 18,500, all-in. Want me to lock it?"},{book:"Instant quote delivered — no waiting on email."}],
-  arabic:[{who:'them',t:"تقدرون تسوون الموقع بالعربي؟"},{who:'us',t:"أكيد — نبنيه بالعربي والإنجليزي مع دعم كامل للاتجاه RTL."},{book:"Bilingual EN / AR — handled natively."}]
-};
-const chipDefs=[{k:'avail',t:'📅 Check availability'},{k:'quote',t:'💸 Get an instant quote'},{k:'arabic',t:'🌐 Need it in Arabic?'}];
+function qdDemo(){return (window.QD_DEMO&&window.QD_DEMO[window.QD_LANG])||(window.QD_DEMO&&window.QD_DEMO.en)||{flows:{intro:[]},chips:[],bookChip:'Book a free call →'};}
 function createChat(chat,chips){let busy=false;const rm=matchMedia('(prefers-reduced-motion:reduce)').matches;
   const typing=()=>{const d=document.createElement('div');d.className='typing';d.innerHTML='<span></span><span></span><span></span>';chat.appendChild(d);chat.scrollTop=chat.scrollHeight;return d;};
   const msg=m=>{const d=document.createElement('div');d.className='msg '+m.who;d.textContent=m.t;chat.appendChild(d);chat.scrollTop=chat.scrollHeight;};
@@ -1028,12 +1045,14 @@ function createChat(chat,chips){let busy=false;const rm=matchMedia('(prefers-red
     for(const m of steps){if(m.book){await wait(rm?0:400);booked(m.book);continue;}
       if(m.who==='us'){if(!rm){const tp=typing();await wait(950);tp.remove();}}else{await wait(rm?0:450);}msg(m);await wait(rm?0:550);}
     busy=false;setChips(false);}
-  function setChips(disabled){if(!chips)return;chips.innerHTML='';
-    chipDefs.forEach(c=>{const b=document.createElement('button');b.className='qchip';b.textContent=c.t;b.disabled=disabled;b.onclick=()=>{if(busy)return;msg({who:'them',t:c.t.replace(/^[^ ]+ /,'')});run(flows[c.k],false);};chips.appendChild(b);});
-    const wa=document.createElement('button');wa.type='button';wa.className='qchip book';wa.textContent='Book a free call →';wa.onclick=()=>{if(window.qdOpenBooking)window.qdOpenBooking();};chips.appendChild(wa);}
-  return {play:()=>run(flows.intro,true)};
+  function setChips(disabled){if(!chips)return;const d=qdDemo();chips.innerHTML='';
+    d.chips.forEach(c=>{const b=document.createElement('button');b.className='qchip';b.textContent=c.t;b.disabled=disabled;b.onclick=()=>{if(busy)return;msg({who:'them',t:c.t.replace(/^[^ ]+ /,'')});run(qdDemo().flows[c.k],false);};chips.appendChild(b);});
+    const wa=document.createElement('button');wa.type='button';wa.className='qchip book';wa.textContent=d.bookChip;wa.onclick=()=>{if(window.qdOpenBooking)window.qdOpenBooking();};chips.appendChild(wa);}
+  return {play:()=>run(qdDemo().flows.intro,true)};
 }
-createChat(document.getElementById('chat'),document.getElementById('chips')).play();
+let qdChatInstance=createChat(document.getElementById('chat'),document.getElementById('chips'));
+qdChatInstance.play();
+addEventListener('qd:langchange',()=>{const c=document.getElementById('chat');if(c)c.innerHTML='';qdChatInstance=createChat(document.getElementById('chat'),document.getElementById('chips'));qdChatInstance.play();});
 
 /* booking modal — Book a Free Call (and chatbot) → collect details → backend emails a Google Meet link */
 const bookModal=document.getElementById('bookModal');let bookLast=null;
@@ -1078,7 +1097,8 @@ if(bForm)bForm.addEventListener('submit',async e=>{e.preventDefault();
   const data={name:(document.getElementById('bName').value||'there').trim(),email:document.getElementById('bEmail').value.trim(),phone:(bPhoneEl&&bPhoneEl.value)||'',purpose:document.getElementById('bPurpose').value,time:slot};
   try{ fetch('/api/book',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).catch(function(){}); }catch(e){}
   document.getElementById('bDoneName').textContent=', '+data.name;
-  document.getElementById('bDoneMsg').innerHTML='Check <b>'+data.email.replace(/[<>]/g,'')+'</b> — your Google Meet link is on its way, usually within the hour.';
+  var doneTpl=(window.qdT&&window.qdT('book.done.msg'))||'Check <b>{email}</b> — your Google Meet link is on its way, usually within the hour.';
+  document.getElementById('bDoneMsg').innerHTML=doneTpl.replace('{email}','<b>'+data.email.replace(/[<>]/g,'')+'</b>');
   document.getElementById('bWa').href='https://wa.me/971505349907?text='+encodeURIComponent('Hi QD — I’m '+data.name+', I just booked a call ('+data.purpose+').'+(data.phone?(' Phone: '+data.phone+'.'):'')+(slot?(' Preferred: '+slot+'.'):''));
   document.getElementById('bookForm').style.display='none';
   document.getElementById('bookDone').style.display='block';

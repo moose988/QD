@@ -64,7 +64,7 @@ async function loadChunks() {
     const raw = await fs.readFile(filePath, 'utf8');
     const byLang = splitByLanguage(raw);
     const baseId = file.replace('.md', '');
-    for (const lang of ['en', 'ar']) {
+    for (const lang of ['en', 'ar', 'zh', 'ru']) {
       if (!byLang[lang]?.trim()) continue;
       const chunks = chunkMarkdown(byLang[lang], { source: file, lang, baseId });
       allChunks.push(...chunks);
@@ -140,13 +140,20 @@ async function main() {
     model: EMBED_MODEL_NAME,
     dim: EMBED_DIM,
     chunkCount: embedded.length,
-    languages: { en: embedded.filter(c => c.lang === 'en').length, ar: embedded.filter(c => c.lang === 'ar').length },
+    languages: {
+      en: embedded.filter(c => c.lang === 'en').length,
+      ar: embedded.filter(c => c.lang === 'ar').length,
+      zh: embedded.filter(c => c.lang === 'zh').length,
+      ru: embedded.filter(c => c.lang === 'ru').length,
+    },
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
   });
 
   console.log(`\nDone. ${embedded.length} chunks indexed.`);
   console.log(`   EN: ${embedded.filter(c => c.lang === 'en').length}`);
   console.log(`   AR: ${embedded.filter(c => c.lang === 'ar').length}`);
+  console.log(`   ZH: ${embedded.filter(c => c.lang === 'zh').length}`);
+  console.log(`   RU: ${embedded.filter(c => c.lang === 'ru').length}`);
   process.exit(0);
 }
 

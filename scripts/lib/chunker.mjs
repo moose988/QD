@@ -6,26 +6,30 @@ const CHAR_TARGET = 900;
 const CHAR_MAX = 1500;
 
 /**
- * Detect language from a chunk of text. Very lightweight — checks for Arabic chars.
+ * Detect language from a chunk of text. Lightweight script-range checks.
  */
 export function detectLang(text) {
-  return /[؀-ۿ]/.test(text) ? 'ar' : 'en';
+  const t = text || '';
+  if (/[؀-ۿ]/.test(t)) return 'ar';   // Arabic
+  if (/[一-鿿]/.test(t)) return 'zh'; // Chinese (CJK)
+  if (/[Ѐ-ӿ]/.test(t)) return 'ru'; // Russian (Cyrillic)
+  return 'en';
 }
 
 /**
  * Strip a markdown file into one big string per language section.
- * Files use "## EN" and "## AR" as language anchors.
+ * Files use "## EN", "## AR", "## ZH" and "## RU" as language anchors.
  */
 export function splitByLanguage(markdown) {
-  const sections = { en: '', ar: '' };
-  const parts = markdown.split(/^## (EN|AR)\s*$/m);
+  const sections = { en: '', ar: '', zh: '', ru: '' };
+  const parts = markdown.split(/^## (EN|AR|ZH|RU)\s*$/m);
   for (let i = 1; i < parts.length; i += 2) {
     const lang = parts[i].toLowerCase();
     const body = parts[i + 1] || '';
     sections[lang] = (sections[lang] || '') + body.trim() + '\n';
   }
   // Fallback: if no language headers, treat whole doc as one section
-  if (!sections.en && !sections.ar) {
+  if (!sections.en && !sections.ar && !sections.zh && !sections.ru) {
     sections[detectLang(markdown)] = markdown;
   }
   return sections;
@@ -121,6 +125,38 @@ export function chunkPortfolio(json) {
         `الحالة: ${p.status === 'Live' ? 'مباشر' : p.status}.`,
       ].filter(Boolean).join('\n\n'),
     });
+    if (p.description_zh || p.what_we_built_zh) {
+      chunks.push({
+        id: `portfolio-${p.id}-zh`,
+        source: 'portfolio',
+        lang: 'zh',
+        heading: p.name,
+        text: [
+          `${p.name} — ${p.category_zh || p.category}。线上网址：${p.url}。`,
+          p.description_zh,
+          `我们做了什么：${p.what_we_built_zh}`,
+          `技术栈：${(p.stack || []).join('、')}。`,
+          `亮点：${(p.highlights_zh || p.highlights || []).join('；')}。`,
+          `状态：${p.status === 'Live' ? '已上线' : p.status}。`,
+        ].filter(Boolean).join('\n\n'),
+      });
+    }
+    if (p.description_ru || p.what_we_built_ru) {
+      chunks.push({
+        id: `portfolio-${p.id}-ru`,
+        source: 'portfolio',
+        lang: 'ru',
+        heading: p.name,
+        text: [
+          `${p.name} — ${p.category_ru || p.category}. Сайт: ${p.url}.`,
+          p.description_ru,
+          `Что мы создали: ${p.what_we_built_ru}`,
+          `Стек: ${(p.stack || []).join(', ')}.`,
+          `Особенности: ${(p.highlights_ru || p.highlights || []).join('; ')}.`,
+          `Статус: ${p.status === 'Live' ? 'работает' : p.status}.`,
+        ].filter(Boolean).join('\n\n'),
+      });
+    }
   }
   // Also add the summary as its own chunk
   if (json.summary_en) {
@@ -139,6 +175,24 @@ export function chunkPortfolio(json) {
       lang: 'ar',
       heading: 'ملخص الأعمال',
       text: json.summary_ar,
+    });
+  }
+  if (json.summary_zh) {
+    chunks.push({
+      id: 'portfolio-summary-zh',
+      source: 'portfolio',
+      lang: 'zh',
+      heading: '作品集摘要',
+      text: json.summary_zh,
+    });
+  }
+  if (json.summary_ru) {
+    chunks.push({
+      id: 'portfolio-summary-ru',
+      source: 'portfolio',
+      lang: 'ru',
+      heading: 'Обзор работ',
+      text: json.summary_ru,
     });
   }
   return chunks;

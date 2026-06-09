@@ -78,18 +78,68 @@
       leadSaved: 'تم — بياناتك وصلت لفريق QD. سنتواصل معك قريباً.',
       errorNetwork: 'انقطاع بسيط في الاتصال. جرّب مرة ثانية، أو راسلنا واتساب +971 50 534 9907.',
     },
+    zh: {
+      title: 'QD 助手',
+      status: '在线 · 即时回复',
+      placeholder: '关于 QD，问我任何问题…',
+      footer: '由 QD Systems 提供支持',
+      open: '打开 QD 对话',
+      close: '关闭对话',
+      newChat: '新对话',
+      send: '发送',
+      gateTitle: '开始之前',
+      gateSub: '留下你的联系方式，方便团队跟进——即使对话中断也不怕。',
+      gName: '你的姓名',
+      gEmail: '邮箱',
+      gPhone: 'WhatsApp / 电话（可选）',
+      gStart: '开始对话 →',
+      greeting:
+        '你好——我是 QD 的 AI 助手。我可以解答关于我们服务、流程、案例和交付时间的问题，如果你准备好了，也能帮你预约团队。你正在做什么项目？',
+      chips: ['你们做什么？', '一个项目需要多久？', '看看你们的作品', '我需要一个网站'],
+      leadSaved: '收到——你的信息已转交 QD 团队，我们会尽快跟进。',
+      errorNetwork: '连接有点小问题。请再试一次，或 WhatsApp 联系 +971 50 534 9907。',
+    },
+    ru: {
+      title: 'QD-ассистент',
+      status: 'Онлайн · отвечает мгновенно',
+      placeholder: 'Спросите что угодно о QD…',
+      footer: 'На платформе QD Systems',
+      open: 'Открыть чат с QD',
+      close: 'Закрыть чат',
+      newChat: 'Новый чат',
+      send: 'Отправить',
+      gateTitle: 'Прежде чем начать',
+      gateSub: 'Оставьте контакты, чтобы команда могла связаться — даже если чат прервётся.',
+      gName: 'Ваше имя',
+      gEmail: 'Эл. почта',
+      gPhone: 'WhatsApp / телефон (необязательно)',
+      gStart: 'Начать чат →',
+      greeting:
+        'Здравствуйте — я AI-ассистент QD. Отвечу на вопросы о наших услугах, процессе, работах и сроках, а если вы готовы начать — запишу вас к команде. Над чем вы работаете?',
+      chips: ['Что вы создаёте?', 'Сколько занимает проект?', 'Покажите ваши работы', 'Мне нужен сайт'],
+      leadSaved: 'Принято — ваши данные у команды QD. Скоро свяжемся.',
+      errorNetwork: 'Небольшой сбой связи. Попробуйте ещё раз или напишите в WhatsApp +971 50 534 9907.',
+    },
   };
 
+  const SUPPORTED_LANGS = ['en', 'ar', 'zh', 'ru'];
+
   function detectLang(text) {
-    return /[؀-ۿ]/.test(text || '') ? 'ar' : 'en';
+    const t = text || '';
+    if (/[؀-ۿ]/.test(t)) return 'ar';      // Arabic
+    if (/[一-鿿]/.test(t)) return 'zh';      // Chinese (CJK)
+    if (/[Ѐ-ӿ]/.test(t)) return 'ru';      // Russian (Cyrillic)
+    return 'en';
   }
 
   function getPageLang() {
-    if (FORCED_LANG === 'en' || FORCED_LANG === 'ar') return FORCED_LANG;
+    if (SUPPORTED_LANGS.includes(FORCED_LANG)) return FORCED_LANG;
+    if (SUPPORTED_LANGS.includes(window.QD_LANG)) return window.QD_LANG;
     const htmlLang = (document.documentElement.lang || '').toLowerCase();
     if (htmlLang.startsWith('ar')) return 'ar';
-    const dir = document.documentElement.dir || document.body.dir;
-    if (dir === 'rtl') return 'ar';
+    if (htmlLang.startsWith('zh')) return 'zh';
+    if (htmlLang.startsWith('ru')) return 'ru';
+    if ((document.documentElement.dir || document.body.dir) === 'rtl') return 'ar';
     return 'en';
   }
 
@@ -707,6 +757,19 @@
   }
   refreshStrings();
   if (sessionStorage.getItem(OPEN_KEY)) openPanel();
+
+  // Follow the site-wide language switcher (only before the visitor has typed —
+  // once they're mid-conversation we keep the language they were chatting in).
+  window.addEventListener('qd:langchange', (e) => {
+    const l = e && e.detail && e.detail.lang;
+    if (!SUPPORTED_LANGS.includes(l) || l === state.lang) return;
+    const hasUserTurn = state.history.some(m => m.role === 'user');
+    if (hasUserTurn) return;
+    state.lang = l;
+    if (root.getAttribute('data-gate') === 'true') renderLeadGate();
+    else renderHistory();
+    refreshStrings();
+  });
 
   // Expose tiny API for debugging
   window.__qdChat = {

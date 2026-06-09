@@ -138,7 +138,7 @@ function normalizeLeadData(leadData, lang) {
     business_type: typeof leadData?.business_type === 'string' ? leadData.business_type.trim() : '',
     project_brief: typeof leadData?.project_brief === 'string' ? leadData.project_brief.trim() : '',
     urgency: typeof leadData?.urgency === 'string' ? leadData.urgency.trim().toLowerCase() : 'unknown',
-    language: lang === 'ar' ? 'ar' : 'en',
+    language: ['ar', 'zh', 'ru'].includes(lang) ? lang : 'en',
   };
 
   normalized.contact_type = normalizeContactType(leadData?.contact_type, normalized.contact);
@@ -203,7 +203,7 @@ export default async function handler(req, res) {
   const message = (body?.message || '').toString().trim();
   const history = Array.isArray(body?.history) ? body.history : [];
   const sessionId = (body?.sessionId || '').toString().slice(0, 64) || `anon-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  const pageLang = body?.pageLang === 'ar' ? 'ar' : 'en';
+  const pageLang = ['ar', 'zh', 'ru'].includes(body?.pageLang) ? body.pageLang : 'en';
 
   if (!message) return res.status(400).json({ error: 'message is required' });
   if (message.length > 2000) return res.status(400).json({ error: 'message too long (max 2000 chars)' });
@@ -252,7 +252,7 @@ export default async function handler(req, res) {
       const queryEmbedding = await withTimeout(embedQuery(message), EMBEDDING_TIMEOUT_MS, 'Embedding');
       stage.mark('embedding_completed', { dimensions: queryEmbedding?.length || 0 });
       stage.mark('retrieval_started', { mode: retrievalMode });
-      retrieved = await retrieve(queryEmbedding, { topK: 6, lang });
+      retrieved = await retrieve(queryEmbedding, { topK: 8, lang });
       stage.mark('retrieval_completed', { retrievedCount: retrieved.length, mode: retrievalMode });
     } catch (embedErr) {
       retrievalMode = 'fallback';
@@ -263,7 +263,7 @@ export default async function handler(req, res) {
         statusCode: details.statusCode,
       });
       stage.mark('fallback_context_started', { lang });
-      retrieved = await getFallbackContext(lang, 6);
+      retrieved = await getFallbackContext(lang, 8);
       stage.mark('fallback_context_completed', { retrievedCount: retrieved.length, mode: retrievalMode });
     }
 
@@ -311,7 +311,7 @@ export default async function handler(req, res) {
       tools: [LEAD_TOOL],
       tool_choice: 'auto',
       temperature: 0.4,
-      max_tokens: 700,
+      max_tokens: 1024,
       stream: true,
     });
     stage.mark('groq_stream_create_completed');
@@ -410,16 +410,22 @@ export default async function handler(req, res) {
 
     // Only show the "we got your details" confirmation when a REAL lead saved.
     if (!fullText.trim() && leadSaved) {
-      fullText = lang === 'ar'
-        ? 'تم استلام بياناتك. سيتواصل معك فريق QD قريباً عبر وسيلة التواصل التي شاركتها.'
-        : 'Thanks — we received your details. The QD team will reach out shortly using the contact method you shared.';
+      fullText = {
+        ar: 'تم استلام بياناتك. سيتواصل معك فريق QD قريباً عبر وسيلة التواصل التي شاركتها.',
+        zh: '已收到你的信息。QD 团队会很快通过你提供的联系方式与你联系。',
+        ru: 'Мы получили ваши данные. Команда QD скоро свяжется с вами по указанному контакту.',
+        en: 'Thanks — we received your details. The QD team will reach out shortly using the contact method you shared.',
+      }[lang] || 'Thanks — we received your details. The QD team will reach out shortly using the contact method you shared.';
       send({ type: 'text', delta: fullText });
     } else if (!fullText.trim() && (leadIncomplete || leadCaptured)) {
       // Model tried to capture before we had a contact — ask naturally and keep going.
       const biz = leadBusiness.trim();
-      fullText = lang === 'ar'
-        ? `تمام${biz ? ` — مشروع ${biz} في محله` : ''}. لنبدأ: ما أفضل طريقة للتواصل معك (واتساب، هاتف، أو إيميل)، وما اسمك؟`
-        : `Great${biz ? ` — a ${biz} is right in our wheelhouse` : ''}. To get you a plan, what's the best way to reach you (WhatsApp, phone, or email), and your name?`;
+      fullText = {
+        ar: `تمام${biz ? ` — مشروع ${biz} في محله` : ''}. لنبدأ: ما أفضل طريقة للتواصل معك (واتساب، هاتف، أو إيميل)، وما اسمك؟`,
+        zh: `很好${biz ? `——${biz}正是我们擅长的` : ''}。为了给你方案，最方便联系你的方式是什么（WhatsApp、电话或邮箱），怎么称呼你？`,
+        ru: `Отлично${biz ? ` — ${biz} как раз наш профиль` : ''}. Чтобы подготовить план: как с вами лучше связаться (WhatsApp, телефон или email) и как вас зовут?`,
+        en: `Great${biz ? ` — a ${biz} is right in our wheelhouse` : ''}. To get you a plan, what's the best way to reach you (WhatsApp, phone, or email), and your name?`,
+      }[lang] || `Great. To get you a plan, what's the best way to reach you (WhatsApp, phone, or email), and your name?`;
       send({ type: 'text', delta: fullText });
     }
 
@@ -476,9 +482,12 @@ export default async function handler(req, res) {
     }
     send({
       type: 'error',
-      message: lang === 'ar'
-        ? 'حدث خطأ. جرّب مرة أخرى أو راسلنا واتساب +971 50 534 9907.'
-        : 'Something went wrong. Try again, or WhatsApp us at +971 50 534 9907.',
+      message: {
+        ar: 'حدث خطأ. جرّب مرة أخرى أو راسلنا واتساب +971 50 534 9907.',
+        zh: '出了点问题。请重试，或通过 WhatsApp 联系我们 +971 50 534 9907。',
+        ru: 'Что-то пошло не так. Попробуйте ещё раз или напишите в WhatsApp +971 50 534 9907.',
+        en: 'Something went wrong. Try again, or WhatsApp us at +971 50 534 9907.',
+      }[lang] || 'Something went wrong. Try again, or WhatsApp us at +971 50 534 9907.',
       details: errorDetails.message,
       code: errorDetails.code,
       statusCode: errorDetails.statusCode,

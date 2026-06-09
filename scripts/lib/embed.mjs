@@ -7,13 +7,17 @@
 
 import { pipeline } from '@xenova/transformers';
 
-const MODEL = process.env.EMBED_MODEL || 'Xenova/multilingual-e5-base';
+// Must match the runtime query embedder in api/_lib/embed.js (same model = same
+// vector space, or retrieval silently breaks). Both default to e5-small: it's
+// multilingual (EN/AR/ZH/RU), 384-dim, and faster than e5-base at the same
+// retrieval quality for a KB this size.
+const MODEL = process.env.EMBED_MODEL || 'Xenova/multilingual-e5-small';
 
 let _extractor = null;
 
 async function getExtractor() {
   if (!_extractor) {
-    console.log(`[embed] Loading model ${MODEL} (first run downloads ~280MB)...`);
+    console.log(`[embed] Loading model ${MODEL} (first run downloads ~120MB)...`);
     _extractor = await pipeline('feature-extraction', MODEL, {
       quantized: true, // smaller, faster, basically same quality for retrieval
     });
@@ -70,5 +74,5 @@ export function cosineSim(a, b) {
   return s;
 }
 
-export const EMBED_DIM = 768; // multilingual-e5-base
+export const EMBED_DIM = 384; // multilingual-e5-small (matches api/_lib/embed.js runtime)
 export const EMBED_MODEL_NAME = MODEL;
