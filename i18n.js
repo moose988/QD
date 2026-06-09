@@ -70,9 +70,9 @@
     /* ghost marquee */
     'ghost.track':    {
       en: '<b>Websites</b><b class="fill">Booking systems</b><b>Order tracking</b><b class="fill">Automation</b><b>AI chat</b><b class="fill">Dashboards</b><b>Websites</b><b class="fill">Booking systems</b><b>Order tracking</b><b class="fill">Automation</b><b>AI chat</b><b class="fill">Dashboards</b>',
-      ar: '<b>مواقع</b><b class="fill">أنظمة حجز</b><b>تتبع الطلبات</b><b class="fill">أتمتة</b><b>محادثة ذكية</b><b class="fill">لوحات تحكم</b><b>مواقع</b><b class="fill">أنظمة حجز</b><b>تتبع الطلبات</b><b class="fill">أتمتة</b><b>محادثة ذكية</b><b class="fill">لوحات تحكم</b>',
-      zh: '<b>网站</b><b class="fill">预订系统</b><b>订单追踪</b><b class="fill">自动化</b><b>AI 聊天</b><b class="fill">数据看板</b><b>网站</b><b class="fill">预订系统</b><b>订单追踪</b><b class="fill">自动化</b><b>AI 聊天</b><b class="fill">数据看板</b>',
-      ru: '<b>Сайты</b><b class="fill">Бронирование</b><b>Отслеживание заказов</b><b class="fill">Автоматизация</b><b>AI-чат</b><b class="fill">Дашборды</b><b>Сайты</b><b class="fill">Бронирование</b><b>Отслеживание заказов</b><b class="fill">Автоматизация</b><b>AI-чат</b><b class="fill">Дашборды</b>'
+      ar: '<b>مواقع</b><b class="fill">أنظمة حجز</b><b>تتبع الطلبات</b><b class="fill">أتمتة</b><b>محادثة ذكية</b><b class="fill">لوحات تحكم</b><b>مواقع</b><b class="fill">أنظمة حجز</b><b>تتبع الطلبات</b><b class="fill">أتمتة</b><b>محادثة ذكية</b><b class="fill">لوحات تحكم</b><b>مواقع</b><b class="fill">أنظمة حجز</b><b>تتبع الطلبات</b><b class="fill">أتمتة</b><b>محادثة ذكية</b><b class="fill">لوحات تحكم</b><b>مواقع</b><b class="fill">أنظمة حجز</b><b>تتبع الطلبات</b><b class="fill">أتمتة</b><b>محادثة ذكية</b><b class="fill">لوحات تحكم</b>',
+      zh: '<b>网站</b><b class="fill">预订系统</b><b>订单追踪</b><b class="fill">自动化</b><b>AI 聊天</b><b class="fill">数据看板</b><b>网站</b><b class="fill">预订系统</b><b>订单追踪</b><b class="fill">自动化</b><b>AI 聊天</b><b class="fill">数据看板</b><b>网站</b><b class="fill">预订系统</b><b>订单追踪</b><b class="fill">自动化</b><b>AI 聊天</b><b class="fill">数据看板</b><b>网站</b><b class="fill">预订系统</b><b>订单追踪</b><b class="fill">自动化</b><b>AI 聊天</b><b class="fill">数据看板</b>',
+      ru: '<b>Сайты</b><b class="fill">Бронирование</b><b>Отслеживание заказов</b><b class="fill">Автоматизация</b><b>AI-чат</b><b class="fill">Дашборды</b><b>Сайты</b><b class="fill">Бронирование</b><b>Отслеживание заказов</b><b class="fill">Автоматизация</b><b>AI-чат</b><b class="fill">Дашборды</b><b>Сайты</b><b class="fill">Бронирование</b><b>Отслеживание заказов</b><b class="fill">Автоматизация</b><b>AI-чат</b><b class="fill">Дашборды</b><b>Сайты</b><b class="fill">Бронирование</b><b>Отслеживание заказов</b><b class="fill">Автоматизация</b><b>AI-чат</b><b class="fill">Дашборды</b>'
     },
 
     /* demo */
@@ -440,7 +440,10 @@
       '[dir="rtl"] .qform{text-align:right}',
       /* Keep the scrolling keyword ribbon LTR in Arabic so its -50% loop stays seamless
          (each Arabic word still renders RTL internally; only the marquee flow is LTR). */
-      '[dir="rtl"] .ghost .track,[dir="rtl"] .marquee .track{direction:ltr}',
+      '[dir="rtl"] .ghost .track{direction:ltr;animation-duration:22s}',
+      '[dir="rtl"] .marquee .track{direction:ltr}',
+      'html[lang="zh"] .ghost .track{animation-duration:18s}',
+      'html[lang="ru"] .ghost .track{animation-duration:27s}',
       /* Hero mirror for Arabic: text anchored on the RIGHT, 3D object on the LEFT,
          readability gradient flipped to sit under the right-hand text. */
       '[dir="rtl"] .hero-col{align-items:flex-start;text-align:right}',
