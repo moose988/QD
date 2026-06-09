@@ -150,6 +150,17 @@ function normalizeLeadData(leadData, lang) {
   return normalized;
 }
 
+// A lead is only "real" if the visitor actually gave a reachable contact.
+// The model sometimes calls capture_lead the instant it hears a business type
+// (e.g. "a restaurant") with an empty contact — we must NOT save/confirm those.
+function isUsableContact(contact) {
+  const c = String(contact || '').trim();
+  if (!c) return false;
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c)) return true; // email
+  const digits = c.replace(/\D/g, '');
+  return digits.length >= 7; // phone / whatsapp
+}
+
 function makeStageTracker(send) {
   let currentStage = 'request_received';
   const startedAt = Date.now();
@@ -345,7 +356,9 @@ export default async function handler(req, res) {
       idleAfterLastChunkMs: Date.now() - lastChunkAt,
     });
     let leadSaved = false;
-    let leadCaptured = false;
+    let leadCaptured = false;     // model tried to capture
+    let leadIncomplete = false;   // ...but with no usable contact
+    let leadBusiness = '';        // business type, if it told us one
     // Initialize Firestore defensively. The answer has already streamed to the
     // user; a DB-init failure here must never turn into a user-facing error.
     let db = null;
@@ -357,11 +370,26 @@ export default async function handler(req, res) {
     }
 
     for (const tc of Object.values(toolCallParts)) {
-      if (tc.name === 'capture_lead' && tc.args && db) {
+      if (tc.name === 'capture_lead' && tc.args) {
         try {
-          stage.mark('lead_save_started');
           leadCaptured = true;
           const leadData = normalizeLeadData(JSON.parse(tc.args), lang);
+          leadBusiness = leadData.business_type || '';
+
+          // Hard guard: only persist + confirm when there's a real contact.
+          // Otherwise the model jumped the gun (e.g. on "a restaurant") and we
+          // must keep the conversation going instead of dead-ending it.
+          if (!isUsableContact(leadData.contact)) {
+            leadIncomplete = true;
+            stage.mark('lead_skipped_no_contact', { business: leadBusiness });
+            continue;
+          }
+          if (!db) {
+            stage.mark('lead_skipped_no_db');
+            continue;
+          }
+
+          stage.mark('lead_save_started');
           await db.collection('chatLeads').add({
             ...leadData,
             sessionId,
@@ -380,15 +408,18 @@ export default async function handler(req, res) {
       }
     }
 
+    // Only show the "we got your details" confirmation when a REAL lead saved.
     if (!fullText.trim() && leadSaved) {
       fullText = lang === 'ar'
         ? 'تم استلام بياناتك. سيتواصل معك فريق QD قريباً عبر وسيلة التواصل التي شاركتها.'
         : 'Thanks — we received your details. The QD team will reach out shortly using the contact method you shared.';
       send({ type: 'text', delta: fullText });
-    } else if (!fullText.trim() && leadCaptured) {
+    } else if (!fullText.trim() && (leadIncomplete || leadCaptured)) {
+      // Model tried to capture before we had a contact — ask naturally and keep going.
+      const biz = leadBusiness.trim();
       fullText = lang === 'ar'
-        ? 'تم التقاط طلبك. إذا رغبت، أرسل اسمك وطريقة التواصل المفضلة وسيتابع معك فريق QD.'
-        : 'I captured the request context. If you want, share your name and preferred contact method and the QD team can follow up.';
+        ? `تمام${biz ? ` — مشروع ${biz} في محله` : ''}. لنبدأ: ما أفضل طريقة للتواصل معك (واتساب، هاتف، أو إيميل)، وما اسمك؟`
+        : `Great${biz ? ` — a ${biz} is right in our wheelhouse` : ''}. To get you a plan, what's the best way to reach you (WhatsApp, phone, or email), and your name?`;
       send({ type: 'text', delta: fullText });
     }
 
