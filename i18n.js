@@ -25,12 +25,12 @@
     'nav.contact':    { en: 'Contact', ar: 'تواصل', zh: '联系我们', ru: 'Контакты' },
     'nav.navigate':   { en: 'Navigate', ar: 'التنقل', zh: '导航', ru: 'Меню' },
 
-    'cta.book':       { en: 'Book a Free Call →', ar: 'احجز مكالمة مجانية →', zh: '预约免费通话 →', ru: 'Бесплатный звонок →' },
-    'cta.demo':       { en: 'Try the live demo', ar: 'جرّب التجربة المباشرة', zh: '体验在线演示', ru: 'Попробовать демо' },
+    'cta.book':       { en: 'Book a Free Call →', ar: 'احجز مكالمة مجانية ←', zh: '预约免费通话 →', ru: 'Бесплатный звонок →' },
+    'cta.demo':       { en: 'Try the live demo', ar: 'جرّب النموذج المباشر', zh: '体验在线演示', ru: 'Попробовать демо' },
 
     /* hero */
     'hero.avail':     { en: 'Now booking · we take a limited number of builds at a time',
-                        ar: 'نستقبل الحجوزات الآن · نعمل على عدد محدود من المشاريع في كل فترة',
+                        ar: 'نستقبل الحجوزات الآن · نعمل على عدد محدود من المشاريع في آنٍ واحد',
                         zh: '现正接受预约 · 我们同期仅承接有限数量的项目',
                         ru: 'Открыта запись · одновременно берём ограниченное число проектов' },
     'hero.h1':        {
@@ -52,14 +52,14 @@
                         zh: '支持英语 / 阿拉伯语双语，专为阿联酋打造。',
                         ru: 'Двуязычно (EN / AR), создано для рынка ОАЭ.' },
     'hero.ctanote':   { en: 'Free 15-min call · no obligation · we reply within the hour',
-                        ar: 'مكالمة مجانية ١٥ دقيقة · دون أي التزام · نرد خلال ساعة',
+                        ar: 'مكالمة مجانية مدتها ١٥ دقيقة · بلا أي التزام · نرد خلال ساعة',
                         zh: '免费 15 分钟通话 · 无任何义务 · 一小时内回复',
                         ru: 'Бесплатный 15-мин звонок · без обязательств · ответим в течение часа' },
     'hero.trust':     { en: 'Trusted by <b>Al Taj Al Malaki</b> · <b>Evo Creation</b> · live in the UAE',
-                        ar: 'موثوق من <b>التاج الملكي</b> · <b>Evo Creation</b> · يعملان في الإمارات',
+                        ar: 'يثق بنا <b>التاج الملكي</b> · <b>Evo Creation</b> · نشطان في الإمارات',
                         zh: '信赖之选：<b>Al Taj Al Malaki</b> · <b>Evo Creation</b> · 已在阿联酋上线',
                         ru: 'Нам доверяют <b>Al Taj Al Malaki</b> · <b>Evo Creation</b> · уже работают в ОАЭ' },
-    'hero.badge.demo.k': { en: 'Working demo', ar: 'نموذج عملي', zh: '可用演示', ru: 'Рабочее демо' },
+    'hero.badge.demo.k': { en: 'Working demo', ar: 'نموذج عملي', zh: '真实演示', ru: 'Рабочее демо' },
     'hero.badge.demo.v': { en: '1–3 hrs', ar: '١–٣ ساعات', zh: '1–3 小时', ru: '1–3 часа' },
     'hero.badge.web.k':  { en: 'Website', ar: 'موقع', zh: '网站', ru: 'Сайт' },
     'hero.badge.web.v':  { en: 'In 24h', ar: 'خلال ٢٤ ساعة', zh: '24 小时内', ru: 'За 24 ч' },
@@ -72,7 +72,7 @@
       en: '<b>Websites</b><b class="fill">Booking systems</b><b>Order tracking</b><b class="fill">Automation</b><b>AI chat</b><b class="fill">Dashboards</b><b>Websites</b><b class="fill">Booking systems</b><b>Order tracking</b><b class="fill">Automation</b><b>AI chat</b><b class="fill">Dashboards</b>',
       ar: '<b>مواقع</b><b class="fill">أنظمة حجز</b><b>تتبع الطلبات</b><b class="fill">أتمتة</b><b>محادثة ذكية</b><b class="fill">لوحات تحكم</b><b>مواقع</b><b class="fill">أنظمة حجز</b><b>تتبع الطلبات</b><b class="fill">أتمتة</b><b>محادثة ذكية</b><b class="fill">لوحات تحكم</b>',
       zh: '<b>网站</b><b class="fill">预订系统</b><b>订单追踪</b><b class="fill">自动化</b><b>AI 聊天</b><b class="fill">数据看板</b><b>网站</b><b class="fill">预订系统</b><b>订单追踪</b><b class="fill">自动化</b><b>AI 聊天</b><b class="fill">数据看板</b>',
-      ru: '<b>Сайты</b><b class="fill">Бронирование</b><b>Трекинг заказов</b><b class="fill">Автоматизация</b><b>AI-чат</b><b class="fill">Дашборды</b><b>Сайты</b><b class="fill">Бронирование</b><b>Трекинг заказов</b><b class="fill">Автоматизация</b><b>AI-чат</b><b class="fill">Дашборды</b>'
+      ru: '<b>Сайты</b><b class="fill">Бронирование</b><b>Отслеживание заказов</b><b class="fill">Автоматизация</b><b>AI-чат</b><b class="fill">Дашборды</b><b>Сайты</b><b class="fill">Бронирование</b><b>Отслеживание заказов</b><b class="fill">Автоматизация</b><b>AI-чат</b><b class="fill">Дашборды</b>'
     },
 
     /* demo */
@@ -86,26 +86,26 @@
                         zh: '这不是截图，而是助手处理真实客户请求的实时演示。',
                         ru: 'Это не скриншот — живой пример того, как ассистент обрабатывает запрос клиента.' },
     'demo.bartitle':  { en: 'QD Booking Assistant', ar: 'مساعد الحجز QD', zh: 'QD 预订助手', ru: 'QD-ассистент бронирования' },
-    'demo.live':      { en: 'LIVE', ar: 'مباشر', zh: '在线', ru: 'LIVE' },
+    'demo.live':      { en: 'LIVE', ar: 'مباشر', zh: '实时', ru: 'LIVE' },
     'demo.footnote':  {
       en: 'Tap a question above to try it. On the live site, this same assistant — bilingual EN/AR, capturing every lead — answers <i>your</i> customers 24/7.',
-      ar: 'اضغط على سؤال بالأعلى لتجربته. على الموقع المباشر، هذا المساعد نفسه — ثنائي اللغة عربي/إنجليزي، يلتقط كل عميل — يرد على عملائك <i>أنت</i> على مدار الساعة.',
+      ar: 'اضغط على سؤال أعلاه لتجربته. على الموقع المباشر، هذا المساعد نفسه — ثنائي اللغة عربي/إنجليزي، يلتقط كل عميل محتمل — يرد على عملائك على مدار الساعة.',
       zh: '点击上方任意问题即可体验。在正式网站上，这个助手（支持英 / 阿双语、捕获每一条线索）全天候为<i>你的</i>客户解答。',
       ru: 'Нажмите на вопрос выше, чтобы попробовать. На рабочем сайте этот же ассистент — двуязычный (EN/AR), фиксирующий каждую заявку — отвечает <i>вашим</i> клиентам круглосуточно.'
     },
 
     /* proof */
-    'proof.tag':      { en: 'Trusted across the UAE', ar: 'موثوق في جميع أنحاء الإمارات', zh: '受阿联酋各地信赖', ru: 'Нам доверяют по всем ОАЭ' },
-    'proof.stat1':    { en: 'Brands live in the UAE', ar: 'علامات تعمل في الإمارات', zh: '已上线的阿联酋品牌', ru: 'Брендов работает в ОАЭ' },
+    'proof.tag':      { en: 'Trusted across the UAE', ar: 'موثوق به في الإمارات', zh: '受阿联酋各地信赖', ru: 'Нам доверяют по всему ОАЭ' },
+    'proof.stat1':    { en: 'Brands live in the UAE', ar: 'علامات تجارية تعمل في الإمارات', zh: '已上线的阿联酋品牌', ru: 'Брендов работает в ОАЭ' },
     'proof.stat2':    { en: 'Website turnaround', ar: 'مدة تسليم الموقع', zh: '网站交付时间', ru: 'Срок запуска сайта' },
-    'proof.stat3':    { en: 'Custom-built, never templates', ar: 'مبني خصيصاً، بلا قوالب', zh: '纯定制，绝无模板', ru: 'Только кастом, без шаблонов' },
+    'proof.stat3':    { en: 'Custom-built, never templates', ar: 'مبنيّ خصيصاً، بلا قوالب جاهزة', zh: '纯定制，绝无模板', ru: 'Только кастом, без шаблонов' },
     'proof.stat4':    { en: 'Reply time', ar: 'زمن الرد', zh: '回复时间', ru: 'Время ответа' },
 
     /* statement */
     'statement':      {
       en: '<span class="metal">You don\'t need <span class="muted">more complexity.</span></span><br><span class="metal">You need a system that just works.</span>',
-      ar: '<span class="metal">لست بحاجة إلى <span class="muted">مزيد من التعقيد.</span></span><br><span class="metal">أنت بحاجة إلى نظام يعمل ببساطة.</span>',
-      zh: '<span class="metal">你需要的不是<span class="muted">更多复杂。</span></span><br><span class="metal">而是一个真正好用的系统。</span>',
+      ar: '<span class="metal">لست بحاجة إلى <span class="muted">مزيد من التعقيد.</span></span><br><span class="metal">أنت بحاجة إلى نظام يؤدي عمله دون تعقيد.</span>',
+      zh: '<span class="metal">你需要的不是<span class="muted">更多复杂性。</span></span><br><span class="metal">而是一个真正好用的系统。</span>',
       ru: '<span class="metal">Вам не нужна <span class="muted">лишняя сложность.</span></span><br><span class="metal">Нужна система, которая просто работает.</span>'
     },
 
@@ -118,7 +118,7 @@
                         ru: 'Сайты лучше, чем у конкурентов, — плюс системы, которые приносят прибыль.' },
     'build.o1.h':     { en: 'Websites that win', ar: 'مواقع تكسب', zh: '致胜的网站', ru: 'Сайты, которые побеждают' },
     'build.o1.p':     { en: 'Premium, fast, custom-built sites that make customers trust you in seconds. Never a template.',
-                        ar: 'مواقع فاخرة وسريعة ومبنية خصيصاً تجعل العملاء يثقون بك في ثوانٍ. ليست قالباً أبداً.',
+                        ar: 'مواقع فاخرة وسريعة ومبنية خصيصاً تجعل العملاء يثقون بك في ثوانٍ. بلا قوالب جاهزة أبداً.',
                         zh: '高端、快速、纯定制的网站，让客户在几秒内信任你。绝不使用模板。',
                         ru: 'Премиальные, быстрые, полностью кастомные сайты, которым клиент доверяет за секунды. Никаких шаблонов.' },
     'build.o2.h':     { en: 'Systems that run it', ar: 'أنظمة تُشغّلها', zh: '驱动业务的系统', ru: 'Системы, которые всё ведут' },
@@ -144,20 +144,20 @@
                         ru: 'Большинство студий останавливаются на странице. Мы строим то, что происходит после клика.' },
     'why.them.title': { en: 'A typical studio', ar: 'استوديو تقليدي', zh: '普通工作室', ru: 'Обычная студия' },
     'why.them1':      { en: 'Hands you a page, then disappears', ar: 'يسلّمك صفحة ثم يختفي', zh: '交付页面后便消失', ru: 'Отдаёт страницу и исчезает' },
-    'why.them2':      { en: 'Templates dressed up as "custom"', ar: 'قوالب متنكرة كـ"مخصص"', zh: '把模板包装成"定制"', ru: 'Шаблоны под видом «кастома»' },
-    'why.them3':      { en: 'No booking, tracking or automation', ar: 'بلا حجز أو تتبع أو أتمتة', zh: '没有预订、追踪或自动化', ru: 'Без брони, трекинга и автоматизации' },
-    'why.them4':      { en: 'Weeks of back-and-forth', ar: 'أسابيع من الأخذ والرد', zh: '数周来回沟通', ru: 'Недели переписки' },
+    'why.them2':      { en: 'Templates dressed up as "custom"', ar: 'قوالب جاهزة تُباع بوصفها "تصميم مخصص"', zh: '把模板包装成"定制"', ru: 'Шаблоны под видом «кастома»' },
+    'why.them3':      { en: 'No booking, tracking or automation', ar: 'بلا حجز أو تتبع أو أتمتة', zh: '没有预订、追踪或自动化', ru: 'Без бронирования, отслеживания и автоматизации' },
+    'why.them4':      { en: 'Weeks of back-and-forth', ar: 'أسابيع من المراسلات المتكررة', zh: '数周来回沟通', ru: 'Недели переписки' },
     'why.them5':      { en: 'English only', ar: 'إنجليزي فقط', zh: '仅支持英文', ru: 'Только английский' },
     'why.us.badge':   { en: 'You', ar: 'أنت', zh: '你', ru: 'Вы' },
     'why.us1':        { en: 'A site plus the system that runs your business', ar: 'موقع بالإضافة إلى النظام الذي يُدير عملك', zh: '网站，外加驱动你业务的系统', ru: 'Сайт плюс система, которая ведёт ваш бизнес' },
-    'why.us2':        { en: '100% custom-coded — never a template', ar: 'مبرمج خصيصاً ١٠٠٪ — ليس قالباً أبداً', zh: '100% 纯手工编码——绝无模板', ru: '100% кастомный код — никаких шаблонов' },
-    'why.us3':        { en: 'Booking, tracking, automation & AI chat built in', ar: 'حجز وتتبع وأتمتة ومحادثة ذكية مدمجة', zh: '内置预订、追踪、自动化与 AI 聊天', ru: 'Бронирование, трекинг, автоматизация и AI-чат внутри' },
+    'why.us2':        { en: '100% custom-coded — never a template', ar: 'مبرمَج خصيصاً ١٠٠٪ — بلا قوالب جاهزة', zh: '100% 纯手工编码——绝无模板', ru: '100% кастомный код — никаких шаблонов' },
+    'why.us3':        { en: 'Booking, tracking, automation & AI chat built in', ar: 'حجز وتتبع وأتمتة ومحادثة ذكية مدمجة', zh: '内置预订、追踪、自动化与 AI 聊天', ru: 'Бронирование, отслеживание, автоматизация и AI-чат — в комплекте' },
     'why.us4':        { en: 'Live in days, timeline agreed in writing', ar: 'جاهز خلال أيام، بجدول زمني متفق عليه كتابياً', zh: '数日内上线，时间表书面约定', ru: 'Запуск за дни, сроки зафиксированы письменно' },
     'why.us5':        { en: 'Bilingual EN / AR, built for the UAE', ar: 'ثنائي اللغة عربي/إنجليزي، مصمم للإمارات', zh: '支持英 / 阿双语，专为阿联酋打造', ru: 'Двуязычно (EN / AR), создано для ОАЭ' },
 
     /* how */
     'how.tag':        { en: 'What happens next', ar: 'ماذا يحدث بعد ذلك', zh: '接下来会怎样', ru: 'Что дальше' },
-    'how.h2':         { en: 'From hello to live in four steps.', ar: 'من المرحبا إلى الإطلاق في أربع خطوات.', zh: '从初次接触到上线，只需四步。', ru: 'От «привет» до запуска за четыре шага.' },
+    'how.h2':         { en: 'From hello to live in four steps.', ar: 'من أول تواصل إلى الإطلاق في أربع خطوات.', zh: '从初次接触到上线，只需四步。', ru: 'От «привет» до запуска за четыре шага.' },
     'how.lead':       { en: 'No mystery, no endless meetings — here\'s exactly how it goes.',
                         ar: 'لا غموض، لا اجتماعات لا تنتهي — إليك بالضبط كيف تسير الأمور.',
                         zh: '没有谜团，没有没完没了的会议——下面就是具体流程。',
@@ -176,7 +176,7 @@
     'how.s3.p':       { en: 'Demo in hours, site in 24h, full system in 1–3 days. You watch it take shape.',
                         ar: 'نموذج خلال ساعات، موقع خلال ٢٤ ساعة، نظام كامل خلال ١–٣ أيام. تشاهده يتشكّل.',
                         zh: '数小时出演示，24 小时出网站，1–3 天出完整系统。你亲眼见证它成形。',
-                        ru: 'Демо за часы, сайт за 24 ч, полная система за 1–3 дня. Вы видите, как всё растёт.' },
+                        ru: 'Демо за часы, сайт за 24 ч, полная система за 1–3 дня. Вы видите, как всё складывается.' },
     'how.s4.h':       { en: 'Go live', ar: 'الإطلاق', zh: '正式上线', ru: 'Запуск' },
     'how.s4.p':       { en: 'We launch, test and support it. You pay the final invoice only when you\'re happy.',
                         ar: 'نطلق ونختبر وندعم. تدفع الفاتورة النهائية فقط عندما تكون راضياً.',
@@ -186,14 +186,14 @@
     /* faq */
     'faq.tag':        { en: 'Questions', ar: 'أسئلة', zh: '常见问题', ru: 'Вопросы' },
     'faq.h2':         { en: 'Everything owners ask us.', ar: 'كل ما يسألنا عنه أصحاب الأعمال.', zh: '老板们最常问的一切。', ru: 'Всё, о чём спрашивают владельцы.' },
-    'faq.q1':         { en: 'How fast can you really deliver?', ar: 'ما مدى سرعتكم الحقيقية في التسليم؟', zh: '你们到底能多快交付？', ru: 'Насколько быстро вы реально сдаёте?' },
+    'faq.q1':         { en: 'How fast can you really deliver?', ar: 'كم تستغرقون فعلاً في التسليم؟', zh: '你们到底能多快交付？', ru: 'Насколько быстро вы реально сдаёте?' },
     'faq.a1':         { en: 'A working demo in 1–3 hours, a full website in 24 hours, and a complete system in 1–3 days — depending on scope. We commit to your exact timeline in writing before we start.',
-                        ar: 'نموذج عملي خلال ١–٣ ساعات، موقع كامل خلال ٢٤ ساعة، ونظام متكامل خلال ١–٣ أيام — حسب النطاق. نلتزم بجدولك الزمني بدقة وكتابياً قبل أن نبدأ.',
+                        ar: 'نموذج عملي خلال ١–٣ ساعات، موقع كامل خلال ٢٤ ساعة، ونظام متكامل خلال ١–٣ أيام — حسب النطاق. نلتزم بجدولك الزمني المحدد موثّقاً كتابياً قبل أن نبدأ.',
                         zh: '视范围而定：1–3 小时出可用演示，24 小时出完整网站，1–3 天出完整系统。开工前，我们会以书面形式承诺你的确切时间表。',
                         ru: 'Рабочее демо за 1–3 часа, полный сайт за 24 часа, готовая система за 1–3 дня — в зависимости от объёма. Перед стартом письменно фиксируем точные сроки.' },
     'faq.q2':         { en: 'What if I don\'t like it?', ar: 'ماذا لو لم يعجبني؟', zh: '如果我不满意怎么办？', ru: 'А если мне не понравится?' },
     'faq.a2':         { en: 'You only pay the final invoice once it\'s live and you\'re happy. We refine until it\'s right.',
-                        ar: 'تدفع الفاتورة النهائية فقط بعد الإطلاق وعندما تكون راضياً. نحسّن حتى يصبح صحيحاً.',
+                        ar: 'تدفع الفاتورة النهائية فقط بعد الإطلاق وعندما تكون راضياً. نُحسّنه حتى ترضى عنه تماماً.',
                         zh: '只有在上线且你满意之后，才支付尾款。我们会不断打磨，直到做对为止。',
                         ru: 'Финальный счёт вы платите, только когда всё запущено и вы довольны. Дорабатываем, пока не будет идеально.' },
     'faq.q3':         { en: 'Do you build in Arabic?', ar: 'هل تبنون بالعربية؟', zh: '你们做阿拉伯语网站吗？', ru: 'Вы делаете на арабском?' },
@@ -209,7 +209,7 @@
     'faq.q5':         { en: 'What does it cost?', ar: 'كم التكلفة؟', zh: '费用是多少？', ru: 'Сколько это стоит?' },
     'faq.a5':         {
       en: 'Most projects land between <b style="color:#e8e8ec">[AED ___ and AED ___]</b> depending on scope. You get one fixed, itemized quote up front — no hourly games, no hidden fees. <span style="color:var(--dim)">(Set your real range here.)</span>',
-      ar: 'معظم المشاريع تتراوح بين <b style="color:#e8e8ec">[AED ___ و AED ___]</b> حسب النطاق. تحصل على عرض سعر واحد ثابت ومفصّل مقدماً — بلا ألاعيب بالساعة، بلا رسوم خفية. <span style="color:var(--dim)">(ضع نطاقك الحقيقي هنا.)</span>',
+      ar: 'معظم المشاريع تتراوح بين <b style="color:#e8e8ec">[AED ___ و AED ___]</b> حسب النطاق. تحصل على عرض سعر واحد ثابت ومفصّل مقدماً — بلا تسعير بالساعة، بلا رسوم خفية. <span style="color:var(--dim)">(ضع نطاقك الحقيقي هنا.)</span>',
       zh: '大多数项目根据范围在 <b style="color:#e8e8ec">[AED ___ 至 AED ___]</b> 之间。你会预先收到一份固定、逐项列明的报价——不按小时玩花样，没有隐藏费用。<span style="color:var(--dim)">（在此填入你的真实区间。）</span>',
       ru: 'Большинство проектов укладывается в <b style="color:#e8e8ec">[AED ___ — AED ___]</b> в зависимости от объёма. Вы заранее получаете одну фиксированную детализированную смету — без почасовых игр и скрытых платежей. <span style="color:var(--dim)">(Укажите здесь свой реальный диапазон.)</span>'
     },
@@ -217,7 +217,7 @@
     /* contact */
     'contact.h2':     {
       en: 'Tell us the problem.<br>We\'ll build the system.',
-      ar: 'أخبرنا بالمشكلة.<br>وسنبني النظام.',
+      ar: 'أخبرنا بالمشكلة.<br>سنبني النظام.',
       zh: '告诉我们问题，<br>我们来打造系统。',
       ru: 'Расскажите о задаче.<br>Мы построим систему.'
     },
@@ -232,10 +232,10 @@
                         ar: 'مجاناً · دون التزام · نرد خلال ساعة',
                         zh: '免费 · 无义务 · 一小时内回复',
                         ru: 'Бесплатно · без обязательств · ответим в течение часа' },
-    'contact.wa':     { en: 'Prefer WhatsApp? Message us →', ar: 'تفضل واتساب؟ راسلنا →', zh: '更喜欢 WhatsApp？给我们发消息 →', ru: 'Предпочитаете WhatsApp? Напишите →' },
+    'contact.wa':     { en: 'Prefer WhatsApp? Message us →', ar: 'هل تُفضّل واتساب؟ راسلنا ←', zh: '更喜欢 WhatsApp？给我们发消息 →', ru: 'Предпочитаете WhatsApp? Напишите →' },
     'contact.g1':     { en: 'Timeline agreed in writing', ar: 'جدول زمني متفق عليه كتابياً', zh: '时间表书面约定', ru: 'Сроки зафиксированы письменно' },
     'contact.g2':     { en: 'Pay the final invoice only when you\'re happy', ar: 'ادفع الفاتورة النهائية فقط عند رضاك', zh: '满意后才付尾款', ru: 'Платите финальный счёт, только когда довольны' },
-    'contact.g3':     { en: '100% custom — no templates', ar: 'مخصص ١٠٠٪ — بلا قوالب', zh: '100% 定制——无模板', ru: '100% кастом — без шаблонов' },
+    'contact.g3':     { en: '100% custom — no templates', ar: 'مخصص ١٠٠٪ — بلا قوالب جاهزة', zh: '100% 定制——无模板', ru: '100% кастом — без шаблонов' },
 
     /* footer */
     'footer.copy':    { en: '© 2026 QD Systems · Built in the UAE', ar: '© ٢٠٢٦ QD Systems · صُنع في الإمارات', zh: '© 2026 QD Systems · 在阿联酋打造', ru: '© 2026 QD Systems · Сделано в ОАЭ' },
@@ -250,25 +250,25 @@
     'book.name.ph':   { en: 'e.g. Ahmed', ar: 'مثال: أحمد', zh: '例如：Ahmed', ru: 'напр. Ахмед' },
     'book.phone':     { en: 'Phone number', ar: 'رقم الهاتف', zh: '电话号码', ru: 'Телефон' },
     'book.email':     { en: 'Email', ar: 'البريد الإلكتروني', zh: '邮箱', ru: 'Эл. почта' },
-    'book.purpose':   { en: 'What\'s it about?', ar: 'بخصوص ماذا؟', zh: '关于什么？', ru: 'О чём речь?' },
+    'book.purpose':   { en: 'What\'s it about?', ar: 'ما الموضوع؟', zh: '关于什么？', ru: 'О чём речь?' },
     'book.opt1':      { en: 'A new website', ar: 'موقع جديد', zh: '一个新网站', ru: 'Новый сайт' },
     'book.opt2':      { en: 'A full system (booking / automation / dashboard)', ar: 'نظام كامل (حجز / أتمتة / لوحة تحكم)', zh: '完整系统（预订 / 自动化 / 看板）', ru: 'Полная система (бронь / автоматизация / дашборд)' },
     'book.opt3':      { en: 'Not sure yet — I\'d like advice', ar: 'لست متأكداً بعد — أريد استشارة', zh: '还不确定——想听听建议', ru: 'Пока не уверен — нужен совет' },
     'book.date':      { en: 'Preferred date (optional)', ar: 'التاريخ المفضل (اختياري)', zh: '期望日期（可选）', ru: 'Желаемая дата (необязательно)' },
     'book.time':      { en: 'Preferred time (optional)', ar: 'الوقت المفضل (اختياري)', zh: '期望时间（可选）', ru: 'Желаемое время (необязательно)' },
-    'book.submit':    { en: 'Confirm — send my Meet link →', ar: 'تأكيد — أرسل رابط الاجتماع →', zh: '确认——发送我的会议链接 →', ru: 'Подтвердить — прислать ссылку →' },
+    'book.submit':    { en: 'Confirm — send my Meet link →', ar: 'تأكيد — أرسل لي رابط الاجتماع ←', zh: '确认——发送我的会议链接 →', ru: 'Подтвердить — прислать ссылку →' },
     'book.hint':      { en: 'Free · no obligation · your link arrives by email',
                         ar: 'مجاناً · دون التزام · يصلك الرابط بالبريد',
                         zh: '免费 · 无义务 · 链接将通过邮件送达',
                         ru: 'Бесплатно · без обязательств · ссылка придёт на почту' },
-    'book.done.title':{ en: 'You\'re booked', ar: 'تم حجزك', zh: '预约成功', ru: 'Вы записаны' },
+    'book.done.title':{ en: 'You\'re booked', ar: 'تم تأكيد حجزك!', zh: '预约成功', ru: 'Вы записаны' },
     'book.done.msg':  { en: 'Check {email} — your Google Meet link is on its way, usually within the hour.',
                         ar: 'راجع {email} — رابط Google Meet في طريقه إليك، عادة خلال ساعة.',
                         zh: '请查收 {email} —— 你的 Google Meet 链接正在发送，通常一小时内到达。',
                         ru: 'Проверьте {email} — ссылка на Google Meet уже в пути, обычно в течение часа.' },
 
     /* intro */
-    'intro.loading':  { en: 'Loading experience', ar: 'جاري تحميل التجربة', zh: '正在加载体验', ru: 'Загрузка…' }
+    'intro.loading':  { en: 'Loading experience', ar: 'جارٍ تحميل التجربة', zh: '正在加载体验', ru: 'Загрузка…' }
   };
 
   /* ----------------------------------------------------------------------- */
@@ -287,13 +287,13 @@
     },
     ar: {
       flows: {
-        intro: [{ who: 'them', t: 'مرحبا! عندكم طاولات دائرية لـ٢٠٠ ضيف هذا الأسبوع؟' }, { who: 'us', t: 'نعم — ٢٥ طاولة دائرية متاحة السبت. أحجزها لك؟' }, { who: 'them', t: 'تمام. وممكن أحد يتصل فيني؟' }, { who: 'us', t: 'تم ✅ حجزت لك مكالمة اليوم الساعة ٤:٠٠ مساءً.' }, { book: 'تم حجز المكالمة تلقائياً — بينما كنت تقرأ هذا.' }],
+        intro: [{ who: 'them', t: 'مرحباً! عندكم طاولات دائرية لـ٢٠٠ ضيف هذا الأسبوع؟' }, { who: 'us', t: 'نعم — ٢٥ طاولة دائرية متاحة السبت. أحجزها لك؟' }, { who: 'them', t: 'تمام. وممكن أحد يتصل فيني؟' }, { who: 'us', t: 'تم ✅ حجزت لك مكالمة اليوم الساعة ٤:٠٠ مساءً.' }, { book: 'تم حجز المكالمة تلقائياً — بينما كنت تقرأ هذا.' }],
         avail: [{ who: 'us', t: 'أي تاريخ تفكر فيه؟' }, { who: 'them', t: 'مساء الجمعة القادمة.' }, { who: 'us', t: 'لدينا توفر مساء الجمعة. أحجز لك مبدئياً وأرسل عرض سعر؟' }, { book: 'تم حجز موعد الجمعة — العرض في الطريق.' }],
         quote: [{ who: 'us', t: 'أخبرني بالباقة وعدد الضيوف وأسعّرها فوراً.' }, { who: 'them', t: 'الباقة الذهبية، ١٥٠ ضيف.' }, { who: 'us', t: 'الذهبية · ١٥٠ ضيف ← ١٨٬٥٠٠ درهم شاملة. أثبّتها؟' }, { book: 'عرض سعر فوري — دون انتظار البريد.' }],
-        lang: [{ who: 'them', t: 'تقدرون تسوون الموقع بالعربي؟' }, { who: 'us', t: 'أكيد — نبنيه بالعربي والإنجليزي مع دعم كامل للاتجاه RTL.' }, { book: 'ثنائي اللغة عربي/إنجليزي — مدعوم أصلاً.' }]
+        lang: [{ who: 'them', t: 'تقدرون تسوون الموقع بالعربي؟' }, { who: 'us', t: 'أكيد — نبنيه بالعربي والإنجليزي مع دعم كامل للكتابة من اليمين لليسار.' }, { book: 'ثنائي اللغة عربي/إنجليزي — مدعوم أصلاً.' }]
       },
       chips: [{ k: 'avail', t: '📅 تحقق من التوفر' }, { k: 'quote', t: '💸 احصل على عرض فوري' }, { k: 'lang', t: '🌐 تريده بالعربي؟' }],
-      bookChip: 'احجز مكالمة مجانية →'
+      bookChip: 'احجز مكالمة مجانية ←'
     },
     zh: {
       flows: {
