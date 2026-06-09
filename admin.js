@@ -1198,6 +1198,29 @@ const formatOutreachMeeting = (lead) => {
   return parts.filter(Boolean).join(' | ');
 };
 
+const formatOutreachWebsiteLabel = (url, maxLength = 42) => {
+  const value = String(url || '').trim();
+  if (!value) return '';
+  try {
+    const parsed = new URL(value);
+    const host = parsed.hostname.replace(/^www\./i, '');
+    const path = `${parsed.pathname}${parsed.search}`.replace(/\/$/, '');
+    const compact = path && path !== '/' ? `${host}${path}` : host;
+    if (compact.length <= maxLength) return compact;
+    return `${compact.slice(0, maxLength - 1)}…`;
+  } catch {
+    if (value.length <= maxLength) return value;
+    return `${value.slice(0, maxLength - 1)}…`;
+  }
+};
+
+const renderOutreachWebsiteLink = (url) => {
+  const cleanUrl = String(url || '').trim();
+  if (!cleanUrl) return '—';
+  const label = formatOutreachWebsiteLabel(cleanUrl);
+  return `<a class="qd-admin-outreach-website-link" href="${escapeHtml(cleanUrl)}" target="_blank" rel="noreferrer noopener" title="${escapeHtml(cleanUrl)}">${escapeHtml(label)}</a>`;
+};
+
 const joinSection = (title, rows) => {
   return [
     `${title}:`,
@@ -1857,7 +1880,7 @@ const renderAnalyticsCards = (analytics) => {
 const renderSubmissionRows = (items, emptyTitle = 'No submissions match this view', emptyText = 'Try a broader search or reset the pipeline filters.') => {
   if (!items.length) {
     return `
-      <tr class="qd-admin-outreach-row" data-outreach-open-id="${escapeHtml(lead.id)}">
+      <tr>
         <td colspan="8">
           <div class="qd-admin-empty">
             <strong>${escapeHtml(emptyTitle)}</strong>
@@ -2141,7 +2164,7 @@ const renderOutreachRows = (items) => {
   if (state.outreachLoading && !items.length) {
     return `
       <tr>
-        <td colspan="7">
+        <td colspan="6">
           <div class="qd-admin-empty-state">
             <strong>Loading outreach leads</strong>
             <p>Opening the realtime Firestore listener for business outreach leads.</p>
@@ -2154,7 +2177,7 @@ const renderOutreachRows = (items) => {
   if (!items.length) {
     return `
       <tr>
-        <td colspan="7">
+        <td colspan="6">
           <div class="qd-admin-empty-state">
             <strong>No outreach leads yet</strong>
             <p>Add your first cold outreach contact to start tracking follow-up and confirmed imports.</p>
@@ -2167,41 +2190,23 @@ const renderOutreachRows = (items) => {
   return items.map((lead) => {
     const whatsappLink = buildOutreachWhatsAppLink(lead);
     const callLink = buildOutreachCallLink(lead);
-    const meetingSummary = formatOutreachMeeting(lead);
-    const meetingDateLabel = lead.meetingDateTime ? formatDate(lead.meetingDateTime) : 'Not scheduled';
-    const meetingLocationLabel = lead.meetingLocation || 'No location set';
     return `
-      <tr>
-        <td>
-          <div class="qd-admin-card-person qd-admin-outreach-person">
-            <div>
-              <strong>${escapeHtml(lead.businessName || 'Untitled Lead')}</strong>
-              <span>${lead.websiteUrl
-                ? `<a href="${escapeHtml(lead.websiteUrl)}" target="_blank" rel="noreferrer noopener">${escapeHtml(lead.websiteUrl)}</a>`
-                : 'No website listed'}</span>
-            </div>
-          </div>
+      <tr class="qd-admin-outreach-row" data-outreach-open-id="${escapeHtml(lead.id)}">
+        <td class="qd-admin-outreach-col-business">
+          <strong class="qd-admin-outreach-business-name">${escapeHtml(lead.businessName || 'Untitled Lead')}</strong>
         </td>
-        <td>${escapeHtml(lead.ownerName || 'Not provided')}</td>
-        <td>${escapeHtml(lead.phoneNumber || 'Not provided')}</td>
-        <td>${lead.websiteUrl
-          ? `<a href="${escapeHtml(lead.websiteUrl)}" target="_blank" rel="noreferrer noopener">${escapeHtml(lead.websiteUrl)}</a>`
-          : 'No website'}</td>
-        <td>
-          ${escapeHtml(meetingDateLabel)}
-          <div class="qd-admin-subline">${escapeHtml(meetingLocationLabel)}</div>
+        <td class="qd-admin-outreach-col-owner">${escapeHtml(lead.ownerName || '—')}</td>
+        <td class="qd-admin-outreach-col-phone">${escapeHtml(lead.phoneNumber || '—')}</td>
+        <td class="qd-admin-outreach-col-website">${renderOutreachWebsiteLink(lead.websiteUrl)}</td>
+        <td class="qd-admin-outreach-col-status" data-outreach-stop-row-open>
+          ${renderOutreachStatusSelect(lead)}
         </td>
-        <td><span class="qd-status-pill" data-tone="${escapeHtml(getOutreachStatusTone(lead.status))}">${escapeHtml(getOutreachStatusLabel(lead.status))}</span></td>
-        <td>${escapeHtml(formatDate(lead.createdAt))}</td>
-        <td>
-          <div class="qd-admin-row-actions qd-admin-outreach-actions">
-            ${renderOutreachStatusSelect(lead)}
-            <div class="qd-admin-outreach-action-links">
-              ${whatsappLink ? `<a class="qd-admin-row-button qd-admin-outreach-action-link" href="${escapeHtml(whatsappLink)}" target="_blank" rel="noreferrer noopener">WhatsApp</a>` : ''}
-              ${callLink ? `<a class="qd-admin-row-button qd-admin-outreach-action-link" href="${escapeHtml(callLink)}">Call</a>` : ''}
-              <button class="qd-admin-row-button" type="button" data-action="edit-outreach-lead" data-id="${escapeHtml(lead.id)}">Edit</button>
-              <button class="qd-admin-row-button is-danger" type="button" data-action="delete-outreach-lead" data-id="${escapeHtml(lead.id)}">Delete</button>
-            </div>
+        <td class="qd-admin-outreach-col-actions" data-outreach-stop-row-open>
+          <div class="qd-admin-outreach-action-links">
+            ${whatsappLink ? `<a class="qd-admin-row-button qd-admin-outreach-action-link" href="${escapeHtml(whatsappLink)}" target="_blank" rel="noreferrer noopener">WhatsApp</a>` : ''}
+            ${callLink ? `<a class="qd-admin-row-button qd-admin-outreach-action-link" href="${escapeHtml(callLink)}">Call</a>` : ''}
+            <button class="qd-admin-row-button" type="button" data-action="edit-outreach-lead" data-id="${escapeHtml(lead.id)}">Edit</button>
+            <button class="qd-admin-row-button is-danger" type="button" data-action="delete-outreach-lead" data-id="${escapeHtml(lead.id)}">Delete</button>
           </div>
         </td>
       </tr>
@@ -2235,9 +2240,7 @@ const renderOutreachCards = (items) => {
         <div class="qd-admin-mobile-card-grid">
           <div><strong>Owner</strong><span>${escapeHtml(lead.ownerName || 'Not provided')}</span></div>
           <div><strong>Phone</strong><span>${escapeHtml(lead.phoneNumber || 'Not provided')}</span></div>
-          <div><strong>Website</strong><span>${lead.websiteUrl
-            ? `<a href="${escapeHtml(lead.websiteUrl)}" target="_blank" rel="noreferrer noopener">${escapeHtml(lead.websiteUrl)}</a>`
-            : 'No website'}</span></div>
+          <div><strong>Website</strong><span>${renderOutreachWebsiteLink(lead.websiteUrl)}</span></div>
           <div><strong>Meeting</strong><span>${escapeHtml(meetingSummary || 'Not scheduled')}</span></div>
           <div><strong>Added</strong><span>${escapeHtml(formatDate(lead.createdAt))}</span></div>
         </div>
@@ -2368,7 +2371,7 @@ const renderOutreachEditor = () => {
       <aside class="qd-admin-drawer qd-admin-card-editor qd-admin-outreach-editor" role="dialog" aria-modal="true" aria-label="Outreach lead editor">
         <button class="qd-admin-drawer-close qd-admin-drawer-close-floating" type="button" data-action="close-outreach-editor" aria-label="Close">X</button>
 
-        <section class="qd-admin-card-editor-head">
+        <section class="qd-admin-card-editor-head qd-admin-outreach-editor-head">
           <div>
             <div class="qd-eyebrow qd-admin-kicker">Business Outreach</div>
             <h2>${state.outreachEditor.mode === 'edit' ? 'Edit outreach lead' : 'Add outreach lead'}</h2>
@@ -2497,17 +2500,15 @@ const renderOutreachManager = () => {
           <button class="qd-btn qd-btn-sm qd-admin-action-primary" type="button" data-action="open-outreach-create">Add Lead</button>
         </div>
 
-        <div class="qd-admin-table-wrap">
-          <table class="qd-admin-table">
+        <div class="qd-admin-table-wrap qd-admin-outreach-table-wrap">
+          <table class="qd-admin-table qd-admin-outreach-table">
             <thead>
               <tr>
                 <th>Business</th>
                 <th>Owner</th>
                 <th>Phone</th>
                 <th>Website</th>
-                <th>Meeting</th>
                 <th>Status</th>
-                <th>Added</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -5706,7 +5707,7 @@ const saveDrawer = async (nextValues = {}) => {
 
 const handleDocumentClick = async (event) => {
   const outreachOpenTarget = event.target.closest('[data-outreach-open-id]');
-  const clickedInteractiveControl = event.target.closest('a, button, select, input, textarea, label');
+  const clickedInteractiveControl = event.target.closest('a, button, select, input, textarea, label, [data-outreach-stop-row-open]');
   if (outreachOpenTarget && !clickedInteractiveControl) {
     const lead = getOutreachLeadById(outreachOpenTarget.dataset.outreachOpenId);
     if (lead) {

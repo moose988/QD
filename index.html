@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>QD Systems · Websites & systems for UAE businesses</title>
 <link rel="icon" href="assets/qd-logo.jpeg" type="image/jpeg">
 <link rel="apple-touch-icon" href="assets/qd-logo.jpeg">
@@ -20,7 +20,8 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;scroll-padding-top:88px;overflow-x:clip;max-width:100%;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{background:var(--bg);color:var(--fg);font-family:Inter,system-ui,sans-serif;line-height:1.6;overflow-x:hidden;max-width:100%;-webkit-font-smoothing:antialiased}
-body.modal-open{overflow:hidden;touch-action:none}
+body.modal-open{overflow:hidden}
+body.qd-chat-open{overflow:hidden}
 h1,h2,h3,.disp{font-family:"Space Grotesk",sans-serif;line-height:1.03;letter-spacing:-.02em}
 .wrap{max-width:1200px;margin:0 auto;padding:0 28px}
 a{color:inherit;text-decoration:none}
@@ -627,12 +628,18 @@ body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:b
 .qhint .g{width:6px;height:6px;border-radius:50%;background:var(--live);box-shadow:0 0 8px var(--live)}
 .qform .needs{justify-content:flex-start;margin:0;gap:8px}
 /* booking modal */
-.modal-overlay{position:fixed;inset:0;z-index:80;background:rgba(4,4,6,.72);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .3s var(--ease)}
+.modal-overlay{position:fixed;inset:0;z-index:10000;background:rgba(4,4,6,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .3s var(--ease)}
 .modal-overlay.open{opacity:1;pointer-events:auto}
-.modal{position:relative;width:100%;max-width:470px;background:linear-gradient(180deg,#15151a,#0e0e11);border:1px solid var(--line);border-radius:22px;padding:30px;box-shadow:0 50px 120px rgba(0,0,0,.7);transform:translateY(20px) scale(.985);transition:transform .3s var(--ease);max-height:min(90vh,90dvh);overflow-y:auto;-webkit-overflow-scrolling:touch}
+.modal{position:relative;width:100%;max-width:470px;background:linear-gradient(180deg,#15151a,#0e0e11);border:1px solid var(--line);border-radius:22px;padding:30px;box-shadow:0 50px 120px rgba(0,0,0,.7);transform:translateY(20px) scale(.985);transition:transform .3s var(--ease);max-height:min(90vh,90dvh);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 .modal-overlay{align-items:flex-end}
 @media(min-width:481px){.modal-overlay{align-items:center}}
 .modal-overlay.open .modal{transform:none}
+@media(max-width:768px){
+  .modal-overlay{align-items:flex-end;padding:0}
+  .modal-overlay.open .modal{transform:none;transition:none}
+  .modal{width:100%;max-width:none;border-radius:18px 18px 0 0;max-height:min(92svh,92vh);padding-bottom:calc(22px + env(safe-area-inset-bottom,0px))}
+  body.modal-open .qd-call-fab,body.modal-open .qd-chat-launcher{opacity:0;pointer-events:none}
+}
 .modal h3{font-family:"Space Grotesk";font-size:1.55rem;margin-bottom:6px;letter-spacing:-.02em}
 .modal .msub{color:var(--muted);font-size:14px;margin-bottom:22px;line-height:1.5}
 .mx{position:absolute;top:16px;right:16px;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--muted);cursor:pointer;display:grid;place-items:center;font-size:15px;transition:.2s}
@@ -1038,8 +1045,28 @@ qdDigitsOnly(bPhoneEl,15);
 qdSetBookDateMin();
 function qdFormatBookSlot(date,time){const parts=[];if(date)parts.push(date);if(time)parts.push(time);return parts.join(' at ');}
 function qdSetBookDateMin(){if(bDateEl)bDateEl.min=new Date().toISOString().slice(0,10);}
-function openBooking(){if(!bookModal)return;qdSetBookDateMin();bookModal.classList.add('open');document.body.classList.add('modal-open');bookLast=document.activeElement;setTimeout(()=>{const n=document.getElementById('bName');if(n)n.focus();},120);}
-function closeBooking(){if(!bookModal)return;bookModal.classList.remove('open');if(!navMobileOverlay||!navMobileOverlay.classList.contains('open'))document.body.classList.remove('modal-open');if(bookLast)bookLast.focus();}
+function qdIsMobileOverlay(){return innerWidth<=768;}
+function qdSyncMobileOverlayLayout(){
+  const vv=window.visualViewport;if(!bookModal)return;
+  if(!vv||!qdIsMobileOverlay()){
+    bookModal.style.top=bookModal.style.height=bookModal.style.bottom=bookModal.style.left=bookModal.style.right=bookModal.style.width='';
+    const modal=bookModal.querySelector('.modal');if(modal)modal.style.maxHeight='';
+    return;
+  }
+  if(bookModal.classList.contains('open')){
+    bookModal.style.inset='auto';bookModal.style.left='0';bookModal.style.right='0';bookModal.style.width='100%';
+    bookModal.style.top=vv.offsetTop+'px';bookModal.style.height=vv.height+'px';bookModal.style.bottom='auto';
+    const modal=bookModal.querySelector('.modal');
+    if(modal)modal.style.maxHeight=Math.max(220,vv.height-8)+'px';
+  }else{
+    bookModal.style.top=bookModal.style.height=bookModal.style.bottom=bookModal.style.left=bookModal.style.right=bookModal.style.width=bookModal.style.inset='';
+    const modal=bookModal.querySelector('.modal');if(modal)modal.style.maxHeight='';
+  }
+}
+function openBooking(){if(!bookModal)return;qdSetBookDateMin();bookModal.classList.add('open');document.body.classList.add('modal-open');bookLast=document.activeElement;qdSyncMobileOverlayLayout();if(matchMedia('(pointer:fine)').matches)setTimeout(()=>{const n=document.getElementById('bName');if(n)n.focus();},120);}
+function closeBooking(){if(!bookModal)return;bookModal.classList.remove('open');bookModal.style.top=bookModal.style.height=bookModal.style.bottom=bookModal.style.left=bookModal.style.right=bookModal.style.width=bookModal.style.inset='';const modal=bookModal.querySelector('.modal');if(modal)modal.style.maxHeight='';if(!navMobileOverlay||!navMobileOverlay.classList.contains('open'))document.body.classList.remove('modal-open');if(bookLast)bookLast.focus();}
+if(window.visualViewport){visualViewport.addEventListener('resize',qdSyncMobileOverlayLayout);visualViewport.addEventListener('scroll',qdSyncMobileOverlayLayout);}
+addEventListener('resize',qdSyncMobileOverlayLayout);
 window.qdOpenBooking=openBooking;
 document.querySelectorAll('[data-book]').forEach(el=>el.addEventListener('click',e=>{e.preventDefault();openBooking();}));
 const bookClose=document.getElementById('bookClose');if(bookClose)bookClose.addEventListener('click',closeBooking);
@@ -1107,7 +1134,6 @@ if(bForm)bForm.addEventListener('submit',async e=>{e.preventDefault();
 })();
 </script>
 <script type="text/babel" data-presets="react" src="components/interactivework.jsx"></script>
-<style>@media(max-width:768px){.qd-chat-launcher{right:16px!important;width:58px!important;height:58px!important}.qd-chat-panel{bottom:calc(20px + env(safe-area-inset-bottom,0px))!important;right:16px!important;left:16px!important;width:auto!important;max-height:min(72dvh,72vh)!important}}@media(max-width:520px){.qd-chat-panel{inset:12px 12px calc(20px + env(safe-area-inset-bottom,0px)) 12px!important}}</style>
 <link rel="stylesheet" href="/chatbot/chatbot.css">
 <script src="/chatbot/chatbot.js" defer></script>
 </body>

@@ -135,21 +135,39 @@
   left: 24px;
 }
 
-@media (max-width: 520px) {
-  .qd-chat-panel {
-    inset: 12px 12px calc(12px + env(safe-area-inset-bottom, 0px)) 12px;
-    width: auto;
-    height: auto;
-    bottom: 12px;
-    right: 12px;
-    max-height: min(88dvh, 88vh);
+@media (max-width: 768px) {
+  .qd-chat-launcher {
+    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    right: 16px;
+    width: 58px;
+    height: 58px;
   }
 
-  .qd-chat-launcher {
-    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-    right: 16px;
-    width: 56px;
-    height: 56px;
+  .qd-chat-panel {
+    top: auto;
+    right: 12px;
+    left: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    width: auto;
+    height: auto;
+    max-height: min(78svh, 78vh);
+  }
+
+  .qd-chat-root[data-open="true"] .qd-chat-launcher {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.92);
+  }
+
+  .qd-chat-root.qd-chat-kb .qd-chat-panel {
+    top: auto !important;
+    right: 12px !important;
+    left: 12px !important;
+    bottom: auto !important;
+    width: auto !important;
+    transition: none !important;
+    transform: none !important;
+    opacity: 1 !important;
   }
 }
 
@@ -509,6 +527,13 @@
 }
 .qd-chat-new svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .qd-chat-new:hover { background: rgba(255,255,255,0.06); color: var(--qd-bone); border-color: var(--qd-border); }
+
+@media (max-width: 768px) {
+  body.qd-chat-open .qd-call-fab {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
 
 @media (hover: none), (pointer: coarse) {
   .qd-chat-launcher:hover,

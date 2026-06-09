@@ -363,7 +363,9 @@
       '<input class="qd-chat-gate-input" name="phone" inputmode="tel" autocomplete="tel" placeholder="' + escapeHtml(s.gPhone) + '">' +
       '<button class="qd-chat-gate-btn" type="submit">' + escapeHtml(s.gStart) + '</button>';
     els.messages.appendChild(form);
-    setTimeout(function () { var n = form.querySelector('input[name="name"]'); if (n) n.focus(); }, 60);
+    if (matchMedia('(pointer: fine)').matches) {
+      setTimeout(function () { var n = form.querySelector('input[name="name"]'); if (n) n.focus(); }, 60);
+    }
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       var name = (form.querySelector('[name="name"]').value || '').trim();
@@ -373,7 +375,8 @@
       saveLead({ name: name, email: email, phone: phone });
       root.removeAttribute('data-gate');
       renderHistory();
-      els.input.focus();
+      if (matchMedia('(pointer: fine)').matches) els.input.focus();
+      syncMobilePanelLayout();
     });
   }
 
@@ -564,7 +567,8 @@
       state.sending = false;
       els.input.disabled = false;
       els.send.disabled = !els.input.value.trim();
-      els.input.focus();
+      if (matchMedia('(pointer: fine)').matches) els.input.focus();
+      syncMobilePanelLayout();
     }
   }
 
@@ -572,19 +576,81 @@
     localStorage.setItem(HISTORY_KEY, JSON.stringify(state.history));
   }
 
+  // ─── Mobile keyboard / visual viewport ───────────────────────────────────
+  const isMobileLayout = () => window.innerWidth <= 768;
+  const isKeyboardOpen = () => {
+    const vv = window.visualViewport;
+    if (!vv) return false;
+    return Math.max(0, window.innerHeight - vv.height - vv.offsetTop) > 60;
+  };
+
+  function resetPanelLayout() {
+    els.panel.style.removeProperty('top');
+    els.panel.style.removeProperty('bottom');
+    els.panel.style.removeProperty('height');
+    els.panel.style.removeProperty('max-height');
+    root.classList.remove('qd-chat-kb');
+  }
+
+  function syncMobilePanelLayout() {
+    if (!isMobileLayout()) {
+      resetPanelLayout();
+      return;
+    }
+    if (!state.open) {
+      resetPanelLayout();
+      return;
+    }
+
+    const vv = window.visualViewport;
+    if (!vv) return;
+
+    if (isKeyboardOpen()) {
+      root.classList.add('qd-chat-kb');
+      const top = vv.offsetTop + 8;
+      const height = Math.max(240, vv.height - 16);
+      els.panel.style.top = `${top}px`;
+      els.panel.style.bottom = 'auto';
+      els.panel.style.height = `${height}px`;
+      els.panel.style.maxHeight = `${height}px`;
+    } else {
+      resetPanelLayout();
+    }
+  }
+
+  function maybeFocusChatInput() {
+    if (!matchMedia('(pointer: fine)').matches) return;
+    const gn = root.querySelector('.qd-chat-gate input[name="name"]');
+    (gn || els.input).focus();
+  }
+
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', syncMobilePanelLayout);
+    window.visualViewport.addEventListener('scroll', syncMobilePanelLayout);
+  }
+  window.addEventListener('resize', syncMobilePanelLayout);
+  root.addEventListener('focusin', (e) => {
+    if (e.target.matches('input, textarea')) syncMobilePanelLayout();
+  });
+  root.addEventListener('focusout', () => {
+    setTimeout(syncMobilePanelLayout, 120);
+  });
+
   // ─── Open / close ─────────────────────────────────────────────────────────
   function openPanel() {
     state.open = true;
     root.setAttribute('data-open', 'true');
     document.body.classList.add('qd-chat-open');
     sessionStorage.setItem(OPEN_KEY, '1');
-    setTimeout(() => { const gn = root.querySelector('.qd-chat-gate input[name="name"]'); (gn || els.input).focus(); }, 200);
+    syncMobilePanelLayout();
+    setTimeout(maybeFocusChatInput, 200);
   }
   function closePanel() {
     state.open = false;
     root.setAttribute('data-open', 'false');
     document.body.classList.remove('qd-chat-open');
     sessionStorage.removeItem(OPEN_KEY);
+    resetPanelLayout();
   }
 
   // Start a fresh conversation (keeps the captured lead so the gate isn't shown again).
@@ -596,7 +662,10 @@
     resetDebugStages();
     root.removeAttribute('data-gate');
     renderHistory();
-    if (state.open) setTimeout(() => els.input.focus(), 50);
+    if (state.open) {
+      if (matchMedia('(pointer: fine)').matches) setTimeout(() => els.input.focus(), 50);
+      syncMobilePanelLayout();
+    }
   }
 
   els.launcher.addEventListener('click', () => (state.open ? closePanel() : openPanel()));
@@ -612,6 +681,10 @@
   els.input.addEventListener('input', () => {
     autosize();
     els.send.disabled = !els.input.value.trim() || state.sending;
+  });
+
+  els.input.addEventListener('focus', () => {
+    syncMobilePanelLayout();
   });
 
   els.input.addEventListener('keydown', (e) => {
