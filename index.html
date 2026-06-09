@@ -62,9 +62,9 @@ a{color:inherit;text-decoration:none}
 body.ready .word{opacity:1;transform:none;filter:none;transition:opacity .7s var(--ease),transform .7s var(--ease),filter .7s var(--ease)}
 /* giant ghost marquee (premium take on the original's banner) */
 .ghost{position:relative;z-index:5;overflow:hidden;padding:30px 0;background:var(--bg)}
-.ghost .track{display:inline-flex;gap:60px;white-space:nowrap;animation:scrollx 20s linear infinite}
+.ghost .track{display:inline-flex;white-space:nowrap;animation:scrollx 20s linear infinite}
 .ghost .track.rev{animation-direction:reverse;animation-duration:24s}
-.ghost b{font-family:"Space Grotesk";font-weight:700;font-size:clamp(1.8rem,4vw,3rem);letter-spacing:-.01em;-webkit-text-stroke:1px rgba(255,255,255,.14);color:transparent;text-transform:uppercase;display:inline-block}
+.ghost b{font-family:"Space Grotesk";font-weight:700;font-size:clamp(1.8rem,4vw,3rem);letter-spacing:-.01em;-webkit-text-stroke:1px rgba(255,255,255,.14);color:transparent;text-transform:uppercase;display:inline-block;margin-right:60px}
 .ghost b.fill{-webkit-text-stroke:0;background:var(--silver-text);-webkit-background-clip:text;background-clip:text;color:transparent}
 /* kinetic statement banner */
 .statement{position:relative;z-index:5;text-align:center;padding:120px 28px;background:linear-gradient(180deg,var(--bg),#0c0c10,var(--bg))}
@@ -116,7 +116,7 @@ body.ready .word{opacity:1;transform:none;filter:none;transition:opacity .7s var
   body>nav{padding:13px 16px}.brand b{font-size:12px}.brand img{width:34px;height:34px}
   h1.hero{font-size:clamp(1.85rem,8.2vw,2.35rem)}.sub{font-size:.99rem}
   .hero-col{padding-top:min(30vh,220px)}
-  .ghost{padding:20px 0}.ghost b{font-size:2.3rem}.ghost .track{gap:40px}
+  .ghost{padding:20px 0}.ghost b{font-size:2.3rem;margin-right:40px}
   .statement{padding:72px 20px}.statement h2{font-size:1.85rem}
   .demo{border-radius:14px}.chat{min-height:300px}
   .badge{min-width:0;flex:1}.speed{gap:8px}

@@ -1,0 +1,238 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1781035953380,
+  "projectRoot": "/Users/mohammedqudaih/Desktop/Projects/Webs/QD_WEB",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": ">=20",
+        "confidence": "high",
+        "markers": [
+          "package.json"
+        ]
+      }
+    ],
+    "frameworks": [
+      {
+        "name": "playwright",
+        "version": "1.49.0",
+        "category": "testing"
+      }
+    ],
+    "packageManager": "npm",
+    "runtime": "Node.js 20"
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": "npm run dev",
+    "scripts": {
+      "build:kb": "node scripts/build-kb.mjs",
+      "scrape:site": "node scripts/scrape-site.mjs",
+      "dev": "node _dev-server.mjs",
+      "dev:vercel": "vercel dev",
+      "deploy": "vercel --prod"
+    }
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "app",
+      "assets",
+      "components",
+      "docs",
+      "scripts"
+    ],
+    "gitBranches": {
+      "defaultBranch": "main",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "api": {
+      "path": "api",
+      "purpose": "API routes",
+      "fileCount": 11,
+      "lastAccessed": 1781035953252,
+      "keyFiles": [
+        "book.js",
+        "card-view.js",
+        "chat.js",
+        "demo-deploy.js",
+        "demo-get.js"
+      ]
+    },
+    "app": {
+      "path": "app",
+      "purpose": "Application code",
+      "fileCount": 0,
+      "lastAccessed": 1781035953320,
+      "keyFiles": []
+    },
+    "assets": {
+      "path": "assets",
+      "purpose": "Static assets",
+      "fileCount": 2,
+      "lastAccessed": 1781035953325,
+      "keyFiles": [
+        "favicon.svg",
+        "qd-logo.jpeg"
+      ]
+    },
+    "card": {
+      "path": "card",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1781035953328,
+      "keyFiles": [
+        "card.css",
+        "card.js",
+        "index.html"
+      ]
+    },
+    "chatbot": {
+      "path": "chatbot",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1781035953331,
+      "keyFiles": [
+        "chatbot.css",
+        "chatbot.js"
+      ]
+    },
+    "components": {
+      "path": "components",
+      "purpose": "UI components",
+      "fileCount": 8,
+      "lastAccessed": 1781035953333,
+      "keyFiles": [
+        "beforeafter.jsx",
+        "cta.jsx",
+        "interactivework.jsx",
+        "livewebsites.jsx",
+        "problem.jsx"
+      ]
+    },
+    "demo": {
+      "path": "demo",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1781035953335,
+      "keyFiles": [
+        "demo.css",
+        "demo.js",
+        "index.html"
+      ]
+    },
+    "docs": {
+      "path": "docs",
+      "purpose": "Documentation",
+      "fileCount": 0,
+      "lastAccessed": 1781035953336,
+      "keyFiles": []
+    },
+    "invite": {
+      "path": "invite",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1781035953336,
+      "keyFiles": [
+        "index.html",
+        "invite.css",
+        "invite.js"
+      ]
+    },
+    "knowledge": {
+      "path": "knowledge",
+      "purpose": null,
+      "fileCount": 7,
+      "lastAccessed": 1781035953337,
+      "keyFiles": [
+        "company.md",
+        "faq.md",
+        "portfolio.json",
+        "process.md",
+        "sales-playbook.md"
+      ]
+    },
+    "q": {
+      "path": "q",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1781035953359,
+      "keyFiles": [
+        "index.html",
+        "quote.css",
+        "quote.js"
+      ]
+    },
+    "scripts": {
+      "path": "scripts",
+      "purpose": "Build/utility scripts",
+      "fileCount": 1,
+      "lastAccessed": 1781035953373,
+      "keyFiles": [
+        "build-kb.mjs"
+      ]
+    },
+    "test-results": {
+      "path": "test-results",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1781035953374,
+      "keyFiles": []
+    },
+    "app/lib": {
+      "path": "app/lib",
+      "purpose": "Library code",
+      "fileCount": 4,
+      "lastAccessed": 1781035953376,
+      "keyFiles": [
+        "quote-catalog.js",
+        "quote-labels.js",
+        "quote-prefill.js"
+      ]
+    },
+    "scripts/lib": {
+      "path": "scripts/lib",
+      "purpose": "Library code",
+      "fileCount": 2,
+      "lastAccessed": 1781035953378,
+      "keyFiles": [
+        "chunker.mjs",
+        "embed.mjs"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "i18n.js",
+      "accessCount": 50,
+      "lastAccessed": 1781046351953,
+      "type": "file"
+    },
+    {
+      "path": "chatbot/chatbot.js",
+      "accessCount": 8,
+      "lastAccessed": 1781045680604,
+      "type": "file"
+    },
+    {
+      "path": "api/_lib/prompt.js",
+      "accessCount": 1,
+      "lastAccessed": 1781044079071,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}

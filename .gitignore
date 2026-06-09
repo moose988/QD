@@ -5,6 +5,8 @@ node_modules/
 .tmp-shots/
 test-results/
 playwright-report/
+_check.mjs
+_mq*.mjs
 
 # Local secrets (never commit)
 .env
