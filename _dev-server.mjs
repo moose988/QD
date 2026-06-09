@@ -5,6 +5,7 @@
 
 import dotenv from 'dotenv';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import http from 'node:http';
 import fs from 'node:fs';
 
@@ -12,6 +13,10 @@ const ROOT = process.cwd();
 const PORT = 3000;
 
 dotenv.config({ path: path.join(ROOT, '.env.local') });
+
+if (!process.env.ZOHO_SMTP_USER || !process.env.ZOHO_SMTP_PASS) {
+  console.warn('[dev-server] Zoho SMTP env vars not loaded — /api/contact-email will fail until .env.local is configured');
+}
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -73,7 +78,7 @@ const server = http.createServer(async (req, res) => {
     shimRes(res);
     try {
       if (req.method !== 'GET' && req.method !== 'OPTIONS') req.body = await readBody(req);
-      const mod = await import(file + '?t=' + Date.now()); // cache-bust for hot reload
+      const mod = await import(pathToFileURL(file).href + '?t=' + Date.now()); // cache-bust for hot reload
       await mod.default(req, res);
     } catch (e) {
       console.error('[handler error]', e);

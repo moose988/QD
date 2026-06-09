@@ -2342,14 +2342,18 @@
     import {
       addDoc,
       collection,
-      serverTimestamp
+      doc,
+      serverTimestamp,
+      updateDoc
     } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
     window.QDFirebase = {
       db,
       addDoc,
       collection,
-      serverTimestamp
+      doc,
+      serverTimestamp,
+      updateDoc
     };
   </script>
   <script type="text/babel">
@@ -3651,6 +3655,73 @@
             businessEmail: payload.businessEmail,
             status: payload.status
           });
+
+          try {
+            console.log('[contact-email] request started', { submissionId: docRef.id });
+            const emailRes = await fetch('/api/contact-email', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ submissionId: docRef.id, payload })
+            });
+            const emailData = await emailRes.json().catch(() => ({}));
+            if (emailRes.ok && emailData.ok) {
+              console.log('[contact-email] success', {
+                submissionId: docRef.id,
+                clientEmailSent: Boolean(emailData.clientEmailSent),
+                adminEmailSent: Boolean(emailData.adminEmailSent)
+              });
+              try {
+                const { doc, updateDoc } = window.QDFirebase;
+                await updateDoc(doc(db, 'projectSubmissions', docRef.id), {
+                  emailNotifications: {
+                    attempted: true,
+                    clientEmailSent: Boolean(emailData.clientEmailSent),
+                    adminEmailSent: Boolean(emailData.adminEmailSent),
+                    sentAt: new Date().toISOString()
+                  }
+                });
+              } catch (trackErr) {
+                console.warn('[contact-email] Firestore tracking update failed:', trackErr?.message || trackErr);
+              }
+            } else {
+              console.warn('[contact-email] failed', {
+                submissionId: docRef.id,
+                status: emailRes.status,
+                error: emailData.error || 'Email notification failed'
+              });
+              try {
+                const { doc, updateDoc } = window.QDFirebase;
+                await updateDoc(doc(db, 'projectSubmissions', docRef.id), {
+                  emailNotifications: {
+                    attempted: true,
+                    error: true,
+                    errorMessage: emailData.error || 'Email notification failed',
+                    failedAt: new Date().toISOString()
+                  }
+                });
+              } catch (trackErr) {
+                console.warn('[contact-email] Firestore tracking update failed:', trackErr?.message || trackErr);
+              }
+            }
+          } catch (emailErr) {
+            console.warn('[contact-email] failed', {
+              submissionId: docRef.id,
+              message: emailErr?.message || String(emailErr)
+            });
+            try {
+              const { doc, updateDoc } = window.QDFirebase;
+              await updateDoc(doc(db, 'projectSubmissions', docRef.id), {
+                emailNotifications: {
+                  attempted: true,
+                  error: true,
+                  errorMessage: 'Email notification failed',
+                  failedAt: new Date().toISOString()
+                }
+              });
+            } catch (trackErr) {
+              console.warn('[contact-email] Firestore tracking update failed:', trackErr?.message || trackErr);
+            }
+          }
 
           setSubmitted(true);
 

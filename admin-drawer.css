@@ -60,6 +60,20 @@
   color: var(--fg3);
 }
 
+.qd-admin-client-meeting-field {
+  margin-top: 14px;
+  max-width: 280px;
+}
+
+.qd-admin-client-meeting-field label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg3);
+}
+
 .qd-admin-drawer-status-row {
   justify-content: flex-end;
   align-self: flex-start;

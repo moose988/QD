@@ -1065,11 +1065,11 @@ function createChat(chat,chips){let busy=false;const rm=matchMedia('(prefers-red
   function setChips(disabled){if(!chips)return;const d=qdDemo();chips.innerHTML='';
     d.chips.forEach(c=>{const b=document.createElement('button');b.className='qchip';b.textContent=c.t;b.disabled=disabled;b.onclick=()=>{if(busy)return;msg({who:'them',t:c.t.replace(/^[^ ]+ /,'')});run(qdDemo().flows[c.k],false);};chips.appendChild(b);});
     const wa=document.createElement('button');wa.type='button';wa.className='qchip book';wa.textContent=d.bookChip;wa.onclick=()=>{if(window.qdOpenBooking)window.qdOpenBooking();};chips.appendChild(wa);}
-  return {play:()=>run(qdDemo().flows.intro,true)};
+  return {play:()=>run(qdDemo().flows.intro,true),msg,booked};
 }
-let qdChatInstance=createChat(document.getElementById('chat'),document.getElementById('chips'));
-qdChatInstance.play();
-addEventListener('qd:langchange',()=>{const c=document.getElementById('chat');if(c)c.innerHTML='';qdChatInstance=createChat(document.getElementById('chat'),document.getElementById('chips'));qdChatInstance.play();});
+window.qdDemoChat=createChat(document.getElementById('chat'),document.getElementById('chips'));
+window.qdDemoChat.play();
+addEventListener('qd:langchange',()=>{const c=document.getElementById('chat');if(c)c.innerHTML='';window.qdDemoChat=createChat(document.getElementById('chat'),document.getElementById('chips'));window.qdDemoChat.play();});
 
 /* booking modal — Book a Free Call (and chatbot) → collect details → backend emails a Google Meet link */
 const bookModal=document.getElementById('bookModal');let bookLast=null;
@@ -1099,7 +1099,7 @@ function qdSyncMobileOverlayLayout(){
     const modal=bookModal.querySelector('.modal');if(modal)modal.style.maxHeight='';
   }
 }
-function openBooking(){if(!bookModal)return;qdSetBookDateMin();bookModal.classList.add('open');document.body.classList.add('modal-open');bookLast=document.activeElement;qdSyncMobileOverlayLayout();if(matchMedia('(pointer:fine)').matches)setTimeout(()=>{const n=document.getElementById('bName');if(n)n.focus();},120);}
+function openBooking(){if(!bookModal)return;const bf=document.getElementById('bookForm');const bd=document.getElementById('bookDone');if(bf)bf.style.display='';if(bd)bd.style.display='none';qdSetBookDateMin();bookModal.classList.add('open');document.body.classList.add('modal-open');bookLast=document.activeElement;qdSyncMobileOverlayLayout();if(matchMedia('(pointer:fine)').matches)setTimeout(()=>{const n=document.getElementById('bName');if(n)n.focus();},120);}
 function closeBooking(){if(!bookModal)return;bookModal.classList.remove('open');bookModal.style.top=bookModal.style.height=bookModal.style.bottom=bookModal.style.left=bookModal.style.right=bookModal.style.width=bookModal.style.inset='';const modal=bookModal.querySelector('.modal');if(modal)modal.style.maxHeight='';if(!navMobileOverlay||!navMobileOverlay.classList.contains('open'))document.body.classList.remove('modal-open');if(bookLast)bookLast.focus();}
 if(window.visualViewport){visualViewport.addEventListener('resize',qdSyncMobileOverlayLayout);visualViewport.addEventListener('scroll',qdSyncMobileOverlayLayout);}
 addEventListener('resize',qdSyncMobileOverlayLayout);
@@ -1109,16 +1109,35 @@ const bookClose=document.getElementById('bookClose');if(bookClose)bookClose.addE
 if(bookModal){bookModal.addEventListener('click',e=>{if(e.target===bookModal)closeBooking();});}
 addEventListener('keydown',e=>{if(e.key==='Escape'&&bookModal&&bookModal.classList.contains('open'))closeBooking();});
 const bForm=document.getElementById('bForm');
+const bSubmitLabel='Confirm — send my Meet link →';
 if(bForm)bForm.addEventListener('submit',async e=>{e.preventDefault();
+  const submitBtn=bForm.querySelector('button[type="submit"]');
   const slot=qdFormatBookSlot(bDateEl?bDateEl.value:'',bTimeEl?bTimeEl.value:'');
-  const data={name:(document.getElementById('bName').value||'there').trim(),email:document.getElementById('bEmail').value.trim(),phone:(bPhoneEl&&bPhoneEl.value)||'',purpose:document.getElementById('bPurpose').value,time:slot};
-  try{ fetch('/api/book',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).catch(function(){}); }catch(e){}
+  const data={name:(document.getElementById('bName').value||'there').trim(),email:document.getElementById('bEmail').value.trim(),phone:(bPhoneEl&&bPhoneEl.value)||'',purpose:document.getElementById('bPurpose').value,time:slot,source:'website'};
+  if(submitBtn){submitBtn.disabled=true;submitBtn.textContent='Sending…';}
+  console.log('[book-email] request started');
+  try{
+    const res=await fetch('/api/book',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    const result=await res.json().catch(()=>({}));
+    if(res.ok&&result.ok){
+      console.log('[book-email] success',{id:result.id,clientEmailSent:Boolean(result.clientEmailSent),adminEmailSent:Boolean(result.adminEmailSent)});
+    }else{
+      console.warn('[book-email] failed',{status:res.status,error:result.error||'Booking request failed'});
+    }
+  }catch(err){console.warn('[book-email] failed',err?.message||err);}
+  if(submitBtn){submitBtn.disabled=false;submitBtn.textContent=bSubmitLabel;}
   document.getElementById('bDoneName').textContent=', '+data.name;
   var doneTpl=(window.qdT&&window.qdT('book.done.msg'))||'Check <b>{email}</b> — your Google Meet link is on its way, usually within the hour.';
   document.getElementById('bDoneMsg').innerHTML=doneTpl.replace('{email}','<b>'+data.email.replace(/[<>]/g,'')+'</b>');
   document.getElementById('bWa').href='https://wa.me/971505349907?text='+encodeURIComponent('Hi QD — I’m '+data.name+', I just booked a call ('+data.purpose+').'+(data.phone?(' Phone: '+data.phone+'.'):'')+(slot?(' Preferred: '+slot+'.'):''));
   document.getElementById('bookForm').style.display='none';
   document.getElementById('bookDone').style.display='block';
+  bForm.reset();
+  qdSetBookDateMin();
+  if(window.qdDemoChat){
+    window.qdDemoChat.msg({who:'them',t:'Book a free call — '+data.purpose+(slot?(' ('+slot+')'):'')});
+    window.qdDemoChat.booked('You\'re booked, '+data.name+'! Your Google Meet link is on its way — usually within the hour.');
+  }
 });
 
 /* ---------- WebGL chrome (lights-only, reliable) ---------- */

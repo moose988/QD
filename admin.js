@@ -313,6 +313,7 @@ const fieldLabels = {
   budgetRangeLabel: 'Budget Label',
   budgetRangeValue: 'Budget Level',
   launchDate: 'Launch Date',
+  meetingDateTime: 'Meeting Date',
   urgency: 'Urgency',
   workedWithAgency: 'Worked With Agency Before',
   inspirationSites: 'Inspiration Websites',
@@ -739,7 +740,8 @@ const getSubmissionLogState = (submission) => {
   const logState = {
     status: submission.status ?? 'New',
     priority: submission.priority ?? 'Normal',
-    notes: submission.notes ?? ''
+    notes: submission.notes ?? '',
+    meetingDateTime: getSubmissionMeetingDate(submission)
   };
   editableSubmissionFields.forEach(({ key }) => {
     logState[key] = getAnswer(submission, key);
@@ -1060,6 +1062,63 @@ const getAnswer = (submission, key) => {
   return '';
 };
 
+const getSubmissionMeetingDate = (submission) => {
+  return getAnswer(submission, 'meetingDateTime')
+    || getAnswer(submission, 'preferredCallTime')
+    || submission.meetingDateTime
+    || '';
+};
+
+const formatSubmissionMeetingDate = (submission) => {
+  const raw = getSubmissionMeetingDate(submission);
+  if (!raw || !String(raw).trim()) return 'Not provided';
+
+  const text = String(raw).trim();
+  const slotMatch = text.match(/^(\d{4}-\d{2}-\d{2})(?:\s+at\s+(\d{2}:\d{2}))?$/i);
+  if (slotMatch) {
+    const [, datePart, timePart] = slotMatch;
+    const iso = timePart ? `${datePart}T${timePart}:00` : `${datePart}T12:00:00`;
+    const date = new Date(iso);
+    if (!Number.isNaN(date.getTime())) {
+      return new Intl.DateTimeFormat('en-GB', {
+        dateStyle: 'medium',
+        ...(timePart ? { timeStyle: 'short' } : {})
+      }).format(date);
+    }
+  }
+
+  const formatted = formatDate(text);
+  return formatted === 'Not Provided' ? text : formatted;
+};
+
+const toDatetimeLocalValue = (value) => {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+
+  const slotMatch = raw.match(/^(\d{4}-\d{2}-\d{2})(?:\s+at\s+(\d{2}:\d{2}))?$/i);
+  if (slotMatch) {
+    const [, datePart, timePart] = slotMatch;
+    return timePart ? `${datePart}T${timePart}` : `${datePart}T09:00`;
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(raw)) return raw.slice(0, 16);
+
+  const ms = getTimestampMs(raw);
+  if (ms) {
+    const date = new Date(ms);
+    const pad = (part) => String(part).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  }
+
+  const parsed = new Date(raw);
+  if (!Number.isNaN(parsed.getTime())) {
+    const pad = (part) => String(part).padStart(2, '0');
+    return `${parsed.getFullYear()}-${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())}T${pad(parsed.getHours())}:${pad(parsed.getMinutes())}`;
+  }
+
+  return '';
+};
+
 const createDrawerDraft = (submission, previousDraft = {}) => {
   if (!submission) return null;
 
@@ -1068,6 +1127,9 @@ const createDrawerDraft = (submission, previousDraft = {}) => {
     status: previousDraft.status ?? submission.status ?? 'New',
     priority: previousDraft.priority ?? submission.priority ?? 'Normal',
     notes: previousDraft.notes ?? submission.notes ?? '',
+    meetingDateTime: previousDraft.id === submission.id && previousDraft.meetingDateTime !== undefined
+      ? previousDraft.meetingDateTime
+      : getSubmissionMeetingDate(submission),
     editMode: previousDraft.id === submission.id ? previousDraft.editMode === true : false
   };
 
@@ -1289,6 +1351,7 @@ const buildEmailSummary = (submission) => {
     ]),
     joinSection('Scope & Timeline', [
       ['Budget', formatCurrency(getAnswer(submission, 'budgetRange'))],
+      ['Meeting Date', formatSubmissionMeetingDate(submission)],
       ['Launch Date', formatValue(getAnswer(submission, 'launchDate'), { type: 'launch-date' })],
       ['Urgency', formatValue(getAnswer(submission, 'urgency'), { type: 'label' })],
       ['Worked With Agency Before', formatValue(getAnswer(submission, 'workedWithAgency'), { type: 'label' })]
@@ -1365,6 +1428,7 @@ const getFilteredSubmissions = () => {
       submission.businessName,
       submission.businessEmail,
       submission.businessPhone,
+      getSubmissionMeetingDate(submission),
       submission.industry,
       submission.budgetRange,
       submission.selectedRequiredFeatures,
@@ -1881,7 +1945,7 @@ const renderSubmissionRows = (items, emptyTitle = 'No submissions match this vie
   if (!items.length) {
     return `
       <tr>
-        <td colspan="8">
+        <td colspan="6">
           <div class="qd-admin-empty">
             <strong>${escapeHtml(emptyTitle)}</strong>
             ${escapeHtml(emptyText)}
@@ -1905,9 +1969,7 @@ const renderSubmissionRows = (items, emptyTitle = 'No submissions match this vie
           <span>${escapeHtml(formatValue(getAnswer(submission, 'businessPhone')))}</span>
         </div>
       </td>
-      <td>${escapeHtml(formatValue(getAnswer(submission, 'industry')))}</td>
-      <td>${escapeHtml(formatCurrency(getAnswer(submission, 'budgetRange')))}</td>
-      <td>${escapeHtml(formatValue(getAnswer(submission, 'launchDate'), { type: 'launch-date' }))}</td>
+      <td>${escapeHtml(formatSubmissionMeetingDate(submission))}</td>
       <td><span class="qd-status-pill" data-tone="${escapeHtml(statusTone(submission.status))}">${escapeHtml(submission.status)}</span></td>
       <td><span class="qd-priority-pill" data-tone="${escapeHtml(priorityTone(submission.priority))}">${escapeHtml(submission.priority)}</span></td>
       <td>
@@ -1933,7 +1995,7 @@ const renderSubmissionCards = (items, emptyTitle = 'No submissions match this vi
       <div class="qd-admin-mobile-card-head">
         <div>
           <div class="qd-admin-business-name">${escapeHtml(formatValue(getAnswer(submission, 'businessName')))}</div>
-          <div class="qd-admin-subline">${escapeHtml(formatValue(getAnswer(submission, 'industry')))}</div>
+          <div class="qd-admin-subline">${escapeHtml(formatValue(submission.selectedMainPurpose || getAnswer(submission, 'mainPurpose')))}</div>
         </div>
         <div class="qd-chip-row">
           <span class="qd-status-pill" data-tone="${escapeHtml(statusTone(submission.status))}">${escapeHtml(submission.status)}</span>
@@ -1947,20 +2009,12 @@ const renderSubmissionCards = (items, emptyTitle = 'No submissions match this vi
           <span>${escapeHtml(formatValue(getAnswer(submission, 'businessPhone')))}</span>
         </div>
         <div>
-          <strong>Budget</strong>
-          <span>${escapeHtml(formatCurrency(getAnswer(submission, 'budgetRange')))}</span>
-        </div>
-        <div>
-          <strong>Launch Date</strong>
-          <span>${escapeHtml(formatValue(getAnswer(submission, 'launchDate'), { type: 'launch-date' }))}</span>
+          <strong>Meeting Date</strong>
+          <span>${escapeHtml(formatSubmissionMeetingDate(submission))}</span>
         </div>
         <div>
           <strong>Date</strong>
           <span>${escapeHtml(formatDate(submission.createdAt || submission.submittedAt))}</span>
-        </div>
-        <div>
-          <strong>Industry</strong>
-          <span>${escapeHtml(formatValue(getAnswer(submission, 'industry')))}</span>
         </div>
         <div>
           <strong>Language</strong>
@@ -2001,7 +2055,7 @@ const renderPipelineWorkspace = (items, totalItems) => `
       <input
         class="qd-admin-search"
         type="search"
-        placeholder="Search business, email, phone, industry, budget, service..."
+        placeholder="Search business, email, phone, meeting date, service..."
         value="${escapeHtml(state.filters.search)}"
         data-field="search"
       >
@@ -2023,9 +2077,7 @@ const renderPipelineWorkspace = (items, totalItems) => `
           <tr>
             <th>Business</th>
             <th>Contact</th>
-            <th>Industry</th>
-            <th>Budget</th>
-            <th>Launch Date</th>
+            <th>Meeting Date</th>
             <th>Status</th>
             <th>Priority</th>
             <th>Date</th>
@@ -2057,9 +2109,7 @@ const renderArchiveWorkspace = (items) => `
           <tr>
             <th>Business</th>
             <th>Contact</th>
-            <th>Industry</th>
-            <th>Budget</th>
-            <th>Launch Date</th>
+            <th>Meeting Date</th>
             <th>Status</th>
             <th>Priority</th>
             <th>Date</th>
@@ -3627,6 +3677,7 @@ const renderDrawer = () => {
     {
       title: 'Scope & Timeline',
       items: [
+        { label: 'Meeting Date', value: formatSubmissionMeetingDate(submission) },
         { label: 'Budget', value: getAnswer(submission, 'budgetRange'), type: 'currency' },
         { label: 'Launch Date', value: getAnswer(submission, 'launchDate'), type: 'launch-date' },
         { label: 'Urgency', value: getAnswer(submission, 'urgency'), type: 'label' },
@@ -3672,6 +3723,16 @@ const renderDrawer = () => {
               <span>${escapeHtml(formatValue(businessEmail))}</span>
               <span class="qd-admin-client-meta-separator">•</span>
               <span>${escapeHtml(formatValue(businessPhone))}</span>
+            </div>
+            <div class="qd-admin-field qd-admin-client-meeting-field">
+              <label for="drawer-meeting-date">Meeting date</label>
+              <input
+                id="drawer-meeting-date"
+                class="qd-admin-input"
+                type="datetime-local"
+                value="${escapeHtml(toDatetimeLocalValue(draft.meetingDateTime ?? getSubmissionMeetingDate(submission)))}"
+                data-drawer-field="meetingDateTime"
+              >
             </div>
             ${state.copyFeedback ? `<div class="qd-admin-copy-feedback">${escapeHtml(state.copyFeedback)}</div>` : ''}
           </div>
@@ -4640,10 +4701,12 @@ const importOutreachLeadToSubmissions = async (lead, { suppressToast = false } =
       businessPhone: sanitizePhoneValue(lead.phoneNumber),
       hasExistingWebsite: lead.hasWebsite === 'yes' ? 'yes' : 'no',
       existingWebsiteLink: lead.websiteUrl || '',
-      ownerName: lead.ownerName
+      ownerName: lead.ownerName,
+      meetingDateTime: lead.meetingDateTime || ''
     },
     hasExistingWebsite: lead.hasWebsite === 'yes' ? 'yes' : 'no',
     existingWebsiteLink: lead.websiteUrl || '',
+    meetingDateTime: lead.meetingDateTime || '',
     status: 'Contacted',
     priority: 'Normal',
     notes: [
@@ -5610,19 +5673,32 @@ const deleteCardRecord = async (card) => {
 const saveDrawer = async (nextValues = {}) => {
   const selected = getSelectedSubmission();
   if (!selected) return;
+
+  const meetingInput = document.getElementById('drawer-meeting-date');
+  if (meetingInput) {
+    nextValues = { ...nextValues, meetingDateTime: meetingInput.value };
+  }
   const previousStatus = selected.status ?? 'New';
   const previousPriority = selected.priority ?? 'Normal';
   const beforeState = getSubmissionLogState(selected);
+
+  const meetingDateTime = nextValues.meetingDateTime
+    ?? state.drawerDraft?.meetingDateTime
+    ?? getSubmissionMeetingDate(selected)
+    ?? '';
 
   const nextAnswers = { ...(selected.answers || {}) };
   for (const field of editableSubmissionFields) {
     nextAnswers[field.key] = nextValues[field.key] ?? state.drawerDraft?.[field.key] ?? getAnswer(selected, field.key);
   }
+  nextAnswers.meetingDateTime = meetingDateTime;
+  nextAnswers.preferredCallTime = meetingDateTime;
 
   const payload = {
     status: nextValues.status ?? state.drawerDraft?.status ?? selected.status ?? 'New',
     priority: nextValues.priority ?? state.drawerDraft?.priority ?? selected.priority ?? 'Normal',
     notes: nextValues.notes ?? state.drawerDraft?.notes ?? selected.notes ?? '',
+    meetingDateTime,
     answers: nextAnswers,
     businessName: nextAnswers.businessName || '',
     businessEmail: nextAnswers.businessEmail || '',
@@ -6317,7 +6393,10 @@ const handleDocumentInput = (event) => {
       id: selected.id,
       status: drawerField === 'status' ? event.target.value : state.drawerDraft?.status ?? selected.status ?? 'New',
       priority: drawerField === 'priority' ? event.target.value : state.drawerDraft?.priority ?? selected.priority ?? 'Normal',
-      notes: drawerField === 'notes' ? event.target.value : state.drawerDraft?.notes ?? selected.notes ?? ''
+      notes: drawerField === 'notes' ? event.target.value : state.drawerDraft?.notes ?? selected.notes ?? '',
+      meetingDateTime: drawerField === 'meetingDateTime'
+        ? event.target.value
+        : state.drawerDraft?.meetingDateTime ?? getSubmissionMeetingDate(selected) ?? ''
     };
     return;
   }
@@ -6345,6 +6424,11 @@ document.addEventListener('input', (event) => {
 });
 
 document.addEventListener('change', (event) => {
+  if (event.target.dataset.drawerField || event.target.dataset.drawerEditField) {
+    handleDocumentInput(event);
+    return;
+  }
+
   if (event.target.dataset.activityField || event.target.dataset.field || event.target.dataset.demoField || event.target.dataset.outreachField) {
     handleDocumentInput(event);
     return;

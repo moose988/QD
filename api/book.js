@@ -49,19 +49,184 @@
 //   BOOKING_FROM_EMAIL  Verified sender, e.g. "QD Systems <hello@yourdomain.com>".
 //                       The domain must be verified in Resend.
 //
+// Zoho Mail SMTP (same as /api/contact-email — used for booking notifications):
+//   ZOHO_SMTP_HOST, ZOHO_SMTP_PORT, ZOHO_SMTP_SECURE, ZOHO_SMTP_USER, ZOHO_SMTP_PASS
+//   QD_FROM_EMAIL, QD_ADMIN_EMAILS
+//
 // SIMPLER ALTERNATIVE: instead of wiring up Google + Resend yourself, point the booking
 // modal at a Cal.com (or Calendly) scheduling link. Cal.com generates the Google Meet
 // link AND sends the confirmation email for you, so you can leave the calendar/email
 // env vars unset and just keep the Firestore record as a backup lead store.
 
 import { getDb, admin } from './_lib/firebase.js';
+import {
+  CONTACT_REPLY,
+  escapeHtml,
+  getAdminRecipients,
+  isEmail,
+  safeError,
+  sendZohoMail,
+  validateSmtpEnv,
+} from './_lib/zoho-mail.js';
 
-export const config = { runtime: 'nodejs', maxDuration: 10 };
+export const config = { runtime: 'nodejs', maxDuration: 15 };
 
-function isEmail(v) {
-  return typeof v === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+function buildBookingClientText({ name, bookingId, purpose, time }) {
+  const greeting = name?.trim() || 'there';
+  const purposeLine = purpose ? `\nPurpose: ${purpose}` : '';
+  const timeLine = time ? `\nPreferred time: ${time}` : '';
+  return `Hi ${greeting},
+
+Thank you for booking a call with QD Systems.
+
+We received your request and our team will follow up shortly with the next steps.${purposeLine}${timeLine}
+
+Booking reference: ${bookingId}
+
+QD Systems
+Websites · Brands · Digital Systems
+contact@qdsystems.ae`;
 }
 
+function buildBookingClientHtml({ name, bookingId, purpose, time }) {
+  const greeting = escapeHtml(name?.trim() || 'there');
+  const ref = escapeHtml(bookingId);
+  const purposeBlock = purpose
+    ? `<p style="margin:0 0 12px;font-size:14px;line-height:1.65;color:#c8c4be;"><strong style="color:#e8e6e3;">Purpose:</strong> ${escapeHtml(purpose)}</p>`
+    : '';
+  const timeBlock = time
+    ? `<p style="margin:0 0 12px;font-size:14px;line-height:1.65;color:#c8c4be;"><strong style="color:#e8e6e3;">Preferred time:</strong> ${escapeHtml(time)}</p>`
+    : '';
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#0a0a0c;font-family:Georgia,'Times New Roman',serif;color:#e8e6e3;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0c;padding:32px 16px;">
+    <tr><td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#121214;border:1px solid #2a2a2e;border-radius:8px;">
+        <tr><td style="padding:36px 32px 28px;">
+          <p style="margin:0 0 8px;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#8a8680;">QD Systems</p>
+          <h1 style="margin:0 0 24px;font-size:22px;font-weight:400;color:#f5f3f0;line-height:1.4;">We received your call request</h1>
+          <p style="margin:0 0 16px;font-size:15px;line-height:1.65;color:#c8c4be;">Hi ${greeting},</p>
+          <p style="margin:0 0 16px;font-size:15px;line-height:1.65;color:#c8c4be;">Thank you for booking a call with QD Systems.</p>
+          <p style="margin:0 0 20px;font-size:15px;line-height:1.65;color:#c8c4be;">We received your request and our team will follow up shortly with the next steps.</p>
+          ${purposeBlock}${timeBlock}
+          <p style="margin:0 0 28px;font-size:13px;color:#8a8680;">Booking reference: <span style="color:#d4d0ca;font-family:monospace;">${ref}</span></p>
+          <hr style="border:none;border-top:1px solid #2a2a2e;margin:0 0 20px;">
+          <p style="margin:0;font-size:13px;line-height:1.6;color:#8a8680;">QD Systems<br>Websites · Brands · Digital Systems<br><a href="mailto:contact@qdsystems.ae" style="color:#b8b4ae;">contact@qdsystems.ae</a></p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
+function buildBookingAdminFields({ bookingId, submissionId, name, email, phone, purpose, time, source }) {
+  return [
+    ['Booking ID', bookingId],
+    ['Submission ID', submissionId || '—'],
+    ['Name', name],
+    ['Email', email],
+    ['Phone', phone],
+    ['Purpose', purpose],
+    ['Preferred Time', time],
+    ['Source', source],
+  ];
+}
+
+function buildBookingAdminText(details) {
+  const lines = buildBookingAdminFields(details).map(([label, value]) => {
+    const v = value != null && String(value).trim() !== '' ? String(value).trim() : '—';
+    return `${label}: ${v}`;
+  });
+  lines.push('', 'This booking was automatically generated from the QD Systems “Book a free call” form.');
+  return lines.join('\n');
+}
+
+function buildBookingAdminHtml(details) {
+  const rows = buildBookingAdminFields(details)
+    .map(([label, value]) => {
+      const v = value != null && String(value).trim() !== '' ? escapeHtml(String(value)) : '—';
+      return `<tr><td style="padding:8px 12px 8px 0;vertical-align:top;font-size:12px;color:#8a8680;white-space:nowrap;">${escapeHtml(label)}</td><td style="padding:8px 0;font-size:13px;color:#e8e6e3;word-break:break-word;">${v}</td></tr>`;
+    })
+    .join('');
+  const leadName = escapeHtml(details.name?.trim() || 'New Lead');
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#0a0a0c;font-family:Georgia,'Times New Roman',serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0c;padding:32px 16px;">
+    <tr><td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#121214;border:1px solid #2a2a2e;border-radius:8px;">
+        <tr><td style="padding:32px;">
+          <p style="margin:0 0 8px;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#8a8680;">QD Systems — Admin</p>
+          <h1 style="margin:0 0 24px;font-size:20px;font-weight:400;color:#f5f3f0;">New call booking — ${leadName}</h1>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">${rows}</table>
+          <p style="margin:24px 0 0;font-size:12px;color:#8a8680;font-style:italic;">This booking was automatically generated from the QD Systems “Book a free call” form.</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
+async function sendBookingNotifications(details) {
+  const smtpError = validateSmtpEnv();
+  if (smtpError) {
+    console.error('[book-email] SMTP config missing:', smtpError);
+    return { attempted: true, clientEmailSent: false, adminEmailSent: false, error: true };
+  }
+
+  const adminRecipients = getAdminRecipients();
+  if (!adminRecipients.length) {
+    console.error('[book-email] QD_ADMIN_EMAILS missing or invalid');
+    return { attempted: true, clientEmailSent: false, adminEmailSent: false, error: true };
+  }
+
+  let clientEmailSent = false;
+  let adminEmailSent = false;
+
+  if (isEmail(details.email)) {
+    try {
+      await sendZohoMail({
+        to: details.email,
+        subject: 'We received your call request — QD Systems',
+        text: buildBookingClientText(details),
+        html: buildBookingClientHtml(details),
+        replyTo: CONTACT_REPLY,
+      });
+      clientEmailSent = true;
+      console.log('[book-email] client email sent:', details.bookingId);
+    } catch (error) {
+      console.error('[book-email] client email failed:', details.bookingId, safeError(error));
+    }
+  } else {
+    console.warn('[book-email] skipping client email — invalid email:', details.bookingId);
+  }
+
+  try {
+    await sendZohoMail({
+      to: adminRecipients,
+      subject: `New QD call booking — ${details.name?.trim() || 'New Lead'}`,
+      text: buildBookingAdminText(details),
+      html: buildBookingAdminHtml(details),
+      replyTo: isEmail(details.email) ? details.email : CONTACT_REPLY,
+    });
+    adminEmailSent = true;
+    console.log('[book-email] admin email sent:', details.bookingId);
+  } catch (error) {
+    console.error('[book-email] admin email failed:', details.bookingId, safeError(error));
+  }
+
+  return {
+    attempted: true,
+    clientEmailSent,
+    adminEmailSent,
+    error: !clientEmailSent && !adminEmailSent,
+  };
+}
 // True only if every named env var is present and non-empty.
 function hasEnv(...names) {
   return names.every((n) => typeof process.env[n] === 'string' && process.env[n].trim());
@@ -200,6 +365,53 @@ async function emailVisitor({ name, email, meetLink, time, tentative }) {
   return true;
 }
 
+function mapBookingToSubmission({ name, email, phone, purpose, time, source, bookingId }) {
+  const noteParts = [
+    'Booked via website “Book a free call” modal.',
+    purpose ? `Purpose: ${purpose}` : '',
+    time ? `Preferred time: ${time}` : '',
+    `Booking ID: ${bookingId}`,
+  ].filter(Boolean);
+
+  return {
+    businessName: name,
+    businessEmail: email,
+    businessPhone: phone,
+    industry: '',
+    businessDescription: '',
+    mainPurpose: 'book_call',
+    selectedMainPurpose: purpose || 'Book a free call',
+    visitorAction: '',
+    idealCustomer: '',
+    requiredFeatures: [],
+    optionalServices: [],
+    selectedRequiredFeatures: [],
+    selectedOptionalServices: [],
+    budgetRange: '',
+    launchDate: '',
+    meetingDateTime: time || '',
+    urgency: '',
+    notes: noteParts.join('\n'),
+    status: 'New',
+    priority: 'Normal',
+    source: source || 'website_booking',
+    importedFrom: 'bookings',
+    importedBookingId: bookingId,
+    language: 'en',
+    answers: {
+      businessName: name,
+      businessEmail: email,
+      businessPhone: phone,
+      mainPurpose: purpose || '',
+      preferredCallTime: time || '',
+      meetingDateTime: time || '',
+    },
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    submittedAt: admin.firestore.FieldValue.serverTimestamp(),
+    lastUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+  };
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -232,7 +444,51 @@ export default async function handler(req, res) {
       createdAt: admin.firestore.FieldValue.serverTimestamp()
     });
 
-    // STEPS 2–4 — Calendar event + email. Fully optional and isolated: any failure here
+    // Mirror into projectSubmissions so the admin live pipeline picks it up immediately.
+    let submissionId = null;
+    try {
+      const submissionRef = await db.collection('projectSubmissions').add(
+        mapBookingToSubmission({ name, email, phone, purpose, time, source, bookingId: ref.id })
+      );
+      submissionId = submissionRef.id;
+      await ref.set({ submissionId }, { merge: true });
+    } catch (submissionErr) {
+      console.warn('[book] projectSubmissions mirror failed (booking still saved):', submissionErr?.message || submissionErr);
+    }
+
+    // STEP 1.5 — Zoho email notifications (best-effort, same SMTP as contact form).
+    let emailNotifications = null;
+    try {
+      emailNotifications = await sendBookingNotifications({
+        bookingId: ref.id,
+        submissionId,
+        name,
+        email,
+        phone,
+        purpose,
+        time,
+        source,
+      });
+      await ref.set({ emailNotifications: {
+        ...emailNotifications,
+        sentAt: emailNotifications.error ? null : new Date().toISOString(),
+        failedAt: emailNotifications.error ? new Date().toISOString() : null,
+        errorMessage: emailNotifications.error ? 'Email notification failed' : null,
+      } }, { merge: true });
+    } catch (emailErr) {
+      console.warn('[book-email] notification step failed (booking still saved):', safeError(emailErr));
+      emailNotifications = { attempted: true, error: true, clientEmailSent: false, adminEmailSent: false };
+      try {
+        await ref.set({ emailNotifications: {
+          attempted: true,
+          error: true,
+          errorMessage: 'Email notification failed',
+          failedAt: new Date().toISOString(),
+        } }, { merge: true });
+      } catch (_) {}
+    }
+
+    // STEPS 2–4 — Calendar event + Resend email. Fully optional and isolated: any failure here
     // must NOT fail the request (the lead is already saved). Logs a warning and returns ok.
     let meetLink = null;
     try {
@@ -263,7 +519,12 @@ export default async function handler(req, res) {
     }
 
     const out = { ok: true, id: ref.id };
+    if (submissionId) out.submissionId = submissionId;
     if (meetLink) out.meetLink = meetLink;
+    if (emailNotifications) {
+      out.clientEmailSent = Boolean(emailNotifications.clientEmailSent);
+      out.adminEmailSent = Boolean(emailNotifications.adminEmailSent);
+    }
     return res.status(200).json(out);
   } catch (error) {
     console.error('[book] error:', error);
