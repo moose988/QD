@@ -64,10 +64,10 @@ body.ready .word{opacity:1;transform:none;filter:none;transition:opacity .7s var
 .statement h2{font-size:clamp(2rem,5.5vw,4.4rem);font-weight:700;line-height:1.05;max-width:1000px;margin:0 auto}
 .statement .muted{color:var(--dim);-webkit-text-fill-color:var(--dim)}
 
-/* 3D canvas */
-#gl{position:absolute;top:0;left:52vw;right:auto;width:48vw;height:100vh;z-index:2;pointer-events:none}
-@media(max-width:1280px){#gl{width:54vw}}
-@media(max-width:1100px){#gl{width:50vw;opacity:.85}.qd-hero::before{background:linear-gradient(90deg,rgba(7,7,8,.95) 36%,rgba(7,7,8,.6) 60%,transparent 82%)}}
+/* 3D canvas — wider bounds extend left (no clip); view offset keeps object on the right */
+#gl{position:absolute;top:0;left:34vw;right:auto;width:66vw;height:100vh;z-index:2;pointer-events:none}
+@media(max-width:1280px){#gl{left:52vw;width:48vw}}
+@media(max-width:1100px){#gl{left:46vw;width:54vw;opacity:.85}.qd-hero::before{background:linear-gradient(90deg,rgba(7,7,8,.95) 36%,rgba(7,7,8,.6) 60%,transparent 82%)}}
 @media(max-width:980px){#gl{left:0;right:auto;width:100%;max-width:100%;height:50vh;top:46px;opacity:.3}.qd-hero::before{background:linear-gradient(180deg,rgba(7,7,8,.5),rgba(7,7,8,.92) 46%)}.qd-hero .wrap{grid-template-columns:1fr;padding:0 28px;max-width:720px}}
 @media(max-width:768px){
   #gl{
@@ -120,7 +120,7 @@ body.ready .word{opacity:1;transform:none;filter:none;transition:opacity .7s var
   .cta-band{padding:48px 18px}
 }
 
-body>nav{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:16px 28px;backdrop-filter:blur(14px);background:linear-gradient(180deg,rgba(7,7,8,.86),rgba(7,7,8,.3))}
+body>nav{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:16px 28px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:linear-gradient(180deg,rgba(7,7,8,.86),rgba(7,7,8,.3))}
 .brand{display:flex;align-items:center;gap:12px}
 .brand img{width:38px;height:38px;border-radius:9px;object-fit:cover;box-shadow:0 0 0 1px var(--line)}
 .brand b{font-family:"Space Grotesk";letter-spacing:.22em;font-size:14px;font-weight:600}
@@ -578,8 +578,10 @@ body.ready .rise:nth-child(3){transition-delay:.16s}
 /* progress + nav states */
 a:focus-visible,button:focus-visible{outline:2px solid #d2d2d9;outline-offset:3px;border-radius:8px}
 #progress{position:fixed;top:0;left:0;height:2px;width:0;z-index:50;background:var(--silver);box-shadow:0 0 12px rgba(255,255,255,.4)}
-body>nav{transition:padding .3s var(--ease),background .3s}
-body>nav.scrolled{padding:10px 28px;background:rgba(7,7,8,.94)}
+body>nav{transition:padding .3s var(--ease),background .3s,backdrop-filter .3s,-webkit-backdrop-filter .3s}
+body>nav.nav-in-hero{background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none}
+body>nav.scrolled{padding:10px 28px}
+body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 .nav-links a.active{color:var(--fg)}
 /* floating call button — mirrors chat launcher on the left */
 .qd-call-fab{position:fixed;bottom:calc(24px + env(safe-area-inset-bottom,0px));left:24px;width:64px;height:64px;border-radius:50%;border:1px solid rgba(232,232,238,.3);background:var(--silver);color:#0a0a0b;cursor:pointer;display:grid;place-items:center;box-shadow:0 18px 48px rgba(0,0,0,.5),0 0 0 1px rgba(232,232,238,.18),0 0 48px rgba(232,232,238,.28);transition:transform 220ms cubic-bezier(.34,1.56,.64,1),box-shadow 220ms ease;z-index:9998;-webkit-tap-highlight-color:transparent}
@@ -910,6 +912,8 @@ const prog=document.getElementById('progress');const navEl=document.querySelecto
 const navMap={};document.querySelectorAll('.nav-links a, .nav-mobile-panel a').forEach(a=>{navMap[a.getAttribute('href').slice(1)]=navMap[a.getAttribute('href').slice(1)]||a;});
 const secObs=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting){document.querySelectorAll('.nav-links a.active, .nav-mobile-panel a.active').forEach(a=>a.classList.remove('active'));const id=en.target.id;document.querySelectorAll('.nav-links a[href="#'+id+'"], .nav-mobile-panel a[href="#'+id+'"]').forEach(a=>a.classList.add('active'));}}),{rootMargin:'-35% 0px -55% 0px'});
 ['work','demo','build','contact'].forEach(id=>{const el=document.getElementById(id);if(el)secObs.observe(el);});
+const heroEl=document.querySelector('.qd-hero');
+if(heroEl&&navEl){const heroNavObs=new IntersectionObserver(es=>es.forEach(en=>navEl.classList.toggle('nav-in-hero',en.isIntersecting)),{threshold:0,rootMargin:'-72px 0px 0px 0px'});heroNavObs.observe(heroEl);}
 
 /* mobile nav menu */
 const navMenuBtn=document.getElementById('navMenuBtn');
@@ -1050,13 +1054,33 @@ if(bForm)bForm.addEventListener('submit',async e=>{e.preventDefault();
   renderer.setPixelRatio(Math.min(devicePixelRatio,mobileGl?1.5:2));
   const scene=new THREE.Scene();
   const camera=new THREE.PerspectiveCamera(45,1,0.1,100); camera.position.z=mobileGl?5.2:4.6;
-  const mat=new THREE.MeshStandardMaterial({color:0xd9dce3,metalness:0.55,roughness:0.28});
+  const mat=new THREE.MeshStandardMaterial({color:0xe2e5ec,metalness:0.5,roughness:0.24});
   const knot=new THREE.Mesh(new THREE.TorusKnotGeometry(1.05,0.34,mobileGl?72:220,mobileGl?10:32,2,3),mat); scene.add(knot);
-  scene.add(new THREE.AmbientLight(0xffffff,0.75));
-  const d1=new THREE.DirectionalLight(0xffffff,2.6); d1.position.set(4,5,5); scene.add(d1);
-  const d2=new THREE.DirectionalLight(0xbfd0ff,1.6); d2.position.set(-6,2,3); scene.add(d2);
-  const p1=new THREE.PointLight(0xffffff,0.8); p1.position.set(0,-4,3); scene.add(p1);
-  function resize(){const w=canvas.clientWidth||1,h=canvas.clientHeight||1;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+  scene.add(new THREE.AmbientLight(0xffffff,mobileGl?0.75:0.95));
+  const d1=new THREE.DirectionalLight(0xffffff,mobileGl?2.6:3.0); d1.position.set(4,5,5); scene.add(d1);
+  const d2=new THREE.DirectionalLight(0xd8e4ff,mobileGl?1.6:2.5); d2.position.set(-4,3,5); scene.add(d2);
+  const p1=new THREE.PointLight(0xffffff,mobileGl?0.8:1.2); p1.position.set(1,-2,4); scene.add(p1);
+  if(!mobileGl){const d3=new THREE.DirectionalLight(0xffffff,1.4); d3.position.set(0,1,6); scene.add(d3);}
+  function glLayout(){
+    if(innerWidth<981) return null;
+    if(innerWidth<=1100) return{oldWidth:.50};
+    if(innerWidth<=1280) return{oldWidth:.54};
+    return{oldWidth:.48};
+  }
+  function resize(){
+    const w=canvas.clientWidth||1,h=canvas.clientHeight||1;
+    renderer.setSize(w,h,false);
+    const layout=glLayout();
+    if(layout){
+      const fullWidth=innerWidth*layout.oldWidth;
+      const shiftRight=innerWidth*0.055;
+      camera.setViewOffset(fullWidth,h,-shiftRight,0,w,h);
+    }else{
+      camera.clearViewOffset();
+      camera.aspect=w/h;
+    }
+    camera.updateProjectionMatrix();
+  }
   resize(); addEventListener('resize',resize);
   let t=0,tx=0,ty=0;
   (function loop(){ requestAnimationFrame(loop); t+=0.016;
