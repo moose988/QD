@@ -71,8 +71,8 @@ a{color:inherit;text-decoration:none}
 .grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.05;mix-blend-mode:overlay;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>")}
 .vignette{position:fixed;inset:0;z-index:1;pointer-events:none;box-shadow:inset 0 0 240px 60px rgba(0,0,0,.7)}
 .cursor-glow{position:fixed;width:460px;height:460px;border-radius:50%;z-index:2;pointer-events:none;background:radial-gradient(circle,rgba(255,255,255,.05),transparent 60%);transform:translate(-50%,-50%);left:-999px}
-#px{position:fixed;inset:0;z-index:6;pointer-events:none} /* above section backgrounds so the silver dust is visible on every screen, kept faint so it never fights the text */
-/* shooting stars are drawn on the #px canvas (random paths/timing — a real night sky, not a looped CSS streak) */
+#px{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
+/* shooting stars + silver dust — confined to .qd-hero only (see canvas placement in markup) */
 .marquee{position:relative;z-index:5;overflow:hidden;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);background:rgba(255,255,255,.015);padding:18px 0}
 .marquee .track{display:inline-flex;gap:42px;white-space:nowrap;animation:scrollx 24s linear infinite}
 .marquee span{font-family:"Space Grotesk";font-weight:600;font-size:1.05rem;letter-spacing:.04em;background:var(--silver-text);-webkit-background-clip:text;background-clip:text;color:transparent;display:inline-flex;align-items:center;gap:42px}
@@ -98,10 +98,10 @@ body.ready .word{opacity:1;transform:none;filter:none;transition:opacity .7s var
 .statement .muted{color:var(--dim);-webkit-text-fill-color:var(--dim)}
 
 /* 3D canvas — wider bounds extend left (no clip); view offset keeps object on the right */
-#gl{position:absolute;top:0;left:34vw;right:auto;width:66vw;height:100vh;z-index:2;pointer-events:none}
+#gl{position:absolute;top:0;left:34vw;right:auto;width:66vw;height:100%;z-index:2;pointer-events:none}
 @media(max-width:1280px){#gl{left:52vw;width:48vw}}
 @media(max-width:1100px){#gl{left:46vw;width:54vw;opacity:.85}.qd-hero::before{background:linear-gradient(90deg,rgba(7,7,8,.95) 36%,rgba(7,7,8,.6) 60%,transparent 82%)}}
-@media(max-width:980px){#gl{left:0;right:auto;width:100%;max-width:100%;height:50vh;top:46px;opacity:.3}.qd-hero::before{background:linear-gradient(180deg,rgba(7,7,8,.5),rgba(7,7,8,.92) 46%)}.qd-hero .wrap{grid-template-columns:1fr;padding:0 28px;max-width:720px}}
+@media(max-width:980px){#gl{left:0;right:auto;width:100%;max-width:100%;height:50%;top:46px;opacity:.3}.qd-hero::before{background:linear-gradient(180deg,rgba(7,7,8,.5),rgba(7,7,8,.92) 46%)}.qd-hero .wrap{grid-template-columns:1fr;padding:0 28px;max-width:720px}}
 @media(max-width:768px){
   #gl{
     display:block;
@@ -192,9 +192,9 @@ body>nav{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items
 .btn-ghost{background:rgba(255,255,255,.03);border-color:var(--line);color:var(--fg)}
 .btn-ghost:hover{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.22)}
 
-.qd-hero{position:relative;z-index:5;padding:172px 0 96px;min-height:100vh;display:flex;align-items:center}
+.qd-hero{position:relative;z-index:5;padding:172px 0 96px;min-height:100vh;display:flex;align-items:center;overflow:hidden}
 .qd-hero::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(7,7,8,.99) 0%,rgba(7,7,8,.98) 52%,rgba(7,7,8,.85) 64%,rgba(7,7,8,.3) 80%,transparent 92%);pointer-events:none}
-.qd-hero .wrap{max-width:1320px;margin:0 auto;padding:0 40px;display:grid;grid-template-columns:1.04fr .96fr;gap:48px;align-items:center}
+.qd-hero .wrap{position:relative;z-index:3;max-width:1320px;margin:0 auto;padding:0 40px;display:grid;grid-template-columns:1.04fr .96fr;gap:48px;align-items:center}
 .eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);padding:7px 14px;border-radius:100px;background:rgba(255,255,255,.02)}
 .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--live);box-shadow:0 0 10px var(--live)}
 .hero-col{max-width:680px;position:relative;display:flex;flex-direction:column}
@@ -745,15 +745,13 @@ body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:b
 <div id="intro"><div class="mk metal">QD</div><div class="iload" data-i18n="intro.loading">Loading experience</div></div>
 
 <div class="bg-fx" aria-hidden="true"><div class="glow a"></div><div class="glow b"></div><div class="glow c"></div><div class="glow d"></div><div class="glow e"></div><div class="grid-fx"></div></div>
-<canvas id="gl" aria-hidden="true"></canvas>
-<canvas id="px" aria-hidden="true"></canvas>
 <div class="grain" aria-hidden="true"></div><div class="vignette" aria-hidden="true"></div>
 <div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
 <div id="progress" aria-hidden="true"></div>
 
 <nav>
   <div class="brand"><img src="assets/qd-logo.jpeg" alt="QD" width="38" height="38" decoding="async"><b>QD&nbsp;SYSTEMS</b></div>
-  <div class="nav-links"><a href="#work" data-i18n="nav.work">Work</a><a href="#demo" data-i18n="nav.demo">Live demo</a><a href="#build" data-i18n="nav.build">What we build</a><a href="#contact" data-i18n="nav.contact">Contact</a></div>
+  <div class="nav-links"><a href="#demo" data-i18n="nav.demo">Live demo</a><a href="#work" data-i18n="nav.work">Work</a><a href="#build" data-i18n="nav.build">What we build</a><a href="#contact" data-i18n="nav.contact">Contact</a></div>
   <div class="nav-actions">
     <div class="lang-switch" id="langSwitch">
       <button type="button" class="lang-btn" id="langBtn" aria-haspopup="listbox" aria-expanded="false" aria-label="Choose language">
@@ -778,8 +776,8 @@ body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:b
       <button type="button" class="nav-mobile-close" id="navMobileClose" aria-label="Close menu">✕</button>
     </div>
     <div class="nav-mobile-links">
-      <a href="#work" data-i18n="nav.work">Work</a>
       <a href="#demo" data-i18n="nav.demo">Live demo</a>
+      <a href="#work" data-i18n="nav.work">Work</a>
       <a href="#build" data-i18n="nav.build">What we build</a>
       <a href="#contact" data-i18n="nav.contact">Contact</a>
     </div>
@@ -793,6 +791,8 @@ body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:b
 </div>
 
 <header class="qd-hero">
+  <canvas id="gl" aria-hidden="true"></canvas>
+  <canvas id="px" aria-hidden="true"></canvas>
   <div class="wrap">
     <div class="hero-col">
       <span class="avail rise"><i></i> <span data-i18n="hero.avail">Now booking · we take a limited number of builds at a time</span></span>
@@ -1102,15 +1102,22 @@ function countUp(el){const t=+el.dataset.count,suf=el.dataset.suffix||'';let n=0
 const sio=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting){const el=en.target;el.dataset.text?el.textContent=el.dataset.text:countUp(el);sio.unobserve(el);}}),{threshold:.6});
 document.querySelectorAll('[data-count],[data-text]').forEach(el=>sio.observe(el));
 
-/* drifting particle field — continuous ambient motion */
+/* drifting particle field — hero only; pauses when scrolled away */
 var reduceMotion=matchMedia('(prefers-reduced-motion:reduce)').matches;
+var heroFxActive=true;
+(function(){
+  const heroFx=document.querySelector('.qd-hero');
+  if(heroFx)new IntersectionObserver(es=>{heroFxActive=es[0].isIntersecting;},{rootMargin:'80px'}).observe(heroFx);
+})();
 (function(){
   const cv=document.getElementById('px');if(!cv)return;
   if(reduceMotion){cv.style.display='none';return;}
+  const host=cv.parentElement;
   const ctx=cv.getContext('2d');
   let W,H,parts=[];const N=isMobile?30:46;let pt=0;
-  function size(){W=cv.width=innerWidth*Math.min(devicePixelRatio,2);H=cv.height=innerHeight*Math.min(devicePixelRatio,2);}
+  function size(){const w=host?host.clientWidth:innerWidth,h=host?host.clientHeight:innerHeight;W=cv.width=w*Math.min(devicePixelRatio,2);H=cv.height=h*Math.min(devicePixelRatio,2);}
   size();addEventListener('resize',size);
+  if(host&&window.ResizeObserver)new ResizeObserver(size).observe(host);
   for(let i=0;i<N;i++)parts.push({x:Math.random()*1,y:Math.random()*1,r:(Math.random()*1.8+.4),vy:-(Math.random()*.0008+.00025),vx:(Math.random()-.5)*.0004,a:Math.random()*.5+.25,tw:Math.random()*6.28,ts:Math.random()*.8+.4});
   /* ---- shooting stars: random spawn point, angle, speed and tail — every one is different ---- */
   const meteors=[];let nextMeteor=1.2+Math.random()*2;
@@ -1127,7 +1134,7 @@ var reduceMotion=matchMedia('(prefers-reduced-motion:reduce)').matches;
       bright:0.45+Math.random()*0.45
     });
   }
-  (function draw(){requestAnimationFrame(draw);ctx.clearRect(0,0,W,H);pt+=0.016;
+  (function draw(){requestAnimationFrame(draw);if(!heroFxActive)return;ctx.clearRect(0,0,W,H);pt+=0.016;
     for(const p of parts){p.y+=p.vy;p.x+=p.vx;if(p.y<-.02){p.y=1.02;p.x=Math.random();}
       const x=p.x*W,y=p.y*H,r=p.r*Math.min(devicePixelRatio,2);
       const tw=.55+.45*Math.sin(pt*p.ts+p.tw); /* twinkle */
@@ -1309,7 +1316,7 @@ if(bForm)bForm.addEventListener('submit',async e=>{e.preventDefault();
   resize(); addEventListener('resize',resize);
   addEventListener('qd:langchange',()=>setTimeout(resize,60));
   let t=0,tx=0,ty=0,sp=0;
-  (function loop(){ requestAnimationFrame(loop); t+=0.016;
+  (function loop(){ requestAnimationFrame(loop); if(!heroFxActive) return; t+=0.016;
     /* scroll progress through the hero (0→1) — the object reacts to the journey instead of ignoring it */
     const target=Math.min(scrollY/Math.max(innerHeight,1),1);
     sp+=(target-sp)*0.06; /* eased */

@@ -74,8 +74,8 @@ const INVITE_STATUS_OPTIONS = ['draft', 'active', 'disabled'];
 const DEMO_STATUS_OPTIONS = ['draft', 'active', 'expired', 'disabled'];
 const OUTREACH_STATUS_OPTIONS = [
   { value: 'call_them', label: 'Call Them' },
+  { value: 'visit_them', label: 'Visit Them' },
   { value: 'setting_meeting', label: 'Setting Meeting' },
-  { value: 'meeting', label: 'Meeting' },
   { value: 'declined', label: 'Declined' },
   { value: 'they_will_call_back', label: 'They Will Call Back' },
   { value: 'confirmed', label: 'Confirmed' }
@@ -110,6 +110,7 @@ const activityActionLabels = {
   edit_submission: 'Edited submission',
   change_status: 'Changed status',
   change_priority: 'Changed priority',
+  delete_submission: 'Deleted submission',
   create_quote: 'Created quote',
   update_quote: 'Updated quote',
   import_chat_lead: 'Imported chat lead',
@@ -193,7 +194,8 @@ const state = {
   },
   outreachFilters: {
     search: '',
-    status: 'All'
+    status: 'All',
+    starredOnly: false
   },
   pipelinePage: 0,
   outreachPage: 0,
@@ -440,8 +442,8 @@ const rawValueLabels = {
   faq: 'FAQ',
   blog_news_offers: 'Blog / News / Offers',
   call_them: 'Call Them',
+  visit_them: 'Visit Them',
   setting_meeting: 'Setting Meeting',
-  meeting: 'Meeting',
   they_will_call_back: 'They Will Call Back',
   declined: 'Declined',
   confirmed: 'Confirmed'
@@ -467,6 +469,20 @@ const sanitizePhoneValue = (value) => String(value ?? '').replace(/[^\d+]/g, '')
 const normalizeWhatsappNumber = (value) => String(value ?? '').replace(/[^\d]/g, '');
 
 const getCardPublicUrl = (slug) => `${CARD_SITE_URL}/card/${slug}`;
+
+/** API routes only exist on the dev server (port 3000) and production — not on Live Server / static hosts. */
+const getAdminApiUrl = (pathname) => {
+  const path = String(pathname || '').startsWith('/') ? pathname : `/${pathname || ''}`;
+  try {
+    const { hostname, port } = window.location;
+    const onDevServer = (hostname === 'localhost' || hostname === '127.0.0.1') && port === '3000';
+    const onProduction = /(^|\.)qdsystems\.ae$/i.test(hostname);
+    if (onDevServer || onProduction) return path;
+  } catch {
+    // ignore
+  }
+  return `https://www.qdsystems.ae${path}`;
+};
 
 const getCardInitials = (value) => {
   const parts = String(value ?? '').trim().split(/\s+/).filter(Boolean);
@@ -561,7 +577,8 @@ const createEmptyOutreachLeadDraft = () => ({
   meetingDateTime: '',
   meetingLocation: '',
   notes: '',
-  status: 'call_them',
+  status: 'visit_them',
+  starred: false,
   importedSubmissionId: '',
   importedAt: null,
   importedFrom: ''
@@ -802,7 +819,7 @@ const getOutreachLeadLogState = (lead) => ({
   meetingDateTime: lead?.meetingDateTime || '',
   meetingLocation: lead?.meetingLocation || '',
   notes: lead?.notes || '',
-  status: lead?.status || 'call_them',
+  status: lead?.status || 'visit_them',
   importedSubmissionId: lead?.importedSubmissionId || '',
   importedFrom: lead?.importedFrom || ''
 });
@@ -1225,22 +1242,38 @@ const formatPhoneForCall = (phone) => {
   return /^\+/.test(raw) ? `+${digits}` : digits;
 };
 
-const getOutreachStatusLabel = (value) => OUTREACH_STATUS_OPTIONS.find((option) => option.value === value)?.label || formatLabel(value || 'call_them');
+const getOutreachStatusLabel = (value) => OUTREACH_STATUS_OPTIONS.find((option) => option.value === value)?.label || formatLabel(value || 'visit_them');
 
 const getOutreachStatusTone = (value) => {
   if (value === 'confirmed') return 'accepted';
   if (value === 'call_them') return 'contacted';
-  if (value === 'meeting') return 'contacted';
+  if (value === 'visit_them') return 'contacted';
   if (value === 'they_will_call_back') return 'quoted';
   if (value === 'declined') return 'archived';
   return 'new';
 };
 
-const buildOutreachWhatsAppLink = (lead) => {
-  const phone = formatPhoneForWhatsApp(lead?.phoneNumber || '');
-  if (!phone) return '';
-  const message = `Hi ${lead?.ownerName || 'there'}, this is QD Systems. We'd love to schedule a quick intro about your business and website goals.`;
-  return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+const isOutreachGoogleMapsUrl = (value) => {
+  const input = String(value || '').trim();
+  if (!input) return false;
+  try {
+    const url = new URL(input);
+    if (!/^https?:$/i.test(url.protocol)) return false;
+    const host = url.hostname.toLowerCase();
+    if (host === 'maps.app.goo.gl' || host === 'goo.gl' || host === 'g.co') return true;
+    if (/^(?:[\w-]+\.)*google\.[a-z.]{2,}$/i.test(host)) {
+      return host.startsWith('maps.')
+        || /\/maps|\/place|\/@/.test(`${url.pathname}${url.search}${url.hash}`);
+    }
+    return false;
+  } catch {
+    return false;
+  }
+};
+
+const buildOutreachMapsLink = (lead) => {
+  const value = String(lead?.meetingLocation || '').trim();
+  return isOutreachGoogleMapsUrl(value) ? value : '';
 };
 
 const buildOutreachCallLink = (lead) => {
@@ -1281,6 +1314,12 @@ const renderOutreachWebsiteLink = (url) => {
   if (!cleanUrl) return '—';
   const label = formatOutreachWebsiteLabel(cleanUrl);
   return `<a class="qd-admin-outreach-website-link" href="${escapeHtml(cleanUrl)}" target="_blank" rel="noreferrer noopener" title="${escapeHtml(cleanUrl)}">${escapeHtml(label)}</a>`;
+};
+
+const renderOutreachLocationLink = (lead) => {
+  const mapsLink = buildOutreachMapsLink(lead);
+  if (!mapsLink) return '—';
+  return `<a class="qd-admin-outreach-location-link" href="${escapeHtml(mapsLink)}" target="_blank" rel="noreferrer noopener" data-outreach-stop-row-open title="${escapeHtml(mapsLink)}">Location</a>`;
 };
 
 const joinSection = (title, rows) => {
@@ -1444,22 +1483,6 @@ const getFilteredSubmissions = () => {
 
 const getSubmissionActivityMs = (submission) => submission.lastUpdatedAtMs || submission.createdAtMs || submission.submittedAtMs || 0;
 
-const parseSubmissionServices = (submission) => {
-  const raw = getAnswer(submission, 'services');
-  if (Array.isArray(raw)) {
-    return raw.map((item) => formatLabel(item)).filter((item) => item && item !== 'Not Provided');
-  }
-
-  if (typeof raw === 'string') {
-    return raw
-      .split(',')
-      .map((item) => formatLabel(item.trim()))
-      .filter((item) => item && item !== 'Not Provided');
-  }
-
-  return [];
-};
-
 const scrollToPipelineSection = () => {
   requestAnimationFrame(() => {
     const targetId = state.dashboardSection === 'archive'
@@ -1506,7 +1529,6 @@ const getAnalytics = (items) => {
   let missingPhoneCount = 0;
   let missingBudgetCount = 0;
   let missingLaunchDateCount = 0;
-  const serviceDemandMap = new Map();
   const responseBuckets = {
     underHour: 0,
     withinDay: 0,
@@ -1551,17 +1573,12 @@ const getAnalytics = (items) => {
     const isPriorityHot = ['high', 'vip'].includes(String(priority).toLowerCase());
     const isUrgencyHot = ['urgent', 'soon'].includes(urgencyRaw);
     const isContactReady = hasEmail && hasPhone;
-    const services = parseSubmissionServices(submission);
     const createdMs = submission.createdAtMs || submission.submittedAtMs || 0;
     const updatedMs = submission.lastUpdatedAtMs || 0;
 
     if (isContactReady) {
       contactReadyCount += 1;
     }
-
-    services.forEach((service) => {
-      serviceDemandMap.set(service, (serviceDemandMap.get(service) || 0) + 1);
-    });
 
     if (!hasEmail) missingEmailCount += 1;
     if (!hasPhone) missingPhoneCount += 1;
@@ -1599,9 +1616,6 @@ const getAnalytics = (items) => {
   const averageResponseHours = responseTimesHours.length
     ? Math.round((responseTimesHours.reduce((sum, value) => sum + value, 0) / responseTimesHours.length) * 10) / 10
     : null;
-  const serviceDemand = [...serviceDemandMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
-  const topService = serviceDemand[0]?.[0] || '—';
-
   return {
     counts,
     urgency: [...urgencyMap.entries()].sort((a, b) => b[1] - a[1]),
@@ -1622,8 +1636,6 @@ const getAnalytics = (items) => {
     budgetProjects: budgetProjects.sort((a, b) => b.budget - a.budget),
     averageResponseHours,
     responseBuckets,
-    serviceDemand,
-    topService,
     agingBuckets: [
       ['0-2 days', agingBuckets.fresh],
       ['3-7 days', agingBuckets.warm],
@@ -1782,14 +1794,7 @@ const renderDashboardSectionNav = ({ activeCount, archivedCount, analytics }) =>
     <section class="qd-admin-section qd-admin-section-nav-shell">
       <article class="qd-admin-card qd-admin-dashboard-hero">
         <div class="qd-admin-dashboard-hero-copy">
-          <div class="qd-eyebrow qd-admin-kicker">Operations Console</div>
           <h1>Admin workspace</h1>
-          <p>Split into calmer rooms for overview, active work, and archive so the page feels easier to scan and operate.</p>
-        </div>
-        <div class="qd-admin-dashboard-hero-meta">
-          <span>${escapeHtml(`${activeCount} active projects`)}</span>
-          <span>${escapeHtml(`${archivedCount} archived`)}</span>
-          <span>${escapeHtml(`${analytics.responseBuckets.notContacted} untouched`)}</span>
         </div>
       </article>
 
@@ -1860,8 +1865,6 @@ const renderAnalyticsCards = (analytics) => {
   const responseTimeSubtitle = analytics.averageResponseHours !== null
     ? 'Avg. time before first contact'
     : 'No contacts logged yet';
-  const highestServiceCount = analytics.serviceDemand[0]?.[1] || 0;
-
   return `
     <section class="qd-admin-section">
       <div class="qd-admin-section-head">
@@ -1911,30 +1914,6 @@ const renderAnalyticsCards = (analytics) => {
           </div>
         </div>
         <div class="qd-admin-subline">${analytics.responseBuckets.notContacted} not yet contacted</div>
-      </article>
-
-      <article class="qd-admin-card qd-admin-analytics-card">
-        <div class="qd-admin-card-label">Service Demand</div>
-        <h3>${escapeHtml(analytics.serviceDemand.length ? analytics.topService : '—')}</h3>
-        <p>${escapeHtml(analytics.serviceDemand.length ? 'Most requested service this pipeline' : 'No service data yet')}</p>
-        ${analytics.serviceDemand.length ? `
-          <div class="qd-admin-list">
-            ${analytics.serviceDemand.map(([service, count]) => {
-              const percent = highestServiceCount ? Math.max(8, Math.round((count / highestServiceCount) * 100)) : 0;
-              return `
-                <div class="qd-admin-service-demand-item">
-                  <div class="qd-admin-list-item">
-                    <span>${escapeHtml(service)}</span>
-                    <strong class="qd-admin-count-badge">${count}</strong>
-                  </div>
-                  <div class="qd-admin-stage-track qd-admin-service-demand-track">
-                    <span class="qd-admin-stage-fill" style="width:${percent}%"></span>
-                  </div>
-                </div>
-              `;
-            }).join('')}
-          </div>
-        ` : '<div class="qd-admin-empty"><strong>No service data yet</strong>Service demand will appear once submissions include service selections.</div>'}
       </article>
       </div>
     </section>
@@ -2170,9 +2149,12 @@ const renderDashboard = () => {
 
 const getOutreachLeadById = (id) => state.outreachLeads.find((lead) => lead.id === id) || null;
 
+const isOutreachLeadStarred = (lead) => Boolean(lead?.starred);
+
 const getFilteredOutreachLeads = () => {
   const search = String(state.outreachFilters.search || '').trim().toLowerCase();
   return state.outreachLeads.filter((lead) => {
+    if (state.outreachFilters.starredOnly && !isOutreachLeadStarred(lead)) return false;
     const matchesStatus = state.outreachFilters.status === 'All' || lead.status === state.outreachFilters.status;
     if (!matchesStatus) return false;
     if (!search) return true;
@@ -2187,6 +2169,10 @@ const getFilteredOutreachLeads = () => {
     ].join(' ').toLowerCase();
 
     return haystack.includes(search);
+  }).sort((a, b) => {
+    const aStar = isOutreachLeadStarred(a) ? 1 : 0;
+    const bStar = isOutreachLeadStarred(b) ? 1 : 0;
+    return bStar - aStar;
   });
 };
 
@@ -2201,6 +2187,30 @@ const getPaginatedOutreachLeads = (items) => {
     items: items.slice(activePage * pageSize, (activePage + 1) * pageSize)
   };
 };
+
+const renderOutreachStarButton = (lead, { compact = false, mobile = false } = {}) => {
+  const starred = isOutreachLeadStarred(lead);
+  const label = starred ? 'Remove star' : 'Star this lead';
+  const className = mobile
+    ? `qd-btn qd-btn-sm qd-admin-outreach-star-row-btn ${starred ? 'is-starred' : ''}`
+    : compact
+      ? `qd-admin-row-button qd-admin-outreach-star-row-btn ${starred ? 'is-starred' : ''}`
+      : `qd-admin-outreach-star-btn ${starred ? 'is-starred' : ''}`;
+  return `
+    <button
+      type="button"
+      class="${className}"
+      data-action="toggle-outreach-star"
+      data-id="${escapeHtml(lead.id)}"
+      data-outreach-stop-row-open
+      aria-label="${escapeHtml(label)}"
+      aria-pressed="${starred ? 'true' : 'false'}"
+      title="${escapeHtml(label)}"
+    >${starred ? '★' : '☆'}</button>
+  `;
+};
+
+const getStarredOutreachCount = () => state.outreachLeads.filter((lead) => isOutreachLeadStarred(lead)).length;
 
 const renderOutreachStatusSelect = (lead) => `
   <select class="qd-admin-select qd-admin-outreach-status-select" data-outreach-status-id="${escapeHtml(lead.id)}" aria-label="${escapeHtml(`Change status for ${lead.businessName || lead.ownerName || 'lead'}`)}">
@@ -2225,12 +2235,13 @@ const renderOutreachRows = (items) => {
   }
 
   if (!items.length) {
+    const starredOnly = state.outreachFilters.starredOnly;
     return `
       <tr>
         <td colspan="6">
           <div class="qd-admin-empty-state">
-            <strong>No outreach leads yet</strong>
-            <p>Add your first cold outreach contact to start tracking follow-up and confirmed imports.</p>
+            <strong>${starredOnly ? 'No starred leads' : 'No outreach leads yet'}</strong>
+            <p>${starredOnly ? 'Star leads from the row actions to pin them here.' : 'Add your first cold outreach contact to start tracking follow-up and confirmed imports.'}</p>
           </div>
         </td>
       </tr>
@@ -2238,24 +2249,23 @@ const renderOutreachRows = (items) => {
   }
 
   return items.map((lead) => {
-    const whatsappLink = buildOutreachWhatsAppLink(lead);
     const callLink = buildOutreachCallLink(lead);
     return `
-      <tr class="qd-admin-outreach-row" data-outreach-open-id="${escapeHtml(lead.id)}">
+      <tr class="qd-admin-outreach-row ${isOutreachLeadStarred(lead) ? 'is-starred' : ''}" data-outreach-open-id="${escapeHtml(lead.id)}">
         <td class="qd-admin-outreach-col-business">
           <strong class="qd-admin-outreach-business-name">${escapeHtml(lead.businessName || 'Untitled Lead')}</strong>
         </td>
-        <td class="qd-admin-outreach-col-owner">${escapeHtml(lead.ownerName || '—')}</td>
         <td class="qd-admin-outreach-col-phone">${escapeHtml(lead.phoneNumber || '—')}</td>
         <td class="qd-admin-outreach-col-website">${renderOutreachWebsiteLink(lead.websiteUrl)}</td>
+        <td class="qd-admin-outreach-col-location" data-outreach-stop-row-open>${renderOutreachLocationLink(lead)}</td>
         <td class="qd-admin-outreach-col-status" data-outreach-stop-row-open>
           ${renderOutreachStatusSelect(lead)}
         </td>
         <td class="qd-admin-outreach-col-actions" data-outreach-stop-row-open>
           <div class="qd-admin-outreach-action-links">
-            ${whatsappLink ? `<a class="qd-admin-row-button qd-admin-outreach-action-link" href="${escapeHtml(whatsappLink)}" target="_blank" rel="noreferrer noopener">WhatsApp</a>` : ''}
             ${callLink ? `<a class="qd-admin-row-button qd-admin-outreach-action-link" href="${escapeHtml(callLink)}">Call</a>` : ''}
             <button class="qd-admin-row-button" type="button" data-action="edit-outreach-lead" data-id="${escapeHtml(lead.id)}">Edit</button>
+            ${renderOutreachStarButton(lead, { compact: true })}
             <button class="qd-admin-row-button is-danger" type="button" data-action="delete-outreach-lead" data-id="${escapeHtml(lead.id)}">Delete</button>
           </div>
         </td>
@@ -2266,20 +2276,21 @@ const renderOutreachRows = (items) => {
 
 const renderOutreachCards = (items) => {
   if (!items.length) {
+    const starredOnly = state.outreachFilters.starredOnly;
     return `
       <div class="qd-admin-empty-state">
-        <strong>No outreach leads yet</strong>
-        <p>Add your first cold outreach contact to start tracking follow-up and confirmed imports.</p>
+        <strong>${starredOnly ? 'No starred leads' : 'No outreach leads yet'}</strong>
+        <p>${starredOnly ? 'Star leads from the row actions to pin them here.' : 'Add your first cold outreach contact to start tracking follow-up and confirmed imports.'}</p>
       </div>
     `;
   }
 
   return items.map((lead) => {
-    const whatsappLink = buildOutreachWhatsAppLink(lead);
+    const mapsLink = buildOutreachMapsLink(lead);
     const callLink = buildOutreachCallLink(lead);
     const meetingSummary = formatOutreachMeeting(lead);
     return `
-      <article class="qd-admin-mobile-card qd-admin-outreach-mobile-card" data-outreach-open-id="${escapeHtml(lead.id)}">
+      <article class="qd-admin-mobile-card qd-admin-outreach-mobile-card ${isOutreachLeadStarred(lead) ? 'is-starred' : ''}" data-outreach-open-id="${escapeHtml(lead.id)}">
         <div class="qd-admin-mobile-card-head">
           <div>
             <div class="qd-admin-business-name">${escapeHtml(lead.businessName || 'Untitled Lead')}</div>
@@ -2296,9 +2307,10 @@ const renderOutreachCards = (items) => {
         </div>
         <div class="qd-admin-card-mobile-actions qd-admin-outreach-mobile-actions">
           ${renderOutreachStatusSelect(lead)}
-          ${whatsappLink ? `<a class="qd-btn qd-btn-sm qd-admin-action-whatsapp" href="${escapeHtml(whatsappLink)}" target="_blank" rel="noreferrer noopener">WhatsApp</a>` : ''}
+          ${mapsLink ? `<a class="qd-btn qd-btn-sm qd-admin-action-maps" href="${escapeHtml(mapsLink)}" target="_blank" rel="noreferrer noopener">Maps</a>` : ''}
           ${callLink ? `<a class="qd-btn qd-btn-sm qd-admin-action-call" href="${escapeHtml(callLink)}">Call</a>` : ''}
           <button class="qd-btn qd-btn-sm qd-admin-action-secondary" type="button" data-action="edit-outreach-lead" data-id="${escapeHtml(lead.id)}">Edit</button>
+          ${renderOutreachStarButton(lead, { compact: true, mobile: true })}
           <button class="qd-btn qd-btn-sm qd-admin-action-danger" type="button" data-action="delete-outreach-lead" data-id="${escapeHtml(lead.id)}">Delete</button>
         </div>
       </article>
@@ -2325,15 +2337,42 @@ const getOutreachEditorDraftFromState = () => ({
   ...(state.outreachEditor?.draft || {})
 });
 
+const normalizeMapsImportUrl = (value) => {
+  const trimmed = String(value || '').trim();
+  if (!trimmed) return '';
+  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+};
+
+const extractBusinessNameFromMapsUrl = (url) => {
+  try {
+    const parsed = new URL(url);
+    const match = parsed.pathname.match(/\/maps\/place\/([^/]+)/i)
+      || parsed.pathname.match(/\/place\/([^/]+)/i)
+      || parsed.pathname.match(/\/maps\/search\/([^/]+)/i);
+    if (!match?.[1]) return '';
+    return decodeURIComponent(match[1]).replace(/\+/g, ' ').trim();
+  } catch {
+    return '';
+  }
+};
+
 const extractMapsLead = async () => {
   const editor = state.outreachEditor;
-  const mapsUrl = String(editor.mapsUrl || '').trim();
+  const mapsUrl = normalizeMapsImportUrl(editor.mapsUrl);
 
   if (!mapsUrl) {
     editor.mapsError = 'Paste a Google Maps business URL first.';
     render();
     return;
   }
+
+  if (!isOutreachGoogleMapsUrl(mapsUrl)) {
+    editor.mapsError = 'Only Google Maps links are supported. Paste a maps.google.com or maps.app.goo.gl URL.';
+    render();
+    return;
+  }
+
+  editor.mapsUrl = mapsUrl;
 
   editor.mapsLoading = true;
   editor.mapsError = '';
@@ -2343,7 +2382,7 @@ const extractMapsLead = async () => {
     const token = await auth.currentUser?.getIdToken();
     if (!token) throw new Error('Your admin session expired. Please sign in again.');
 
-    const response = await fetch('/api/maps-extract', {
+    const response = await fetch(getAdminApiUrl('/api/maps-extract'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -2353,6 +2392,10 @@ const extractMapsLead = async () => {
     });
 
     const payload = await response.json().catch(() => ({}));
+
+    if (response.status === 404) {
+      throw new Error('Maps import API was not found. Open admin via http://localhost:3000/admin.html (npm run dev) or https://www.qdsystems.ae/admin.html');
+    }
 
     if (!response.ok || payload.ok === false) {
       throw new Error(payload.error || 'Could not extract this Google Maps listing.');
@@ -2374,7 +2417,7 @@ const extractMapsLead = async () => {
       phoneNumber: current.phoneNumber || lead.phoneNumber || '',
       websiteUrl: nextWebsiteUrl,
       hasWebsite: nextHasWebsite,
-      meetingLocation: current.meetingLocation || lead.meetingLocation || '',
+      meetingLocation: mapsUrl || current.meetingLocation || '',
       notes: current.notes || ''
     };
 
@@ -2394,7 +2437,7 @@ const extractMapsLead = async () => {
             businessName: Boolean(lead.businessName),
             phoneNumber: Boolean(lead.phoneNumber),
             websiteUrl: Boolean(lead.websiteUrl),
-            meetingLocation: Boolean(lead.meetingLocation)
+            meetingLocation: Boolean(mapsUrl)
           }
         }
       });
@@ -2404,8 +2447,21 @@ const extractMapsLead = async () => {
 
     render();
   } catch (error) {
+    const current = getOutreachEditorDraftFromState();
+    const businessFromUrl = extractBusinessNameFromMapsUrl(mapsUrl);
+    if (isOutreachGoogleMapsUrl(mapsUrl)) {
+      state.outreachEditor.draft = {
+        ...current,
+        businessName: current.businessName || businessFromUrl || '',
+        meetingLocation: mapsUrl || current.meetingLocation || ''
+      };
+      state.outreachEditor.mapsError = businessFromUrl
+        ? `Map link and business name saved. Phone/website import failed: ${error?.message || 'unknown error'}`
+        : `Map link saved to Meeting Location. Full import failed: ${error?.message || 'unknown error'}`;
+    } else {
+      state.outreachEditor.mapsError = error?.message || 'Could not import this Google Maps listing.';
+    }
     state.outreachEditor.mapsLoading = false;
-    state.outreachEditor.mapsError = error?.message || 'Could not import this Google Maps listing.';
     render();
   }
 };
@@ -2521,6 +2577,7 @@ const renderOutreachEditor = () => {
 
 const renderOutreachManager = () => {
   const filteredLeads = getFilteredOutreachLeads();
+  const starredCount = getStarredOutreachCount();
   const { items, activePage, pageCount } = getPaginatedOutreachLeads(filteredLeads);
   if (activePage !== state.outreachPage && pageCount) {
     state.outreachPage = activePage;
@@ -2547,6 +2604,13 @@ const renderOutreachManager = () => {
               <option value="${escapeHtml(option.value)}" ${state.outreachFilters.status === option.value ? 'selected' : ''}>${escapeHtml(option.label)}</option>
             `).join('')}
           </select>
+          <button
+            class="qd-btn qd-btn-sm qd-admin-outreach-star-filter ${state.outreachFilters.starredOnly ? 'is-active' : ''}"
+            type="button"
+            data-action="toggle-outreach-starred-filter"
+            aria-pressed="${state.outreachFilters.starredOnly ? 'true' : 'false'}"
+            title="Show starred leads only"
+          >★ Starred${starredCount ? ` (${starredCount})` : ''}</button>
           <button class="qd-btn qd-btn-sm qd-admin-action-primary" type="button" data-action="open-outreach-create">Add Lead</button>
         </div>
 
@@ -2555,9 +2619,9 @@ const renderOutreachManager = () => {
             <thead>
               <tr>
                 <th>Business</th>
-                <th>Owner</th>
                 <th>Phone</th>
                 <th>Website</th>
+                <th>Location</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -3753,6 +3817,7 @@ const renderDrawer = () => {
           <button class="qd-btn qd-btn-sm qd-admin-action-secondary" type="button" data-action="${draft.editMode ? 'cancel-edit-submission' : 'edit-submission'}">${draft.editMode ? 'Cancel Edit' : 'Edit Submission'}</button>
           <button class="qd-btn qd-btn-sm qd-admin-action-secondary qd-admin-action-accent-outline" type="button" data-action="copy-summary">Copy Summary</button>
           <button class="qd-btn qd-btn-sm qd-admin-action-danger" type="button" data-action="archive-submission">Archive</button>
+          <button class="qd-btn qd-btn-sm qd-admin-action-danger" type="button" data-action="delete-submission">Delete</button>
         </section>
 
         <section class="qd-admin-meta-grid qd-admin-timeline-strip">
@@ -4674,7 +4739,7 @@ const captureOutreachDraftFromDom = () => {
     notes: form.elements.notes?.value?.trim() || '',
     status: OUTREACH_STATUS_OPTIONS.some((option) => option.value === form.elements.status?.value)
       ? form.elements.status.value
-      : 'call_them'
+      : 'visit_them'
   };
 };
 
@@ -4823,7 +4888,7 @@ const saveOutreachLeadEditor = async () => {
           targetLabel: getOutreachLeadActivityLabel(payload),
           metadata: {
             changedFields: ['status'],
-            before: { status: state.outreachEditor.original?.status || existing.status || 'call_them' },
+            before: { status: state.outreachEditor.original?.status || existing.status || 'visit_them' },
             after: { status: payload.status }
           }
         });
@@ -4872,6 +4937,16 @@ const saveOutreachLeadEditor = async () => {
     state.outreachEditor.error = error?.message || 'Could not save the outreach lead.';
     render();
   }
+};
+
+const toggleOutreachLeadStar = async (lead) => {
+  if (!lead?.id) return;
+  const nextStarred = !isOutreachLeadStarred(lead);
+  await updateDoc(doc(db, 'businessOutreachLeads', lead.id), {
+    starred: nextStarred,
+    updatedAt: serverTimestamp()
+  });
+  showAdminToast(nextStarred ? 'Lead starred' : 'Star removed');
 };
 
 const updateOutreachLeadStatus = async (lead, nextStatus) => {
@@ -5781,6 +5856,27 @@ const saveDrawer = async (nextValues = {}) => {
   }
 };
 
+const deleteSubmissionRecord = async (submission) => {
+  const businessName = formatValue(getAnswer(submission, 'businessName'));
+  const confirmed = window.confirm(`Permanently delete the submission for "${businessName}"? This cannot be undone.`);
+  if (!confirmed) return;
+
+  await logAdminActivity({
+    action: 'delete_submission',
+    targetType: 'submission',
+    targetId: submission.id,
+    targetLabel: getSubmissionActivityLabel(submission),
+    metadata: {
+      status: submission.status,
+      priority: submission.priority,
+      businessName
+    }
+  });
+  await deleteDoc(doc(db, 'projectSubmissions', submission.id));
+  closeDrawer();
+  showAdminToast(`Deleted ${businessName}`);
+};
+
 const handleDocumentClick = async (event) => {
   const outreachOpenTarget = event.target.closest('[data-outreach-open-id]');
   const clickedInteractiveControl = event.target.closest('a, button, select, input, textarea, label, [data-outreach-stop-row-open]');
@@ -5903,6 +5999,13 @@ const handleDocumentClick = async (event) => {
 
   if (action === 'open-outreach-create') {
     openOutreachEditor('create');
+    return;
+  }
+
+  if (action === 'toggle-outreach-starred-filter') {
+    state.outreachFilters.starredOnly = !state.outreachFilters.starredOnly;
+    state.outreachPage = 0;
+    render();
     return;
   }
 
@@ -6060,6 +6163,16 @@ const handleDocumentClick = async (event) => {
     return;
   }
 
+  if (action === 'toggle-outreach-star') {
+    const lead = getOutreachLeadById(actionTarget.dataset.id);
+    if (!lead) return;
+    toggleOutreachLeadStar(lead).catch((error) => {
+      state.outreachError = error?.message || 'Could not update star.';
+      render();
+    });
+    return;
+  }
+
   if (action === 'delete-outreach-lead') {
     const lead = getOutreachLeadById(actionTarget.dataset.id);
     if (!lead) return;
@@ -6147,6 +6260,13 @@ const handleDocumentClick = async (event) => {
       notes: state.drawerDraft?.notes ?? selected.notes ?? ''
     };
     await saveDrawer({ status: 'Archived' });
+    return;
+  }
+
+  if (action === 'delete-submission') {
+    const selected = getSelectedSubmission();
+    if (!selected) return;
+    await deleteSubmissionRecord(selected);
     return;
   }
 

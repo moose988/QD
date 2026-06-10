@@ -504,6 +504,74 @@ body.qd-admin-page.qd-modal-open {
   text-shadow: 0 0 18px rgba(232, 232, 238, 0.2);
 }
 
+.qd-admin-kpi-card[data-status="New"] {
+  background:
+    radial-gradient(circle at top left, rgba(74, 191, 138, 0.16), transparent 42%),
+    rgba(74, 191, 138, 0.08);
+  border-color: rgba(74, 191, 138, 0.24);
+}
+
+.qd-admin-kpi-card[data-status="New"] .qd-admin-card-label {
+  color: #8fe8b8;
+}
+
+.qd-admin-kpi-card[data-status="New"]:hover {
+  border-color: rgba(74, 191, 138, 0.36);
+  box-shadow:
+    0 0 28px rgba(74, 191, 138, 0.14),
+    var(--qd-admin-shadow);
+}
+
+.qd-admin-kpi-card[data-status="New"].is-active {
+  border-color: rgba(74, 191, 138, 0.52);
+  background:
+    radial-gradient(circle at top left, rgba(74, 191, 138, 0.22), transparent 42%),
+    rgba(74, 191, 138, 0.12);
+  box-shadow:
+    0 0 0 1px rgba(74, 191, 138, 0.28),
+    0 0 32px rgba(74, 191, 138, 0.16),
+    var(--qd-admin-shadow);
+}
+
+.qd-admin-kpi-card[data-status="New"].is-active .qd-admin-card-label,
+.qd-admin-kpi-card[data-status="New"].is-active .qd-admin-kpi-value {
+  text-shadow: 0 0 18px rgba(74, 191, 138, 0.22);
+}
+
+.qd-admin-kpi-card[data-status="Archived"] {
+  background:
+    radial-gradient(circle at top left, rgba(229, 75, 75, 0.14), transparent 42%),
+    rgba(229, 75, 75, 0.08);
+  border-color: rgba(229, 75, 75, 0.22);
+}
+
+.qd-admin-kpi-card[data-status="Archived"] .qd-admin-card-label {
+  color: #ff9a9a;
+}
+
+.qd-admin-kpi-card[data-status="Archived"]:hover {
+  border-color: rgba(229, 75, 75, 0.34);
+  box-shadow:
+    0 0 28px rgba(229, 75, 75, 0.12),
+    var(--qd-admin-shadow);
+}
+
+.qd-admin-kpi-card[data-status="Archived"].is-active {
+  border-color: rgba(229, 75, 75, 0.48);
+  background:
+    radial-gradient(circle at top left, rgba(229, 75, 75, 0.2), transparent 42%),
+    rgba(229, 75, 75, 0.11);
+  box-shadow:
+    0 0 0 1px rgba(229, 75, 75, 0.26),
+    0 0 32px rgba(229, 75, 75, 0.14),
+    var(--qd-admin-shadow);
+}
+
+.qd-admin-kpi-card[data-status="Archived"].is-active .qd-admin-card-label,
+.qd-admin-kpi-card[data-status="Archived"].is-active .qd-admin-kpi-value {
+  text-shadow: 0 0 18px rgba(229, 75, 75, 0.2);
+}
+
 .qd-admin-kpi-value {
   display: block;
   margin-top: 12px;
@@ -837,16 +905,6 @@ body.qd-admin-page.qd-modal-open {
   background: rgba(229, 75, 75, 0.12);
   border-color: rgba(229, 75, 75, 0.22);
   color: #ff8f8f;
-}
-
-.qd-admin-service-demand-item {
-  display: grid;
-  gap: 6px;
-}
-
-.qd-admin-service-demand-track {
-  height: 5px;
-  margin: 0 2px;
 }
 
 .qd-admin-pagination {
@@ -1403,6 +1461,7 @@ body.qd-admin-page.qd-modal-open {
 .qd-admin-action-secondary,
 .qd-admin-action-call,
 .qd-admin-action-whatsapp,
+.qd-admin-action-maps,
 .qd-admin-action-danger {
   min-height: 50px;
   padding: 0 18px;
@@ -1425,6 +1484,7 @@ body.qd-admin-page.qd-modal-open {
 .qd-admin-action-secondary:hover,
 .qd-admin-action-call:hover,
 .qd-admin-action-whatsapp:hover,
+.qd-admin-action-maps:hover,
 .qd-admin-action-danger:hover {
   transform: translateY(-1px);
 }
@@ -1433,6 +1493,7 @@ body.qd-admin-page.qd-modal-open {
 .qd-admin-action-secondary:active,
 .qd-admin-action-call:active,
 .qd-admin-action-whatsapp:active,
+.qd-admin-action-maps:active,
 .qd-admin-action-danger:active {
   transform: translateY(0);
 }
@@ -1496,6 +1557,22 @@ body.qd-admin-page.qd-modal-open {
 
 .qd-admin-action-whatsapp:hover {
   box-shadow: 0 0 28px rgba(232, 232, 238, 0.16);
+}
+
+.qd-admin-action-maps,
+.qd-admin-outreach-action-maps {
+  background:
+    linear-gradient(145deg, rgba(91, 191, 235, 0.14), rgba(24, 44, 58, 0.34) 55%, rgba(255, 255, 255, 0.03));
+  color: #9fe0ff;
+  border: 1px solid rgba(91, 191, 235, 0.28);
+  box-shadow: 0 0 22px rgba(91, 191, 235, 0.08);
+}
+
+.qd-admin-action-maps:hover,
+.qd-admin-outreach-action-maps:hover {
+  border-color: rgba(91, 191, 235, 0.42);
+  box-shadow: 0 0 28px rgba(91, 191, 235, 0.16);
+  color: #c8eeff;
 }
 
 .qd-admin-action-danger {
@@ -1968,14 +2045,89 @@ body.qd-admin-page.qd-modal-open {
   padding: 12px 10px;
 }
 
+.qd-admin-outreach-col-star {
+  width: 44px;
+  min-width: 44px;
+  max-width: 44px;
+  padding-left: 8px !important;
+  padding-right: 4px !important;
+  text-align: center;
+}
+
+.qd-admin-outreach-col-star span[aria-hidden="true"] {
+  color: var(--dim);
+  font-size: 12px;
+}
+
+.qd-admin-outreach-star-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--dim);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    color 160ms var(--ease-out),
+    border-color 160ms var(--ease-out),
+    background 160ms var(--ease-out),
+    box-shadow 160ms var(--ease-out),
+    transform 160ms var(--ease-out);
+}
+
+.qd-admin-outreach-star-btn:hover,
+.qd-admin-outreach-star-btn:focus-visible {
+  color: #ffd76a;
+  border-color: rgba(255, 215, 106, 0.35);
+  background: rgba(255, 215, 106, 0.08);
+  outline: none;
+}
+
+.qd-admin-outreach-star-btn.is-starred {
+  color: #ffd76a;
+  border-color: rgba(255, 215, 106, 0.45);
+  background: rgba(255, 215, 106, 0.14);
+  box-shadow: 0 0 18px rgba(255, 215, 106, 0.16);
+}
+
+.qd-admin-outreach-row.is-starred {
+  background:
+    linear-gradient(90deg, rgba(255, 215, 106, 0.1), rgba(255, 215, 106, 0.03) 28%, transparent 62%),
+    rgba(255, 255, 255, 0.025);
+  box-shadow: inset 3px 0 0 rgba(255, 215, 106, 0.72);
+}
+
+.qd-admin-outreach-row.is-starred:hover {
+  background:
+    linear-gradient(90deg, rgba(255, 215, 106, 0.14), rgba(255, 215, 106, 0.05) 30%, transparent 64%),
+    rgba(255, 255, 255, 0.035);
+}
+
+.qd-admin-outreach-mobile-card.is-starred {
+  border-color: rgba(255, 215, 106, 0.34);
+  background:
+    linear-gradient(135deg, rgba(255, 215, 106, 0.12), rgba(255, 255, 255, 0.02) 42%),
+    var(--qd-admin-glass);
+  box-shadow:
+    inset 3px 0 0 rgba(255, 215, 106, 0.72),
+    0 12px 32px rgba(0, 0, 0, 0.28);
+}
+
+.qd-admin-outreach-mobile-head-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+}
+
 .qd-admin-outreach-col-business {
   min-width: 160px;
   max-width: 220px;
-}
-
-.qd-admin-outreach-col-owner {
-  min-width: 100px;
-  max-width: 140px;
 }
 
 .qd-admin-outreach-col-phone {
@@ -1989,13 +2141,19 @@ body.qd-admin-page.qd-modal-open {
   max-width: 200px;
 }
 
+.qd-admin-outreach-col-location {
+  min-width: 88px;
+  max-width: 110px;
+  white-space: nowrap;
+}
+
 .qd-admin-outreach-col-status {
   min-width: 132px;
   width: 132px;
 }
 
 .qd-admin-outreach-col-actions {
-  min-width: 248px;
+  min-width: 288px;
   width: 1%;
   white-space: nowrap;
 }
@@ -2011,7 +2169,6 @@ body.qd-admin-page.qd-modal-open {
   color: var(--fg1);
 }
 
-.qd-admin-outreach-col-owner,
 .qd-admin-outreach-col-phone {
   font-size: 13px;
   color: var(--fg2);
@@ -2033,8 +2190,60 @@ body.qd-admin-page.qd-modal-open {
   text-decoration: underline;
 }
 
+.qd-admin-outreach-location-link {
+  display: inline-flex;
+  align-items: center;
+  color: #9fe0ff;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.qd-admin-outreach-location-link:hover {
+  color: #c8eeff;
+  text-decoration: underline;
+}
+
 .qd-admin-outreach-toolbar {
-  grid-template-columns: minmax(260px, 1.4fr) minmax(190px, 0.45fr) auto;
+  grid-template-columns: minmax(220px, 1.2fr) minmax(170px, 0.4fr) auto auto;
+}
+
+.qd-admin-outreach-star-filter {
+  color: #d8c27a;
+  border: 1px solid rgba(255, 215, 106, 0.22);
+  background: rgba(255, 215, 106, 0.06);
+}
+
+.qd-admin-outreach-star-filter:hover,
+.qd-admin-outreach-star-filter.is-active {
+  color: #ffd76a;
+  border-color: rgba(255, 215, 106, 0.42);
+  background: rgba(255, 215, 106, 0.14);
+  box-shadow: 0 0 20px rgba(255, 215, 106, 0.12);
+}
+
+.qd-admin-outreach-star-row-btn {
+  min-width: 42px;
+  padding-inline: 10px;
+  font-size: 15px;
+  line-height: 1;
+  color: var(--dim);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.qd-admin-outreach-star-row-btn:hover,
+.qd-admin-outreach-star-row-btn:focus-visible {
+  color: #ffd76a;
+  border-color: rgba(255, 215, 106, 0.35);
+  background: rgba(255, 215, 106, 0.08);
+}
+
+.qd-admin-outreach-star-row-btn.is-starred {
+  color: #ffd76a;
+  border-color: rgba(255, 215, 106, 0.42);
+  background: rgba(255, 215, 106, 0.12);
 }
 
 .qd-admin-outreach-status-select {
@@ -2244,6 +2453,7 @@ body.qd-admin-page.qd-modal-open {
   .qd-admin-action-secondary:hover,
   .qd-admin-action-call:hover,
   .qd-admin-action-whatsapp:hover,
+  .qd-admin-action-maps:hover,
   .qd-admin-action-danger:hover,
   .qd-admin-drawer-close:hover {
     transform: none;

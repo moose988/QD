@@ -14,7 +14,8 @@ const allowedGoogleHosts = new Set([
   'www.google.com',
   'maps.google.com',
   'goo.gl',
-  'maps.app.goo.gl'
+  'maps.app.goo.gl',
+  'g.co'
 ]);
 
 let adminApp = null;
@@ -207,8 +208,17 @@ const resolveUrl = async (inputUrl) => {
   return { resolvedUrl, response };
 };
 
+const normalizeMapsInputUrl = (input) => {
+  let value = String(input || '').trim();
+  if (!value) return '';
+  if (!/^https?:\/\//i.test(value)) value = `https://${value}`;
+  return value;
+};
+
 const extractPlaceIdFromUrl = (url) => {
   const text = String(url || '');
+  const chijMatch = text.match(/(ChIJ[A-Za-z0-9_-]{20,})/i);
+  if (chijMatch) return chijMatch[1];
   const directMatch = text.match(/place_id[:=]([A-Za-z0-9_-]+)/i);
   if (directMatch) return directMatch[1];
 
@@ -235,7 +245,9 @@ const extractSearchTextFromUrl = (url) => {
       || parsed.searchParams.get('near');
     if (queryText) return decodeURIComponent(queryText).replace(/\+/g, ' ').trim();
 
-    const match = parsed.pathname.match(/\/maps\/place\/([^/]+)/i) || parsed.pathname.match(/\/place\/([^/]+)/i);
+    const match = parsed.pathname.match(/\/maps\/place\/([^/]+)/i)
+      || parsed.pathname.match(/\/place\/([^/]+)/i)
+      || parsed.pathname.match(/\/maps\/search\/([^/]+)/i);
     if (match?.[1]) {
       return decodeURIComponent(match[1]).replace(/\+/g, ' ').trim();
     }
@@ -276,36 +288,41 @@ const extractWithPlacesApi = async (sourceUrl, resolvedUrl) => {
   const apiKey = process.env.GOOGLE_MAPS_API_KEY?.trim();
   if (!apiKey) return null;
 
-  let placeId = extractPlaceIdFromUrl(resolvedUrl) || extractPlaceIdFromUrl(sourceUrl);
-  if (!placeId) {
-    const searchText = extractSearchTextFromUrl(resolvedUrl) || extractSearchTextFromUrl(sourceUrl);
-    if (searchText) {
-      const findPlace = await googlePlacesFetch('findplacefromtext/json', {
-        input: searchText,
-        inputtype: 'textquery',
-        fields: 'place_id,name,formatted_address'
-      }, apiKey);
-      placeId = findPlace.candidates?.[0]?.place_id || '';
+  try {
+    let placeId = extractPlaceIdFromUrl(resolvedUrl) || extractPlaceIdFromUrl(sourceUrl);
+    if (!placeId) {
+      const searchText = extractSearchTextFromUrl(resolvedUrl) || extractSearchTextFromUrl(sourceUrl);
+      if (searchText) {
+        const findPlace = await googlePlacesFetch('findplacefromtext/json', {
+          input: searchText,
+          inputtype: 'textquery',
+          fields: 'place_id,name,formatted_address'
+        }, apiKey);
+        placeId = findPlace.candidates?.[0]?.place_id || '';
+      }
     }
+
+    if (!placeId) return null;
+
+    const details = await googlePlacesFetch('details/json', {
+      place_id: placeId,
+      fields: 'name,formatted_phone_number,international_phone_number,website,formatted_address,url'
+    }, apiKey);
+
+    if (!details.result) return null;
+
+    return {
+      businessName: details.result.name || '',
+      phoneNumber: details.result.international_phone_number || details.result.formatted_phone_number || '',
+      websiteUrl: details.result.website || '',
+      meetingLocation: details.result.formatted_address || '',
+      sourceUrl,
+      resolvedUrl: details.result.url || resolvedUrl
+    };
+  } catch (error) {
+    console.warn('[maps-extract] places api error:', error?.message || error);
+    return null;
   }
-
-  if (!placeId) return null;
-
-  const details = await googlePlacesFetch('details/json', {
-    place_id: placeId,
-    fields: 'name,formatted_phone_number,international_phone_number,website,formatted_address,url'
-  }, apiKey);
-
-  if (!details.result) return null;
-
-  return {
-    businessName: details.result.name || '',
-    phoneNumber: details.result.international_phone_number || details.result.formatted_phone_number || '',
-    websiteUrl: details.result.website || '',
-    meetingLocation: details.result.formatted_address || '',
-    sourceUrl,
-    resolvedUrl: details.result.url || resolvedUrl
-  };
 };
 
 const collectJsonLd = (html) => {
@@ -328,8 +345,15 @@ const collectJsonLd = (html) => {
 };
 
 const extractMeta = (html, key) => {
-  const pattern = new RegExp(`<meta[^>]+(?:property|name)=["']${key}["'][^>]+content=["']([^"']+)["'][^>]*>`, 'i');
-  return cleanText(html.match(pattern)?.[1] || '');
+  const patterns = [
+    new RegExp(`<meta[^>]+(?:property|name)=["']${key}["'][^>]+content=["']([^"']+)["'][^>]*>`, 'i'),
+    new RegExp(`<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["']${key}["'][^>]*>`, 'i')
+  ];
+  for (const pattern of patterns) {
+    const match = html.match(pattern);
+    if (match?.[1]) return cleanText(match[1]);
+  }
+  return '';
 };
 
 const extractTitle = (html) => cleanText(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] || '');
@@ -390,7 +414,10 @@ const extractFromPreviewPayload = async (previewUrl, sourceUrl, resolvedUrl) => 
   const rawText = await readTextLimited(response, 600000);
   const text = decodeGoogleEscapes(rawText);
 
-  const nameMatches = [...text.matchAll(/\["0x[0-9a-f]+:0x[0-9a-f]+","([^"]+)"/gi)].map((match) => match[1]);
+  const nameMatches = [
+    ...text.matchAll(/"0x[0-9a-f]+:0x[0-9a-f]+","([^"]+)"/gi),
+    ...text.matchAll(/\["0x[0-9a-f]+:0x[0-9a-f]+","([^"]+)"/gi)
+  ].map((match) => match[1]);
   const pathName = extractSearchTextFromUrl(resolvedUrl) || extractSearchTextFromUrl(sourceUrl);
   const businessName = chooseBestName([...nameMatches, pathName], pathName);
 
@@ -507,14 +534,16 @@ const extractFromHtml = async (sourceUrl, resolvedUrl, existingResponse = null) 
 };
 
 const normalizeLead = (raw, sourceUrl, resolvedUrl) => {
+  const nameFromUrl = extractSearchTextFromUrl(resolvedUrl) || extractSearchTextFromUrl(sourceUrl);
+  const businessName = cleanText(raw?.businessName || nameFromUrl || '');
   const lead = {
-    businessName: cleanText(raw?.businessName || ''),
+    businessName: businessName === 'Google Maps' ? nameFromUrl : businessName,
     phoneNumber: normalizePhone(raw?.phoneNumber || ''),
     websiteUrl: normalizeWebsite(raw?.websiteUrl || ''),
-    meetingLocation: cleanText(raw?.meetingLocation || ''),
+    meetingLocation: cleanText(raw?.meetingLocation || sourceUrl || ''),
     hasWebsite: normalizeWebsite(raw?.websiteUrl || '') ? 'yes' : 'no',
     sourceUrl,
-    resolvedUrl
+    resolvedUrl: resolvedUrl || sourceUrl
   };
 
   return lead;
@@ -567,7 +596,7 @@ export default async function handler(req, res) {
       }
     }
 
-    const sourceUrl = String(body?.url || '').trim();
+    const sourceUrl = normalizeMapsInputUrl(body?.url);
     if (!sourceUrl) {
       sendJson(res, 400, { ok: false, error: 'A Google Maps URL is required.' });
       return;
@@ -596,21 +625,17 @@ export default async function handler(req, res) {
       console.warn('[maps-extract] places api lookup failed, falling back to HTML extraction:', error?.message || error);
     }
 
-    if (
-      !extracted
-      || !extracted.businessName
-      || !extracted.phoneNumber
-      || !extracted.websiteUrl
-      || !extracted.meetingLocation
-    ) {
+    try {
       fallbackExtracted = await extractFromHtml(sourceUrl, resolvedUrl, response);
+    } catch (error) {
+      console.warn('[maps-extract] html extraction failed:', error?.message || error);
     }
 
     const lead = normalizeLead(mergeLeadData(extracted, fallbackExtracted), sourceUrl, resolvedUrl);
-    if (!lead.businessName && !lead.phoneNumber && !lead.websiteUrl && !lead.meetingLocation) {
+    if (!lead.businessName && !lead.phoneNumber && !lead.websiteUrl) {
       sendJson(res, 422, {
         ok: false,
-        error: 'We could not extract meaningful lead details from this Google Maps listing.'
+        error: 'We could not extract meaningful lead details from this Google Maps listing. Try the full google.com/maps/place/... link from your browser.'
       });
       return;
     }
