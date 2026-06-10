@@ -461,8 +461,8 @@
       '.lang-menu [data-lang].active{color:var(--fg);background:rgba(255,255,255,.04)}',
       '.lang-menu [data-lang].active::after{content:"✓";float:right;color:var(--live)}',
       '[dir="rtl"] .lang-menu [data-lang].active::after{float:left}',
-      '@media(max-width:880px){.lang-switch{display:none}}',
-      /* mobile language buttons (inside the mobile menu) */
+      '@media(max-width:880px){.lang-btn{height:44px;padding:0 10px;border-radius:12px;gap:5px;font-size:12px;background:rgba(255,255,255,.06)}.lang-btn svg{width:15px;height:15px}.lang-menu{min-width:148px}.nav-mobile-langs{display:none}}',
+      /* mobile language buttons (inside the mobile menu — hidden; switcher sits in the header) */
       '.nav-mobile-langs{display:flex;flex-wrap:wrap;gap:8px;padding:14px 16px 6px;margin-top:6px;border-top:1px solid var(--line)}',
       '.nav-mobile-langs button{flex:1 1 40%;min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:11px;background:rgba(255,255,255,.03);color:var(--muted);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent}',
       '.nav-mobile-langs button.active{background:var(--silver);color:#0a0a0b;border-color:transparent}',

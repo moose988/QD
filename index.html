@@ -198,7 +198,7 @@ body>nav{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items
 .nav-mobile-overlay.open .nav-mobile-links a:nth-child(4){transition-delay:.18s}
 .nav-mobile-links a:hover,.nav-mobile-links a:focus-visible,.nav-mobile-links a.active{background:rgba(255,255,255,.06);color:#fff;outline:none}
 .nav-mobile-links a+a{margin-top:4px}
-@media(max-width:880px){.nav-links{display:none}.nav-menu-btn{display:flex}body>nav{padding:13px 16px}}
+@media(max-width:880px){.nav-links{display:none}.nav-menu-btn{display:flex}.nav-actions{gap:8px}body>nav{padding:13px 16px}}
 
 .btn{display:inline-flex;align-items:center;gap:9px;padding:13px 22px;border-radius:11px;font-weight:600;font-size:14.5px;cursor:pointer;border:1px solid transparent;transition:transform .25s var(--ease),box-shadow .3s,background .3s}
 .btn-silver{background:var(--silver);color:#0a0a0b;box-shadow:0 10px 30px rgba(255,255,255,.10),inset 0 1px 0 rgba(255,255,255,.6)}
@@ -400,7 +400,7 @@ body>section{position:relative;z-index:5;padding:100px 0}
   .qd-cta-btns{width:100%}
   .qd-cta-btns .btn-silver{align-self:stretch;justify-content:center}
   .qd-cta-sub{max-width:100%}
-  .qd-cta-guarantees{justify-content:center}
+  .qd-cta-guarantees{justify-content:flex-start}
   .qd-cta::before{background:radial-gradient(700px 500px at 50% -10%,rgba(255,255,255,.055),transparent 65%)}
 }
 /* keep old bandBreathe for reduced-motion list reference */
@@ -1046,9 +1046,7 @@ body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:b
   <div class="footer-social">
     <a href="https://instagram.com/qdsystems" target="_blank" rel="noopener noreferrer">Instagram</a>
     <a href="https://tiktok.com/@qdsystems" target="_blank" rel="noopener noreferrer">TikTok</a>
-    <a class="footer-wa" href="https://wa.me/971505349907?text=Hi%20QD%20%E2%80%94%20I%27d%20like%20to%20discuss%20a%20project%20with%20you." target="_blank" rel="noopener noreferrer">WhatsApp +971 50 534 9907</a>
-    <a href="/privacy" data-i18n="footer.privacy">Privacy Policy</a>
-    <a href="/terms" data-i18n="footer.terms">Terms of Service</a>
+    <a class="footer-wa" href="https://wa.me/971505349907?text=Hi%20QD%20%E2%80%94%20I%27d%20like%20to%20discuss%20a%20project%20with%20you." target="_blank" rel="noopener noreferrer">WhatsApp</a>
   </div>
   <div class="footer-copy" data-i18n="footer.copy">© 2026 QD Systems · Built in the UAE</div>
 </div></footer>
@@ -1141,7 +1139,7 @@ const navMenuBtn=document.getElementById('navMenuBtn');
 const navMobileClose=document.getElementById('navMobileClose');
 const navMobileOverlay=document.getElementById('navMobileOverlay');
 let navMenuLast=null;
-function openNavMenu(){if(!navMobileOverlay)return;navMobileOverlay.classList.add('open');navMobileOverlay.setAttribute('aria-hidden','false');if(navMenuBtn){navMenuBtn.setAttribute('aria-expanded','true');navMenuBtn.setAttribute('aria-label','Close menu');}document.body.classList.add('modal-open');navMenuLast=document.activeElement;}
+function openNavMenu(){if(!navMobileOverlay)return;const langSw=document.getElementById('langSwitch');if(langSw){langSw.classList.remove('open');const lb=document.getElementById('langBtn');if(lb)lb.setAttribute('aria-expanded','false');}navMobileOverlay.classList.add('open');navMobileOverlay.setAttribute('aria-hidden','false');if(navMenuBtn){navMenuBtn.setAttribute('aria-expanded','true');navMenuBtn.setAttribute('aria-label','Close menu');}document.body.classList.add('modal-open');navMenuLast=document.activeElement;}
 function closeNavMenu(){if(!navMobileOverlay)return;navMobileOverlay.classList.remove('open');navMobileOverlay.setAttribute('aria-hidden','true');if(navMenuBtn){navMenuBtn.setAttribute('aria-expanded','false');navMenuBtn.setAttribute('aria-label','Open menu');}if(!bookModal||!bookModal.classList.contains('open'))document.body.classList.remove('modal-open');if(navMenuLast)navMenuLast.focus();}
 if(navMenuBtn)navMenuBtn.addEventListener('click',()=>navMobileOverlay.classList.contains('open')?closeNavMenu():openNavMenu());
 if(navMobileClose)navMobileClose.addEventListener('click',closeNavMenu);
