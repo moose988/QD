@@ -88,6 +88,13 @@ body.ready .word{opacity:1;transform:none;filter:none;transition:opacity .7s var
 .ghost b.fill{-webkit-text-stroke:0;background:var(--silver-text);-webkit-background-clip:text;background-clip:text;color:transparent}
 /* kinetic statement banner */
 .statement{position:relative;z-index:5;text-align:center;padding:120px 28px;background:linear-gradient(180deg,var(--bg),#0c0c10,var(--bg));overflow:hidden}
+#work .statement{
+  margin-top:36px;
+  padding:96px 28px;
+  background:linear-gradient(180deg,#090a0b 0%,var(--bg) 14%,#0c0c10 50%,var(--bg) 86%,#090a0b 100%);
+}
+#work{padding-bottom:0}
+#build{padding-top:64px;background:radial-gradient(1200px 520px at 32% -12%,rgba(255,255,255,.05),transparent 62%),linear-gradient(180deg,#090a0b 0%,rgba(11,12,14,.94) 28%,rgba(6,6,7,.94) 100%)!important}
 .statement::before{content:"";position:absolute;top:50%;left:50%;width:900px;height:480px;margin:-240px 0 0 -450px;background:radial-gradient(closest-side,rgba(255,255,255,.05),transparent 70%);animation:spotPan 14s var(--ease) infinite alternate;pointer-events:none}
 .statement h2{position:relative;z-index:1}
 @keyframes spotPan{from{transform:translateX(-16%)}to{transform:translateX(16%)}}
@@ -118,13 +125,13 @@ body.ready .word{opacity:1;transform:none;filter:none;transition:opacity .7s var
   }
 }
 /* short laptops */
-@media(min-width:981px) and (max-height:780px){.qd-hero{min-height:auto;padding:138px 0 76px}.statement{padding:88px 24px}}
+@media(min-width:981px) and (max-height:780px){.qd-hero{min-height:auto;padding:138px 0 76px}.statement{padding:88px 24px}#work .statement{margin-top:28px;padding:72px 24px}#build{padding-top:52px}}
 /* desktop hero balance */
 @media(min-width:981px){
   .qd-hero{min-height:auto;padding:128px 0 84px;align-items:flex-start}
   .qd-hero .wrap{padding:0 clamp(48px,5.5vw,88px);align-items:flex-start}
   .hero-col{max-width:580px}
-  .avail{margin-left:0;margin-bottom:20px;font-size:10px;letter-spacing:.16em}
+  .qd-hero .avail{margin-top:14px;font-size:10px;letter-spacing:.16em}
   h1.hero{font-size:clamp(2.15rem,2.75vw,3.05rem);line-height:1.06;margin:0 0 28px;letter-spacing:-.03em}
   .checks{gap:12px;margin:0 0 28px}
   .check{font-size:14px;line-height:1.55}
@@ -143,7 +150,7 @@ body.ready .word{opacity:1;transform:none;filter:none;transition:opacity .7s var
   h1.hero{font-size:clamp(1.85rem,8.2vw,2.35rem)}.sub{font-size:.99rem}
   .hero-col{padding-top:min(30vh,220px)}
   .ghost{padding:20px 0}.ghost b{font-size:2.3rem;margin-right:40px}
-  .statement{padding:72px 20px}.statement h2{font-size:1.85rem}
+  .statement{padding:72px 20px}.statement h2{font-size:1.85rem}#work .statement{margin-top:24px;padding:64px 20px}#build{padding-top:48px}
   .demo{border-radius:14px}.chat{min-height:300px}
   .badge{min-width:0;flex:1}.speed{gap:8px}
   body>section{padding:64px 0}.h2{font-size:1.75rem}
@@ -157,8 +164,8 @@ body>nav{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items
 .brand{display:flex;align-items:center;gap:12px}
 .brand img{width:38px;height:38px;border-radius:9px;object-fit:cover;box-shadow:0 0 0 1px var(--line)}
 .brand b{font-family:"Space Grotesk";letter-spacing:.22em;font-size:14px;font-weight:600}
-.nav-links{display:flex;gap:30px;font-size:14px;color:var(--muted)}
-.nav-links a{transition:color .25s}.nav-links a:hover{color:var(--fg)}
+.nav-links{display:flex;gap:30px;font-family:"Space Grotesk",sans-serif;font-size:14px;font-weight:700}
+.nav-links a{color:#ececf0;transition:color .25s}.nav-links a:hover,.nav-links a.active{color:#fff}
 .nav-actions{display:flex;align-items:center;gap:10px;flex-shrink:0}
 .nav-menu-btn{display:none;width:44px;height:44px;padding:0;border:1px solid rgba(255,255,255,.14);border-radius:12px;background:rgba(255,255,255,.06);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:var(--fg);cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px;flex-shrink:0;-webkit-tap-highlight-color:transparent;transition:background .25s,border-color .25s,box-shadow .25s,transform .2s var(--ease)}
 .nav-menu-btn:hover,.nav-menu-btn:focus-visible{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.22);outline:none}
@@ -176,13 +183,13 @@ body>nav{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items
 .nav-mobile-close{width:36px;height:36px;padding:0;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.04);color:var(--fg);cursor:pointer;display:grid;place-items:center;font-size:15px;line-height:1;-webkit-tap-highlight-color:transparent;transition:background .2s,border-color .2s}
 .nav-mobile-close:hover,.nav-mobile-close:focus-visible{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);outline:none}
 .nav-mobile-links{padding:12px 14px 16px}
-.nav-mobile-links a{display:flex;align-items:center;min-height:52px;padding:0 16px;border-radius:12px;font-family:"Space Grotesk",sans-serif;font-size:15px;font-weight:600;letter-spacing:.04em;color:var(--muted);opacity:0;transform:translateY(8px);transition:background .2s,color .2s,opacity .3s ease,transform .32s cubic-bezier(.34,1.1,.64,1)}
+.nav-mobile-links a{display:flex;align-items:center;min-height:52px;padding:0 16px;border-radius:12px;font-family:"Space Grotesk",sans-serif;font-size:15px;font-weight:700;letter-spacing:.04em;color:#ececf0;opacity:0;transform:translateY(8px);transition:background .2s,color .2s,opacity .3s ease,transform .32s cubic-bezier(.34,1.1,.64,1)}
 .nav-mobile-overlay.open .nav-mobile-links a{opacity:1;transform:none}
 .nav-mobile-overlay.open .nav-mobile-links a:nth-child(1){transition-delay:.06s}
 .nav-mobile-overlay.open .nav-mobile-links a:nth-child(2){transition-delay:.1s}
 .nav-mobile-overlay.open .nav-mobile-links a:nth-child(3){transition-delay:.14s}
 .nav-mobile-overlay.open .nav-mobile-links a:nth-child(4){transition-delay:.18s}
-.nav-mobile-links a:hover,.nav-mobile-links a:focus-visible,.nav-mobile-links a.active{background:rgba(255,255,255,.06);color:var(--fg);outline:none}
+.nav-mobile-links a:hover,.nav-mobile-links a:focus-visible,.nav-mobile-links a.active{background:rgba(255,255,255,.06);color:#fff;outline:none}
 .nav-mobile-links a+a{margin-top:4px}
 @media(max-width:880px){.nav-links{display:none}.nav-menu-btn{display:flex}body>nav{padding:13px 16px}}
 
@@ -316,6 +323,18 @@ body>section{position:relative;z-index:5;padding:100px 0;background:radial-gradi
 .iwork-tag{font-size:11px;padding:5px 10px;border:1px solid var(--line);border-radius:100px;color:var(--muted)}
 .iwork-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
 .iwork-btn{flex:1;min-width:140px;justify-content:center;font-size:13px;padding:12px 16px}
+.iwork-more{display:flex;justify-content:center;margin:28px 0 4px}
+.iwork-more-btn{min-width:168px;justify-content:center}
+.iwork-grid--more{margin-top:8px}
+.iwork-mock--vellora{background:linear-gradient(180deg,#14110f 0%,#0a0908 100%)}
+.iwork-mock--vellora .iwork-mock-logo{letter-spacing:.28em;font-size:10px}
+.iwork-mock--vellora .iwork-mock-title{font-size:clamp(14px,2.1vw,19px)}
+.iwork-mock--vellora .iwork-mock-cta{background:linear-gradient(135deg,#e8e4da,#cfc9bc);color:#0a0a0b}
+.iwork-mock--restaurant{background:linear-gradient(180deg,#16120f 0%,#0a0908 100%)}
+.iwork-mock--restaurant .iwork-mock-cta{background:#d4a017;color:#1a1208}
+.iwork-mock-menu{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}
+.iwork-mock-menu span{display:flex;flex-direction:column;gap:5px;font-size:8px;color:var(--dim)}
+.iwork-mock-menu i{height:34px;border-radius:8px;background:linear-gradient(135deg,#3a2818,#1a120d);border:1px solid var(--line2)}
 @media(max-width:480px){.iwork-actions{flex-direction:column}.iwork-btn{width:100%}}
 
 .offers{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
@@ -447,7 +466,9 @@ body>section::before{content:"";position:absolute;inset:-18% -28%;pointer-events
   background:radial-gradient(42% 48% at 50% 38%,rgba(255,255,255,.095),transparent 70%);
   animation:aurora 12s ease-in-out infinite alternate}
 #demo::before{background:radial-gradient(42% 48% at 46% 34%,rgba(160,180,255,.115),transparent 70%)}
-#proof::before{background:radial-gradient(42% 48% at 60% 40%,rgba(255,255,255,.10),transparent 70%);animation-duration:15s}
+#work #proof{position:relative;padding:12px 0 72px}
+#work #proof::before{content:"";position:absolute;inset:-18% -28%;pointer-events:none;z-index:0;background:radial-gradient(42% 48% at 60% 40%,rgba(255,255,255,.10),transparent 70%);animation:aurora 15s ease-in-out infinite alternate}
+#work #proof .wrap{position:relative;z-index:1}
 #work::before{background:radial-gradient(42% 48% at 30% 42%,rgba(255,255,255,.105),transparent 70%);animation-duration:13s;animation-direction:alternate-reverse}
 #build::before{background:radial-gradient(42% 48% at 68% 36%,rgba(255,228,196,.08),transparent 70%);animation-duration:16s}
 #why::before{background:radial-gradient(42% 48% at 36% 46%,rgba(160,180,255,.09),transparent 70%);animation-duration:14s;animation-direction:alternate-reverse}
@@ -460,9 +481,10 @@ body.ready .rise{opacity:1;transform:none;transition:opacity .9s var(--ease),tra
 body.ready .rise:nth-child(2){transition-delay:.08s}
 body.ready .rise:nth-child(3){transition-delay:.16s}
 /* conversion elements */
-.avail{display:inline-flex;align-items:center;gap:8px;margin-left:0;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#cfcfd6}
+.avail{display:flex;align-items:center;gap:8px;margin-left:0;margin-top:14px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#cfcfd6}
 .avail i{width:7px;height:7px;border-radius:50%;background:var(--live);box-shadow:0 0 10px var(--live);animation:pulse 1.6s infinite}
 .cta-note{font-size:12.5px;color:var(--muted);margin-top:14px;display:flex;align-items:center;gap:8px}
+.qd-hero .cta-note,.qd-hero .trustrow{display:none}
 .cta-note .g{width:6px;height:6px;border-radius:50%;background:var(--live);box-shadow:0 0 8px var(--live);flex:none}
 .trustrow{margin-top:24px;font-size:12px;letter-spacing:.03em;color:var(--dim);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .trustrow b{color:#cfcfd6;font-weight:600;font-family:"Space Grotesk"}
@@ -614,6 +636,17 @@ body.ready .rise:nth-child(3){transition-delay:.16s}
   -webkit-text-fill-color:var(--fg);
   background-clip:border-box;
 }
+.step[data-step="04"] .num{
+  color:#8fe8b8;
+  -webkit-text-fill-color:#8fe8b8;
+  border-color:rgba(74,191,138,.34);
+  background:rgba(74,191,138,.12);
+}
+.step[data-step="04"]::before{-webkit-text-stroke:1px rgba(74,191,138,.24)}
+.step[data-step="04"]::after{
+  background:linear-gradient(135deg,#9ef0c0,#35d27e);
+  box-shadow:0 0 0 3px var(--bg),0 0 18px rgba(53,210,126,.42);
+}
 .step h4{
   position:relative;
   z-index:1;
@@ -654,7 +687,6 @@ body>nav{transition:padding .3s var(--ease),background .3s,backdrop-filter .3s,-
 body>nav.nav-in-hero{background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none}
 body>nav.scrolled{padding:10px 28px}
 body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
-.nav-links a.active{color:var(--fg)}
 /* floating call button — mirrors chat launcher on the left */
 .qd-call-fab{position:fixed;bottom:calc(24px + env(safe-area-inset-bottom,0px));left:24px;width:64px;height:64px;border-radius:50%;border:1px solid rgba(232,232,238,.3);background:var(--silver);color:#0a0a0b;cursor:pointer;display:grid;place-items:center;box-shadow:0 18px 48px rgba(0,0,0,.5),0 0 0 1px rgba(232,232,238,.18),0 0 48px rgba(232,232,238,.28);transition:transform 220ms cubic-bezier(.34,1.56,.64,1),box-shadow 220ms ease;z-index:9998;-webkit-tap-highlight-color:transparent}
 .qd-call-fab:hover{transform:translateY(-2px) scale(1.04);box-shadow:0 24px 64px rgba(0,0,0,.55),0 0 64px rgba(232,232,238,.45)}
@@ -795,7 +827,6 @@ body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:b
   <canvas id="px" aria-hidden="true"></canvas>
   <div class="wrap">
     <div class="hero-col">
-      <span class="avail rise"><i></i> <span data-i18n="hero.avail">Now booking · we take a limited number of builds at a time</span></span>
       <h1 class="hero" data-i18n-html="hero.h1">
         <span class="metal shine hero-line"><span class="word">Websites</span> <span class="word">that</span> <span class="word">win.</span></span>
         <span class="metal hero-line"><span class="word">Systems</span> <span class="word">that</span> <span class="word">run</span></span>
@@ -817,6 +848,7 @@ body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:b
         <div class="badge"><span class="k" data-i18n="hero.badge.web.k">Website</span><span class="v" data-i18n="hero.badge.web.v">In 24h</span></div>
         <div class="badge"><span class="k" data-i18n="hero.badge.sys.k">Full system</span><span class="v" data-i18n="hero.badge.sys.v">1–3 days</span></div>
       </div>
+      <div class="avail rise"><i></i> <span data-i18n="hero.avail">Now booking · we take a limited number of builds at a time</span></div>
     </div>
   </div>
   <div class="scrollcue"><div class="m"></div><span data-i18n="hero.scroll">Scroll</span></div>
@@ -844,27 +876,24 @@ body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:b
   </div>
 </section>
 
-<section id="proof">
-  <div class="wrap reveal">
-    <span class="tag" data-i18n="proof.tag">Trusted across the UAE</span>
-    <div class="stats">
-      <div class="stat"><div class="n" data-count="2">0</div><div class="l" data-i18n="proof.stat1">Brands live in the UAE</div></div>
-      <div class="stat"><div class="n" data-count="24" data-suffix="h">0</div><div class="l" data-i18n="proof.stat2">Website turnaround</div></div>
-      <div class="stat"><div class="n" data-count="100" data-suffix="%">0</div><div class="l" data-i18n="proof.stat3">Custom-built, never templates</div></div>
-      <div class="stat"><div class="n" data-text="&lt;1h">0</div><div class="l" data-i18n="proof.stat4">Reply time</div></div>
-    </div>
-    <!-- TESTIMONIAL: add a real client quote here (name + role + business) once collected — do not ship a placeholder as if real. -->
-
-  </div>
-</section>
-
-<div class="statement">
-  <h2 class="reveal" data-i18n-html="statement"><span class="metal">You don't need <span class="muted">more complexity.</span></span><br><span class="metal">You need a system that just works.</span></h2>
-</div>
-
 <section id="work">
   <div class="wrap">
     <div id="work-root"></div>
+  </div>
+  <div id="proof" class="qd-work-proof">
+    <div class="wrap reveal">
+      <span class="tag" data-i18n="proof.tag">Trusted across the UAE</span>
+      <div class="stats">
+        <div class="stat"><div class="n" data-count="2">0</div><div class="l" data-i18n="proof.stat1">Brands live in the UAE</div></div>
+        <div class="stat"><div class="n" data-count="24" data-suffix="h">0</div><div class="l" data-i18n="proof.stat2">Website turnaround</div></div>
+        <div class="stat"><div class="n" data-count="100" data-suffix="%">0</div><div class="l" data-i18n="proof.stat3">Custom-built, never templates</div></div>
+        <div class="stat"><div class="n" data-text="&lt;1h">0</div><div class="l" data-i18n="proof.stat4">Reply time</div></div>
+      </div>
+      <!-- TESTIMONIAL: add a real client quote here (name + role + business) once collected — do not ship a placeholder as if real. -->
+    </div>
+  </div>
+  <div class="statement">
+    <h2 class="reveal" data-i18n-html="statement"><span class="metal">You don't need <span class="muted">more complexity.</span></span><br><span class="metal">You need a system that just works.</span></h2>
   </div>
 </section>
 
@@ -970,14 +999,14 @@ body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:b
       <form id="bForm">
         <div class="mrow">
           <div><label for="bName" data-i18n="book.name">Name</label><input id="bName" required placeholder="e.g. Ahmed" data-i18n-ph="book.name.ph"></div>
-          <div><label for="bPhone" data-i18n="book.phone">Phone number</label><input id="bPhone" type="tel" inputmode="numeric" pattern="[0-9]*" autocomplete="tel" placeholder="971501234567" maxlength="15"></div>
+          <div><label for="bPhone" data-i18n="book.phone">Phone number</label><input id="bPhone" type="tel" inputmode="numeric" pattern="[0-9]+" autocomplete="tel" placeholder="971501234567" minlength="7" maxlength="15" required></div>
         </div>
         <label for="bEmail" data-i18n="book.email">Email</label><input id="bEmail" type="email" required placeholder="you@business.com">
         <label for="bPurpose" data-i18n="book.purpose">What's it about?</label>
-        <select id="bPurpose"><option data-i18n="book.opt1">A new website</option><option data-i18n="book.opt2">A full system (booking / automation / dashboard)</option><option data-i18n="book.opt3">Not sure yet — I'd like advice</option></select>
+        <select id="bPurpose" required><option data-i18n="book.opt1">A new website</option><option data-i18n="book.opt2">A full system (booking / automation / dashboard)</option><option data-i18n="book.opt3">Not sure yet — I'd like advice</option></select>
         <div class="mrow" style="margin-top:0">
-          <div><label for="bDate" data-i18n="book.date">Preferred date (optional)</label><input id="bDate" type="date"></div>
-          <div><label for="bTime" data-i18n="book.time">Preferred time (optional)</label><input id="bTime" type="time"></div>
+          <div><label for="bDate" data-i18n="book.date">Preferred date</label><input id="bDate" type="date" required></div>
+          <div><label for="bTime" data-i18n="book.time">Preferred time</label><input id="bTime" type="time" required></div>
         </div>
         <button type="submit" class="btn btn-silver full" data-i18n="book.submit">Confirm — send my Meet link →</button>
         <div id="bErr" role="alert" style="display:none;margin-top:13px;padding:12px 14px;border:1px solid rgba(255,107,107,.35);border-radius:11px;background:rgba(255,107,107,.07);color:#ffb4b4;font-size:13.5px;line-height:1.5"><span data-i18n="book.error">Something went wrong sending your booking. Please try again — or message us on WhatsApp and we'll confirm your call there:</span> <a href="https://wa.me/971505349907" target="_blank" rel="noopener noreferrer" style="color:#fff;border-bottom:1px solid rgba(255,255,255,.4)">WhatsApp →</a></div>
@@ -1233,6 +1262,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape'&&bookModal&&bookModal.classLi
 const bForm=document.getElementById('bForm');
 const bSubmitLabel='Confirm — send my Meet link →';
 if(bForm)bForm.addEventListener('submit',async e=>{e.preventDefault();
+  if(!bForm.reportValidity())return;
   const submitBtn=bForm.querySelector('button[type="submit"]');
   const slot=qdFormatBookSlot(bDateEl?bDateEl.value:'',bTimeEl?bTimeEl.value:'');
   const data={name:(document.getElementById('bName').value||'there').trim(),email:document.getElementById('bEmail').value.trim(),phone:(bPhoneEl&&bPhoneEl.value)||'',purpose:document.getElementById('bPurpose').value,time:slot,source:'website'};

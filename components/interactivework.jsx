@@ -1,13 +1,108 @@
 const { useState, useEffect, useRef } = React;
 
+const INITIAL_WORK_VISIBLE = 2;
+
+const MORE_PROJECTS = {
+  en: [
+    {
+      id: 'vellora',
+      name: 'VELLORA',
+      category: 'Premium Showroom · UAE',
+      domain: 'vellora-showroom.vercel.app',
+      url: 'https://vellora-showroom.vercel.app/',
+      description: 'A curated luxury showroom experience built around refined collections, gallery storytelling, and concierge-led visits.',
+      result: 'Immersive showroom journey with collections, featured pieces, and premium presentation — live as a portfolio demo.',
+      tags: ['Luxury UI', 'Gallery', 'Showroom flow', 'Portfolio demo'],
+    },
+    {
+      id: 'restaurant',
+      name: 'Restaurant Website',
+      category: 'Halal Grill · UAE',
+      domain: 'qdresturant.vercel.app',
+      url: 'https://qdresturant.vercel.app/',
+      description: 'Char-grilled halal menu, ordering flow, and multi-location showcase built for modern restaurant discovery.',
+      result: 'Portfolio-ready restaurant demo with menu highlights, cart flow, and polished branch layouts.',
+      tags: ['Online ordering', 'Menu showcase', 'Multi-location', 'Portfolio demo'],
+    },
+  ],
+  ar: [
+    {
+      id: 'vellora',
+      name: 'VELLORA',
+      category: 'صالة عرض فاخرة · الإمارات',
+      domain: 'vellora-showroom.vercel.app',
+      url: 'https://vellora-showroom.vercel.app/',
+      description: 'تجربة صالة عرض فاخرة مبنية على مجموعات منتقاة، سرد بصري، وزيارات بإرشاد الكونسيرج.',
+      result: 'رحلة عرض غامرة مع مجموعات وقطع مميزة وتقديم راقٍ — مباشرة كعرض أعمال.',
+      tags: ['واجهة فاخرة', 'معرض', 'تجربة صالة', 'عرض أعمال'],
+    },
+    {
+      id: 'restaurant',
+      name: 'Restaurant Website',
+      category: 'مشاوي حلال · الإمارات',
+      domain: 'qdresturant.vercel.app',
+      url: 'https://qdresturant.vercel.app/',
+      description: 'قائمة حلال على الفحم، تدفق طلب، وعرض فروع متعددة مصمم لاكتشاف المطعم الحديث.',
+      result: 'عرض مطعم جاهز للمحفظة مع أطباق مميزة، سلة طلب، وتخطيط فروع أنيق.',
+      tags: ['طلب أونلاين', 'عرض القائمة', 'فروع متعددة', 'عرض أعمال'],
+    },
+  ],
+  zh: [
+    {
+      id: 'vellora',
+      name: 'VELLORA',
+      category: '高端展厅 · 阿联酋',
+      domain: 'vellora-showroom.vercel.app',
+      url: 'https://vellora-showroom.vercel.app/',
+      description: '围绕精选系列、画廊叙事和礼宾式参观打造的高端展厅体验。',
+      result: '沉浸式展厅旅程，含系列、精选单品与高端呈现——作为作品集演示上线。',
+      tags: ['奢华界面', '画廊', '展厅动线', '作品演示'],
+    },
+    {
+      id: 'restaurant',
+      name: 'Restaurant Website',
+      category: '清真炭烤 · 阿联酋',
+      domain: 'qdresturant.vercel.app',
+      url: 'https://qdresturant.vercel.app/',
+      description: '炭烤清真菜单、下单流程与多门店展示，面向现代餐饮发现场景。',
+      result: '可直接用于作品集的的餐饮演示，含招牌菜、购物车与门店布局。',
+      tags: ['在线点餐', '菜单展示', '多门店', '作品演示'],
+    },
+  ],
+  ru: [
+    {
+      id: 'vellora',
+      name: 'VELLORA',
+      category: 'Премиальный шоурум · ОАЭ',
+      domain: 'vellora-showroom.vercel.app',
+      url: 'https://vellora-showroom.vercel.app/',
+      description: 'Кураторский luxury-шоурум с коллекциями, визуальным сторителлингом и визитами с консьерж-сервисом.',
+      result: 'Иммерсивный путь по шоуруму с коллекциями и избранными позициями — живое портфолио-демо.',
+      tags: ['Люкс-интерфейс', 'Галерея', 'Шоурум', 'Портфолио-демо'],
+    },
+    {
+      id: 'restaurant',
+      name: 'Restaurant Website',
+      category: 'Халяль-гриль · ОАЭ',
+      domain: 'qdresturant.vercel.app',
+      url: 'https://qdresturant.vercel.app/',
+      description: 'Меню халяль на углях, оформление заказа и витрина нескольких локаций для современного ресторанного опыта.',
+      result: 'Готовое ресторанное портфолио-демо с хитами меню, корзиной и аккуратной сеткой филиалов.',
+      tags: ['Онлайн-заказ', 'Меню', 'Несколько локаций', 'Портфолио-демо'],
+    },
+  ],
+};
+
 const WORK_COPY = {
   en: {
     tag: 'Selected work',
     title: 'Live systems, running in the real world.',
-    lead: 'Two custom builds serving real customers today — scroll inside each preview or open the live site.',
+    lead: 'Client builds and portfolio demos — scroll inside each preview or open the live site.',
     live: 'LIVE',
     loading: 'Loading preview…',
     viewLive: 'View live site',
+    seeMore: 'See more',
+    seeLess: 'Show less',
     fallbackTitle: 'Preview unavailable in-frame',
     fallbackBody: 'This site blocks embedded previews. Open it in a new tab to explore.',
     projects: [
@@ -31,15 +126,18 @@ const WORK_COPY = {
         result: 'Premium lead capture and motion-rich storytelling, live around the clock.',
         tags: ['Motion design', 'Lead capture', 'Responsive', 'Luxury UI'],
       },
+      ...MORE_PROJECTS.en,
     ],
   },
   ar: {
     tag: 'أعمال مختارة',
     title: 'أنظمة مباشرة تعمل في العالم الحقيقي.',
-    lead: 'مشروعان مخصصان يخدمان عملاء حقيقيين اليوم — تصفح داخل كل معاينة أو افتح الموقع المباشر.',
+    lead: 'مشاريع للعملاء وعروض أعمال — تصفح داخل كل معاينة أو افتح الموقع المباشر.',
     live: 'مباشر',
     loading: 'جاري تحميل المعاينة…',
     viewLive: 'زيارة الموقع المباشر',
+    seeMore: 'عرض المزيد',
+    seeLess: 'عرض أقل',
     fallbackTitle: 'المعاينة غير متاحة داخل الإطار',
     fallbackBody: 'هذا الموقع يمنع التضمين. افتحه في تبويب جديد للاستكشاف.',
     projects: [
@@ -63,15 +161,18 @@ const WORK_COPY = {
         result: 'توليد عملاء راقٍ وسرد بصري غني بالحركة، يعمل على مدار الساعة.',
         tags: ['تصميم حركي', 'توليد عملاء', 'متجاوب', 'واجهة فاخرة'],
       },
+      ...MORE_PROJECTS.ar,
     ],
   },
   zh: {
     tag: '精选案例',
     title: '在真实世界运行的实时系统。',
-    lead: '两个为真实客户服务的定制项目——在每个预览中滚动查看，或打开线上网站。',
+    lead: '客户项目与作品集演示——在每个预览中滚动查看，或打开线上网站。',
     live: '在线',
     loading: '正在加载预览…',
     viewLive: '访问线上网站',
+    seeMore: '查看更多',
+    seeLess: '收起',
     fallbackTitle: '无法在框架内预览',
     fallbackBody: '该网站禁止嵌入预览。请在新标签页中打开以浏览。',
     projects: [
@@ -95,15 +196,18 @@ const WORK_COPY = {
         result: '高端线索捕获与富有动效的叙事，全天候在线。',
         tags: ['动效设计', '线索捕获', '响应式', '奢华界面'],
       },
+      ...MORE_PROJECTS.zh,
     ],
   },
   ru: {
     tag: 'Избранные работы',
     title: 'Живые системы, работающие в реальном мире.',
-    lead: 'Два кастомных проекта, обслуживающих реальных клиентов сегодня — прокрутите внутри каждого превью или откройте сайт.',
+    lead: 'Клиентские проекты и портфолио-демо — прокрутите внутри превью или откройте сайт.',
     live: 'LIVE',
     loading: 'Загрузка превью…',
     viewLive: 'Открыть сайт',
+    seeMore: 'Показать ещё',
+    seeLess: 'Свернуть',
     fallbackTitle: 'Превью недоступно во фрейме',
     fallbackBody: 'Этот сайт блокирует встроенный просмотр. Откройте его в новой вкладке.',
     projects: [
@@ -127,6 +231,7 @@ const WORK_COPY = {
         result: 'Премиальный захват заявок и насыщенный анимацией сторителлинг, доступно круглосуточно.',
         tags: ['Моушн-дизайн', 'Захват заявок', 'Адаптивность', 'Люкс-интерфейс'],
       },
+      ...MORE_PROJECTS.ru,
     ],
   },
 };
@@ -204,9 +309,49 @@ const EvoMock = () => (
   </div>
 );
 
+const VelloraMock = () => (
+  <div className="iwork-mock iwork-mock--vellora" aria-hidden="true">
+    <div className="iwork-mock-nav">
+      <span className="iwork-mock-logo">VELLORA</span>
+      <span className="iwork-mock-pill">Showroom</span>
+    </div>
+    <div className="iwork-mock-hero">
+      <div className="iwork-mock-eyebrow">Premium Collections</div>
+      <div className="iwork-mock-title">Where luxury<br />meets design.</div>
+      <div className="iwork-mock-cta">Explore collections</div>
+    </div>
+    <div className="iwork-mock-strip">
+      <div className="iwork-mock-frame iwork-mock-frame--tall" />
+      <div className="iwork-mock-frame" />
+      <div className="iwork-mock-frame" />
+    </div>
+  </div>
+);
+
+const RestaurantMock = () => (
+  <div className="iwork-mock iwork-mock--restaurant" aria-hidden="true">
+    <div className="iwork-mock-nav">
+      <span className="iwork-mock-logo">RESTAURANT</span>
+      <span className="iwork-mock-pill">100% Halal</span>
+    </div>
+    <div className="iwork-mock-hero">
+      <div className="iwork-mock-eyebrow">Char-grilled · Fresh to order</div>
+      <div className="iwork-mock-title">Plated<br />generously.</div>
+      <div className="iwork-mock-cta">Order now</div>
+    </div>
+    <div className="iwork-mock-menu">
+      {['Chicken rice', 'Kofta gyro', 'Loaded fries', 'Chapli kebab'].map((item) => (
+        <span key={item}><i />{item}</span>
+      ))}
+    </div>
+  </div>
+);
+
 const MockPreview = ({ projectId }) => {
   if (projectId === 'taj') return <TajMock />;
   if (projectId === 'evo') return <EvoMock />;
+  if (projectId === 'vellora') return <VelloraMock />;
+  if (projectId === 'restaurant') return <RestaurantMock />;
   return null;
 };
 
@@ -346,6 +491,10 @@ const InteractiveWorkPreview = ({ project, copy, index }) => {
 const SelectedWorkSection = ({ language = 'en' }) => {
   const copy = WORK_COPY[language] || WORK_COPY.en;
   const [headRef, headVisible] = useInView();
+  const [expanded, setExpanded] = useState(false);
+  const featuredProjects = copy.projects.slice(0, INITIAL_WORK_VISIBLE);
+  const moreProjects = copy.projects.slice(INITIAL_WORK_VISIBLE);
+  const hasMore = moreProjects.length > 0;
 
   return (
     <>
@@ -355,10 +504,46 @@ const SelectedWorkSection = ({ language = 'en' }) => {
         <p className="lead">{copy.lead}</p>
       </div>
       <div className="iwork-grid">
-        {copy.projects.map((project, index) => (
+        {featuredProjects.map((project, index) => (
           <InteractiveWorkPreview key={project.id} project={project} copy={copy} index={index} />
         ))}
       </div>
+      {hasMore && !expanded && (
+        <div className="iwork-more">
+          <button
+            type="button"
+            className="btn btn-ghost iwork-more-btn"
+            aria-expanded="false"
+            onClick={() => setExpanded(true)}
+          >
+            {copy.seeMore}
+          </button>
+        </div>
+      )}
+      {expanded && hasMore && (
+        <>
+          <div className="iwork-grid iwork-grid--more">
+            {moreProjects.map((project, index) => (
+              <InteractiveWorkPreview
+                key={project.id}
+                project={project}
+                copy={copy}
+                index={INITIAL_WORK_VISIBLE + index}
+              />
+            ))}
+          </div>
+          <div className="iwork-more">
+            <button
+              type="button"
+              className="btn btn-ghost iwork-more-btn"
+              aria-expanded="true"
+              onClick={() => setExpanded(false)}
+            >
+              {copy.seeLess}
+            </button>
+          </div>
+        </>
+      )}
     </>
   );
 };

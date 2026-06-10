@@ -37,12 +37,15 @@ import {
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
+  getDocs,
   onSnapshot,
   orderBy,
   query,
   serverTimestamp,
   updateDoc,
+  writeBatch,
   limit as fsLimit,
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
@@ -163,6 +166,71 @@ function mapLeadToSubmission(lead) {
   };
 }
 
+async function deleteChatLeadRecord(lead) {
+  if (!lead?.id) return;
+  const label = (lead.name || lead.contact || lead.business_type || 'this lead').trim();
+  const confirmed = window.confirm(`Permanently delete the chat lead for "${label}"? This cannot be undone.`);
+  if (!confirmed) return;
+
+  await deleteDoc(doc(db, 'chatLeads', lead.id));
+
+  if (state.selectedLeadId === lead.id) {
+    state.selectedLeadId = null;
+  }
+
+  await logAdminActivity({
+    action: 'delete_chat_lead',
+    targetType: 'chat_lead',
+    targetId: lead.id,
+    targetLabel: label,
+    metadata: {
+      contact: lead.contact || '',
+      contactType: lead.contact_type || '',
+      sessionId: lead.sessionId || '',
+    },
+  });
+}
+
+async function deleteChatConversationRecord(convo) {
+  if (!convo?.id) return;
+  const confirmed = window.confirm('Permanently delete this conversation and all its messages? This cannot be undone.');
+  if (!confirmed) return;
+
+  const messagesSnap = await getDocs(collection(db, 'chatConversations', convo.id, 'messages'));
+  const messageDocs = messagesSnap.docs;
+
+  for (let index = 0; index < messageDocs.length; index += 500) {
+    const batch = writeBatch(db);
+    messageDocs.slice(index, index + 500).forEach((messageDoc) => {
+      batch.delete(messageDoc.ref);
+    });
+    await batch.commit();
+  }
+
+  await deleteDoc(doc(db, 'chatConversations', convo.id));
+
+  if (state.selectedConvoId === convo.id) {
+    state.selectedConvoId = null;
+    state.selectedConvoMessages = [];
+    if (messagesUnsub) {
+      messagesUnsub();
+      messagesUnsub = null;
+    }
+  }
+
+  await logAdminActivity({
+    action: 'delete_chat_conversation',
+    targetType: 'chat_conversation',
+    targetId: convo.id,
+    targetLabel: `Session ${convo.id.slice(0, 12)}`,
+    metadata: {
+      messageCount: convo.messageCount || messageDocs.length,
+      hasLead: Boolean(convo.hasLead),
+      lang: convo.lang || '',
+    },
+  });
+}
+
 async function importLeadToSubmissions(lead) {
   if (!lead) return null;
   if (lead.importedSubmissionId) return lead.importedSubmissionId;
@@ -277,6 +345,7 @@ function renderLeadDetail(lead) {
       ${status === 'new' ? `<a href="#" data-action="mark-contacted" data-id="${lead.id}">Mark as contacted</a>` : ''}
       ${lead.sessionId ? `<a href="#" data-action="view-session" data-session="${lead.sessionId}">View conversation</a>` : ''}
       ${importedSubmissionId ? `<a href="admin.html">Open in submissions</a>` : `<a href="#" data-action="import-submission" data-id="${lead.id}">Import to submissions</a>`}
+      <a href="#" class="is-danger" data-action="delete-lead" data-id="${lead.id}">Delete</a>
     </div>
 
     <div class="qd-chat-admin-field"><span class="qd-chat-admin-field-label">Contact</span><span class="qd-chat-admin-field-value">${fmtContactLink(lead.contact, lead.contact_type)} (${escapeHtml(lead.contact_type || '—')})</span></div>
@@ -305,6 +374,10 @@ function renderConvoDetail(convo) {
     <div class="qd-chat-admin-field"><span class="qd-chat-admin-field-label">Page</span><span class="qd-chat-admin-field-value">${convo.pageUrl ? `<a href="${escapeHtml(convo.pageUrl)}" target="_blank" rel="noopener">${escapeHtml(convo.pageUrl)}</a>` : '—'}</span></div>
     <div class="qd-chat-admin-field"><span class="qd-chat-admin-field-label">Messages</span><span class="qd-chat-admin-field-value">${escapeHtml(String(convo.messageCount || msgs.length))}</span></div>
     <div class="qd-chat-admin-field"><span class="qd-chat-admin-field-label">Last update</span><span class="qd-chat-admin-field-value">${fmtTime(convo.lastUpdatedAt)}</span></div>
+
+    <div class="qd-chat-admin-actions">
+      <a href="#" class="is-danger" data-action="delete-conversation" data-id="${escapeHtml(convo.id)}">Delete conversation</a>
+    </div>
 
     <div class="qd-chat-admin-convo" ${convo.lang === 'ar' ? 'dir="rtl"' : ''}>
       ${msgs.length === 0
@@ -404,6 +477,28 @@ root.addEventListener('click', async (e) => {
     state.selectedConvoId = sessionId;
     subscribeMessages(sessionId);
     render();
+  } else if (action === 'delete-lead') {
+    e.preventDefault();
+    const lead = state.leads.find((item) => item.id === t.dataset.id);
+    if (!lead) return;
+    try {
+      await deleteChatLeadRecord(lead);
+      render();
+    } catch (err) {
+      console.error('failed to delete chat lead:', err);
+      window.alert('Could not delete this lead. Check the console for details.');
+    }
+  } else if (action === 'delete-conversation') {
+    e.preventDefault();
+    const convo = state.conversations.find((item) => item.id === t.dataset.id);
+    if (!convo) return;
+    try {
+      await deleteChatConversationRecord(convo);
+      render();
+    } catch (err) {
+      console.error('failed to delete conversation:', err);
+      window.alert('Could not delete this conversation. Check the console for details.');
+    }
   }
 });
 

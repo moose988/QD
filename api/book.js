@@ -435,6 +435,9 @@ export default async function handler(req, res) {
 
     if (!name) return res.status(400).json({ error: 'name is required' });
     if (!isEmail(email)) return res.status(400).json({ error: 'a valid email is required' });
+    if (!phone) return res.status(400).json({ error: 'phone is required' });
+    if (!purpose) return res.status(400).json({ error: 'purpose is required' });
+    if (!time) return res.status(400).json({ error: 'preferred date and time are required' });
 
     // STEP 1 — ALWAYS save the booking first. This is the must-never-lose step.
     const db = getDb();

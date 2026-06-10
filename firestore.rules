@@ -46,7 +46,7 @@ service cloud.firestore {
 
       match /messages/{msg} {
         allow create: if true;
-        allow read: if isAllowedAdmin();
+        allow read, delete: if isAllowedAdmin();
       }
     }
 

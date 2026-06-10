@@ -114,6 +114,8 @@ const activityActionLabels = {
   create_quote: 'Created quote',
   update_quote: 'Updated quote',
   import_chat_lead: 'Imported chat lead',
+  delete_chat_lead: 'Deleted chat lead',
+  delete_chat_conversation: 'Deleted chat conversation',
   open_smart_card: 'Opened smart card',
   create_smart_card: 'Created smart card',
   edit_smart_card: 'Edited smart card',
@@ -138,6 +140,7 @@ const activityTargetTypeLabels = {
   quote: 'Quote',
   smart_card: 'Smart Card',
   chat_lead: 'Chat Lead',
+  chat_conversation: 'Chat Conversation',
   demo: 'Demo',
   outreach_lead: 'Outreach Lead'
 };
@@ -199,6 +202,7 @@ const state = {
   },
   pipelinePage: 0,
   outreachPage: 0,
+  activityPage: 0,
   budgetProjectsPage: 0,
   budgetSortDirection: 'desc',
   selectedId: null,
@@ -3457,6 +3461,8 @@ const renderInvitationsManager = () => `
   </section>
 `;
 
+const ACTIVITY_PAGE_SIZE = 10;
+
 const getFilteredActivityLogs = () => {
   const search = state.activityFilters.search.trim().toLowerCase();
   return state.activityLogs.filter((log) => {
@@ -3475,6 +3481,31 @@ const getFilteredActivityLogs = () => {
 
     return haystack.includes(search);
   });
+};
+
+const getPaginatedActivityLogs = (items) => {
+  const pageCount = Math.ceil(items.length / ACTIVITY_PAGE_SIZE);
+  const activePage = Math.min(state.activityPage, Math.max(pageCount - 1, 0));
+  return {
+    pageCount,
+    activePage,
+    items: items.slice(activePage * ACTIVITY_PAGE_SIZE, (activePage + 1) * ACTIVITY_PAGE_SIZE)
+  };
+};
+
+const renderActivityPagination = (totalItems) => {
+  const pageCount = Math.ceil(totalItems / ACTIVITY_PAGE_SIZE);
+  if (pageCount <= 1) return '';
+
+  const activePage = Math.min(state.activityPage, Math.max(pageCount - 1, 0));
+
+  return `
+    <div class="qd-admin-pagination">
+      <button class="qd-admin-pagination-btn" type="button" data-action="activity-page-prev" ${activePage === 0 ? 'disabled' : ''} aria-label="Previous activity page">&larr;</button>
+      <span>${activePage + 1} / ${pageCount}</span>
+      <button class="qd-admin-pagination-btn" type="button" data-action="activity-page-next" ${activePage >= pageCount - 1 ? 'disabled' : ''} aria-label="Next activity page">&rarr;</button>
+    </div>
+  `;
 };
 
 const renderActivityRows = (logs) => {
@@ -3544,7 +3575,11 @@ const renderActivityCards = (logs) => {
 };
 
 const renderActivityManager = () => {
-  const logs = getFilteredActivityLogs();
+  const filteredLogs = getFilteredActivityLogs();
+  const { items, activePage, pageCount } = getPaginatedActivityLogs(filteredLogs);
+  if (activePage !== state.activityPage && pageCount) {
+    state.activityPage = activePage;
+  }
   const actionOptions = ['All', ...Object.keys(activityActionLabels)];
   const targetTypeOptions = ['All', ...Object.keys(activityTargetTypeLabels)];
 
@@ -3587,13 +3622,15 @@ const renderActivityManager = () => {
                 <th>Details</th>
               </tr>
             </thead>
-            <tbody>${renderActivityRows(logs)}</tbody>
+            <tbody>${renderActivityRows(items)}</tbody>
           </table>
         </div>
 
         <div class="qd-admin-mobile-list">
-          ${renderActivityCards(logs)}
+          ${renderActivityCards(items)}
         </div>
+
+        ${renderActivityPagination(filteredLogs.length)}
       </article>
     </section>
   `;
@@ -5977,6 +6014,18 @@ const handleDocumentClick = async (event) => {
     return;
   }
 
+  if (action === 'activity-page-prev') {
+    state.activityPage = Math.max(state.activityPage - 1, 0);
+    render();
+    return;
+  }
+
+  if (action === 'activity-page-next') {
+    state.activityPage += 1;
+    render();
+    return;
+  }
+
   if (action === 'close-drawer') {
     closeDrawer();
     return;
@@ -6447,6 +6496,7 @@ const handleDocumentInput = (event) => {
   if (activityField) {
     const { selectionStart, selectionEnd, value } = event.target;
     state.activityFilters[activityField] = event.target.value;
+    state.activityPage = 0;
     render();
     if (activityField === 'search') {
       const nextInput = root.querySelector('[data-activity-field="search"]');
