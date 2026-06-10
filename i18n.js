@@ -208,10 +208,10 @@
                         ru: '100% кастом. Проектируем и пишем код с нуля под ваш бизнес — без тем и конструкторов.' },
     'faq.q5':         { en: 'What does it cost?', ar: 'كم التكلفة؟', zh: '费用是多少？', ru: 'Сколько это стоит?' },
     'faq.a5':         {
-      en: 'Most projects land between <b style="color:#e8e8ec">[AED ___ and AED ___]</b> depending on scope. You get one fixed, itemized quote up front — no hourly games, no hidden fees. <span style="color:var(--dim)">(Set your real range here.)</span>',
-      ar: 'معظم المشاريع تتراوح بين <b style="color:#e8e8ec">[AED ___ و AED ___]</b> حسب النطاق. تحصل على عرض سعر واحد ثابت ومفصّل مقدماً — بلا تسعير بالساعة، بلا رسوم خفية. <span style="color:var(--dim)">(ضع نطاقك الحقيقي هنا.)</span>',
-      zh: '大多数项目根据范围在 <b style="color:#e8e8ec">[AED ___ 至 AED ___]</b> 之间。你会预先收到一份固定、逐项列明的报价——不按小时玩花样，没有隐藏费用。<span style="color:var(--dim)">（在此填入你的真实区间。）</span>',
-      ru: 'Большинство проектов укладывается в <b style="color:#e8e8ec">[AED ___ — AED ___]</b> в зависимости от объёма. Вы заранее получаете одну фиксированную детализированную смету — без почасовых игр и скрытых платежей. <span style="color:var(--dim)">(Укажите здесь свой реальный диапазон.)</span>'
+      en: 'Every project is different, so we don\'t do one-size-fits-all pricing. You get <b style="color:#e8e8ec">one fixed, itemized quote up front</b> — agreed in writing before we start. No hourly games, no hidden fees, and you only pay the final invoice once you\'re happy. Most quotes go out the same day as your free call.',
+      ar: 'كل مشروع مختلف، لذلك لا نعتمد تسعيراً موحداً للجميع. تحصل على <b style="color:#e8e8ec">عرض سعر واحد ثابت ومفصّل مقدماً</b> — متفق عليه كتابياً قبل أن نبدأ. بلا تسعير بالساعة، بلا رسوم خفية، ولا تدفع الفاتورة النهائية إلا عند رضاك. معظم العروض تصدر في نفس يوم مكالمتك المجانية.',
+      zh: '每个项目都不一样，所以我们不做一刀切的定价。你会预先收到<b style="color:#e8e8ec">一份固定、逐项列明的报价</b>——在开工前以书面确认。不按小时玩花样，没有隐藏费用，满意后才付尾款。多数报价在免费通话当天即可发出。',
+      ru: 'Каждый проект уникален, поэтому у нас нет универсального прайса. Вы заранее получаете <b style="color:#e8e8ec">одну фиксированную детализированную смету</b> — согласованную письменно до старта. Без почасовых игр и скрытых платежей, а финальный счёт вы оплачиваете, только когда довольны. Большинство смет отправляем в день бесплатного звонка.'
     },
 
     /* contact */
@@ -239,6 +239,8 @@
 
     /* footer */
     'footer.copy':    { en: '© 2026 QD Systems · Built in the UAE', ar: '© ٢٠٢٦ QD Systems · صُنع في الإمارات', zh: '© 2026 QD Systems · 在阿联酋打造', ru: '© 2026 QD Systems · Сделано в ОАЭ' },
+    'footer.privacy': { en: 'Privacy Policy', ar: 'سياسة الخصوصية', zh: '隐私政策', ru: 'Конфиденциальность' },
+    'footer.terms':   { en: 'Terms of Service', ar: 'شروط الخدمة', zh: '服务条款', ru: 'Условия' },
 
     /* booking modal */
     'book.title':     { en: 'Book your free call', ar: 'احجز مكالمتك المجانية', zh: '预约你的免费通话', ru: 'Запишитесь на бесплатный звонок' },
@@ -261,6 +263,10 @@
                         ar: 'مجاناً · دون التزام · يصلك الرابط بالبريد',
                         zh: '免费 · 无义务 · 链接将通过邮件送达',
                         ru: 'Бесплатно · без обязательств · ссылка придёт на почту' },
+    'book.error':     { en: 'Something went wrong sending your booking. Please try again — or message us on WhatsApp and we\'ll confirm your call there:',
+                        ar: 'حدث خطأ أثناء إرسال حجزك. حاول مرة أخرى — أو راسلنا على واتساب وسنؤكد مكالمتك هناك:',
+                        zh: '发送预约时出了点问题。请重试——或通过 WhatsApp 联系我们，我们会在那边为你确认通话：',
+                        ru: 'Не удалось отправить вашу запись. Попробуйте ещё раз — или напишите нам в WhatsApp, и мы подтвердим звонок там:' },
     'book.done.title':{ en: 'You\'re booked', ar: 'تم تأكيد حجزك!', zh: '预约成功', ru: 'Вы записаны' },
     'book.done.msg':  { en: 'Check {email} — your Google Meet link is on its way, usually within the hour.',
                         ar: 'راجع {email} — رابط Google Meet في طريقه إليك، عادة خلال ساعة.',
@@ -367,12 +373,20 @@
     });
   }
 
+  var PAGE_TITLES = {
+    en: 'QD Systems · Websites & systems for UAE businesses',
+    ar: 'QD Systems · مواقع وأنظمة لأعمال الإمارات',
+    zh: 'QD Systems · 为阿联酋企业打造的网站与系统',
+    ru: 'QD Systems · Сайты и системы для бизнеса в ОАЭ'
+  };
+
   function setLang(lang, persist) {
     lang = normalize(lang);
     window.QD_LANG = lang;
     var d = document.documentElement;
     d.lang = lang;
     d.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+    if (PAGE_TITLES[lang]) document.title = PAGE_TITLES[lang];
     if (persist) { try { localStorage.setItem(STORAGE_KEY, lang); } catch (e) {} }
     applyTranslations(lang);
     restaggerWords();
@@ -432,6 +446,8 @@
       '.nav-mobile-langs button.active{background:var(--silver);color:#0a0a0b;border-color:transparent}',
       /* CJK fallback so Chinese renders cleanly even though Inter/Space Grotesk lack CJK glyphs */
       'html[lang="zh"] body,html[lang="zh"] h1,html[lang="zh"] h2,html[lang="zh"] h3,html[lang="zh"] .disp{font-family:"Space Grotesk",Inter,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",system-ui,sans-serif}',
+      /* Cyrillic fallback — Space Grotesk has no Cyrillic, so without this RU headlines drop to a serif (Times) and look broken */
+      'html[lang="ru"] h1,html[lang="ru"] h2,html[lang="ru"] h3,html[lang="ru"] .disp,html[lang="ru"] .ghost b,html[lang="ru"] .marquee span,html[lang="ru"] #intro .mk,html[lang="ru"] .stat .n,html[lang="ru"] .badge .v,html[lang="ru"] .brand b,html[lang="ru"] .nav-mobile-links a,html[lang="ru"] .qa button,html[lang="ru"] .col h4,html[lang="ru"] .modal h3,html[lang="ru"] .quote p,html[lang="ru"] .trustrow b{font-family:Inter,system-ui,sans-serif}',
       /* ---- RTL adjustments (Arabic) ---- */
       '[dir="rtl"] .lead,[dir="rtl"] .sub,[dir="rtl"] .check,[dir="rtl"] .offer,[dir="rtl"] .step,[dir="rtl"] .qa button,[dir="rtl"] .qa .ans p,[dir="rtl"] .col li,[dir="rtl"] .col h4,[dir="rtl"] .badge,[dir="rtl"] .modal,[dir="rtl"] .modal label{text-align:right}',
       '[dir="rtl"] .modal .mx{right:auto;left:16px}',
@@ -440,8 +456,17 @@
       '[dir="rtl"] .qform{text-align:right}',
       /* Keep the scrolling keyword ribbon LTR in Arabic so its -50% loop stays seamless
          (each Arabic word still renders RTL internally; only the marquee flow is LTR). */
+      '[dir="rtl"] .ghost{direction:ltr;text-align:left}',
       '[dir="rtl"] .ghost .track{direction:ltr;animation-duration:22s}',
+      '[dir="rtl"] .marquee{direction:ltr;text-align:left}',
       '[dir="rtl"] .marquee .track{direction:ltr}',
+      /* Arabic ribbon fix: a 1px outline on connected Arabic script is nearly invisible,
+         so every second (stroked) word vanished and the banner looked broken/gappy.
+         Give those words a faint solid fill instead, drop the negative letter-spacing
+         (it clips Arabic ligatures), and tighten the gap between words. */
+      '[dir="rtl"] .ghost b{-webkit-text-stroke:0;color:rgba(244,244,246,.26);letter-spacing:0;margin-right:44px}',
+      '[dir="rtl"] .ghost b.fill{color:transparent}',
+      '[dir="rtl"] h1,[dir="rtl"] h2,[dir="rtl"] h3,[dir="rtl"] .disp{letter-spacing:0}',
       'html[lang="zh"] .ghost .track{animation-duration:18s}',
       'html[lang="ru"] .ghost .track{animation-duration:27s}',
       /* Hero mirror for Arabic: text anchored on the RIGHT, 3D object on the LEFT,

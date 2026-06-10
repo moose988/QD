@@ -4,6 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>QD Systems · Websites & systems for UAE businesses</title>
+<meta name="description" content="Custom websites, booking systems, automation and AI chat for UAE businesses — bilingual EN/AR. Working demo in hours, website in 24h, full system in 1–3 days.">
+<link rel="canonical" href="https://www.qdsystems.ae/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.qdsystems.ae/">
+<meta property="og:site_name" content="QD Systems">
+<meta property="og:title" content="QD Systems — Websites that win. Systems that run your business.">
+<meta property="og:description" content="Custom websites, booking, automation & AI chat for UAE businesses — bilingual EN/AR, live in days.">
+<meta property="og:image" content="https://www.qdsystems.ae/assets/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="QD Systems — Websites that win. Systems that run your business.">
+<meta name="twitter:description" content="Custom websites, booking, automation & AI chat for UAE businesses — bilingual EN/AR, live in days.">
+<meta name="twitter:image" content="https://www.qdsystems.ae/assets/og-card.png">
 <script>
 /* Early language detect — runs before paint so RTL/lang are correct from frame 1 */
 (function(){try{var supported=['en','ar','zh','ru'];var l=localStorage.getItem('qd_lang');if(!l){var n=(navigator.language||'en').toLowerCase();l=n.indexOf('ar')===0?'ar':n.indexOf('zh')===0?'zh':n.indexOf('ru')===0?'ru':'en';}if(supported.indexOf(l)<0)l='en';var d=document.documentElement;d.lang=l;d.setAttribute('dir',l==='ar'?'rtl':'ltr');window.QD_LANG=l;}catch(e){}})();
@@ -47,12 +61,18 @@ a{color:inherit;text-decoration:none}
 .glow.b{width:760px;height:760px;right:-220px;top:120px;background:radial-gradient(circle,rgba(255,255,255,.09),transparent 60%);animation:drift2 28s var(--ease) infinite alternate}
 @keyframes drift1{to{transform:translate(120px,80px) scale(1.15)}}
 @keyframes drift2{to{transform:translate(-120px,60px) scale(1.1)}}
+/* ambient glows for the lower half of the page — keeps long sections from feeling static */
+.glow.d{width:700px;height:700px;left:-260px;top:58%;background:radial-gradient(circle,rgba(165,180,220,.055),transparent 62%);animation:drift3 36s var(--ease) infinite alternate}
+.glow.e{width:560px;height:560px;right:-200px;top:74%;background:radial-gradient(circle,rgba(255,255,255,.05),transparent 60%);animation:drift4 42s var(--ease) infinite alternate}
+@keyframes drift3{to{transform:translate(140px,-90px) scale(1.12)}}
+@keyframes drift4{to{transform:translate(-110px,-70px) scale(1.18)}}
 @keyframes sweep{0%{background-position:180% 0}100%{background-position:-120% 0}}
 .grid-fx{position:absolute;inset:0;background-image:linear-gradient(var(--line2) 1px,transparent 1px),linear-gradient(90deg,var(--line2) 1px,transparent 1px);background-size:66px 66px;mask-image:radial-gradient(circle at 60% 18%,#000,transparent 76%);opacity:.45}
 .grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.05;mix-blend-mode:overlay;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>")}
 .vignette{position:fixed;inset:0;z-index:1;pointer-events:none;box-shadow:inset 0 0 240px 60px rgba(0,0,0,.7)}
 .cursor-glow{position:fixed;width:460px;height:460px;border-radius:50%;z-index:2;pointer-events:none;background:radial-gradient(circle,rgba(255,255,255,.05),transparent 60%);transform:translate(-50%,-50%);left:-999px}
-#px{position:fixed;inset:0;z-index:1;pointer-events:none}
+#px{position:fixed;inset:0;z-index:6;pointer-events:none} /* above section backgrounds so the silver dust is visible on every screen, kept faint so it never fights the text */
+/* shooting stars are drawn on the #px canvas (random paths/timing — a real night sky, not a looped CSS streak) */
 .marquee{position:relative;z-index:5;overflow:hidden;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);background:rgba(255,255,255,.015);padding:18px 0}
 .marquee .track{display:inline-flex;gap:42px;white-space:nowrap;animation:scrollx 24s linear infinite}
 .marquee span{font-family:"Space Grotesk";font-weight:600;font-size:1.05rem;letter-spacing:.04em;background:var(--silver-text);-webkit-background-clip:text;background-clip:text;color:transparent;display:inline-flex;align-items:center;gap:42px}
@@ -67,7 +87,13 @@ body.ready .word{opacity:1;transform:none;filter:none;transition:opacity .7s var
 .ghost b{font-family:"Space Grotesk";font-weight:700;font-size:clamp(1.8rem,4vw,3rem);letter-spacing:-.01em;-webkit-text-stroke:1px rgba(255,255,255,.14);color:transparent;text-transform:uppercase;display:inline-block;margin-right:60px}
 .ghost b.fill{-webkit-text-stroke:0;background:var(--silver-text);-webkit-background-clip:text;background-clip:text;color:transparent}
 /* kinetic statement banner */
-.statement{position:relative;z-index:5;text-align:center;padding:120px 28px;background:linear-gradient(180deg,var(--bg),#0c0c10,var(--bg))}
+.statement{position:relative;z-index:5;text-align:center;padding:120px 28px;background:linear-gradient(180deg,var(--bg),#0c0c10,var(--bg));overflow:hidden}
+.statement::before{content:"";position:absolute;top:50%;left:50%;width:900px;height:480px;margin:-240px 0 0 -450px;background:radial-gradient(closest-side,rgba(255,255,255,.05),transparent 70%);animation:spotPan 14s var(--ease) infinite alternate;pointer-events:none}
+.statement h2{position:relative;z-index:1}
+@keyframes spotPan{from{transform:translateX(-16%)}to{transform:translateX(16%)}}
+/* a sheen periodically sweeps across the statement headline — the metal "catches the light" */
+.statement .metal{background-size:230% 100%;animation:metalSheen 6.5s ease-in-out infinite}
+@keyframes metalSheen{0%{background-position:170% 0}55%{background-position:-80% 0}100%{background-position:-80% 0}}
 .statement h2{font-size:clamp(2rem,5.5vw,4.4rem);font-weight:700;line-height:1.05;max-width:1000px;margin:0 auto}
 .statement .muted{color:var(--dim);-webkit-text-fill-color:var(--dim)}
 
@@ -188,7 +214,8 @@ h1.hero{font-size:clamp(2.4rem,4.1vw,3.9rem);font-weight:700;margin:22px 0 22px;
 .speed-note{font-size:12px;color:var(--dim);margin-top:12px;max-width:420px}
 
 body>section:nth-of-type(even){background:radial-gradient(1200px 520px at 32% -12%,rgba(255,255,255,.05),transparent 62%),linear-gradient(180deg,#0e0f12 0%,#090a0b 100%)!important}
-body>section{position:relative;z-index:5;padding:100px 0;background:radial-gradient(1200px 520px at 68% -12%,rgba(255,255,255,.045),transparent 62%),linear-gradient(180deg,#0b0c0e 0%,#060607 100%)}
+/* sections are slightly translucent so the fixed background layer (glows, grid, drifting particles) breathes through everywhere — this is what keeps the page feeling alive below the hero */
+body>section{position:relative;z-index:5;padding:100px 0;background:radial-gradient(1200px 520px at 68% -12%,rgba(255,255,255,.045),transparent 62%),linear-gradient(180deg,rgba(11,12,14,.90) 0%,rgba(6,6,7,.94) 100%)}
 .tag{display:inline-block;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin-bottom:14px}
 .h2{font-size:clamp(1.9rem,3.6vw,3rem);font-weight:700;margin-bottom:14px}
 .lead{color:var(--muted);max-width:620px;margin-bottom:42px}
@@ -222,7 +249,8 @@ body>section{position:relative;z-index:5;padding:100px 0;background:radial-gradi
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
 @media(max-width:760px){.stats{grid-template-columns:repeat(2,1fr)}}
 .stat{padding:26px 20px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.03),transparent)}
-.stat .n{font-family:"Space Grotesk";font-size:2.4rem;font-weight:700;background:var(--silver-text);-webkit-background-clip:text;background-clip:text;color:transparent}
+.stat .n{font-family:"Space Grotesk";font-size:2.4rem;font-weight:700;background:var(--silver-text);-webkit-background-clip:text;background-clip:text;color:transparent;direction:ltr;unicode-bidi:isolate}
+.badge .v{direction:ltr;unicode-bidi:isolate}
 .stat .l{font-size:13px;color:var(--muted);margin-top:6px}
 
 /* interactive work previews */
@@ -298,7 +326,10 @@ body>section{position:relative;z-index:5;padding:100px 0;background:radial-gradi
 .offer h3{font-size:1.2rem;margin-bottom:8px}
 .offer p{font-size:14px;color:var(--muted)}
 
-.cta-band{text-align:center;border:1px solid var(--line);border-radius:24px;padding:64px 28px;background:radial-gradient(700px 300px at 50% 0,rgba(255,255,255,.06),transparent 70%),var(--panel)}
+.cta-band{position:relative;overflow:hidden;text-align:center;border:1px solid var(--line);border-radius:24px;padding:64px 28px;background:radial-gradient(700px 300px at 50% 0,rgba(255,255,255,.06),transparent 70%),var(--panel)}
+.cta-band::before{content:"";position:absolute;top:-160px;left:50%;width:760px;height:340px;transform:translateX(-50%);background:radial-gradient(closest-side,rgba(255,255,255,.07),transparent 70%);animation:bandBreathe 9s ease-in-out infinite alternate;pointer-events:none}
+.cta-band>*{position:relative;z-index:1}
+@keyframes bandBreathe{from{opacity:.55;transform:translateX(-50%) scale(1)}to{opacity:1;transform:translateX(-50%) scale(1.16)}}
 .cta-band h2{font-size:clamp(2rem,4vw,3.3rem);margin-bottom:14px}
 .guarantee{margin-top:24px;font-size:13.5px;color:var(--muted)}
 footer{position:relative;z-index:5;padding:40px 0 96px;color:var(--dim);font-size:13px;background:var(--bg)}
@@ -400,6 +431,30 @@ footer{position:relative;z-index:5;padding:40px 0 96px;color:var(--dim);font-siz
 
 .reveal{opacity:0;transform:translateY(20px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
 .reveal.in{opacity:1;transform:none}
+/* journey stagger — cards rise one after another instead of all at once */
+.reveal .offer,.reveal .step,.reveal .stat{opacity:0;transform:translateY(26px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
+.reveal.in .offer,.reveal.in .step,.reveal.in .stat{opacity:1;transform:none}
+.reveal.in .offer:nth-child(1),.reveal.in .step:nth-child(1),.reveal.in .stat:nth-child(1){transition-delay:.05s}
+.reveal.in .offer:nth-child(2),.reveal.in .step:nth-child(2),.reveal.in .stat:nth-child(2){transition-delay:.17s}
+.reveal.in .offer:nth-child(3),.reveal.in .step:nth-child(3),.reveal.in .stat:nth-child(3){transition-delay:.29s}
+.reveal.in .step:nth-child(4),.reveal.in .stat:nth-child(4){transition-delay:.41s}
+/* chapter tint — the room's light changes as you move through the page */
+/* chapter auroras — every section carries its own slowly-traveling light UNDER the content,
+   so the journey changes color room-by-room without ever fogging the text */
+body>section{overflow:hidden}
+body>section>*{position:relative;z-index:1}
+body>section::before{content:"";position:absolute;inset:-18% -28%;pointer-events:none;z-index:0;
+  background:radial-gradient(42% 48% at 50% 38%,rgba(255,255,255,.095),transparent 70%);
+  animation:aurora 12s ease-in-out infinite alternate}
+#demo::before{background:radial-gradient(42% 48% at 46% 34%,rgba(160,180,255,.115),transparent 70%)}
+#proof::before{background:radial-gradient(42% 48% at 60% 40%,rgba(255,255,255,.10),transparent 70%);animation-duration:15s}
+#work::before{background:radial-gradient(42% 48% at 30% 42%,rgba(255,255,255,.105),transparent 70%);animation-duration:13s;animation-direction:alternate-reverse}
+#build::before{background:radial-gradient(42% 48% at 68% 36%,rgba(255,228,196,.08),transparent 70%);animation-duration:16s}
+#why::before{background:radial-gradient(42% 48% at 36% 46%,rgba(160,180,255,.09),transparent 70%);animation-duration:14s;animation-direction:alternate-reverse}
+#how::before{background:radial-gradient(42% 48% at 50% 44%,rgba(170,255,214,.07),transparent 70%);animation-duration:17s}
+#faq::before{background:radial-gradient(42% 48% at 62% 40%,rgba(255,255,255,.09),transparent 70%);animation-duration:15s;animation-direction:alternate-reverse}
+#contact::before{background:radial-gradient(48% 54% at 50% 40%,rgba(255,255,255,.13),transparent 72%);animation-duration:11s}
+@keyframes aurora{from{transform:translate(-13%,-4%) scale(1)}to{transform:translate(13%,5%) scale(1.22)}}
 .rise{opacity:0;transform:translateY(24px)}
 body.ready .rise{opacity:1;transform:none;transition:opacity .9s var(--ease),transform .9s var(--ease)}
 body.ready .rise:nth-child(2){transition-delay:.08s}
@@ -665,7 +720,7 @@ body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:b
 .scanline{position:absolute;left:0;right:0;top:0;height:1px;z-index:4;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(255,255,255,.28) 50%,transparent);animation:scanmove 9s linear 2.5s infinite}
 @keyframes scanmove{0%{transform:translateY(-8vh);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(108vh);opacity:0}}
 @supports not ((-webkit-background-clip:text) or (background-clip:text)){.metal,.stat .n,.badge .v,.step .num,.ghost b.fill{color:#e8e8ec!important;-webkit-text-fill-color:#e8e8ec!important}}
-@media(prefers-reduced-motion:reduce){.reveal,.rise{opacity:1;transform:none}.shine::after,.glow,.btn-silver.pulse,.scrollcue .m::after,.scanline,.marquee .track,.ghost .track,#intro .mk::after,.iwork-live i,.iwork-skeleton-bar,.iwork-skeleton-block,.iwork-skeleton-lines span{animation:none}.iwork-card.is-hovered{transform:none}}
+@media(prefers-reduced-motion:reduce){.reveal,.rise,.reveal .offer,.reveal .step,.reveal .stat{opacity:1;transform:none;transition:none}.shine::after,.glow,.btn-silver.pulse,.scrollcue .m::after,.scanline,.marquee .track,.ghost .track,#intro .mk::after,.iwork-live i,.iwork-skeleton-bar,.iwork-skeleton-block,.iwork-skeleton-lines span,.statement::before,.cta-band::before,body>section::before,.statement .metal{animation:none}.iwork-card.is-hovered{transform:none}}
 @media(hover:none),(pointer:coarse){.badge:hover,.offer:hover,.qchip:hover,.need:hover,.btn-silver:hover,.btn-ghost:hover,.iwork-card.is-hovered{transform:none;box-shadow:inherit}.cursor-glow{display:none!important}}
 /* ── Large-screen fitment (placed last so it wins source-order over the base rules) ──
    The hero .wrap is a flex item that otherwise shrinks to its content and centers,
@@ -689,7 +744,7 @@ body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:b
 <body>
 <div id="intro"><div class="mk metal">QD</div><div class="iload" data-i18n="intro.loading">Loading experience</div></div>
 
-<div class="bg-fx" aria-hidden="true"><div class="glow a"></div><div class="glow b"></div><div class="glow c"></div><div class="grid-fx"></div></div>
+<div class="bg-fx" aria-hidden="true"><div class="glow a"></div><div class="glow b"></div><div class="glow c"></div><div class="glow d"></div><div class="glow e"></div><div class="grid-fx"></div></div>
 <canvas id="gl" aria-hidden="true"></canvas>
 <canvas id="px" aria-hidden="true"></canvas>
 <div class="grain" aria-hidden="true"></div><div class="vignette" aria-hidden="true"></div>
@@ -866,7 +921,7 @@ body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:b
       <div class="qa"><button><span data-i18n="faq.q2">What if I don't like it?</span><span class="pl">+</span></button><div class="ans"><p data-i18n="faq.a2">You only pay the final invoice once it's live and you're happy. We refine until it's right.</p></div></div>
       <div class="qa"><button><span data-i18n="faq.q3">Do you build in Arabic?</span><span class="pl">+</span></button><div class="ans"><p data-i18n="faq.a3">Yes — every build is bilingual EN/AR with full right-to-left support, made for the UAE market.</p></div></div>
       <div class="qa"><button><span data-i18n="faq.q4">Is it really custom, or a template?</span><span class="pl">+</span></button><div class="ans"><p data-i18n="faq.a4">100% custom. We design and code from scratch around your business — no themes, no page builders.</p></div></div>
-      <div class="qa"><button><span data-i18n="faq.q5">What does it cost?</span><span class="pl">+</span></button><div class="ans"><p data-i18n-html="faq.a5">Most projects land between <b style="color:#e8e8ec">[AED ___ and AED ___]</b> depending on scope. You get one fixed, itemized quote up front — no hourly games, no hidden fees. <span style="color:var(--dim)">(Set your real range here.)</span></p></div></div>
+      <div class="qa"><button><span data-i18n="faq.q5">What does it cost?</span><span class="pl">+</span></button><div class="ans"><p data-i18n-html="faq.a5">Every project is different, so we don't do one-size-fits-all pricing. You get <b style="color:#e8e8ec">one fixed, itemized quote up front</b> — agreed in writing before we start. No hourly games, no hidden fees, and you only pay the final invoice once you're happy. Most quotes go out the same day as your free call.</p></div></div>
     </div>
   </div>
 </section>
@@ -895,6 +950,8 @@ body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:b
     <a href="https://instagram.com/qdsystems" target="_blank" rel="noopener noreferrer">Instagram</a>
     <a href="https://tiktok.com/@qdsystems" target="_blank" rel="noopener noreferrer">TikTok</a>
     <a class="footer-wa" href="https://wa.me/971505349907?text=Hi%20QD%20%E2%80%94%20I%27d%20like%20to%20discuss%20a%20project%20with%20you." target="_blank" rel="noopener noreferrer">WhatsApp +971 50 534 9907</a>
+    <a href="/privacy" data-i18n="footer.privacy">Privacy Policy</a>
+    <a href="/terms" data-i18n="footer.terms">Terms of Service</a>
   </div>
   <div class="footer-copy" data-i18n="footer.copy">© 2026 QD Systems · Built in the UAE</div>
 </div></footer>
@@ -923,6 +980,7 @@ body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:b
           <div><label for="bTime" data-i18n="book.time">Preferred time (optional)</label><input id="bTime" type="time"></div>
         </div>
         <button type="submit" class="btn btn-silver full" data-i18n="book.submit">Confirm — send my Meet link →</button>
+        <div id="bErr" role="alert" style="display:none;margin-top:13px;padding:12px 14px;border:1px solid rgba(255,107,107,.35);border-radius:11px;background:rgba(255,107,107,.07);color:#ffb4b4;font-size:13.5px;line-height:1.5"><span data-i18n="book.error">Something went wrong sending your booking. Please try again — or message us on WhatsApp and we'll confirm your call there:</span> <a href="https://wa.me/971505349907" target="_blank" rel="noopener noreferrer" style="color:#fff;border-bottom:1px solid rgba(255,255,255,.4)">WhatsApp →</a></div>
         <div class="qhint" style="margin-top:13px"><span class="g"></span> <span data-i18n="book.hint">Free · no obligation · your link arrives by email</span></div>
       </form>
     </div>
@@ -1019,6 +1077,24 @@ if(qform)qform.addEventListener('submit',e=>{e.preventDefault();
 
 /* reveal */
 const io=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting){en.target.classList.add('in');io.unobserve(en.target);}}),{threshold:.14});
+
+/* ---------- journey layer: chapter lighting + scroll parallax ---------- */
+(function(){
+  if(reduceMotion)return;
+  /* glow parallax — background lights drift against the scroll (uses `translate`, additive with their CSS animations) */
+  const gd=document.querySelector('.glow.d'),ge=document.querySelector('.glow.e'),gridFx=document.querySelector('.grid-fx');
+  let tick=false;
+  addEventListener('scroll',()=>{
+    if(tick)return;tick=true;
+    requestAnimationFrame(()=>{
+      const y=scrollY;
+      if(gd)gd.style.translate='0 '+(-y*0.045)+'px';
+      if(ge)ge.style.translate='0 '+(-y*0.07)+'px';
+      if(gridFx)gridFx.style.translate='0 '+(-y*0.025)+'px';
+      tick=false;
+    });
+  },{passive:true});
+})();
 document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 
 /* count up */
@@ -1032,14 +1108,51 @@ var reduceMotion=matchMedia('(prefers-reduced-motion:reduce)').matches;
   const cv=document.getElementById('px');if(!cv)return;
   if(reduceMotion){cv.style.display='none';return;}
   const ctx=cv.getContext('2d');
-  let W,H,parts=[];const N=isMobile?24:28;
+  let W,H,parts=[];const N=isMobile?30:46;let pt=0;
   function size(){W=cv.width=innerWidth*Math.min(devicePixelRatio,2);H=cv.height=innerHeight*Math.min(devicePixelRatio,2);}
   size();addEventListener('resize',size);
-  for(let i=0;i<N;i++)parts.push({x:Math.random()*1,y:Math.random()*1,r:(Math.random()*1.6+.4),vy:-(Math.random()*.0006+.0002),vx:(Math.random()-.5)*.0003,a:Math.random()*.5+.2});
-  (function draw(){requestAnimationFrame(draw);ctx.clearRect(0,0,W,H);
+  for(let i=0;i<N;i++)parts.push({x:Math.random()*1,y:Math.random()*1,r:(Math.random()*1.8+.4),vy:-(Math.random()*.0008+.00025),vx:(Math.random()-.5)*.0004,a:Math.random()*.5+.25,tw:Math.random()*6.28,ts:Math.random()*.8+.4});
+  /* ---- shooting stars: random spawn point, angle, speed and tail — every one is different ---- */
+  const meteors=[];let nextMeteor=1.2+Math.random()*2;
+  function spawnMeteor(){
+    const dir=Math.random()<0.5?1:-1;                       /* left→right or right→left */
+    const ang=(18+Math.random()*24)*Math.PI/180;            /* 18–42° downward slope */
+    const speed=0.55+Math.random()*0.55;                    /* screen-widths per second */
+    meteors.push({
+      x:dir===1?(-0.05+Math.random()*0.5):(0.55+Math.random()*0.5),
+      y:Math.random()*0.55,                                 /* born in the upper sky */
+      vx:Math.cos(ang)*speed*dir, vy:Math.sin(ang)*speed,
+      life:0, maxLife:0.7+Math.random()*0.6,
+      len:0.09+Math.random()*0.10,                          /* tail length */
+      bright:0.45+Math.random()*0.45
+    });
+  }
+  (function draw(){requestAnimationFrame(draw);ctx.clearRect(0,0,W,H);pt+=0.016;
     for(const p of parts){p.y+=p.vy;p.x+=p.vx;if(p.y<-.02){p.y=1.02;p.x=Math.random();}
       const x=p.x*W,y=p.y*H,r=p.r*Math.min(devicePixelRatio,2);
-      ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fillStyle='rgba(255,255,255,'+(p.a*(isMobile?0.75:0.5))+')';ctx.fill();}
+      const tw=.55+.45*Math.sin(pt*p.ts+p.tw); /* twinkle */
+      ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fillStyle='rgba(255,255,255,'+(p.a*tw*(isMobile?0.5:0.38))+')';ctx.fill();}
+    /* meteors */
+    if(pt>nextMeteor){spawnMeteor();if(Math.random()<0.18)spawnMeteor();/* occasional pair */
+      nextMeteor=pt+(isMobile?3.5:2.2)+Math.random()*4;}
+    for(let i=meteors.length-1;i>=0;i--){const m=meteors[i];m.life+=0.016;
+      if(m.life>=m.maxLife){meteors.splice(i,1);continue;}
+      m.x+=m.vx*0.016;m.y+=m.vy*0.016;
+      const fade=Math.sin(Math.PI*(m.life/m.maxLife));      /* ease in, burn, fade out */
+      const hx=m.x*W,hy=m.y*H;
+      const sp=Math.hypot(m.vx,m.vy);
+      const tx=hx-(m.vx/sp)*m.len*W,ty=hy-(m.vy/sp)*m.len*W;
+      const g=ctx.createLinearGradient(hx,hy,tx,ty);
+      g.addColorStop(0,'rgba(255,255,255,'+(0.85*m.bright*fade)+')');
+      g.addColorStop(0.25,'rgba(210,220,255,'+(0.35*m.bright*fade)+')');
+      g.addColorStop(1,'rgba(210,220,255,0)');
+      ctx.strokeStyle=g;ctx.lineWidth=1.4*Math.min(devicePixelRatio,2);ctx.lineCap='round';
+      ctx.beginPath();ctx.moveTo(hx,hy);ctx.lineTo(tx,ty);ctx.stroke();
+      /* glowing head */
+      const hg=ctx.createRadialGradient(hx,hy,0,hx,hy,7*Math.min(devicePixelRatio,2));
+      hg.addColorStop(0,'rgba(255,255,255,'+(0.9*m.bright*fade)+')');
+      hg.addColorStop(1,'rgba(255,255,255,0)');
+      ctx.fillStyle=hg;ctx.beginPath();ctx.arc(hx,hy,7*Math.min(devicePixelRatio,2),0,7);ctx.fill();}
   })();
 })();
 
@@ -1058,10 +1171,12 @@ function createChat(chat,chips){let busy=false;const rm=matchMedia('(prefers-red
   const typing=()=>{const d=document.createElement('div');d.className='typing';d.innerHTML='<span></span><span></span><span></span>';chat.appendChild(d);chat.scrollTop=chat.scrollHeight;return d;};
   const msg=m=>{const d=document.createElement('div');d.className='msg '+m.who;d.textContent=m.t;chat.appendChild(d);chat.scrollTop=chat.scrollHeight;};
   const booked=t=>{const d=document.createElement('div');d.className='booked';d.innerHTML='<span class="tick">✓</span> '+t;chat.appendChild(d);requestAnimationFrame(()=>d.classList.add('show'));chat.scrollTop=chat.scrollHeight;};
-  async function run(steps,clear){busy=true;setChips(true);if(clear)chat.innerHTML='';
-    for(const m of steps){if(m.book){await wait(rm?0:400);booked(m.book);continue;}
-      if(m.who==='us'){if(!rm){const tp=typing();await wait(950);tp.remove();}}else{await wait(rm?0:450);}msg(m);await wait(rm?0:550);}
-    busy=false;setChips(false);}
+  async function run(steps,clear){const g=(window.__qdDemoGen=(window.__qdDemoGen||0)+1);busy=true;setChips(true);if(clear)chat.innerHTML='';
+    for(const m of steps){if(g!==window.__qdDemoGen)return; /* a newer run started (e.g. language switch) — stop so messages never double up */
+      if(m.book){await wait(rm?0:400);if(g!==window.__qdDemoGen)return;booked(m.book);continue;}
+      if(m.who==='us'){if(!rm){const tp=typing();await wait(950);tp.remove();}}else{await wait(rm?0:450);}
+      if(g!==window.__qdDemoGen)return;msg(m);await wait(rm?0:550);}
+    if(g!==window.__qdDemoGen)return;busy=false;setChips(false);}
   function setChips(disabled){if(!chips)return;const d=qdDemo();chips.innerHTML='';
     d.chips.forEach(c=>{const b=document.createElement('button');b.className='qchip';b.textContent=c.t;b.disabled=disabled;b.onclick=()=>{if(busy)return;msg({who:'them',t:c.t.replace(/^[^ ]+ /,'')});run(qdDemo().flows[c.k],false);};chips.appendChild(b);});
     const wa=document.createElement('button');wa.type='button';wa.className='qchip book';wa.textContent=d.bookChip;wa.onclick=()=>{if(window.qdOpenBooking)window.qdOpenBooking();};chips.appendChild(wa);}
@@ -1099,7 +1214,7 @@ function qdSyncMobileOverlayLayout(){
     const modal=bookModal.querySelector('.modal');if(modal)modal.style.maxHeight='';
   }
 }
-function openBooking(){if(!bookModal)return;const bf=document.getElementById('bookForm');const bd=document.getElementById('bookDone');if(bf)bf.style.display='';if(bd)bd.style.display='none';qdSetBookDateMin();bookModal.classList.add('open');document.body.classList.add('modal-open');bookLast=document.activeElement;qdSyncMobileOverlayLayout();if(matchMedia('(pointer:fine)').matches)setTimeout(()=>{const n=document.getElementById('bName');if(n)n.focus();},120);}
+function openBooking(){if(!bookModal)return;const bf=document.getElementById('bookForm');const bd=document.getElementById('bookDone');if(bf)bf.style.display='';if(bd)bd.style.display='none';const be=document.getElementById('bErr');if(be)be.style.display='none';qdSetBookDateMin();bookModal.classList.add('open');document.body.classList.add('modal-open');bookLast=document.activeElement;qdSyncMobileOverlayLayout();if(matchMedia('(pointer:fine)').matches)setTimeout(()=>{const n=document.getElementById('bName');if(n)n.focus();},120);}
 function closeBooking(){if(!bookModal)return;bookModal.classList.remove('open');bookModal.style.top=bookModal.style.height=bookModal.style.bottom=bookModal.style.left=bookModal.style.right=bookModal.style.width=bookModal.style.inset='';const modal=bookModal.querySelector('.modal');if(modal)modal.style.maxHeight='';if(!navMobileOverlay||!navMobileOverlay.classList.contains('open'))document.body.classList.remove('modal-open');if(bookLast)bookLast.focus();}
 if(window.visualViewport){visualViewport.addEventListener('resize',qdSyncMobileOverlayLayout);visualViewport.addEventListener('scroll',qdSyncMobileOverlayLayout);}
 addEventListener('resize',qdSyncMobileOverlayLayout);
@@ -1116,16 +1231,28 @@ if(bForm)bForm.addEventListener('submit',async e=>{e.preventDefault();
   const data={name:(document.getElementById('bName').value||'there').trim(),email:document.getElementById('bEmail').value.trim(),phone:(bPhoneEl&&bPhoneEl.value)||'',purpose:document.getElementById('bPurpose').value,time:slot,source:'website'};
   if(submitBtn){submitBtn.disabled=true;submitBtn.textContent='Sending…';}
   console.log('[book-email] request started');
+  const bErr=document.getElementById('bErr');if(bErr)bErr.style.display='none';
+  let bookedOk=false;
   try{
     const res=await fetch('/api/book',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
     const result=await res.json().catch(()=>({}));
     if(res.ok&&result.ok){
+      bookedOk=true;
       console.log('[book-email] success',{id:result.id,clientEmailSent:Boolean(result.clientEmailSent),adminEmailSent:Boolean(result.adminEmailSent)});
     }else{
       console.warn('[book-email] failed',{status:res.status,error:result.error||'Booking request failed'});
     }
   }catch(err){console.warn('[book-email] failed',err?.message||err);}
   if(submitBtn){submitBtn.disabled=false;submitBtn.textContent=bSubmitLabel;}
+  if(!bookedOk){
+    /* never tell the customer they're booked when the request failed — show the error + WhatsApp rescue instead */
+    if(bErr){
+      const wa=bErr.querySelector('a');
+      if(wa)wa.href='https://wa.me/971505349907?text='+encodeURIComponent('Hi QD — I’m '+data.name+', I tried to book a call ('+data.purpose+') but the form failed.'+(data.phone?(' Phone: '+data.phone+'.'):'')+(slot?(' Preferred: '+slot+'.'):''));
+      bErr.style.display='block';
+    }
+    return;
+  }
   document.getElementById('bDoneName').textContent=', '+data.name;
   var doneTpl=(window.qdT&&window.qdT('book.done.msg'))||'Check <b>{email}</b> — your Google Meet link is on its way, usually within the hour.';
   document.getElementById('bDoneMsg').innerHTML=doneTpl.replace('{email}','<b>'+data.email.replace(/[<>]/g,'')+'</b>');
@@ -1181,10 +1308,17 @@ if(bForm)bForm.addEventListener('submit',async e=>{e.preventDefault();
   }
   resize(); addEventListener('resize',resize);
   addEventListener('qd:langchange',()=>setTimeout(resize,60));
-  let t=0,tx=0,ty=0;
+  let t=0,tx=0,ty=0,sp=0;
   (function loop(){ requestAnimationFrame(loop); t+=0.016;
-    knot.rotation.y+=mobileGl?0.0035:0.005; knot.rotation.x+=mobileGl?0.0015:0.002;
-    knot.position.y=Math.sin(t*0.8)*0.15;
+    /* scroll progress through the hero (0→1) — the object reacts to the journey instead of ignoring it */
+    const target=Math.min(scrollY/Math.max(innerHeight,1),1);
+    sp+=(target-sp)*0.06; /* eased */
+    knot.rotation.y+=(mobileGl?0.0035:0.005)+sp*0.012; /* spins up as you leave the hero */
+    knot.rotation.x+=(mobileGl?0.0015:0.002)+sp*0.004;
+    knot.position.y=Math.sin(t*0.8)*0.15 - sp*1.1;      /* dives down… */
+    knot.position.x=sp*(document.documentElement.getAttribute('dir')==='rtl'?-0.9:0.9); /* …and sweeps aside */
+    const k=1-sp*0.35; knot.scale.set(k,k,k);            /* shrinking as it goes */
+    canvas.style.opacity=String(1-sp*0.85);              /* hands the stage to the content */
     tx+=(((typeof mx!=="undefined"?mx:0.5)-0.5)*0.6 - tx)*0.05;
     ty+=(((typeof my!=="undefined"?my:0.5)-0.5)*0.5 - ty)*0.05;
     camera.position.x=tx*1.2; camera.position.y=-ty*1.0; camera.lookAt(0,0,0);
