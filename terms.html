@@ -27,9 +27,9 @@ header{padding:26px 0;border-bottom:1px solid var(--line)}
 .lang-toggle button{padding:7px 14px;border:1px solid var(--line);border-radius:9px;background:rgba(255,255,255,.03);color:var(--muted);font:600 13px Inter,sans-serif;cursor:pointer}
 .lang-toggle button.active{background:#e8e8ee;color:#0a0a0b;border-color:transparent}
 main{padding:64px 0 96px}
-h1{font-family:"Space Grotesk",sans-serif;font-size:clamp(1.9rem,5vw,2.6rem);letter-spacing:-.02em;margin-bottom:8px}
+h1{font-family:"Space Grotesk",sans-serif;font-size:clamp(1.9rem,5vw,2.6rem);letter-spacing:-.02em;margin-bottom:10px;background:linear-gradient(120deg,#fff 0%,#f0f0f4 38%,#c8c8d0 64%,#fff 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;background-size:220% 100%;animation:pgFadeIn .75s cubic-bezier(.22,1,.36,1) .08s both,pgH1Sheen 8s ease-in-out .9s infinite}@keyframes pgH1Sheen{0%,100%{background-position:180% 0}55%{background-position:-60% 0}}@keyframes pgFadeIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
 .updated{color:var(--dim);font-size:13.5px;margin-bottom:36px}
-h2{font-family:"Space Grotesk",sans-serif;font-size:1.15rem;margin:36px 0 10px}
+h2{font-family:"Space Grotesk",sans-serif;font-size:1.15rem;margin:36px 0 10px;position:relative;padding-inline-start:14px}h2::before{content:"";position:absolute;inset-inline-start:0;top:.1em;bottom:.1em;width:2px;border-radius:2px;background:rgba(255,255,255,.28);transform:scaleY(0);transform-origin:top;transition:transform .5s cubic-bezier(.22,1,.36,1) .12s}h2.in::before{transform:scaleY(1)}
 p,li{color:var(--muted);font-size:15.5px}
 ul{padding-inline-start:22px;display:grid;gap:8px;margin:10px 0}
 b{color:#dcdce2;font-weight:600}
@@ -38,7 +38,16 @@ footer{padding:28px 0 56px;border-top:1px solid var(--line);color:var(--dim);fon
 .ar{display:none}
 html.is-ar .en{display:none}
 html.is-ar .ar{display:block}
+#rprog{position:fixed;top:0;left:0;height:2px;width:0;z-index:50;background:linear-gradient(90deg,rgba(255,255,255,.25),rgba(255,255,255,.72));box-shadow:0 0 8px rgba(255,255,255,.28);transition:width .12s linear}
+.qd-rv{opacity:0;transform:translateY(18px);transition:opacity .72s cubic-bezier(.22,1,.36,1),transform .72s cubic-bezier(.22,1,.36,1)}
+.qd-rv.in{opacity:1;transform:none}
+header{animation:pgFadeIn .7s cubic-bezier(.22,1,.36,1) .04s both}
+.updated{animation:pgFadeIn .75s cubic-bezier(.22,1,.36,1) .22s both}
 </style>
+<link rel="stylesheet" href="assets/bg-fx.css">
+<script defer src="assets/bg-fx.js"></script>
+<link rel="stylesheet" href="assets/page-fx.css">
+<script defer src="assets/page-fx.js"></script>
 </head>
 <body>
 <header><div class="wrap head-in">
@@ -114,6 +123,29 @@ html.is-ar .ar{display:block}
   document.getElementById('btnEn').onclick=function(){set('en')};
   document.getElementById('btnAr').onclick=function(){set('ar')};
   try{if((localStorage.getItem('qd_lang')||'en')==='ar')set('ar');}catch(e){}
+})();
+</script>
+<script>
+(function(){
+  var prog=document.createElement('div');
+  prog.id='rprog';
+  document.body.appendChild(prog);
+  addEventListener('scroll',function(){
+    var h=document.documentElement;
+    prog.style.width=Math.min(100,h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+  },{passive:true});
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}
+    });
+  },{threshold:.07,rootMargin:'0px 0px -28px 0px'});
+  document.querySelectorAll('h2').forEach(function(el){io.observe(el);});
+  document.querySelectorAll('p,ul').forEach(function(el){
+    if(!el.closest('header')&&!el.closest('footer')){
+      el.classList.add('qd-rv');io.observe(el);
+    }
+  });
 })();
 </script>
 </body>

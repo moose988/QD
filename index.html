@@ -56,18 +56,24 @@ a{color:inherit;text-decoration:none}
 /* fx */
 .bg-fx{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
 .glow{position:absolute;border-radius:50%;filter:blur(80px);mix-blend-mode:screen}
-.glow.a{width:820px;height:820px;left:-220px;top:-260px;background:radial-gradient(circle,rgba(255,255,255,.14),transparent 62%);animation:drift1 24s var(--ease) infinite alternate}
-.glow.c{width:640px;height:640px;left:38%;bottom:-300px;background:radial-gradient(circle,rgba(255,255,255,.05),transparent 62%);animation:drift1 30s var(--ease) infinite alternate}
-.glow.b{width:760px;height:760px;right:-220px;top:120px;background:radial-gradient(circle,rgba(255,255,255,.09),transparent 60%);animation:drift2 28s var(--ease) infinite alternate}
-@keyframes drift1{to{transform:translate(120px,80px) scale(1.15)}}
-@keyframes drift2{to{transform:translate(-120px,60px) scale(1.1)}}
+.glow.a{width:820px;height:820px;left:-220px;top:-260px;background:radial-gradient(circle,rgba(255,255,255,.20),transparent 62%);animation:drift1 14s var(--ease) infinite alternate,glowBreathe 9s ease-in-out infinite}
+.glow.c{width:640px;height:640px;left:38%;bottom:-300px;background:radial-gradient(circle,rgba(255,255,255,.11),transparent 62%);animation:drift1 18s var(--ease) infinite alternate,glowBreathe 12s ease-in-out 2s infinite}
+.glow.b{width:760px;height:760px;right:-220px;top:120px;background:radial-gradient(circle,rgba(150,170,255,.16),transparent 60%);animation:drift2 16s var(--ease) infinite alternate,glowBreathe 11s ease-in-out 1s infinite}
+@keyframes drift1{to{transform:translate(220px,140px) scale(1.22)}}
+@keyframes drift2{to{transform:translate(-220px,110px) scale(1.16)}}
+@keyframes glowBreathe{0%,100%{opacity:.75}50%{opacity:1.0}}
 /* ambient glows for the lower half of the page — keeps long sections from feeling static */
-.glow.d{width:700px;height:700px;left:-260px;top:58%;background:radial-gradient(circle,rgba(165,180,220,.055),transparent 62%);animation:drift3 36s var(--ease) infinite alternate}
-.glow.e{width:560px;height:560px;right:-200px;top:74%;background:radial-gradient(circle,rgba(255,255,255,.05),transparent 60%);animation:drift4 42s var(--ease) infinite alternate}
-@keyframes drift3{to{transform:translate(140px,-90px) scale(1.12)}}
-@keyframes drift4{to{transform:translate(-110px,-70px) scale(1.18)}}
+.glow.d{width:700px;height:700px;left:-260px;top:58%;background:radial-gradient(circle,rgba(165,180,220,.13),transparent 62%);animation:drift3 20s var(--ease) infinite alternate,glowBreathe 13s ease-in-out 3s infinite}
+.glow.e{width:560px;height:560px;right:-200px;top:74%;background:radial-gradient(circle,rgba(255,255,255,.11),transparent 60%);animation:drift4 22s var(--ease) infinite alternate,glowBreathe 10s ease-in-out 5s infinite}
+@keyframes drift3{to{transform:translate(240px,-150px) scale(1.18)}}
+@keyframes drift4{to{transform:translate(-190px,-120px) scale(1.24)}}
+/* aurora — a huge soft gradient slab that slowly sweeps across the whole page */
+.aurora{position:absolute;left:50%;top:50%;width:160vmax;height:160vmax;margin:-80vmax 0 0 -80vmax;pointer-events:none;opacity:.75;background:conic-gradient(from 0deg,transparent 0deg,rgba(140,160,235,.05) 70deg,transparent 140deg,rgba(255,255,255,.04) 210deg,transparent 280deg,rgba(139,125,247,.045) 330deg,transparent 360deg);animation:auroraSpin 60s linear infinite;mix-blend-mode:screen}
+@keyframes auroraSpin{to{transform:rotate(360deg)}}
 @keyframes sweep{0%{background-position:180% 0}100%{background-position:-120% 0}}
-.grid-fx{position:absolute;inset:0;background-image:linear-gradient(var(--line2) 1px,transparent 1px),linear-gradient(90deg,var(--line2) 1px,transparent 1px);background-size:66px 66px;mask-image:radial-gradient(circle at 60% 18%,#000,transparent 76%);opacity:.45}
+.grid-fx{position:absolute;inset:0;background-image:linear-gradient(var(--line2) 1px,transparent 1px),linear-gradient(90deg,var(--line2) 1px,transparent 1px);background-size:66px 66px;mask-image:radial-gradient(circle at 60% 18%,#000,transparent 76%);opacity:.45;animation:gridPan 16s linear infinite}
+@keyframes gridPan{to{background-position:-66px -66px}}
+#bgDust{position:fixed;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
 .grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.05;mix-blend-mode:overlay;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>")}
 .vignette{position:fixed;inset:0;z-index:1;pointer-events:none;box-shadow:inset 0 0 240px 60px rgba(0,0,0,.7)}
 .cursor-glow{position:fixed;width:460px;height:460px;border-radius:50%;z-index:2;pointer-events:none;background:radial-gradient(circle,rgba(255,255,255,.05),transparent 60%);transform:translate(-50%,-50%);left:-999px}
@@ -81,20 +87,19 @@ a{color:inherit;text-decoration:none}
 .word{display:inline-block;opacity:0;transform:translateY(40px);filter:blur(8px)}
 body.ready .word{opacity:1;transform:none;filter:none;transition:opacity .7s var(--ease),transform .7s var(--ease),filter .7s var(--ease)}
 /* giant ghost marquee (premium take on the original's banner) */
-.ghost{position:relative;z-index:5;overflow:hidden;padding:30px 0;background:var(--bg)}
+.ghost{position:relative;z-index:5;overflow:hidden;padding:30px 0}
 .ghost .track{display:inline-flex;white-space:nowrap;animation:scrollx 20s linear infinite}
 .ghost .track.rev{animation-direction:reverse;animation-duration:24s}
 .ghost b{font-family:"Space Grotesk";font-weight:700;font-size:clamp(1.8rem,4vw,3rem);letter-spacing:-.01em;-webkit-text-stroke:1px rgba(255,255,255,.14);color:transparent;text-transform:uppercase;display:inline-block;margin-right:60px}
 .ghost b.fill{-webkit-text-stroke:0;background:var(--silver-text);-webkit-background-clip:text;background-clip:text;color:transparent}
 /* kinetic statement banner */
-.statement{position:relative;z-index:5;text-align:center;padding:120px 28px;background:linear-gradient(180deg,var(--bg),#0c0c10,var(--bg));overflow:hidden}
+.statement{position:relative;z-index:5;text-align:center;padding:120px 28px;overflow:hidden}
 #work .statement{
   margin-top:36px;
   padding:96px 28px;
-  background:linear-gradient(180deg,#090a0b 0%,var(--bg) 14%,#0c0c10 50%,var(--bg) 86%,#090a0b 100%);
 }
 #work{padding-bottom:0}
-#build{padding-top:64px;background:radial-gradient(1200px 520px at 32% -12%,rgba(255,255,255,.05),transparent 62%),linear-gradient(180deg,#090a0b 0%,rgba(11,12,14,.94) 28%,rgba(6,6,7,.94) 100%)!important}
+#build{padding-top:64px}
 .statement::before{content:"";position:absolute;top:50%;left:50%;width:900px;height:480px;margin:-240px 0 0 -450px;background:radial-gradient(closest-side,rgba(255,255,255,.05),transparent 70%);animation:spotPan 14s var(--ease) infinite alternate;pointer-events:none}
 .statement h2{position:relative;z-index:1}
 @keyframes spotPan{from{transform:translateX(-16%)}to{transform:translateX(16%)}}
@@ -201,6 +206,10 @@ body>nav{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items
 
 .qd-hero{position:relative;z-index:5;padding:172px 0 96px;min-height:100vh;display:flex;align-items:center;overflow:hidden}
 .qd-hero::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(7,7,8,.99) 0%,rgba(7,7,8,.98) 52%,rgba(7,7,8,.85) 64%,rgba(7,7,8,.3) 80%,transparent 92%);pointer-events:none}
+/* cinematic loop — full-page fixed layer inside .bg-fx, shows through the translucent sections everywhere; lazy-loaded after the page is interactive */
+.hero-video{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.hero-video video{width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.8s ease}
+.hero-video video.on{opacity:.65}
 .qd-hero .wrap{position:relative;z-index:3;max-width:1320px;margin:0 auto;padding:0 40px;display:grid;grid-template-columns:1.04fr .96fr;gap:48px;align-items:center}
 .eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);padding:7px 14px;border-radius:100px;background:rgba(255,255,255,.02)}
 .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--live);box-shadow:0 0 10px var(--live)}
@@ -220,9 +229,9 @@ h1.hero{font-size:clamp(2.4rem,4.1vw,3.9rem);font-weight:700;margin:22px 0 22px;
 .badge .v{font-family:"Space Grotesk";font-size:1.25rem;font-weight:600;background:var(--silver-text);-webkit-background-clip:text;background-clip:text;color:transparent}
 .speed-note{font-size:12px;color:var(--dim);margin-top:12px;max-width:420px}
 
-body>section:nth-of-type(even){background:radial-gradient(1200px 520px at 32% -12%,rgba(255,255,255,.05),transparent 62%),linear-gradient(180deg,#0e0f12 0%,#090a0b 100%)!important}
+body>section:nth-of-type(even){background:radial-gradient(1200px 520px at 32% -12%,rgba(255,255,255,.05),transparent 62%),linear-gradient(180deg,var(--bg) 0%,#0d0e11 22%,#0a0b0e 78%,var(--bg) 100%)!important}
 /* sections are slightly translucent so the fixed background layer (glows, grid, drifting particles) breathes through everywhere — this is what keeps the page feeling alive below the hero */
-body>section{position:relative;z-index:5;padding:100px 0;background:radial-gradient(1200px 520px at 68% -12%,rgba(255,255,255,.045),transparent 62%),linear-gradient(180deg,rgba(11,12,14,.90) 0%,rgba(6,6,7,.94) 100%)}
+body>section{position:relative;z-index:5;padding:100px 0}
 .tag{display:inline-block;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin-bottom:14px}
 .h2{font-size:clamp(1.9rem,3.6vw,3rem);font-weight:700;margin-bottom:14px}
 .lead{color:var(--muted);max-width:620px;margin-bottom:42px}
@@ -341,17 +350,60 @@ body>section{position:relative;z-index:5;padding:100px 0;background:radial-gradi
 @media(max-width:820px){.offers{grid-template-columns:1fr}}
 .offer{padding:26px 22px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.03),transparent);transition:transform .35s var(--ease),border-color .35s}
 .offer:hover{transform:translateY(-5px);border-color:rgba(255,255,255,.2)}
+/* 3D tilt + cursor-tracking glow (set via JS custom props) */
+.tilt{position:relative;transform-style:preserve-3d;will-change:transform}
+.tilt.tilting{transition:none;transform:perspective(900px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateY(-4px)}
+.tilt::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .3s;background:radial-gradient(420px circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.10),transparent 65%)}
+.tilt.tilting::after{opacity:1}
 .offer .ic{width:44px;height:44px;border-radius:12px;background:var(--silver);display:grid;place-items:center;color:#0a0a0b;font-size:20px;margin-bottom:16px}
 .offer h3{font-size:1.2rem;margin-bottom:8px}
 .offer p{font-size:14px;color:var(--muted)}
 
-.cta-band{position:relative;overflow:hidden;text-align:center;border:1px solid var(--line);border-radius:24px;padding:64px 28px;background:radial-gradient(700px 300px at 50% 0,rgba(255,255,255,.06),transparent 70%),var(--panel)}
-.cta-band::before{content:"";position:absolute;top:-160px;left:50%;width:760px;height:340px;transform:translateX(-50%);background:radial-gradient(closest-side,rgba(255,255,255,.07),transparent 70%);animation:bandBreathe 9s ease-in-out infinite alternate;pointer-events:none}
-.cta-band>*{position:relative;z-index:1}
-@keyframes bandBreathe{from{opacity:.55;transform:translateX(-50%) scale(1)}to{opacity:1;transform:translateX(-50%) scale(1.16)}}
-.cta-band h2{font-size:clamp(2rem,4vw,3.3rem);margin-bottom:14px}
+/* ── Contact section redesign ───────────────────────────── */
+#contact{padding:88px 0 108px}
+.qd-cta{display:grid;grid-template-columns:1.1fr .9fr;gap:72px;align-items:start;position:relative}
+.qd-cta::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;background:radial-gradient(900px 700px at -5% 50%,rgba(255,255,255,.055),transparent 65%)}
+[dir="rtl"] .qd-cta::before{background:radial-gradient(900px 700px at 105% 50%,rgba(255,255,255,.055),transparent 65%)}
+.qd-cta-left,.qd-cta-right{position:relative;z-index:1}
+.qd-cta-eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--live);margin-bottom:22px}
+.qd-cta-eyebrow i{width:6px;height:6px;border-radius:50%;background:var(--live);box-shadow:0 0 10px var(--live);animation:pulse 1.6s ease-in-out infinite;flex-shrink:0}
+.qd-cta-h2{font-size:clamp(2.2rem,3.8vw,3.8rem);font-weight:700;line-height:1.06;letter-spacing:-.03em;margin-bottom:22px;background:linear-gradient(120deg,#fff 0%,#f0f0f4 38%,#c8c8d0 64%,#fff 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;background-size:220% 100%;animation:ctaH2Sheen 8s ease-in-out 1s infinite}
+@keyframes ctaH2Sheen{0%,100%{background-position:180% 0}55%{background-position:-60% 0}}
+.qd-cta-sub{color:var(--muted);font-size:1.05rem;line-height:1.62;margin-bottom:32px;max-width:440px}
+.qd-cta-btns{display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+.qd-cta-btns .btn-silver{padding:16px 34px;font-size:15.5px}
+.qd-cta-trust{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
+.qd-cta-trust i{width:6px;height:6px;border-radius:50%;background:var(--live);box-shadow:0 0 8px var(--live);flex-shrink:0}
+.qd-cta-wa{font-size:13.5px;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:2px;transition:color .25s,border-color .25s}
+.qd-cta-wa:hover{color:var(--fg);border-color:rgba(255,255,255,.3)}
+.qd-cta-panel{border:1px solid var(--line);border-radius:22px;padding:32px 30px;background:rgba(255,255,255,.018);position:relative;overflow:hidden}
+.qd-cta-panel::after{content:"";position:absolute;top:-80px;right:-60px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.045),transparent 65%);pointer-events:none;animation:bandBreathe 11s ease-in-out infinite alternate}
+.qd-cta-panel-label{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin-bottom:26px}
+.qd-cta-steps{display:flex;flex-direction:column;position:relative}
+.qd-cta-steps::before{content:"";position:absolute;inset-inline-start:14px;top:22px;bottom:22px;width:1px;background:linear-gradient(180deg,rgba(53,210,126,.5) 0%,rgba(255,255,255,.12) 60%,rgba(255,255,255,.04) 100%)}
+.qd-cta-step{display:flex;gap:18px;align-items:flex-start;padding:16px 0}
+.qd-cta-step+.qd-cta-step{border-top:1px solid var(--line2)}
+.qd-cta-step-num{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.04);display:grid;place-items:center;font-family:"Space Grotesk",sans-serif;font-size:11px;font-weight:600;color:var(--muted);flex-shrink:0;position:relative;z-index:1}
+.qd-cta-step:first-child .qd-cta-step-num{border-color:rgba(53,210,126,.55);background:rgba(53,210,126,.1);color:#8fe8b8;box-shadow:0 0 14px rgba(53,210,126,.2)}
+.qd-cta-step-body strong{display:block;font-size:14px;font-weight:600;color:var(--fg);margin-bottom:3px}
+.qd-cta-step-body small{font-size:12.5px;color:var(--dim);line-height:1.4}
+.qd-cta-chips{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+.qd-cta-chip{flex:1;min-width:80px;border:1px solid var(--line);border-radius:14px;padding:12px 10px;background:rgba(255,255,255,.02);text-align:center}
+.qd-cta-chip .cv{font-family:"Space Grotesk",sans-serif;font-size:1.12rem;font-weight:700;background:var(--silver-text);-webkit-background-clip:text;background-clip:text;color:transparent;display:block;direction:ltr;unicode-bidi:isolate}
+.qd-cta-chip .ck{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);display:block;margin-top:3px}
+.qd-cta-guarantees{display:flex;flex-wrap:wrap;gap:10px;margin-top:52px}
+@media(max-width:920px){
+  .qd-cta{grid-template-columns:1fr;gap:44px}
+  .qd-cta-btns{width:100%}
+  .qd-cta-btns .btn-silver{align-self:stretch;justify-content:center}
+  .qd-cta-sub{max-width:100%}
+  .qd-cta-guarantees{justify-content:center}
+  .qd-cta::before{background:radial-gradient(700px 500px at 50% -10%,rgba(255,255,255,.055),transparent 65%)}
+}
+/* keep old bandBreathe for reduced-motion list reference */
+@keyframes bandBreathe{from{opacity:.55;transform:scale(1)}to{opacity:1;transform:scale(1.16)}}
 .guarantee{margin-top:24px;font-size:13.5px;color:var(--muted)}
-footer{position:relative;z-index:5;padding:40px 0 96px;color:var(--dim);font-size:13px;background:var(--bg)}
+footer{position:relative;z-index:5;padding:40px 0 96px;color:var(--dim);font-size:13px}
 .footer-in{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:22px}
 .footer-social{display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px}
 .footer-social a{color:var(--muted);font-size:13px;transition:color .25s}
@@ -451,8 +503,12 @@ footer{position:relative;z-index:5;padding:40px 0 96px;color:var(--dim);font-siz
 .reveal{opacity:0;transform:translateY(20px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
 .reveal.in{opacity:1;transform:none}
 /* journey stagger — cards rise one after another instead of all at once */
-.reveal .offer,.reveal .step,.reveal .stat{opacity:0;transform:translateY(26px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
-.reveal.in .offer,.reveal.in .step,.reveal.in .stat{opacity:1;transform:none}
+.reveal .offer,.reveal .step,.reveal .stat{opacity:0;transform:translateY(26px) scale(.97);filter:blur(4px);transition:opacity .7s var(--ease),transform .7s var(--ease),filter .7s var(--ease)}
+.reveal.in .offer,.reveal.in .step,.reveal.in .stat{opacity:1;transform:none;filter:none}
+/* cascade — children land one after another, not as one block */
+.reveal .offer:nth-child(2),.reveal .step:nth-child(2),.reveal .stat:nth-child(2){transition-delay:.1s}
+.reveal .offer:nth-child(3),.reveal .step:nth-child(3),.reveal .stat:nth-child(3){transition-delay:.2s}
+.reveal .step:nth-child(4),.reveal .stat:nth-child(4){transition-delay:.3s}
 .reveal.in .offer:nth-child(1),.reveal.in .step:nth-child(1),.reveal.in .stat:nth-child(1){transition-delay:.05s}
 .reveal.in .offer:nth-child(2),.reveal.in .step:nth-child(2),.reveal.in .stat:nth-child(2){transition-delay:.17s}
 .reveal.in .offer:nth-child(3),.reveal.in .step:nth-child(3),.reveal.in .stat:nth-child(3){transition-delay:.29s}
@@ -752,7 +808,7 @@ body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:b
 .scanline{position:absolute;left:0;right:0;top:0;height:1px;z-index:4;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(255,255,255,.28) 50%,transparent);animation:scanmove 9s linear 2.5s infinite}
 @keyframes scanmove{0%{transform:translateY(-8vh);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(108vh);opacity:0}}
 @supports not ((-webkit-background-clip:text) or (background-clip:text)){.metal,.stat .n,.badge .v,.step .num,.ghost b.fill{color:#e8e8ec!important;-webkit-text-fill-color:#e8e8ec!important}}
-@media(prefers-reduced-motion:reduce){.reveal,.rise,.reveal .offer,.reveal .step,.reveal .stat{opacity:1;transform:none;transition:none}.shine::after,.glow,.btn-silver.pulse,.scrollcue .m::after,.scanline,.marquee .track,.ghost .track,#intro .mk::after,.iwork-live i,.iwork-skeleton-bar,.iwork-skeleton-block,.iwork-skeleton-lines span,.statement::before,.cta-band::before,body>section::before,.statement .metal{animation:none}.iwork-card.is-hovered{transform:none}}
+@media(prefers-reduced-motion:reduce){.reveal,.rise,.reveal .offer,.reveal .step,.reveal .stat{opacity:1;transform:none;filter:none;transition:none}.shine::after,.glow,.aurora,.grid-fx,.btn-silver.pulse,.scrollcue .m::after,.scanline,.marquee .track,.ghost .track,#intro .mk::after,.iwork-live i,.iwork-skeleton-bar,.iwork-skeleton-block,.iwork-skeleton-lines span,.statement::before,.cta-band::before,.qd-cta-panel::after,body>section::before,.statement .metal,.qd-cta-h2,.qd-cta-eyebrow i{animation:none}#bgDust,.hero-video{display:none}.iwork-card.is-hovered{transform:none}}
 @media(hover:none),(pointer:coarse){.badge:hover,.offer:hover,.qchip:hover,.need:hover,.btn-silver:hover,.btn-ghost:hover,.iwork-card.is-hovered{transform:none;box-shadow:inherit}.cursor-glow{display:none!important}}
 /* ── Large-screen fitment (placed last so it wins source-order over the base rules) ──
    The hero .wrap is a flex item that otherwise shrinks to its content and centers,
@@ -772,11 +828,14 @@ body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:b
   .wrap{max-width:1480px}
 }
 </style>
+<link rel="stylesheet" href="assets/page-fx.css">
+<script defer src="assets/page-fx.js"></script>
 </head>
 <body>
 <div id="intro"><div class="mk metal">QD</div><div class="iload" data-i18n="intro.loading">Loading experience</div></div>
 
-<div class="bg-fx" aria-hidden="true"><div class="glow a"></div><div class="glow b"></div><div class="glow c"></div><div class="glow d"></div><div class="glow e"></div><div class="grid-fx"></div></div>
+<div class="bg-fx" aria-hidden="true"><div class="hero-video" id="heroVideo"></div><div class="aurora"></div><div class="glow a"></div><div class="glow b"></div><div class="glow c"></div><div class="glow d"></div><div class="glow e"></div><div class="grid-fx"></div></div>
+<canvas id="bgDust" aria-hidden="true"></canvas>
 <div class="grain" aria-hidden="true"></div><div class="vignette" aria-hidden="true"></div>
 <div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
 <div id="progress" aria-hidden="true"></div>
@@ -956,21 +1015,52 @@ body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:b
 </section>
 
 <section id="contact">
-  <div class="wrap reveal"><div class="cta-band">
-    <h2 class="metal" data-i18n-html="contact.h2">Tell us the problem.<br>We'll build the system.</h2>
-    <p class="sub" style="margin:18px auto 0" data-i18n="contact.sub">One free 15-minute call. You leave with a clear plan, timeline, and price — most quotes go out the same day.</p>
-    <div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin:22px 0 0;font-size:13px;color:var(--dim)"><span data-i18n="contact.step1">Book</span><span style="opacity:.45">→</span><span data-i18n="contact.step2">15-min call</span><span style="opacity:.45">→</span><span data-i18n="contact.step3">Your plan &amp; fixed price</span></div>
-    <div class="cta-row" style="justify-content:center;margin-top:28px">
-      <a class="btn btn-silver" href="#" data-book data-magnetic style="padding:18px 36px;font-size:16px" data-i18n="cta.book">Book a Free Call →</a>
+  <div class="wrap reveal">
+    <div class="qd-cta">
+      <!-- Left: headline + CTA -->
+      <div class="qd-cta-left">
+        <div class="qd-cta-eyebrow"><i></i> <span data-i18n="contact.eyebrow">QD SYSTEMS · START A BUILD</span></div>
+        <h2 class="qd-cta-h2" data-i18n-html="contact.h2">Tell us the problem.<br>We'll build the system.</h2>
+        <p class="qd-cta-sub" data-i18n="contact.sub">One free 15-minute call. You leave with a clear plan, timeline, and price — most quotes go out the same day.</p>
+        <div class="qd-cta-btns">
+          <a class="btn btn-silver" href="#" data-book data-magnetic data-i18n="cta.book">Book a Free Call →</a>
+          <div class="qd-cta-trust"><i></i> <span data-i18n="contact.note">Free · no obligation · we reply within the hour</span></div>
+          <a id="contactCta" class="qd-cta-wa" href="https://wa.me/971505349907?text=Hi%20QD%20%E2%80%94%20I%27d%20like%20to%20discuss%20a%20project%20with%20you." target="_blank" rel="noopener noreferrer" data-i18n="contact.wa">Prefer WhatsApp? Message us →</a>
+        </div>
+      </div>
+      <!-- Right: What happens next panel -->
+      <div class="qd-cta-right">
+        <div class="qd-cta-panel">
+          <div class="qd-cta-panel-label" data-i18n="contact.whn">What happens next</div>
+          <div class="qd-cta-steps">
+            <div class="qd-cta-step">
+              <span class="qd-cta-step-num">01</span>
+              <div class="qd-cta-step-body"><strong data-i18n="contact.ts1">Book a free call</strong><small data-i18n="contact.ts1s">Takes 15 min · free</small></div>
+            </div>
+            <div class="qd-cta-step">
+              <span class="qd-cta-step-num">02</span>
+              <div class="qd-cta-step-body"><strong data-i18n="contact.ts2">We review &amp; quote</strong><small data-i18n="contact.ts2s">Fixed price in writing</small></div>
+            </div>
+            <div class="qd-cta-step">
+              <span class="qd-cta-step-num">03</span>
+              <div class="qd-cta-step-body"><strong data-i18n="contact.ts3">You go live</strong><small data-i18n="contact.ts3s">Demo in hours</small></div>
+            </div>
+          </div>
+          <div class="qd-cta-chips">
+            <div class="qd-cta-chip"><span class="cv">1–3h</span><span class="ck" data-i18n="hero.badge.demo.k">Working demo</span></div>
+            <div class="qd-cta-chip"><span class="cv">24h</span><span class="ck" data-i18n="hero.badge.web.k">Website</span></div>
+            <div class="qd-cta-chip"><span class="cv">&lt;1h</span><span class="ck" data-i18n="contact.reply">Reply time</span></div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="cta-note" style="justify-content:center;margin-top:14px"><span class="g"></span> <span data-i18n="contact.note">Free · no obligation · we reply within the hour</span></div>
-    <div style="margin-top:16px"><a id="contactCta" href="https://wa.me/971505349907?text=Hi%20QD%20%E2%80%94%20I%27d%20like%20to%20discuss%20a%20project%20with%20you." target="_blank" rel="noopener noreferrer" style="font-size:13.5px;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:2px" data-i18n="contact.wa">Prefer WhatsApp? Message us →</a></div>
-    <div class="guards" style="margin-top:32px">
+    <!-- Guarantee strip -->
+    <div class="qd-cta-guarantees">
       <span class="guard"><span class="t">✓</span> <span data-i18n="contact.g1">Timeline agreed in writing</span></span>
       <span class="guard"><span class="t">✓</span> <span data-i18n="contact.g2">Pay the final invoice only when you're happy</span></span>
       <span class="guard"><span class="t">✓</span> <span data-i18n="contact.g3">100% custom — no templates</span></span>
     </div>
-  </div></div>
+  </div>
 </section>
 
 <footer><div class="wrap footer-in">
@@ -1133,6 +1223,69 @@ document.querySelectorAll('[data-count],[data-text]').forEach(el=>sio.observe(el
 
 /* drifting particle field — hero only; pauses when scrolled away */
 var reduceMotion=matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+/* hero video loop — lazy: only after full load + idle, desktop only, never blocks first paint */
+(function(){
+  if(reduceMotion||isMobile||(navigator.connection||{}).saveData)return;
+  var host=document.getElementById('heroVideo');if(!host)return;
+  function go(){
+    var v=document.createElement('video');
+    v.muted=true;v.loop=true;v.playsInline=true;
+    v.setAttribute('muted','');v.setAttribute('playsinline','');v.setAttribute('aria-hidden','true');
+    v.innerHTML='<source src="assets/bg-loop.webm" type="video/webm"><source src="assets/bg-loop.mp4" type="video/mp4">';
+    v.addEventListener('canplay',function(){v.classList.add('on');var p=v.play();if(p&&p.catch)p.catch(function(){});},{once:true});
+    host.appendChild(v);
+    /* pause when the tab is hidden — zero decode cost in background */
+    document.addEventListener('visibilitychange',function(){
+      if(document.hidden)v.pause();
+      else{var p=v.play();if(p&&p.catch)p.catch(function(){});}
+    });
+  }
+  if(document.readyState==='complete'){('requestIdleCallback' in window)?requestIdleCallback(go,{timeout:3000}):setTimeout(go,1200);}
+  else addEventListener('load',function(){('requestIdleCallback' in window)?requestIdleCallback(go,{timeout:3000}):setTimeout(go,1200);},{once:true});
+})();
+
+/* 3D tilt + cursor glow on cards — pointer-driven, desktop only */
+(function(){
+  if(isMobile||reduceMotion||!matchMedia('(hover:hover)').matches)return;
+  document.querySelectorAll('.offer,.stat,.step').forEach(function(el){
+    el.classList.add('tilt');
+    el.addEventListener('pointermove',function(e){
+      var r=el.getBoundingClientRect(),px=(e.clientX-r.left)/r.width,py=(e.clientY-r.top)/r.height;
+      el.style.setProperty('--ry',((px-.5)*9)+'deg');
+      el.style.setProperty('--rx',((.5-py)*7)+'deg');
+      el.style.setProperty('--mx',(px*100)+'%');
+      el.style.setProperty('--my',(py*100)+'%');
+      el.classList.add('tilting');
+    });
+    el.addEventListener('pointerleave',function(){
+      el.classList.remove('tilting');
+      el.style.removeProperty('--rx');el.style.removeProperty('--ry');
+    });
+  });
+})();
+
+/* page-wide silver dust — fixed canvas behind every section, slow upward drift + twinkle */
+(function(){
+  const cv=document.getElementById('bgDust');if(!cv)return;
+  if(reduceMotion){cv.style.display='none';return;}
+  const ctx=cv.getContext('2d');
+  let W,H;const N=isMobile?28:64,parts=[];let t=0,visible=!document.hidden;
+  function size(){const d=Math.min(devicePixelRatio,2);W=cv.width=innerWidth*d;H=cv.height=innerHeight*d;}
+  size();addEventListener('resize',size);
+  document.addEventListener('visibilitychange',()=>{visible=!document.hidden;});
+  for(let i=0;i<N;i++)parts.push({x:Math.random(),y:Math.random(),r:Math.random()*1.6+.4,
+    vy:-(Math.random()*.0006+.00018),vx:(Math.random()-.5)*.00035,
+    a:Math.random()*.45+.15,tw:Math.random()*6.28,ts:Math.random()*.7+.3});
+  (function draw(){requestAnimationFrame(draw);if(!visible)return;ctx.clearRect(0,0,W,H);t+=.016;
+    for(const p of parts){p.y+=p.vy;p.x+=p.vx;
+      if(p.y<-.02){p.y=1.02;p.x=Math.random();}
+      if(p.x<-.02)p.x=1.02;else if(p.x>1.02)p.x=-.02;
+      const tw=.5+.5*Math.sin(t*p.ts+p.tw);
+      ctx.beginPath();ctx.arc(p.x*W,p.y*H,p.r*Math.min(devicePixelRatio,2),0,7);
+      ctx.fillStyle='rgba(255,255,255,'+(p.a*tw*.55)+')';ctx.fill();}
+  })();
+})();
 var heroFxActive=true;
 (function(){
   const heroFx=document.querySelector('.qd-hero');

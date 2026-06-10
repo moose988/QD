@@ -236,6 +236,15 @@
     'contact.g1':     { en: 'Timeline agreed in writing', ar: 'جدول زمني متفق عليه كتابياً', zh: '时间表书面约定', ru: 'Сроки зафиксированы письменно' },
     'contact.g2':     { en: 'Pay the final invoice only when you\'re happy', ar: 'ادفع الفاتورة النهائية فقط عند رضاك', zh: '满意后才付尾款', ru: 'Платите финальный счёт, только когда довольны' },
     'contact.g3':     { en: '100% custom — no templates', ar: 'مخصص ١٠٠٪ — بلا قوالب جاهزة', zh: '100% 定制——无模板', ru: '100% кастом — без шаблонов' },
+    'contact.eyebrow':{ en: 'QD SYSTEMS · START A BUILD', ar: 'كيودي سيستمز · ابدأ مشروعك', zh: 'QD SYSTEMS · 开始构建', ru: 'QD SYSTEMS · НАЧАТЬ ПРОЕКТ' },
+    'contact.whn':    { en: 'What happens next', ar: 'ماذا يحدث بعد ذلك', zh: '接下来的流程', ru: 'Что происходит дальше' },
+    'contact.ts1':    { en: 'Book a free call', ar: 'احجز مكالمة مجانية', zh: '预约免费电话', ru: 'Записаться на звонок' },
+    'contact.ts1s':   { en: 'Takes 15 min · free', ar: '١٥ دقيقة فقط · مجانية', zh: '仅需 15 分钟 · 免费', ru: '15 мин · бесплатно' },
+    'contact.ts2':    { en: 'We review & quote', ar: 'نراجع ونحدد النطاق', zh: '我们审核并报价', ru: 'Изучаем и делаем оффер' },
+    'contact.ts2s':   { en: 'Fixed price in writing', ar: 'عرض سعر ثابت كتابياً', zh: '书面固定报价', ru: 'Фиксированная цена письменно' },
+    'contact.ts3':    { en: 'You go live', ar: 'موقعك يذهب للإنترنت', zh: '您的网站上线', ru: 'Вы запускаетесь' },
+    'contact.ts3s':   { en: 'Demo in hours', ar: 'ديمو في ساعات', zh: '几小时内演示', ru: 'Демо за несколько часов' },
+    'contact.reply':  { en: 'Reply time', ar: 'وقت الرد', zh: '回复时间', ru: 'Время ответа' },
 
     /* footer */
     'footer.copy':    { en: '© 2026 QD Systems · Built in the UAE', ar: '© ٢٠٢٦ QD Systems · صُنع في الإمارات', zh: '© 2026 QD Systems · 在阿联酋打造', ru: '© 2026 QD Systems · Сделано в ОАЭ' },
