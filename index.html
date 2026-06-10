@@ -26,6 +26,8 @@
 <link rel="apple-touch-icon" href="assets/qd-logo.jpeg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://unpkg.com" crossorigin>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -361,7 +363,8 @@ body>section{position:relative;z-index:5;padding:100px 0}
 
 /* ── Contact section redesign ───────────────────────────── */
 #contact{padding:88px 0 108px}
-.qd-cta{display:grid;grid-template-columns:1.1fr .9fr;gap:72px;align-items:start;position:relative}
+.qd-cta{display:grid;grid-template-columns:1fr;gap:0;align-items:start;position:relative}
+.qd-cta-left{max-width:640px}
 .qd-cta::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;background:radial-gradient(900px 700px at -5% 50%,rgba(255,255,255,.055),transparent 65%)}
 [dir="rtl"] .qd-cta::before{background:radial-gradient(900px 700px at 105% 50%,rgba(255,255,255,.055),transparent 65%)}
 .qd-cta-left,.qd-cta-right{position:relative;z-index:1}
@@ -1028,31 +1031,6 @@ body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:b
           <a id="contactCta" class="qd-cta-wa" href="https://wa.me/971505349907?text=Hi%20QD%20%E2%80%94%20I%27d%20like%20to%20discuss%20a%20project%20with%20you." target="_blank" rel="noopener noreferrer" data-i18n="contact.wa">Prefer WhatsApp? Message us →</a>
         </div>
       </div>
-      <!-- Right: What happens next panel -->
-      <div class="qd-cta-right">
-        <div class="qd-cta-panel">
-          <div class="qd-cta-panel-label" data-i18n="contact.whn">What happens next</div>
-          <div class="qd-cta-steps">
-            <div class="qd-cta-step">
-              <span class="qd-cta-step-num">01</span>
-              <div class="qd-cta-step-body"><strong data-i18n="contact.ts1">Book a free call</strong><small data-i18n="contact.ts1s">Takes 15 min · free</small></div>
-            </div>
-            <div class="qd-cta-step">
-              <span class="qd-cta-step-num">02</span>
-              <div class="qd-cta-step-body"><strong data-i18n="contact.ts2">We review &amp; quote</strong><small data-i18n="contact.ts2s">Fixed price in writing</small></div>
-            </div>
-            <div class="qd-cta-step">
-              <span class="qd-cta-step-num">03</span>
-              <div class="qd-cta-step-body"><strong data-i18n="contact.ts3">You go live</strong><small data-i18n="contact.ts3s">Demo in hours</small></div>
-            </div>
-          </div>
-          <div class="qd-cta-chips">
-            <div class="qd-cta-chip"><span class="cv">1–3h</span><span class="ck" data-i18n="hero.badge.demo.k">Working demo</span></div>
-            <div class="qd-cta-chip"><span class="cv">24h</span><span class="ck" data-i18n="hero.badge.web.k">Website</span></div>
-            <div class="qd-cta-chip"><span class="cv">&lt;1h</span><span class="ck" data-i18n="contact.reply">Reply time</span></div>
-          </div>
-        </div>
-      </div>
     </div>
     <!-- Guarantee strip -->
     <div class="qd-cta-guarantees">
@@ -1064,7 +1042,7 @@ body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:b
 </section>
 
 <footer><div class="wrap footer-in">
-  <div class="brand"><img src="assets/qd-logo.jpeg" alt="QD" width="30" height="30" decoding="async" style="width:30px;height:30px;border-radius:7px;object-fit:cover"><b style="letter-spacing:.18em;font-size:12px">QD SYSTEMS</b></div>
+  <div class="brand"><img src="assets/qd-logo.jpeg" alt="QD" width="30" height="30" loading="lazy" decoding="async" style="width:30px;height:30px;border-radius:7px;object-fit:cover"><b style="letter-spacing:.18em;font-size:12px">QD SYSTEMS</b></div>
   <div class="footer-social">
     <a href="https://instagram.com/qdsystems" target="_blank" rel="noopener noreferrer">Instagram</a>
     <a href="https://tiktok.com/@qdsystems" target="_blank" rel="noopener noreferrer">TikTok</a>
@@ -1126,9 +1104,13 @@ body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:b
 /* intro — never gated on window.load (so it can't hang on Three.js/fonts) */
 var isMobile=innerWidth<768;
 var introDelay=isMobile?250:450;
-function qdReveal(){const i=document.getElementById('intro');if(i)i.classList.add('gone');document.body.classList.add('ready');}
+var reduceMotion=matchMedia('(prefers-reduced-motion:reduce)').matches;
+var noMotion=reduceMotion;
+var qdRevealed=false;
+function qdReveal(){if(qdRevealed)return;qdRevealed=true;const i=document.getElementById('intro');if(i)i.classList.add('gone');document.body.classList.add('ready');}
 setTimeout(qdReveal,introDelay);
-addEventListener('load',()=>setTimeout(qdReveal,150));
+addEventListener('load',()=>setTimeout(qdReveal,150),{once:true});
+function qdOnResize(fn){var t=false;return function(){if(t)return;t=true;requestAnimationFrame(function(){fn();t=false;});};}
 
 /* cursor glow + magnetic */
 const cg=document.getElementById('cursorGlow');
@@ -1146,8 +1128,10 @@ document.querySelectorAll('.word').forEach((w,i)=>{w.style.transitionDelay=(.15+
 
 /* scroll progress + nav condense + active link */
 const prog=document.getElementById('progress');const navEl=document.querySelector('nav');const heroCol=document.querySelector('.hero-col');
-const navMap={};document.querySelectorAll('.nav-links a, .nav-mobile-panel a').forEach(a=>{navMap[a.getAttribute('href').slice(1)]=navMap[a.getAttribute('href').slice(1)]||a;});
-const secObs=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting){document.querySelectorAll('.nav-links a.active, .nav-mobile-panel a.active').forEach(a=>a.classList.remove('active'));const id=en.target.id;document.querySelectorAll('.nav-links a[href="#'+id+'"], .nav-mobile-panel a[href="#'+id+'"]').forEach(a=>a.classList.add('active'));}}),{rootMargin:'-35% 0px -55% 0px'});
+const allNavLinks=[...document.querySelectorAll('.nav-links a, .nav-mobile-panel a')];
+const navBySection={};
+allNavLinks.forEach(a=>{const id=a.getAttribute('href').slice(1);(navBySection[id]=navBySection[id]||[]).push(a);});
+const secObs=new IntersectionObserver(es=>es.forEach(en=>{if(!en.isIntersecting)return;allNavLinks.forEach(a=>a.classList.remove('active'));const links=navBySection[en.target.id];if(links)links.forEach(a=>a.classList.add('active'));}),{rootMargin:'-35% 0px -55% 0px'});
 ['work','demo','build','contact'].forEach(id=>{const el=document.getElementById(id);if(el)secObs.observe(el);});
 const heroEl=document.querySelector('.qd-hero');
 if(heroEl&&navEl){const heroNavObs=new IntersectionObserver(es=>es.forEach(en=>navEl.classList.toggle('nav-in-hero',en.isIntersecting)),{threshold:0,rootMargin:'-72px 0px 0px 0px'});heroNavObs.observe(heroEl);}
@@ -1164,13 +1148,29 @@ if(navMobileClose)navMobileClose.addEventListener('click',closeNavMenu);
 if(navMobileOverlay){navMobileOverlay.addEventListener('click',e=>{if(e.target===navMobileOverlay)closeNavMenu();});navMobileOverlay.querySelectorAll('.nav-mobile-links a').forEach(a=>a.addEventListener('click',closeNavMenu));}
 addEventListener('keydown',e=>{if(e.key==='Escape'&&navMobileOverlay&&navMobileOverlay.classList.contains('open'))closeNavMenu();});
 
-const noMotion=matchMedia('(prefers-reduced-motion:reduce)').matches;let ticking=false;
+let scrollTick=false;
 function onScroll(){const h=document.documentElement,top=h.scrollTop,m=h.scrollHeight-h.clientHeight;
-  prog.style.width=(m>0?top/m*100:0)+'%';
-  navEl.classList.toggle('scrolled',top>40);
+  if(prog)prog.style.width=(m>0?top/m*100:0)+'%';
+  if(navEl)navEl.classList.toggle('scrolled',top>40);
   if(heroCol&&!noMotion&&innerWidth>768){const p=Math.min(1,top/640);heroCol.style.transform='translateY('+(p*-56)+'px)';heroCol.style.opacity=String(1-p*0.85);}else if(heroCol){heroCol.style.transform='';heroCol.style.opacity='';}
-  ticking=false;}
-addEventListener('scroll',()=>{if(!ticking){ticking=true;requestAnimationFrame(onScroll);}},{passive:true});
+  scrollTick=false;}
+addEventListener('scroll',()=>{if(!scrollTick){scrollTick=true;requestAnimationFrame(onScroll);}},{passive:true});
+(function(){
+  if(noMotion)return;
+  const gd=document.querySelector('.glow.d'),ge=document.querySelector('.glow.e'),gridFx=document.querySelector('.grid-fx');
+  if(!gd&&!ge&&!gridFx)return;
+  let tick=false;
+  addEventListener('scroll',()=>{
+    if(tick)return;tick=true;
+    requestAnimationFrame(()=>{
+      const y=scrollY;
+      if(gd)gd.style.translate='0 '+(-y*0.045)+'px';
+      if(ge)ge.style.translate='0 '+(-y*0.07)+'px';
+      if(gridFx)gridFx.style.translate='0 '+(-y*0.025)+'px';
+      tick=false;
+    });
+  },{passive:true});
+})();
 
 /* intent selector + quick-quote form → pre-filled WhatsApp */
 const waBase='https://wa.me/971505349907';
@@ -1197,32 +1197,12 @@ if(qform)qform.addEventListener('submit',e=>{e.preventDefault();
 /* reveal */
 const io=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting){en.target.classList.add('in');io.unobserve(en.target);}}),{threshold:.14});
 
-/* ---------- journey layer: chapter lighting + scroll parallax ---------- */
-(function(){
-  if(reduceMotion)return;
-  /* glow parallax — background lights drift against the scroll (uses `translate`, additive with their CSS animations) */
-  const gd=document.querySelector('.glow.d'),ge=document.querySelector('.glow.e'),gridFx=document.querySelector('.grid-fx');
-  let tick=false;
-  addEventListener('scroll',()=>{
-    if(tick)return;tick=true;
-    requestAnimationFrame(()=>{
-      const y=scrollY;
-      if(gd)gd.style.translate='0 '+(-y*0.045)+'px';
-      if(ge)ge.style.translate='0 '+(-y*0.07)+'px';
-      if(gridFx)gridFx.style.translate='0 '+(-y*0.025)+'px';
-      tick=false;
-    });
-  },{passive:true});
-})();
 document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 
 /* count up */
 function countUp(el){const t=+el.dataset.count,suf=el.dataset.suffix||'';let n=0;const s=Math.max(1,t/40);(function tick(){n+=s;if(n>=t){el.textContent=t+suf;}else{el.textContent=Math.floor(n)+suf;requestAnimationFrame(tick);}})();}
 const sio=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting){const el=en.target;el.dataset.text?el.textContent=el.dataset.text:countUp(el);sio.unobserve(el);}}),{threshold:.6});
 document.querySelectorAll('[data-count],[data-text]').forEach(el=>sio.observe(el));
-
-/* drifting particle field — hero only; pauses when scrolled away */
-var reduceMotion=matchMedia('(prefers-reduced-motion:reduce)').matches;
 
 /* hero video loop — lazy: only after full load + idle, desktop only, never blocks first paint */
 (function(){
@@ -1272,8 +1252,8 @@ var reduceMotion=matchMedia('(prefers-reduced-motion:reduce)').matches;
   const ctx=cv.getContext('2d');
   let W,H;const N=isMobile?28:64,parts=[];let t=0,visible=!document.hidden;
   function size(){const d=Math.min(devicePixelRatio,2);W=cv.width=innerWidth*d;H=cv.height=innerHeight*d;}
-  size();addEventListener('resize',size);
-  document.addEventListener('visibilitychange',()=>{visible=!document.hidden;});
+  size();addEventListener('resize',qdOnResize(size),{passive:true});
+  document.addEventListener('visibilitychange',()=>{visible=!document.hidden;},{passive:true});
   for(let i=0;i<N;i++)parts.push({x:Math.random(),y:Math.random(),r:Math.random()*1.6+.4,
     vy:-(Math.random()*.0006+.00018),vx:(Math.random()-.5)*.00035,
     a:Math.random()*.45+.15,tw:Math.random()*6.28,ts:Math.random()*.7+.3});
@@ -1296,10 +1276,11 @@ var heroFxActive=true;
   if(reduceMotion){cv.style.display='none';return;}
   const host=cv.parentElement;
   const ctx=cv.getContext('2d');
-  let W,H,parts=[];const N=isMobile?30:46;let pt=0;
+  let W,H,parts=[];const N=isMobile?30:46;let pt=0,pxVisible=!document.hidden;
   function size(){const w=host?host.clientWidth:innerWidth,h=host?host.clientHeight:innerHeight;W=cv.width=w*Math.min(devicePixelRatio,2);H=cv.height=h*Math.min(devicePixelRatio,2);}
-  size();addEventListener('resize',size);
-  if(host&&window.ResizeObserver)new ResizeObserver(size).observe(host);
+  size();addEventListener('resize',qdOnResize(size),{passive:true});
+  document.addEventListener('visibilitychange',()=>{pxVisible=!document.hidden;},{passive:true});
+  if(host&&window.ResizeObserver)new ResizeObserver(qdOnResize(size)).observe(host);
   for(let i=0;i<N;i++)parts.push({x:Math.random()*1,y:Math.random()*1,r:(Math.random()*1.8+.4),vy:-(Math.random()*.0008+.00025),vx:(Math.random()-.5)*.0004,a:Math.random()*.5+.25,tw:Math.random()*6.28,ts:Math.random()*.8+.4});
   /* ---- shooting stars: random spawn point, angle, speed and tail — every one is different ---- */
   const meteors=[];let nextMeteor=1.2+Math.random()*2;
@@ -1316,7 +1297,7 @@ var heroFxActive=true;
       bright:0.45+Math.random()*0.45
     });
   }
-  (function draw(){requestAnimationFrame(draw);if(!heroFxActive)return;ctx.clearRect(0,0,W,H);pt+=0.016;
+  (function draw(){requestAnimationFrame(draw);if(!heroFxActive||!pxVisible)return;ctx.clearRect(0,0,W,H);pt+=0.016;
     for(const p of parts){p.y+=p.vy;p.x+=p.vx;if(p.y<-.02){p.y=1.02;p.x=Math.random();}
       const x=p.x*W,y=p.y*H,r=p.r*Math.min(devicePixelRatio,2);
       const tw=.55+.45*Math.sin(pt*p.ts+p.tw); /* twinkle */
@@ -1351,7 +1332,7 @@ document.querySelectorAll('.qa button').forEach(b=>{b.setAttribute('aria-expande
   document.querySelectorAll('.qa.open').forEach(o=>{o.classList.remove('open');o.querySelector('.ans').style.maxHeight=null;o.querySelector('button').setAttribute('aria-expanded','false');});
   if(!open){qa.classList.add('open');ans.style.maxHeight=ans.scrollHeight+'px';b.setAttribute('aria-expanded','true');}
 });});
-addEventListener('resize',()=>{const o=document.querySelector('.qa.open .ans');if(o)o.style.maxHeight=o.scrollHeight+'px';});
+addEventListener('resize',()=>{const o=document.querySelector('.qa.open .ans');if(o)o.style.maxHeight=o.scrollHeight+'px';},{passive:true});
 
 /* interactive chat — factory powers the in-page demo section (language-aware via window.QD_DEMO) */
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
@@ -1461,7 +1442,7 @@ if(bForm)bForm.addEventListener('submit',async e=>{e.preventDefault();
 (function(){
   if(!window.THREE) return;
   const canvas=document.getElementById('gl'); if(!canvas) return;
-  if(matchMedia('(prefers-reduced-motion:reduce)').matches){ canvas.style.display='none'; return; }
+  if(reduceMotion){ canvas.style.display='none'; return; }
   const mobileGl=innerWidth<768;
   const renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:!mobileGl,powerPreference:mobileGl?'low-power':'default'});
   renderer.setPixelRatio(Math.min(devicePixelRatio,mobileGl?1.5:2));
@@ -1496,10 +1477,11 @@ if(bForm)bForm.addEventListener('submit',async e=>{e.preventDefault();
     }
     camera.updateProjectionMatrix();
   }
-  resize(); addEventListener('resize',resize);
+  resize(); addEventListener('resize',qdOnResize(resize),{passive:true});
   addEventListener('qd:langchange',()=>setTimeout(resize,60));
-  let t=0,tx=0,ty=0,sp=0;
-  (function loop(){ requestAnimationFrame(loop); if(!heroFxActive) return; t+=0.016;
+  let t=0,tx=0,ty=0,sp=0,glVisible=!document.hidden;
+  document.addEventListener('visibilitychange',()=>{glVisible=!document.hidden;},{passive:true});
+  (function loop(){ requestAnimationFrame(loop); if(!heroFxActive||!glVisible) return; t+=0.016;
     /* scroll progress through the hero (0→1) — the object reacts to the journey instead of ignoring it */
     const target=Math.min(scrollY/Math.max(innerHeight,1),1);
     sp+=(target-sp)*0.06; /* eased */

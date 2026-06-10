@@ -55,6 +55,14 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js';
 import { CATALOG, catalogToLineItem } from '/app/lib/quote-catalog.js';
 import { computeTotals, formatAED } from '/app/lib/quote-totals.js';
+import {
+  INVITATIONS_COLLECTION,
+  INVITATION_RSVPS_COLLECTION,
+  buildInvitationWhatsappMessage,
+  createDefaultInvitationFeatures,
+  deriveCoupleDisplayName,
+  normalizeRsvpRecord
+} from './invite/invite-shared.js';
 
 const root = document.getElementById('qd-admin-root');
 const allowedAdminEmails = [
@@ -179,6 +187,12 @@ const state = {
   invitations: [],
   outreachLeads: [],
   invitationRsvps: [],
+  invitationRsvpFilters: {
+    search: '',
+    phone: '',
+    attending: 'all',
+    sort: 'newest'
+  },
   activityLogs: [],
   submissionActivityLogs: [],
   filters: {
@@ -545,11 +559,13 @@ const createEmptyInvitationDraft = () => ({
   musicUrl: '',
   musicStoragePath: '',
   rsvpEnabled: true,
+  rsvpDeadline: '',
   whatsappNumber: '',
   active: false,
   status: 'draft',
   views: 0,
-  rsvpCount: 0
+  rsvpCount: 0,
+  features: createDefaultInvitationFeatures()
 });
 
 const createEmptyDemoDraft = () => ({
@@ -601,6 +617,7 @@ const hydrateInvitation = (snapshot) => ({
 
 const hydrateInvitationRsvp = (snapshot) => ({
   id: snapshot.id,
+  ...normalizeRsvpRecord(snapshot.data()),
   ...snapshot.data()
 });
 
@@ -898,16 +915,7 @@ const getInvitationStatusClass = (invitation) => {
   return 'is-draft';
 };
 
-const deriveInvitationDisplayName = (draft) => {
-  const bride = String(draft?.brideName || '').trim();
-  const groom = String(draft?.groomName || '').trim();
-  const manual = String(draft?.coupleDisplayName || '').trim();
-  if (manual) return manual;
-  if (bride && groom) {
-    return draft?.languageDefault === 'ar' ? `${bride} و ${groom}` : `${bride} & ${groom}`;
-  }
-  return bride || groom || '';
-};
+const deriveInvitationDisplayName = (draft) => deriveCoupleDisplayName(draft, draft?.languageDefault === 'ar' ? 'ar' : 'en');
 
 const formatInvitationDate = (value) => {
   if (!value) return 'Date not set';
@@ -924,14 +932,79 @@ const formatInvitationRsvpTime = (value) => {
 
 const normalizeWhatsappAdminNumber = (value) => String(value ?? '').replace(/[^\d+]/g, '');
 
-const buildInvitationWhatsappShareUrl = (invitation) => {
+const buildInvitationWhatsappShareUrl = (invitation, lang) => {
   const link = getInvitePublicUrl(invitation.slug || '');
-  const names = deriveInvitationDisplayName(invitation) || 'Our wedding';
-  const isArabic = invitation.languageDefault === 'ar';
-  const message = isArabic
-    ? `ندعوكم لحضور زفاف ${names}. رابط الدعوة: ${link}`
-    : `You are invited to celebrate ${names}. View invitation: ${link}`;
-  return `https://wa.me/?text=${encodeURIComponent(message)}`;
+  const message = buildInvitationWhatsappMessage(invitation, lang || invitation.languageDefault || 'en', link);
+  const number = String(invitation.whatsappNumber || '').replace(/[^\d]/g, '');
+  const base = number ? `https://wa.me/${number}` : 'https://wa.me/';
+  return `${base}?text=${encodeURIComponent(message)}`;
+};
+
+const getFilteredInvitationRsvps = () => {
+  const filters = state.invitationRsvpFilters;
+  const search = filters.search.trim().toLowerCase();
+  const phone = filters.phone.trim().toLowerCase();
+  let items = [...state.invitationRsvps];
+
+  if (search) {
+    items = items.filter((rsvp) => String(rsvp.guestName || rsvp.name || '').toLowerCase().includes(search));
+  }
+  if (phone) {
+    items = items.filter((rsvp) => String(rsvp.phone || '').toLowerCase().includes(phone));
+  }
+  if (filters.attending === 'yes') {
+    items = items.filter((rsvp) => rsvp.attending === 'yes');
+  } else if (filters.attending === 'no') {
+    items = items.filter((rsvp) => rsvp.attending === 'no');
+  }
+
+  items.sort((a, b) => {
+    const aMs = getTimestampMs(a.createdAt) || 0;
+    const bMs = getTimestampMs(b.createdAt) || 0;
+    return filters.sort === 'oldest' ? aMs - bMs : bMs - aMs;
+  });
+
+  return items;
+};
+
+const getInvitationRsvpSummary = (rsvps, invitation) => {
+  const total = rsvps.length;
+  const attending = rsvps.filter((rsvp) => rsvp.attending === 'yes');
+  const notAttending = rsvps.filter((rsvp) => rsvp.attending === 'no');
+  const expectedGuests = attending.reduce((sum, rsvp) => sum + Number(rsvp.guestCount ?? rsvp.guests ?? 1), 0);
+  const views = Number(invitation?.views || 0);
+  const responseRate = views > 0 ? ((total / views) * 100).toFixed(1) : null;
+  return { total, attending: attending.length, notAttending: notAttending.length, expectedGuests, responseRate };
+};
+
+const exportInvitationRsvpsCsv = (invitation, rsvps) => {
+  const rows = [
+    ['Guest Name', 'Phone', 'Attending', 'Guest Count', 'Message', 'Submitted'],
+    ...rsvps.map((rsvp) => [
+      rsvp.guestName || rsvp.name || '',
+      rsvp.phone || '',
+      rsvp.attending === 'yes' ? 'Yes' : 'No',
+      String(rsvp.guestCount ?? rsvp.guests ?? ''),
+      (rsvp.message || '').replace(/"/g, '""'),
+      formatInvitationRsvpTime(rsvp.createdAt)
+    ])
+  ];
+  const csv = rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `rsvps-${invitation.slug || invitation.id || 'invitation'}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+};
+
+const copyInvitationWhatsappMessage = async (invitation, lang) => {
+  const message = buildInvitationWhatsappMessage(invitation, lang, getInvitePublicUrl(invitation.slug || ''));
+  await navigator.clipboard.writeText(message);
+  showAdminToast(lang === 'ar' ? 'Arabic WhatsApp message copied.' : 'English WhatsApp message copied.');
 };
 
 const getInvitationEditorDraftFromState = () => ({
@@ -3207,6 +3280,7 @@ const renderInvitationRows = (items) => {
           <button class="qd-admin-row-button" type="button" data-action="edit-invitation" data-id="${escapeHtml(invitation.id)}">Edit</button>
           <button class="qd-admin-row-button" type="button" data-action="preview-invitation" data-id="${escapeHtml(invitation.id)}">Preview</button>
           <button class="qd-admin-row-button" type="button" data-action="copy-invitation-link" data-id="${escapeHtml(invitation.id)}">Copy Link</button>
+          <button class="qd-admin-row-button" type="button" data-action="download-invitation-qr-by-id" data-id="${escapeHtml(invitation.id)}">QR</button>
           <button class="qd-admin-row-button" type="button" data-action="share-invitation-whatsapp" data-id="${escapeHtml(invitation.id)}">WhatsApp</button>
           <button class="qd-admin-row-button is-danger" type="button" data-action="delete-invitation" data-id="${escapeHtml(invitation.id)}">Delete</button>
         </div>
@@ -3249,6 +3323,9 @@ const renderInvitationEditor = () => {
   const draft = getInvitationEditorDraftFromState();
   const previewUrl = buildInvitationPreviewUrl(draft.slug);
   const slugState = state.invitationEditor.slugState || { status: 'idle', message: '' };
+  const filteredRsvps = getFilteredInvitationRsvps();
+  const rsvpSummary = getInvitationRsvpSummary(state.invitationRsvps, draft);
+  const rsvpFilters = state.invitationRsvpFilters;
 
   return `
     <div class="qd-admin-modal-overlay">
@@ -3267,8 +3344,12 @@ const renderInvitationEditor = () => {
             <code id="invitation-preview-url">${escapeHtml(previewUrl)}</code>
             <div class="qd-admin-card-mobile-actions">
               <button class="qd-btn qd-btn-sm qd-admin-action-secondary" type="button" data-action="copy-invitation-preview">Copy Public Link</button>
+              <button class="qd-btn qd-btn-sm qd-admin-action-secondary" type="button" data-action="copy-invitation-whatsapp-en">Copy WhatsApp (EN)</button>
+              <button class="qd-btn qd-btn-sm qd-admin-action-secondary" type="button" data-action="copy-invitation-whatsapp-ar">Copy WhatsApp (AR)</button>
+              <button class="qd-btn qd-btn-sm qd-admin-action-secondary" type="button" data-action="download-invitation-qr">Download QR</button>
               <button class="qd-btn qd-btn-sm qd-admin-action-primary" type="button" data-action="preview-invitation-draft">Open Preview</button>
             </div>
+            <div class="qd-admin-invite-qr-wrap" id="invitation-qr-preview" data-invite-url="${escapeHtml(getInvitePublicUrl(draft.slug || 'your-invitation'))}"></div>
           </div>
         </section>
 
@@ -3350,6 +3431,10 @@ const renderInvitationEditor = () => {
               <input id="invite-music-file" class="qd-admin-input qd-admin-file-input" name="musicFile" type="file" accept="audio/*">
               <div class="qd-admin-field-hint">${escapeHtml(state.invitationEditor.pendingMusicFile?.name || draft.musicUrl || 'Uploads to Firebase Storage at invitations/[slug]/music.*')}</div>
             </div>
+            <div class="qd-admin-field">
+              <label for="invite-rsvp-deadline">RSVP Deadline</label>
+              <input id="invite-rsvp-deadline" class="qd-admin-input" name="rsvpDeadline" type="date" value="${escapeHtml(draft.rsvpDeadline || '')}">
+            </div>
             <label class="qd-admin-toggle">
               <input id="invite-rsvp-enabled" name="rsvpEnabled" type="checkbox" ${draft.rsvpEnabled ? 'checked' : ''}>
               <span>RSVP form is enabled</span>
@@ -3364,9 +3449,28 @@ const renderInvitationEditor = () => {
             <div class="qd-admin-drawer-group-head">
               <h3>RSVP Activity</h3>
               <div class="qd-admin-card-slug-wrap">
-                <span>${escapeHtml(String(draft.rsvpCount || 0))} total RSVPs</span>
-                <small>${escapeHtml(String(draft.views || 0))} public views</small>
+                <span>${escapeHtml(String(rsvpSummary.total))} responses · ${escapeHtml(String(rsvpSummary.expectedGuests))} expected guests</span>
+                <small>${escapeHtml(String(draft.views || 0))} views${rsvpSummary.responseRate ? ` · ${escapeHtml(rsvpSummary.responseRate)}% response rate` : ''}</small>
               </div>
+            </div>
+            <div class="qd-admin-invite-rsvp-summary">
+              <span><strong>${escapeHtml(String(rsvpSummary.attending))}</strong> attending</span>
+              <span><strong>${escapeHtml(String(rsvpSummary.notAttending))}</strong> not attending</span>
+              <span><strong>${escapeHtml(String(rsvpSummary.total))}</strong> total RSVPs</span>
+            </div>
+            <div class="qd-admin-invite-rsvp-toolbar">
+              <input class="qd-admin-input" type="search" id="invite-rsvp-search" placeholder="Search guest name" value="${escapeHtml(rsvpFilters.search)}">
+              <input class="qd-admin-input" type="search" id="invite-rsvp-phone" placeholder="Search phone" value="${escapeHtml(rsvpFilters.phone)}">
+              <select class="qd-admin-select" id="invite-rsvp-attending-filter">
+                <option value="all" ${rsvpFilters.attending === 'all' ? 'selected' : ''}>All attendance</option>
+                <option value="yes" ${rsvpFilters.attending === 'yes' ? 'selected' : ''}>Attending</option>
+                <option value="no" ${rsvpFilters.attending === 'no' ? 'selected' : ''}>Not attending</option>
+              </select>
+              <select class="qd-admin-select" id="invite-rsvp-sort">
+                <option value="newest" ${rsvpFilters.sort === 'newest' ? 'selected' : ''}>Newest first</option>
+                <option value="oldest" ${rsvpFilters.sort === 'oldest' ? 'selected' : ''}>Oldest first</option>
+              </select>
+              <button class="qd-btn qd-btn-sm qd-admin-action-secondary" type="button" data-action="export-invitation-rsvps">Export CSV</button>
             </div>
             ${state.invitationRsvpsError ? `<div class="qd-admin-alert" role="alert">${escapeHtml(state.invitationRsvpsError)}</div>` : ''}
             ${state.invitationRsvpsLoading && !state.invitationRsvps.length ? `
@@ -3374,7 +3478,7 @@ const renderInvitationEditor = () => {
                 <strong>Loading RSVPs</strong>
                 <p>Waiting for guest responses.</p>
               </div>
-            ` : state.invitationRsvps.length ? `
+            ` : filteredRsvps.length ? `
               <div class="qd-admin-table-wrap">
                 <table class="qd-admin-table">
                   <thead>
@@ -3388,12 +3492,12 @@ const renderInvitationEditor = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    ${state.invitationRsvps.map((rsvp) => `
+                    ${filteredRsvps.map((rsvp) => `
                       <tr>
-                        <td>${escapeHtml(rsvp.name || '-')}</td>
+                        <td>${escapeHtml(rsvp.guestName || rsvp.name || '-')}</td>
                         <td>${escapeHtml(rsvp.phone || '-')}</td>
                         <td>${escapeHtml(rsvp.attending === 'yes' ? 'Attending' : 'Not attending')}</td>
-                        <td>${escapeHtml(String(rsvp.guests ?? 1))}</td>
+                        <td>${escapeHtml(String(rsvp.guestCount ?? rsvp.guests ?? (rsvp.attending === 'yes' ? 1 : 0)))}</td>
                         <td>${escapeHtml(rsvp.message || '-')}</td>
                         <td>${escapeHtml(formatInvitationRsvpTime(rsvp.createdAt))}</td>
                       </tr>
@@ -4055,6 +4159,7 @@ const render = () => {
       : renderDashboard();
   root.innerHTML = renderAppShell(content);
   syncActivitySubscriptions();
+  mountInvitationQrPreview();
 };
 
 const openSubmission = (id) => {
@@ -4636,7 +4741,7 @@ const subscribeToInvitations = () => {
   state.invitationsError = '';
   render();
 
-  const invitationsRef = collection(db, 'weddingInvitations');
+  const invitationsRef = collection(db, INVITATIONS_COLLECTION);
   const orderedQuery = query(invitationsRef, orderBy('createdAt', 'desc'));
 
   const startListener = (source) => {
@@ -5053,8 +5158,8 @@ const subscribeToInvitationRsvps = (invitationId) => {
   state.invitationRsvps = [];
   currentInvitationRsvpsTargetId = invitationId;
 
-  const rsvpRef = collection(db, 'weddingInvitations', invitationId, 'rsvps');
-  const rsvpQuery = query(rsvpRef, orderBy('createdAt', 'desc'), limit(100));
+  const rsvpRef = collection(db, INVITATION_RSVPS_COLLECTION);
+  const rsvpQuery = query(rsvpRef, where('inviteId', '==', invitationId), orderBy('createdAt', 'desc'), limit(250));
   unsubscribeInvitationRsvpsSnapshot = onSnapshot(
     rsvpQuery,
     (snapshot) => {
@@ -5075,6 +5180,13 @@ const openInvitationEditor = (mode, invitation = null) => {
   const draft = invitation
     ? { ...createEmptyInvitationDraft(), ...invitation }
     : createEmptyInvitationDraft();
+
+  state.invitationRsvpFilters = {
+    search: '',
+    phone: '',
+    attending: 'all',
+    sort: 'newest'
+  };
 
   state.invitationEditor = {
     open: true,
@@ -5138,9 +5250,14 @@ const captureInvitationDraftFromDom = () => {
     theme: INVITE_THEME_OPTIONS.includes(form.querySelector('[name="theme"]')?.value) ? form.querySelector('[name="theme"]')?.value : 'royal-gold',
     whatsappNumber: normalizeWhatsappAdminNumber(form.querySelector('[name="whatsappNumber"]')?.value || ''),
     rsvpEnabled: Boolean(form.querySelector('[name="rsvpEnabled"]')?.checked),
+    rsvpDeadline: form.querySelector('[name="rsvpDeadline"]')?.value || '',
     active: normalizedStatus === 'active',
     status: normalizedStatus,
-    coupleDisplayName: form.querySelector('[name="coupleDisplayName"]')?.value?.trim() || ''
+    coupleDisplayName: form.querySelector('[name="coupleDisplayName"]')?.value?.trim() || '',
+    features: {
+      ...createDefaultInvitationFeatures(),
+      ...(getInvitationEditorDraftFromState().features || {})
+    }
   };
 };
 
@@ -5153,7 +5270,15 @@ const ensureInvitationEditorData = () => {
 
 const writeInvitationPreviewUrl = (slug) => {
   const preview = document.getElementById('invitation-preview-url');
-  if (preview) preview.textContent = buildInvitationPreviewUrl(slug);
+  const url = buildInvitationPreviewUrl(slug);
+  if (preview) preview.textContent = url;
+  const qrWrap = document.getElementById('invitation-qr-preview');
+  if (qrWrap) {
+    qrWrap.dataset.inviteUrl = url;
+    delete qrWrap.dataset.mounted;
+    qrWrap.innerHTML = '';
+    mountInvitationQrPreview();
+  }
 };
 
 const setInvitationSlugState = (status, message) => {
@@ -5181,7 +5306,7 @@ const validateInvitationSlug = async (slug, { silent = false } = {}) => {
   }
 
   if (!silent) setInvitationSlugState('checking', 'Checking slug availability...');
-  const invitationsRef = collection(db, 'weddingInvitations');
+  const invitationsRef = collection(db, INVITATIONS_COLLECTION);
   const slugQuery = query(invitationsRef, where('slug', '==', normalized), limit(2));
   const snapshot = await getDocs(slugQuery);
   const conflict = snapshot.docs.find((item) => item.id !== state.invitationEditor.id);
@@ -5284,17 +5409,22 @@ const saveInvitationEditor = async () => {
       musicUrl: musicPayload.musicUrl,
       musicStoragePath: musicPayload.musicStoragePath,
       rsvpEnabled: draft.rsvpEnabled !== false,
+      rsvpDeadline: draft.rsvpDeadline || '',
       whatsappNumber: draft.whatsappNumber || '',
       active: draft.status === 'active',
       status: draft.status,
       views: Number(previous.views || draft.views || 0),
       rsvpCount: Number(previous.rsvpCount || draft.rsvpCount || 0),
+      features: {
+        ...createDefaultInvitationFeatures(),
+        ...(previous.features || draft.features || {})
+      },
       createdBy: previous.createdBy || state.user?.email || '',
       updatedAt: serverTimestamp()
     };
 
     if (state.invitationEditor.mode === 'edit' && state.invitationEditor.id) {
-      await updateDoc(doc(db, 'weddingInvitations', state.invitationEditor.id), payload);
+      await updateDoc(doc(db, INVITATIONS_COLLECTION, state.invitationEditor.id), payload);
       if (state.invitationEditor.pendingCoverFile && previous.coverImageStoragePath && previous.coverImageStoragePath !== payload.coverImageStoragePath) {
         await deleteStoragePathIfPresent(previous.coverImageStoragePath);
       }
@@ -5303,7 +5433,7 @@ const saveInvitationEditor = async () => {
       }
       showAdminToast(`Saved invitation ${payload.slug}`);
     } else {
-      await addDoc(collection(db, 'weddingInvitations'), {
+      await addDoc(collection(db, INVITATIONS_COLLECTION), {
         ...payload,
         createdAt: serverTimestamp()
       });
@@ -5337,7 +5467,7 @@ const shareInvitationWhatsapp = (invitation) => {
 const deleteInvitationRecord = async (invitation) => {
   const confirmed = window.confirm(`Delete the wedding invitation for ${deriveInvitationDisplayName(invitation) || invitation.slug}?`);
   if (!confirmed) return;
-  await deleteDoc(doc(db, 'weddingInvitations', invitation.id));
+  await deleteDoc(doc(db, INVITATIONS_COLLECTION, invitation.id));
   await deleteStoragePathIfPresent(invitation.coverImageStoragePath);
   await deleteStoragePathIfPresent(invitation.musicStoragePath);
   showAdminToast(`Deleted invitation ${invitation.slug}`);
@@ -5712,7 +5842,7 @@ const ensureQrCodeLibrary = async () => {
   return window.QRCode;
 };
 
-const downloadCardQr = async (card) => {
+const createInvitationQrCanvas = async (url, size = 1024) => {
   const QRCode = await ensureQrCodeLibrary();
   const mount = document.createElement('div');
   mount.style.position = 'fixed';
@@ -5721,9 +5851,9 @@ const downloadCardQr = async (card) => {
   document.body.appendChild(mount);
 
   new QRCode(mount, {
-    text: getCardPublicUrl(card.slug),
-    width: 1024,
-    height: 1024,
+    text: url,
+    width: size,
+    height: size,
     colorDark: '#000000',
     colorLight: '#ffffff',
     correctLevel: QRCode.CorrectLevel.H
@@ -5735,7 +5865,11 @@ const downloadCardQr = async (card) => {
     mount.remove();
     throw new Error('QR canvas could not be created.');
   }
+  return { canvas, mount };
+};
 
+const downloadCardQr = async (card) => {
+  const { canvas, mount } = await createInvitationQrCanvas(getCardPublicUrl(card.slug));
   const link = document.createElement('a');
   link.href = canvas.toDataURL('image/png');
   link.download = `qd-card-${card.slug}-qr.png`;
@@ -5744,6 +5878,38 @@ const downloadCardQr = async (card) => {
   link.remove();
   mount.remove();
   showAdminToast(`Downloaded QR for ${card.slug}`);
+};
+
+const downloadInvitationQr = async (invitationOrDraft) => {
+  const slug = slugifyCardValue(invitationOrDraft?.slug || '');
+  const url = getInvitePublicUrl(slug || 'your-invitation');
+  const { canvas, mount } = await createInvitationQrCanvas(url);
+  const link = document.createElement('a');
+  link.href = canvas.toDataURL('image/png');
+  link.download = `qd-invite-${slug || 'invitation'}-qr.png`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  mount.remove();
+  showAdminToast(`Downloaded invitation QR for ${slug || 'invitation'}`);
+};
+
+const mountInvitationQrPreview = async () => {
+  const wrap = document.getElementById('invitation-qr-preview');
+  if (!wrap || wrap.dataset.mounted === 'true') return;
+  const url = wrap.dataset.inviteUrl;
+  if (!url) return;
+  try {
+    const { canvas, mount } = await createInvitationQrCanvas(url, 160);
+    canvas.style.width = '160px';
+    canvas.style.height = '160px';
+    wrap.innerHTML = '';
+    wrap.appendChild(canvas);
+    mount.remove();
+    wrap.dataset.mounted = 'true';
+  } catch (error) {
+    console.warn('[invite-qr] preview failed:', error?.message || error);
+  }
 };
 
 const toggleCardActive = async (card) => {
@@ -6170,6 +6336,44 @@ const handleDocumentClick = async (event) => {
     return;
   }
 
+  if (action === 'copy-invitation-whatsapp-en') {
+    const draft = ensureInvitationEditorData();
+    await copyInvitationWhatsappMessage({ ...draft, slug: draft.slug }, 'en');
+    return;
+  }
+
+  if (action === 'copy-invitation-whatsapp-ar') {
+    const draft = ensureInvitationEditorData();
+    await copyInvitationWhatsappMessage({ ...draft, slug: draft.slug }, 'ar');
+    return;
+  }
+
+  if (action === 'download-invitation-qr') {
+    const draft = ensureInvitationEditorData();
+    const invitation = state.invitationEditor.id
+      ? getInvitationById(state.invitationEditor.id)
+      : draft;
+    await downloadInvitationQr(invitation || draft);
+    return;
+  }
+
+  if (action === 'download-invitation-qr-by-id') {
+    const invitation = getInvitationById(actionTarget.dataset.id);
+    if (!invitation) return;
+    await downloadInvitationQr(invitation);
+    return;
+  }
+
+  if (action === 'export-invitation-rsvps') {
+    const invitation = state.invitationEditor.id
+      ? getInvitationById(state.invitationEditor.id)
+      : ensureInvitationEditorData();
+    if (!invitation) return;
+    exportInvitationRsvpsCsv(invitation, getFilteredInvitationRsvps());
+    showAdminToast('RSVP CSV exported.');
+    return;
+  }
+
   if (action === 'download-card-qr') {
     const card = getCardById(actionTarget.dataset.id);
     if (!card) return;
@@ -6448,6 +6652,30 @@ const handleDocumentInput = (event) => {
 
     if (event.target.id === 'invite-whatsapp') {
       event.target.value = normalizeWhatsappAdminNumber(event.target.value);
+      return;
+    }
+
+    if (event.target.id === 'invite-rsvp-search') {
+      state.invitationRsvpFilters.search = event.target.value;
+      render();
+      return;
+    }
+
+    if (event.target.id === 'invite-rsvp-phone') {
+      state.invitationRsvpFilters.phone = event.target.value;
+      render();
+      return;
+    }
+
+    if (event.target.id === 'invite-rsvp-attending-filter') {
+      state.invitationRsvpFilters.attending = event.target.value;
+      render();
+      return;
+    }
+
+    if (event.target.id === 'invite-rsvp-sort') {
+      state.invitationRsvpFilters.sort = event.target.value;
+      render();
       return;
     }
   }

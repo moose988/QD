@@ -211,11 +211,184 @@ video {
   font-size: 0;
 }
 
-.invite-audio-toggle::before {
-  content: '♫';
+.invite-audio-toggle .invite-audio-icon {
   font-size: 0.95rem;
   line-height: 1;
   color: var(--text);
+}
+
+.invite-audio-toggle.is-muted .invite-audio-icon {
+  opacity: 0.45;
+}
+
+.invite-particles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  overflow: hidden;
+}
+
+.invite-particle {
+  position: absolute;
+  bottom: -8px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 80%, #fff);
+  opacity: 0;
+  animation: inviteParticleFloat linear infinite;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+.invite-opening {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 50% 30%, var(--accent-soft), transparent 42%),
+    linear-gradient(180deg, color-mix(in srgb, var(--bg-soft) 60%, var(--bg)), var(--bg));
+}
+
+.invite-opening.is-opening {
+  animation: inviteOpeningExit 900ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.invite-opening-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 55%);
+  pointer-events: none;
+}
+
+.invite-opening-envelope {
+  position: absolute;
+  top: 18%;
+  width: min(72vw, 280px);
+  aspect-ratio: 1.35;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.invite-opening-envelope-body {
+  position: absolute;
+  inset: 28% 0 0;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-strong) 70%, transparent);
+}
+
+.invite-opening-envelope-flap {
+  position: absolute;
+  inset: 0 0 52%;
+  clip-path: polygon(0 100%, 50% 0, 100% 100%);
+  background: color-mix(in srgb, var(--accent-soft) 80%, transparent);
+  border-bottom: 1px solid var(--border);
+  transform-origin: top center;
+  animation: inviteFlapLift 2.4s ease-in-out infinite alternate;
+}
+
+.invite-opening-card {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 22rem);
+  padding: clamp(2.5rem, 6vw, 3.5rem) clamp(1.5rem, 4vw, 2.5rem);
+  border: 1px solid var(--border);
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--surface-strong) 94%, transparent), color-mix(in srgb, var(--surface) 30%, transparent));
+  text-align: center;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+}
+
+.invite-opening-welcome {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 9vw, 3.6rem);
+  font-weight: 500;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  color: var(--text);
+}
+
+body[dir='rtl'] .invite-opening-welcome {
+  font-family: var(--font-ar);
+  letter-spacing: 0;
+  line-height: 1.2;
+}
+
+.invite-opening-sub {
+  margin: 0.85rem 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.invite-opening-btn {
+  margin-top: 2rem;
+  min-height: 3.4rem;
+  width: 100%;
+  padding: 0.85rem 1.5rem;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 220ms ease, background-color 220ms ease, box-shadow 220ms ease;
+}
+
+.invite-opening-btn:hover,
+.invite-opening-btn:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px color-mix(in srgb, var(--accent) 25%, transparent);
+  outline: none;
+}
+
+.invite-page {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.invite-page.is-visible {
+  animation: invitePageReveal 1000ms cubic-bezier(0.2, 0.9, 0.2, 1) forwards;
+}
+
+.invite-rsvp-deadline,
+.invite-rsvp-closed {
+  margin: 0 0 1.25rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.7;
+}
+
+.invite-rsvp-closed {
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+
+body[dir='rtl'] .invite-rsvp-closed {
+  font-family: var(--font-ar);
+}
+
+.invite-venue-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin-top: 1.35rem;
+}
+
+.invite-waze-link::after {
+  content: '↗';
+}
+
+.invite-countdown-section.is-passed .invite-countdown-grid {
+  opacity: 0.55;
 }
 
 .invite-main {
@@ -598,19 +771,6 @@ body[dir='rtl'] .invite-location-link::after {
   content: '←';
 }
 
-.invite-audio-section {
-  max-width: 40rem;
-}
-
-.invite-audio-copy {
-  max-width: 28rem;
-  line-height: 1.8;
-}
-
-.invite-audio-cta {
-  margin-top: 1.25rem;
-}
-
 .invite-rsvp-section {
   max-width: 52rem;
 }
@@ -753,6 +913,47 @@ body[dir='rtl'] .invite-rsvp-feedback {
   }
 }
 
+@keyframes inviteParticleFloat {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.6);
+  }
+
+  15% {
+    opacity: 0.85;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-100vh) scale(1.1);
+  }
+}
+
+@keyframes inviteFlapLift {
+  from {
+    transform: rotateX(0deg);
+  }
+
+  to {
+    transform: rotateX(18deg);
+  }
+}
+
+@keyframes inviteOpeningExit {
+  to {
+    opacity: 0;
+    transform: scale(1.04);
+    filter: blur(6px);
+  }
+}
+
+@keyframes invitePageReveal {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (min-width: 920px) {
   .invite-topbar {
     padding-inline: 32px;
@@ -866,5 +1067,14 @@ body[dir='rtl'] .invite-rsvp-feedback {
   *::after {
     animation: none !important;
     transition: none !important;
+  }
+
+  .invite-page {
+    opacity: 1;
+    transform: none;
+  }
+
+  .invite-particles {
+    display: none;
   }
 }

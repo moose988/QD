@@ -44,8 +44,13 @@
   var N = innerWidth < 768 ? 24 : 56, parts = [];
   function size() { W = cv.width = innerWidth * d; H = cv.height = innerHeight * d; }
   size();
-  addEventListener('resize', size);
-  document.addEventListener('visibilitychange', function () { visible = !document.hidden; });
+  var resizeTick = false;
+  addEventListener('resize', function () {
+    if (resizeTick) return;
+    resizeTick = true;
+    requestAnimationFrame(function () { size(); resizeTick = false; });
+  }, { passive: true });
+  document.addEventListener('visibilitychange', function () { visible = !document.hidden; }, { passive: true });
   for (var i = 0; i < N; i++) parts.push({
     x: Math.random(), y: Math.random(), r: Math.random() * 1.6 + 0.4,
     vy: -(Math.random() * 0.0006 + 0.00018), vx: (Math.random() - 0.5) * 0.00035,

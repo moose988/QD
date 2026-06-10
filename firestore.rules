@@ -60,6 +60,40 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
 
+    // Wedding invitations — public read only when active==true (status draft/disabled
+    // should set active=false in admin). Firestore cannot filter slug queries by status
+    // in rules; the public page enforces status checks client-side after load.
+    match /invitations/{invitationId} {
+      allow read: if isAllowedAdmin() || resource.data.active == true;
+      allow create, delete: if isAllowedAdmin();
+      allow update: if isAllowedAdmin()
+        || (
+          resource.data.active == true
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views'])
+          && request.resource.data.views == resource.data.views + 1
+        )
+        || (
+          resource.data.active == true
+          && resource.data.rsvpEnabled == true
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rsvpCount'])
+          && request.resource.data.rsvpCount == resource.data.rsvpCount + 1
+        );
+    }
+
+    // RSVP responses — public create only; admins read/export/manage.
+    match /invitationRsvps/{rsvpId} {
+      allow read: if isAllowedAdmin();
+      allow create: if request.resource.data.inviteId is string
+        && request.resource.data.inviteSlug is string
+        && request.resource.data.guestName is string
+        && request.resource.data.phone is string
+        && request.resource.data.attending in ['yes', 'no']
+        && get(/databases/$(database)/documents/invitations/$(request.resource.data.inviteId)).data.active == true
+        && get(/databases/$(database)/documents/invitations/$(request.resource.data.inviteId)).data.rsvpEnabled == true;
+      allow update, delete: if isAllowedAdmin();
+    }
+
+    // Legacy collection (pre-migration) — keep until data is moved to /invitations.
     match /weddingInvitations/{invitationId} {
       allow read: if isAllowedAdmin() || resource.data.active == true;
       allow create, delete: if isAllowedAdmin();

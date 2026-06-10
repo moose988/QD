@@ -52,7 +52,7 @@ header{animation:pgFadeIn .7s cubic-bezier(.22,1,.36,1) .04s both}
 </head>
 <body>
 <header><div class="wrap head-in">
-  <a class="brand" href="/"><img src="assets/qd-logo.jpeg" alt="QD"><b>QD SYSTEMS</b></a>
+  <a class="brand" href="/"><img src="assets/qd-logo.jpeg" alt="QD" width="34" height="34" decoding="async"><b>QD SYSTEMS</b></a>
   <div class="lang-toggle"><button id="btnEn" class="active" type="button">EN</button><button id="btnAr" type="button">العربية</button></div>
 </div></header>
 
@@ -127,9 +127,14 @@ header{animation:pgFadeIn .7s cubic-bezier(.22,1,.36,1) .04s both}
   var prog=document.createElement('div');
   prog.id='rprog';
   document.body.appendChild(prog);
+  var scrollTick=false;
   addEventListener('scroll',function(){
-    var h=document.documentElement;
-    prog.style.width=Math.min(100,h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+    if(scrollTick)return;scrollTick=true;
+    requestAnimationFrame(function(){
+      var h=document.documentElement,m=h.scrollHeight-h.clientHeight;
+      prog.style.width=(m>0?Math.min(100,h.scrollTop/m*100):0)+'%';
+      scrollTick=false;
+    });
   },{passive:true});
   if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;
   var io=new IntersectionObserver(function(entries){

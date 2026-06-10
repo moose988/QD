@@ -354,16 +354,29 @@
 
   function applyTranslations(lang) {
     document.querySelectorAll('[data-i18n]').forEach(function (el) {
-      var e = DICT[el.getAttribute('data-i18n')];
-      if (e && (e[lang] || e.en) != null) el.textContent = e[lang] || e.en;
+      var key = el.getAttribute('data-i18n');
+      var e = DICT[key];
+      if (!e) return;
+      var val = e[lang] || e.en;
+      if (val != null && el.textContent !== val) el.textContent = val;
     });
     document.querySelectorAll('[data-i18n-html]').forEach(function (el) {
-      var e = DICT[el.getAttribute('data-i18n-html')];
-      if (e && (e[lang] || e.en) != null) el.innerHTML = e[lang] || e.en;
+      var key = el.getAttribute('data-i18n-html');
+      var e = DICT[key];
+      if (!e) return;
+      var val = e[lang] || e.en;
+      var stamp = lang + ':' + key;
+      if (val != null && el.getAttribute('data-i18n-applied') !== stamp) {
+        el.innerHTML = val;
+        el.setAttribute('data-i18n-applied', stamp);
+      }
     });
     document.querySelectorAll('[data-i18n-ph]').forEach(function (el) {
-      var e = DICT[el.getAttribute('data-i18n-ph')];
-      if (e && (e[lang] || e.en) != null) el.setAttribute('placeholder', e[lang] || e.en);
+      var key = el.getAttribute('data-i18n-ph');
+      var e = DICT[key];
+      if (!e) return;
+      var val = e[lang] || e.en;
+      if (val != null && el.getAttribute('placeholder') !== val) el.setAttribute('placeholder', val);
     });
   }
 
