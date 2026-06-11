@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1781035953380,
+  "lastScanned": 1781200885170,
   "projectRoot": "/Users/mohammedqudaih/Desktop/Projects/Webs/QD_WEB",
   "techStack": {
     "languages": [
@@ -62,38 +62,41 @@
     "api": {
       "path": "api",
       "purpose": "API routes",
-      "fileCount": 11,
-      "lastAccessed": 1781035953252,
+      "fileCount": 12,
+      "lastAccessed": 1781200885151,
       "keyFiles": [
         "book.js",
         "card-view.js",
         "chat.js",
-        "demo-deploy.js",
-        "demo-get.js"
+        "contact-email.js",
+        "demo-deploy.js"
       ]
     },
     "app": {
       "path": "app",
       "purpose": "Application code",
       "fileCount": 0,
-      "lastAccessed": 1781035953320,
+      "lastAccessed": 1781200885151,
       "keyFiles": []
     },
     "assets": {
       "path": "assets",
       "purpose": "Static assets",
-      "fileCount": 2,
-      "lastAccessed": 1781035953325,
+      "fileCount": 10,
+      "lastAccessed": 1781200885151,
       "keyFiles": [
-        "favicon.svg",
-        "qd-logo.jpeg"
+        "bg-fx.css",
+        "bg-fx.js",
+        "bg-loop.mp4",
+        "bg-loop.webm",
+        "bg-poster.jpg"
       ]
     },
     "card": {
       "path": "card",
       "purpose": null,
       "fileCount": 3,
-      "lastAccessed": 1781035953328,
+      "lastAccessed": 1781200885151,
       "keyFiles": [
         "card.css",
         "card.js",
@@ -104,7 +107,7 @@
       "path": "chatbot",
       "purpose": null,
       "fileCount": 2,
-      "lastAccessed": 1781035953331,
+      "lastAccessed": 1781200885154,
       "keyFiles": [
         "chatbot.css",
         "chatbot.js"
@@ -114,7 +117,7 @@
       "path": "components",
       "purpose": "UI components",
       "fileCount": 8,
-      "lastAccessed": 1781035953333,
+      "lastAccessed": 1781200885154,
       "keyFiles": [
         "beforeafter.jsx",
         "cta.jsx",
@@ -127,7 +130,7 @@
       "path": "demo",
       "purpose": null,
       "fileCount": 3,
-      "lastAccessed": 1781035953335,
+      "lastAccessed": 1781200885154,
       "keyFiles": [
         "demo.css",
         "demo.js",
@@ -138,14 +141,14 @@
       "path": "docs",
       "purpose": "Documentation",
       "fileCount": 0,
-      "lastAccessed": 1781035953336,
+      "lastAccessed": 1781200885154,
       "keyFiles": []
     },
     "invite": {
       "path": "invite",
       "purpose": null,
       "fileCount": 3,
-      "lastAccessed": 1781035953336,
+      "lastAccessed": 1781200885154,
       "keyFiles": [
         "index.html",
         "invite.css",
@@ -156,7 +159,7 @@
       "path": "knowledge",
       "purpose": null,
       "fileCount": 7,
-      "lastAccessed": 1781035953337,
+      "lastAccessed": 1781200885154,
       "keyFiles": [
         "company.md",
         "faq.md",
@@ -169,7 +172,7 @@
       "path": "q",
       "purpose": null,
       "fileCount": 3,
-      "lastAccessed": 1781035953359,
+      "lastAccessed": 1781200885155,
       "keyFiles": [
         "index.html",
         "quote.css",
@@ -180,7 +183,7 @@
       "path": "scripts",
       "purpose": "Build/utility scripts",
       "fileCount": 1,
-      "lastAccessed": 1781035953373,
+      "lastAccessed": 1781200885155,
       "keyFiles": [
         "build-kb.mjs"
       ]
@@ -189,14 +192,14 @@
       "path": "test-results",
       "purpose": null,
       "fileCount": 1,
-      "lastAccessed": 1781035953374,
+      "lastAccessed": 1781200885155,
       "keyFiles": []
     },
     "app/lib": {
       "path": "app/lib",
       "purpose": "Library code",
       "fileCount": 4,
-      "lastAccessed": 1781035953376,
+      "lastAccessed": 1781200885155,
       "keyFiles": [
         "quote-catalog.js",
         "quote-labels.js",
@@ -207,32 +210,13 @@
       "path": "scripts/lib",
       "purpose": "Library code",
       "fileCount": 2,
-      "lastAccessed": 1781035953378,
+      "lastAccessed": 1781200885156,
       "keyFiles": [
         "chunker.mjs",
         "embed.mjs"
       ]
     }
   },
-  "hotPaths": [
-    {
-      "path": "i18n.js",
-      "accessCount": 50,
-      "lastAccessed": 1781046351953,
-      "type": "file"
-    },
-    {
-      "path": "chatbot/chatbot.js",
-      "accessCount": 8,
-      "lastAccessed": 1781045680604,
-      "type": "file"
-    },
-    {
-      "path": "api/_lib/prompt.js",
-      "accessCount": 1,
-      "lastAccessed": 1781044079071,
-      "type": "file"
-    }
-  ],
+  "hotPaths": [],
   "userDirectives": []
 }
