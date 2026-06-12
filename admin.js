@@ -84,7 +84,8 @@ import {
   INDUSTRY_MODULES,
   getIndustryGroup,
   getModule,
-  getModulePrice
+  getModulePrice,
+  getAddonLevel
 } from '/app/lib/pricing-model.js';
 import { parseBrief } from '/app/lib/brief-parser.js';
 import {
@@ -7500,12 +7501,13 @@ const applyBriefAnalysis = (analysis) => {
   p.copied = false;
 };
 
-const getPricingCoveredSet = () => {
+const getPricingCoveredSets = () => {
   const sel = getPricingSelection();
-  const covered = new Set();
-  if (sel.foundationId) (FOUNDATION_COVERS[sel.foundationId] || []).forEach((id) => covered.add(id));
-  sel.specials.forEach((sid) => (PACKAGE_COVERS[sid] || []).forEach((id) => covered.add(id)));
-  return covered;
+  const full = new Set();
+  const basic = new Set();
+  if (sel.foundationId) (FOUNDATION_COVERS[sel.foundationId] || []).forEach((id) => basic.add(id));
+  sel.specials.forEach((sid) => (PACKAGE_COVERS[sid] || []).forEach((id) => full.add(id)));
+  return { full, basic };
 };
 
 const PRICING_PRODUCTS = [
@@ -7517,32 +7519,64 @@ const PRICING_PRODUCTS = [
   { key: 'chatbot', name: 'AI Chatbot', desc: 'Lead capture, FAQ, handoff', from: () => getPackage('qd-ai-chatbot').oneTime }
 ];
 
-const renderScopeButtons = (action, current, prices) => `
-  <div class="qd-pricing-tier-btns">
-    ${['low', 'mid', 'high'].map((t) => `
-      <button type="button" class="qd-pricing-tier-btn ${current === t ? 'is-active' : ''}" data-action="${action}" data-tier="${t}">
-        ${t === 'low' ? 'Light' : t === 'mid' ? 'Standard' : 'Complex'} · AED ${formatAED(prices[t])}
-      </button>`).join('')}
-  </div>`;
+// Level cards: every choice shows a NAME, a definite PRICE, and exactly WHAT
+// you get at that price — never a naked range.
+const renderLevelCards = (addonId, action, current, coverage) => {
+  const addon = getAddon(addonId);
+  if (!addon || !addon.levels) return '';
+  const isBasic = coverage && coverage.basic.has(addonId);
+  return `
+    <div class="qd-pricing-levels">
+      ${addon.levels.map((lvl) => {
+        const fullPrice = getAddonPrice(addonId, lvl.tier);
+        const price = isBasic ? Math.max(0, fullPrice - getAddonPrice(addonId, 'low')) : fullPrice;
+        const priceLabel = isBasic && price === 0 ? 'included in build' : `AED ${formatAED(price)}${isBasic ? ' (upgrade)' : ''}`;
+        return `
+          <button type="button" class="qd-pricing-level ${current === lvl.tier ? 'is-active' : ''}" data-action="${action}" data-tier="${lvl.tier}" ${action === 'pricing-set-addon-level' ? `data-addon="${addonId}"` : ''}>
+            <span class="qd-pricing-level-head"><strong>${escTxt(lvl.label)}</strong><em>${priceLabel}</em></span>
+            <span class="qd-pricing-level-spec">${escTxt(lvl.spec)}</span>
+          </button>`;
+      }).join('')}
+    </div>`;
+};
 
-const addonScopePrices = (id) => ({ low: getAddonPrice(id, 'low'), mid: getAddonPrice(id, 'mid'), high: getAddonPrice(id, 'high') });
-
-const renderPricingOptionChip = (addonId, covered, labelOverride) => {
+const renderPricingOptionChip = (addonId, coverage, labelOverride) => {
   const addon = getAddon(addonId);
   if (!addon) return '';
   const selected = state.pricing.addons[addonId];
-  const isCovered = covered.has(addonId);
-  const price = isCovered ? 'included' : addon.low === addon.high ? `AED ${formatAED(addon.low)}${addon.from ? '+' : ''}` : `AED ${formatAED(addon.low)}–${formatAED(addon.high)}`;
+  const isFull = coverage.full.has(addonId);
+  const isBasic = !isFull && coverage.basic.has(addonId);
+  const basicNoUpgrade = isBasic && addon.low === addon.high;
+  const price = isFull || basicNoUpgrade
+    ? 'included'
+    : isBasic
+      ? `basic included · upgrades from AED ${formatAED(getAddonPrice(addonId, 'mid') - addon.low)}`
+      : addon.low === addon.high
+        ? `AED ${formatAED(addon.low)}${addon.from ? '+' : ''}`
+        : `from AED ${formatAED(addon.low)}`;
   return `
-    <button type="button" class="qd-pricing-chip ${selected ? 'is-active' : ''} ${isCovered ? 'is-covered' : ''}" data-action="pricing-toggle-addon" data-addon="${addonId}">
+    <button type="button" class="qd-pricing-chip ${selected ? 'is-active' : ''} ${isFull || basicNoUpgrade ? 'is-covered' : ''}" data-action="pricing-toggle-addon" data-addon="${addonId}" title="${escAttr(addon.desc || '')}">
       <span>${escTxt(labelOverride || addon.name.en)}</span><small>${price}</small>
     </button>`;
+};
+
+// Level pickers for any leveled chips that are currently selected in a panel.
+const renderActiveChipLevels = (addonIds, coverage) => {
+  const p = state.pricing;
+  return addonIds
+    .filter((id) => p.addons[id] && getAddon(id)?.levels && !coverage.full.has(id))
+    .map((id) => `
+      <div class="qd-pricing-panel-row qd-pricing-level-row">
+        <span>${escTxt(getAddon(id).name.en)} — choose level</span>
+        ${renderLevelCards(id, 'pricing-set-addon-level', p.addons[id].tier || 'low', coverage)}
+      </div>`)
+    .join('');
 };
 
 const renderPricingManager = () => {
   const p = state.pricing;
   const estimate = buildEstimate(getPricingSelection());
-  const covered = getPricingCoveredSet();
+  const coverage = getPricingCoveredSets();
 
   // ---- Describe bar ---------------------------------------------------------
   const analysis = p.analysis;
@@ -7583,14 +7617,15 @@ const renderPricingManager = () => {
   const panels = [];
 
   if (p.products.website) {
-    const sizeBtns = FOUNDATIONS.map((f) => `
-      <button type="button" class="qd-pricing-tier-btn ${p.foundationId === f.id ? 'is-active' : ''}" data-action="pricing-set-foundation" data-foundation="${f.id}" title="${escAttr(f.bestFor.en)}">
-        ${escTxt(f.name.en.replace(' build', ''))} · AED ${formatAED(f.base)}
+    const sizeCards = FOUNDATIONS.map((f) => `
+      <button type="button" class="qd-pricing-level qd-pricing-foundation ${p.foundationId === f.id ? 'is-active' : ''}" data-action="pricing-set-foundation" data-foundation="${f.id}">
+        <span class="qd-pricing-level-head"><strong>${escTxt(f.name.en.replace(' build', ''))}</strong><em>AED ${formatAED(f.base)} + pages</em></span>
+        <span class="qd-pricing-level-spec">${f.diff.map(escTxt).join('<br>')}</span>
       </button>`).join('');
     panels.push(`
       <div class="qd-pricing-panel">
         <div class="qd-pricing-panel-title">Website</div>
-        <div class="qd-pricing-panel-row"><span>Build quality</span>${`<div class="qd-pricing-tier-btns">${sizeBtns}</div>`}</div>
+        <div class="qd-pricing-levels qd-pricing-foundations">${sizeCards}</div>
         <div class="qd-pricing-panel-row"><span>Content pages · AED ${PAGE_RATE_STANDARD} each</span>
           <div class="qd-pricing-qty-btns">
             <button type="button" class="qd-pricing-tier-btn" data-action="pricing-pages" data-kind="standard" data-delta="-1">−</button>
@@ -7606,13 +7641,14 @@ const renderPricingManager = () => {
           </div>
         </div>
         <div class="qd-pricing-chips">
-          ${renderPricingOptionChip('extra-language', covered, 'Arabic + English')}
-          ${renderPricingOptionChip('seo-pack', covered)}
-          ${renderPricingOptionChip('smart-form', covered, 'Smart contact / quote form')}
-          ${renderPricingOptionChip('reviews-integration', covered)}
-          ${renderPricingOptionChip('map-embed', covered)}
-          ${renderPricingOptionChip('gbp-setup', covered)}
+          ${renderPricingOptionChip('extra-language', coverage, 'Arabic + English')}
+          ${renderPricingOptionChip('seo-pack', coverage)}
+          ${renderPricingOptionChip('smart-form', coverage, 'Smart contact / quote form')}
+          ${renderPricingOptionChip('reviews-integration', coverage)}
+          ${renderPricingOptionChip('map-embed', coverage)}
+          ${renderPricingOptionChip('gbp-setup', coverage)}
         </div>
+        ${renderActiveChipLevels(['smart-form', 'reviews-integration'], coverage)}
       </div>`);
   }
 
@@ -7627,11 +7663,12 @@ const renderPricingManager = () => {
           </div>
         </div>
         <div class="qd-pricing-chips">
-          ${renderPricingOptionChip('payment-gateway', covered)}
-          ${renderPricingOptionChip('reviews-integration', covered)}
-          ${renderPricingOptionChip('loyalty-integration', covered)}
-          ${renderPricingOptionChip('seo-pack', covered)}
+          ${renderPricingOptionChip('payment-gateway', coverage)}
+          ${renderPricingOptionChip('reviews-integration', coverage)}
+          ${renderPricingOptionChip('loyalty-integration', coverage)}
+          ${renderPricingOptionChip('seo-pack', coverage)}
         </div>
+        ${renderActiveChipLevels(['loyalty-integration', 'reviews-integration'], coverage)}
         <div class="qd-pricing-panel-note">Includes storefront, cart, checkout, shipping, coupons, training. Extra content pages billed per page via Website panel.</div>
       </div>`);
   }
@@ -7647,12 +7684,13 @@ const renderPricingManager = () => {
           </div>
         </div>
         ${p.products.dashboard === 'attached' ? `
-        <div class="qd-pricing-panel-row"><span>Analytics depth</span>${renderScopeButtons('pricing-set-dashboard-tier', p.dashboardTier, addonScopePrices('dashboard-pack'))}</div>` : ''}
+        <div class="qd-pricing-panel-row"><span>Analytics depth</span>${renderLevelCards('dashboard-pack', 'pricing-set-dashboard-tier', p.dashboardTier, coverage)}</div>` : ''}
         <div class="qd-pricing-chips">
-          ${renderPricingOptionChip('roles-logic', covered, 'Staff / driver / branch roles')}
-          ${renderPricingOptionChip('file-uploads', covered, 'Documents & approvals')}
-          ${renderPricingOptionChip('crm-setup', covered, 'Customer management (CRM)')}
+          ${renderPricingOptionChip('roles-logic', coverage, 'Staff / driver / branch roles')}
+          ${renderPricingOptionChip('file-uploads', coverage, 'Documents & approvals')}
+          ${renderPricingOptionChip('crm-setup', coverage, 'Customer management (CRM)')}
         </div>
+        ${renderActiveChipLevels(['roles-logic', 'file-uploads', 'crm-setup'], coverage)}
       </div>`);
   }
 
@@ -7660,7 +7698,7 @@ const renderPricingManager = () => {
     panels.push(`
       <div class="qd-pricing-panel">
         <div class="qd-pricing-panel-title">Booking System</div>
-        <div class="qd-pricing-panel-row"><span>Scope</span>${renderScopeButtons('pricing-set-booking-tier', p.bookingTier, addonScopePrices('booking-integration'))}</div>
+        <div class="qd-pricing-panel-row"><span>Scope</span>${renderLevelCards('booking-integration', 'pricing-set-booking-tier', p.bookingTier, coverage)}</div>
         <div class="qd-pricing-panel-note">Light = simple booking link flow · Standard = calendars + approvals · Complex = staff calendars, reminders, no-show policies.</div>
       </div>`);
   }
@@ -7669,7 +7707,7 @@ const renderPricingManager = () => {
     panels.push(`
       <div class="qd-pricing-panel">
         <div class="qd-pricing-panel-title">Ordering System</div>
-        <div class="qd-pricing-panel-row"><span>Scope</span>${renderScopeButtons('pricing-set-ordering-tier', p.orderingTier, addonScopePrices('ordering-integration'))}</div>
+        <div class="qd-pricing-panel-row"><span>Scope</span>${renderLevelCards('ordering-integration', 'pricing-set-ordering-tier', p.orderingTier, coverage)}</div>
         <div class="qd-pricing-panel-note">Light = menu + basic orders · Standard = pickup/delivery logic · Complex = branch rules + live order status.</div>
       </div>`);
   }
@@ -7685,7 +7723,7 @@ const renderPricingManager = () => {
           </div>
         </div>
         ${p.products.chatbot === 'attached' ? `
-        <div class="qd-pricing-panel-row"><span>Scope</span>${renderScopeButtons('pricing-set-chatbot-tier', p.chatbotTier, addonScopePrices('ai-chatbot-upgrade'))}</div>` : ''}
+        <div class="qd-pricing-panel-row"><span>Scope</span>${renderLevelCards('ai-chatbot-upgrade', 'pricing-set-chatbot-tier', p.chatbotTier, coverage)}</div>` : ''}
         <div class="qd-pricing-panel-note">Platform / API usage billed at cost (pass-through), never bundled flat.</div>
       </div>`);
   }
@@ -7702,13 +7740,22 @@ const renderPricingManager = () => {
     modulesHtml = `
       <div class="qd-pricing-modules">
         ${group.modules.map((mod) => {
-          const price = getModulePrice(mod.id, covered);
+          const price = getModulePrice(mod.id, coverage.full, coverage.basic);
+          const standalone = getModulePrice(mod.id);
           const active = !!p.modules[mod.id];
+          const parts = mod.components.map((c) => {
+            const lvl = getAddonLevel(c.id, c.tier || 'low');
+            const nm = getAddon(c.id)?.name.en || c.id;
+            if (coverage.full.has(c.id)) return `${nm}: in base`;
+            if (coverage.basic.has(c.id)) return `${lvl ? lvl.label : nm}: upgrade only`;
+            return lvl ? `${nm} (${lvl.label})` : nm;
+          });
           return `
             <button type="button" class="qd-pricing-module ${active ? 'is-active' : ''}" data-action="pricing-toggle-module" data-module="${mod.id}">
               <span class="qd-pricing-product-name">${escTxt(mod.name.en)}</span>
               <span class="qd-pricing-product-desc">${escTxt(mod.pitch)}</span>
-              <span class="qd-pricing-product-price">AED ${formatAED(price)}</span>
+              <span class="qd-pricing-product-price">AED ${formatAED(price)}${price < standalone ? ` <s>AED ${formatAED(standalone)}</s>` : ''}</span>
+              <span class="qd-pricing-module-parts">= ${escTxt(parts.join(' + '))}</span>
             </button>`;
         }).join('')}
       </div>`;
@@ -7719,7 +7766,7 @@ const renderPricingManager = () => {
   const filterNorm = filterValue.trim().toLowerCase();
   const moreAddons = ADDONS.filter((a) => !['extra-page', 'extra-landing'].includes(a.id)).map((addon) => {
     const matches = !filterNorm || addon.name.en.toLowerCase().includes(filterNorm) || addon.name.ar.includes(filterValue.trim());
-    return `<div data-pricing-addon-row="${escAttr(addon.name.en.toLowerCase())}" ${matches ? '' : 'hidden'} style="display:${matches ? 'block' : 'none'}">${renderPricingOptionChip(addon.id, covered)}</div>`;
+    return `<div data-pricing-addon-row="${escAttr(addon.name.en.toLowerCase())}" ${matches ? '' : 'hidden'} style="display:${matches ? 'block' : 'none'}">${renderPricingOptionChip(addon.id, coverage)}</div>`;
   }).join('');
 
   const carePlanOptions = CARE_PLANS.map((plan) => `
@@ -7730,7 +7777,7 @@ const renderPricingManager = () => {
   // ---- Summary panel -------------------------------------------------------------
   const lineRows = estimate.lines.filter((line) => line.kind !== 'discount').map((line) => `
     <div class="qd-pricing-summary-line ${line.covered ? 'is-muted' : ''}" ${line.note ? `title="${escAttr(line.note)}"` : ''}>
-      <span>${escTxt(line.label)}${line.tier && line.tier !== 'low' ? ` <em>(${line.tier === 'mid' ? 'standard' : 'complex'})</em>` : ''}${line.covered ? ' <em>(included)</em>' : ''}</span>
+      <span>${escTxt(line.label)}${line.covered ? ' <em>(included)</em>' : ''}${line.upgraded ? ' <em>(upgrade only — basic in base)</em>' : ''}</span>
       <span>${line.covered ? '—' : `${line.from ? 'from ' : ''}AED ${formatAED(line.amount)}`}</span>
     </div>`).join('');
 
@@ -7784,7 +7831,8 @@ const renderPricingManager = () => {
             </button>
             ${p.ui.moreOpen ? `
               <input class="qd-quote-input qd-pricing-filter" type="search" placeholder="Search features…" value="${escAttr(filterValue)}" data-pricing-filter>
-              <div class="qd-pricing-chips">${moreAddons}</div>` : ''}
+              <div class="qd-pricing-chips">${moreAddons}</div>
+              ${renderActiveChipLevels(ADDONS.filter((a) => a.levels).map((a) => a.id), coverage)}` : ''}
           </div>
 
           <div class="qd-pricing-step">
@@ -7900,6 +7948,11 @@ const handlePricingAction = async (action, actionTarget) => {
   if (action === 'pricing-set-store') { p.products.store = actionTarget.dataset.store; return done(); }
   if (action === 'pricing-set-dashboard') { p.products.dashboard = actionTarget.dataset.mode; return done(); }
   if (action === 'pricing-set-chatbot') { p.products.chatbot = actionTarget.dataset.mode; return done(); }
+  if (action === 'pricing-set-addon-level') {
+    const id = actionTarget.dataset.addon;
+    if (p.addons[id]) p.addons[id].tier = actionTarget.dataset.tier;
+    return done();
+  }
   if (action === 'pricing-set-booking-tier') { p.bookingTier = actionTarget.dataset.tier; return done(); }
   if (action === 'pricing-set-ordering-tier') { p.orderingTier = actionTarget.dataset.tier; return done(); }
   if (action === 'pricing-set-chatbot-tier') { p.chatbotTier = actionTarget.dataset.tier; return done(); }

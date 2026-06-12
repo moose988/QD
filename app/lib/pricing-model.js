@@ -172,26 +172,84 @@ export const PACKAGES = [
 // fixed === true → single price, no tier choice.
 // perUnit → quantity input (pages, languages).
 // ---------------------------------------------------------------------------
+// Each ranged add-on has NAMED LEVELS with concrete deliverables, so a price
+// is never shown as a naked range. Level prices map to the documented
+// low/mid/high tiers (mid = midpoint rounded to 50) — no new numbers.
 export const ADDONS = [
-  { id: 'extra-page',          name: { en: 'Extra standard content page', ar: 'صفحة محتوى إضافية' },                low: 250,  high: 250,  fixed: true, perUnit: 'page',     basis: 'positioning' },
-  { id: 'extra-landing',       name: { en: 'Extra advanced landing page', ar: 'صفحة هبوط متقدمة إضافية' },          low: 450,  high: 450,  fixed: true, perUnit: 'page',     basis: 'positioning' },
-  { id: 'extra-language',      name: { en: 'Additional language enablement', ar: 'تفعيل لغة إضافية' },              low: 1500, high: 1500, fixed: true, perUnit: 'language', basis: 'positioning' },
-  { id: 'smart-form',          name: { en: 'Quote / calculator / smart form', ar: 'نموذج ذكي / حاسبة أسعار' },      low: 1500, high: 3500, basis: 'market', refs: ['R24'] },
-  { id: 'crm-setup',           name: { en: 'CRM setup & pipeline customisation', ar: 'إعداد CRM وتخصيص المسار' },   low: 1900, high: 4900, basis: 'market', refs: ['R06', 'R07', 'R08'] },
-  { id: 'booking-integration', name: { en: 'Booking engine integration', ar: 'تكامل محرك الحجوزات' },               low: 1500, high: 3900, basis: 'market', refs: ['R18', 'R19', 'R21'] },
-  { id: 'ordering-integration',name: { en: 'Ordering system integration', ar: 'تكامل نظام الطلبات' },               low: 2500, high: 5900, basis: 'market', refs: ['R20'] },
-  { id: 'payment-gateway',     name: { en: 'Payment gateway integration', ar: 'تكامل بوابة الدفع' },                low: 1500, high: 1500, fixed: true, basis: 'positioning' },
-  { id: 'reviews-integration', name: { en: 'Reviews integration', ar: 'تكامل نظام التقييمات' },                     low: 750,  high: 1500, basis: 'market', refs: ['R22'] },
-  { id: 'loyalty-integration', name: { en: 'Loyalty programme integration', ar: 'تكامل برنامج الولاء' },            low: 1500, high: 3500, basis: 'market', refs: ['R23'] },
-  { id: 'ai-chatbot-upgrade',  name: { en: 'AI chatbot setup / upgrade', ar: 'إعداد / ترقية روبوت المحادثة' },      low: 2900, high: 6900, basis: 'market', refs: ['R12', 'R13', 'R14', 'R15'] },
-  { id: 'dashboard-pack',      name: { en: 'Dashboard reporting pack', ar: 'حزمة لوحات التقارير' },                 low: 2500, high: 6900, basis: 'market', refs: ['R09', 'R10', 'R11'] },
-  { id: 'roles-logic',         name: { en: 'Staff / driver / branch role logic', ar: 'منطق أدوار الموظفين والفروع' },low: 3900, high: 8900, basis: 'positioning' },
-  { id: 'file-uploads',        name: { en: 'File upload, approvals & document trail', ar: 'رفع الملفات والموافقات وسجل المستندات' }, low: 1250, high: 3500, basis: 'positioning' },
-  { id: 'gbp-setup',           name: { en: 'Google Business Profile setup', ar: 'إعداد ملف نشاطي التجاري في جوجل' },low: 600,  high: 600,  fixed: true, basis: 'positioning', refs: ['R27'], note: 'Tool itself is free; price covers setup service.' },
-  { id: 'map-embed',           name: { en: 'Basic map embed / branch map', ar: 'تضمين خريطة أساسية / خريطة فروع' }, low: 750,  high: 750,  fixed: true, basis: 'positioning' },
-  { id: 'api-map',             name: { en: 'API-based map / locator logic', ar: 'خرائط API / محدد مواقع متقدم' },   low: 2500, high: 2500, from: true, basis: 'positioning', refs: ['R28'], note: 'Plus pass-through Google Maps API fees (variable).' },
-  { id: 'seo-pack',            name: { en: 'SEO launch pack', ar: 'حزمة إطلاق SEO' },                               low: 1500, high: 1500, fixed: true, basis: 'positioning' }
+  { id: 'extra-page',          name: { en: 'Extra content page', ar: 'صفحة محتوى إضافية' }, desc: 'One more written page: copy layout, images, mobile-ready', low: 250,  high: 250,  fixed: true, perUnit: 'page',     basis: 'positioning' },
+  { id: 'extra-landing',       name: { en: 'Landing page (video / animated hero)', ar: 'صفحة هبوط (فيديو/حركة)' }, desc: 'High-impact campaign page with video or animated hero and a single call-to-action', low: 450,  high: 450,  fixed: true, perUnit: 'page',     basis: 'positioning' },
+  { id: 'extra-language',      name: { en: 'Extra language (full translation structure)', ar: 'لغة إضافية' }, desc: 'Complete second-language version: structure, navigation, RTL/LTR handling', low: 1500, high: 1500, fixed: true, perUnit: 'language', basis: 'positioning' },
+  { id: 'smart-form',          name: { en: 'Smart form / price calculator', ar: 'نموذج ذكي / حاسبة أسعار' }, desc: 'Forms that qualify leads or quote prices automatically', low: 1500, high: 3500, basis: 'market', refs: ['R24'],
+    levels: [
+      { tier: 'low',  label: 'Smart form',       spec: 'Multi-step form with conditional questions, sends organized lead emails' },
+      { tier: 'mid',  label: 'Price calculator', spec: 'Instant price estimate from the client’s own pricing rules, lead capture' },
+      { tier: 'high', label: 'Quote engine',     spec: 'Calculator + branded PDF quote generation + automatic follow-up email' }
+    ] },
+  { id: 'crm-setup',           name: { en: 'Customer management (CRM)', ar: 'إدارة العملاء (CRM)' }, desc: 'A system to track every customer and follow-up', low: 1900, high: 4900, basis: 'market', refs: ['R06', 'R07', 'R08'],
+    levels: [
+      { tier: 'low',  label: 'Lead inbox',      spec: 'One pipeline: every lead lands in one place with status tracking' },
+      { tier: 'mid',  label: 'Full pipeline',   spec: 'Custom stages, follow-up reminders, customer history, data import' },
+      { tier: 'high', label: 'Sales engine',    spec: 'Multi-team pipelines, customer segments, automations, reports' }
+    ] },
+  { id: 'booking-integration', name: { en: 'Booking & appointments', ar: 'الحجوزات والمواعيد' }, desc: 'Clients book online instead of calling', low: 1500, high: 3900, basis: 'market', refs: ['R18', 'R19', 'R21'],
+    levels: [
+      { tier: 'low',  label: 'Simple booking',  spec: 'Booking page + email confirmations' },
+      { tier: 'mid',  label: 'Managed calendar',spec: 'Approve/reschedule/cancel flows, working-hours rules, admin calendar' },
+      { tier: 'high', label: 'Full scheduling', spec: 'Per-staff calendars, WhatsApp + email reminders, no-show policy, deposit-ready' }
+    ] },
+  { id: 'ordering-integration',name: { en: 'Online ordering', ar: 'الطلبات أونلاين' }, desc: 'Customers order pickup or delivery from the site', low: 2500, high: 5900, basis: 'market', refs: ['R20'],
+    levels: [
+      { tier: 'low',  label: 'Menu + orders',   spec: 'Digital menu, order form, order notification emails' },
+      { tier: 'mid',  label: 'Pickup & delivery',spec: 'Delivery zones, pickup slots, order management screen' },
+      { tier: 'high', label: 'Live operations', spec: 'Live order status for customers, branch rules, promo codes, kitchen view' }
+    ] },
+  { id: 'payment-gateway',     name: { en: 'Online payments setup', ar: 'إعداد الدفع الإلكتروني' }, desc: 'Accept cards online (Stripe/Telr/etc.); gateway fees are the provider’s, billed to the client', low: 1500, high: 1500, fixed: true, basis: 'positioning' },
+  { id: 'reviews-integration', name: { en: 'Reviews & ratings', ar: 'التقييمات والمراجعات' }, desc: 'Show social proof and collect new reviews', low: 750,  high: 1500, basis: 'market', refs: ['R22'],
+    levels: [
+      { tier: 'low',  label: 'Reviews display',   spec: 'Google reviews feed + testimonials section on the site' },
+      { tier: 'mid',  label: 'Review collection', spec: '+ Automatic post-visit review requests by email/WhatsApp link' },
+      { tier: 'high', label: 'Reputation suite',  spec: '+ Multi-platform aggregation and moderation dashboard' }
+    ] },
+  { id: 'loyalty-integration', name: { en: 'Loyalty programme', ar: 'برنامج الولاء' }, desc: 'Points and rewards that bring customers back', low: 1500, high: 3500, basis: 'market', refs: ['R23'],
+    levels: [
+      { tier: 'low',  label: 'Points system',   spec: 'Earn points per purchase, redeem at checkout' },
+      { tier: 'mid',  label: 'Rewards tiers',   spec: '+ Reward levels (silver/gold), rewards catalogue' },
+      { tier: 'high', label: 'Growth loyalty',  spec: '+ Referral rewards, campaigns, loyalty analytics' }
+    ] },
+  { id: 'ai-chatbot-upgrade',  name: { en: 'AI chatbot', ar: 'روبوت محادثة ذكي' }, desc: 'How intelligent the bot is decides the price', low: 2900, high: 6900, basis: 'market', refs: ['R12', 'R13', 'R14', 'R15'],
+    levels: [
+      { tier: 'low',  label: 'FAQ bot',        spec: 'Answers common questions from an approved script, captures leads, English' },
+      { tier: 'mid',  label: 'Smart assistant',spec: 'AI trained on the business’s own content (services, menu, policies), Arabic + English, WhatsApp handoff' },
+      { tier: 'high', label: 'Action bot',     spec: 'Takes actions: checks bookings/orders, syncs to CRM, custom personality, analytics' }
+    ] },
+  { id: 'dashboard-pack',      name: { en: 'Analytics & reports', ar: 'التحليلات والتقارير' }, desc: 'See the numbers that run the business', low: 2500, high: 6900, basis: 'market', refs: ['R09', 'R10', 'R11'],
+    levels: [
+      { tier: 'low',  label: 'KPI panel',       spec: 'One screen: sales, leads, top items, with CSV export' },
+      { tier: 'mid',  label: 'Custom reports',  spec: '+ Filters, date ranges, scheduled email reports' },
+      { tier: 'high', label: 'Full analytics',  spec: '+ Multi-source data, drill-downs, role-based report views' }
+    ] },
+  { id: 'roles-logic',         name: { en: 'Staff / driver / branch roles', ar: 'أدوار الموظفين والسائقين والفروع' }, desc: 'Different logins see and do different things', low: 3900, high: 8900, basis: 'positioning',
+    levels: [
+      { tier: 'low',  label: 'Basic roles',    spec: 'Admin + staff logins with separate permissions' },
+      { tier: 'mid',  label: 'Operations roles',spec: '+ Driver/branch roles, task assignment flows' },
+      { tier: 'high', label: 'Full permissions',spec: '+ Permission matrix, multi-branch control, audit log of every action' }
+    ] },
+  { id: 'file-uploads',        name: { en: 'Documents & approvals', ar: 'المستندات والموافقات' }, desc: 'Upload, organize, and approve files in the system', low: 1250, high: 3500, basis: 'positioning',
+    levels: [
+      { tier: 'low',  label: 'Secure uploads',  spec: 'File uploads on forms, stored safely' },
+      { tier: 'mid',  label: 'Document library',spec: '+ Organized library with approval steps' },
+      { tier: 'high', label: 'Document control',spec: '+ Versioning, multi-step approvals, full audit trail' }
+    ] },
+  { id: 'gbp-setup',           name: { en: 'Google Business Profile setup', ar: 'إعداد ملف النشاط التجاري في جوجل' }, desc: 'The business appears properly on Google Maps & Search (the tool is free — this is the setup work)', low: 600,  high: 600,  fixed: true, basis: 'positioning', refs: ['R27'] },
+  { id: 'map-embed',           name: { en: 'Location map / branches', ar: 'خريطة الموقع والفروع' }, desc: 'Map with the business location(s) on the site', low: 750,  high: 750,  fixed: true, basis: 'positioning' },
+  { id: 'api-map',             name: { en: 'Smart map / store locator', ar: 'خريطة ذكية / محدد فروع' }, desc: 'Interactive locator (nearest branch, directions); Google API usage billed at cost', low: 2500, high: 2500, from: true, basis: 'positioning', refs: ['R28'] },
+  { id: 'seo-pack',            name: { en: 'Get found on Google (SEO setup)', ar: 'الظهور في جوجل (SEO)' }, desc: 'Keyword setup, page optimization, Search Console + sitemap, local search basics', low: 1500, high: 1500, fixed: true, basis: 'positioning' }
 ];
+
+export const getAddonLevel = (addonId, tier = 'low') => {
+  const addon = ADDONS.find((a) => a.id === addonId);
+  return addon?.levels?.find((l) => l.tier === tier) || null;
+};
 
 // ---------------------------------------------------------------------------
 // Monthly care / recurring plans (AED per month)
@@ -281,7 +339,8 @@ export const FOUNDATIONS = [
     name: { en: 'Essential build', ar: 'بناء أساسي' },
     base: 4650,
     derivation: 'Launch anchor 5,900 − 5 pages × 250',
-    bestFor: { en: 'Simple presence: design, responsive build, forms, WhatsApp CTA, basic SEO, GBP setup, analytics', ar: 'حضور بسيط' },
+    bestFor: { en: 'A clean professional presence', ar: 'حضور بسيط' },
+    diff: ['Custom responsive design', 'Contact forms + WhatsApp button', 'Basic Google visibility + analytics', 'Hosting & domain setup'],
     includes: ['Custom responsive design', 'Contact / lead forms', 'WhatsApp CTA', 'Basic on-page SEO', 'Google Business Profile setup', 'Analytics install', 'Hosting & domain setup'],
     basis: 'positioning'
   },
@@ -290,7 +349,8 @@ export const FOUNDATIONS = [
     name: { en: 'Professional build', ar: 'بناء احترافي' },
     base: 7400,
     derivation: 'Growth anchor 9,900 − 10 pages × 250',
-    bestFor: { en: 'Growing businesses: + blog/news, case studies, advanced forms, CRM handoff, GA4/GSC, speed pass, design polish', ar: 'أعمال متنامية' },
+    bestFor: { en: 'Businesses that publish and capture leads', ar: 'أعمال متنامية' },
+    diff: ['Everything in Essential, plus:', 'Blog / news + case studies', 'Smart lead forms + CRM handoff', 'Speed optimization + sharper design'],
     includes: ['Everything in Essential', 'Blog / news system', 'Case studies', 'Advanced forms', 'CRM handoff', 'GA4 / Search Console', 'Speed pass', 'Stronger design polish'],
     basis: 'positioning'
   },
@@ -299,18 +359,23 @@ export const FOUNDATIONS = [
     name: { en: 'Premium build', ar: 'بناء متميز' },
     base: 10900,
     derivation: 'Business Pro anchor 14,900 − 16 pages × 250',
-    bestFor: { en: 'Bilingual brands & multi-service firms: + AR/EN structure, custom sections, editing roles, automation-ready forms, mini-dashboard', ar: 'علامات ثنائية اللغة' },
+    bestFor: { en: 'Bilingual brands & multi-service firms', ar: 'علامات ثنائية اللغة' },
+    diff: ['Everything in Professional, plus:', 'Full Arabic + English structure', 'Staff editing roles', 'Mini-dashboard (basic KPI panel) included'],
     includes: ['Everything in Professional', 'Arabic / English structure', 'Custom sections', 'Staff / admin editing roles', 'Automation-ready forms', 'Mini-dashboard / reporting'],
     basis: 'positioning'
   }
 ];
 
-// Capabilities already inside each foundation (no double-charging).
+// Capabilities whose BASIC level is already inside each foundation.
+// Semantics: the basic (low) level is included free; picking a higher level
+// charges only the UPGRADE DIFFERENCE (price(level) − price(basic)).
+// This is what stops modules/features stacking at full standalone price on
+// top of a build that already does part of the work.
 // Foundations are supersets: higher tiers cover everything lower ones do.
 export const FOUNDATION_COVERS = {
   'foundation-essential':    ['gbp-setup'],
-  'foundation-professional': ['gbp-setup'],
-  'foundation-premium':      ['gbp-setup', 'extra-language']
+  'foundation-professional': ['gbp-setup', 'smart-form'],                                    // advanced forms included
+  'foundation-premium':      ['gbp-setup', 'smart-form', 'extra-language', 'dashboard-pack'] // + AR/EN structure + mini-dashboard
 };
 
 // Self-contained system builds that do NOT need a website foundation.
@@ -461,14 +526,18 @@ const ALL_MODULES = INDUSTRY_MODULES.flatMap((g) => g.modules.map((mo) => ({ ...
 export const getIndustryGroup = (id) => INDUSTRY_MODULES.find((g) => g.id === id) || null;
 export const getModule = (id) => ALL_MODULES.find((mo) => mo.id === id) || null;
 
-// Module price = sum of component prices at stated tiers, excluding any
-// component capability already covered by the selected base (coveredSet).
-export function getModulePrice(moduleId, coveredSet = new Set()) {
+// Module price = sum of component prices at stated tiers.
+// fullSet  = capabilities fully included in the base → component free.
+// basicSet = basic level included in the base → component charged as the
+//            upgrade difference only (price(tier) − price(basic)).
+export function getModulePrice(moduleId, fullSet = new Set(), basicSet = new Set()) {
   const mod = getModule(moduleId);
   if (!mod) return 0;
   return mod.components.reduce((sum, c) => {
-    if (coveredSet.has(c.id)) return sum;
-    return sum + getAddonPrice(c.id, c.tier || 'low');
+    if (fullSet.has(c.id)) return sum;
+    const price = getAddonPrice(c.id, c.tier || 'low');
+    if (basicSet.has(c.id)) return sum + Math.max(0, price - getAddonPrice(c.id, 'low'));
+    return sum + price;
   }, 0);
 }
 
@@ -477,20 +546,23 @@ export function getTemplateStartingPrice(templateId) {
   const tpl = getOfferTemplate(templateId);
   if (!tpl) return 0;
   let total = 0;
-  const covered = new Set();
+  const full = new Set();
+  const basic = new Set();
   if (tpl.foundationId) {
     const f = getFoundation(tpl.foundationId);
-    if (f) { total += f.base; (FOUNDATION_COVERS[f.id] || []).forEach((id) => covered.add(id)); }
+    if (f) { total += f.base; (FOUNDATION_COVERS[f.id] || []).forEach((id) => basic.add(id)); }
   }
   total += (tpl.pagesStandard || 0) * PAGE_RATE_STANDARD + (tpl.pagesLanding || 0) * PAGE_RATE_LANDING;
   for (const sid of tpl.specials || []) {
     const pkg = PACKAGES.find((p) => p.id === sid);
-    if (pkg) { total += pkg.oneTime; (PACKAGE_COVERS[sid] || []).forEach((id) => covered.add(id)); }
+    if (pkg) { total += pkg.oneTime; (PACKAGE_COVERS[sid] || []).forEach((id) => full.add(id)); }
   }
   for (const a of tpl.addons || []) {
-    if (covered.has(a.id)) continue;
+    if (full.has(a.id)) continue;
     const addon = ADDONS.find((x) => x.id === a.id);
-    if (addon) total += addon.low;
+    if (!addon) continue;
+    const price = getAddonPrice(a.id, a.tier || 'low');
+    total += basic.has(a.id) ? Math.max(0, price - addon.low) : price;
   }
   return total;
 }
@@ -620,11 +692,15 @@ export function buildEstimate(selection = {}) {
   let subtotalHigh = 0;
   let openEnded = false;
 
-  // Coverage set: capabilities already paid for inside base components.
-  const covered = new Set();
-  if (foundation) (FOUNDATION_COVERS[foundation.id] || []).forEach((id) => covered.add(id));
-  specialIds.forEach((sid) => (PACKAGE_COVERS[sid] || []).forEach((id) => covered.add(id)));
-  if (pkg) (PACKAGE_COVERS[pkg.id] || []).forEach((id) => covered.add(id));
+  // Coverage sets:
+  //  fullCovered  — capability fully included in a special/package → free.
+  //  basicCovered — BASIC level included in the foundation → higher levels
+  //                 charged as the upgrade difference only.
+  const fullCovered = new Set();
+  const basicCovered = new Set();
+  if (foundation) (FOUNDATION_COVERS[foundation.id] || []).forEach((id) => basicCovered.add(id));
+  specialIds.forEach((sid) => (PACKAGE_COVERS[sid] || []).forEach((id) => fullCovered.add(id)));
+  if (pkg) (PACKAGE_COVERS[pkg.id] || []).forEach((id) => fullCovered.add(id));
 
   if (foundation) {
     lines.push({
@@ -692,15 +768,18 @@ export function buildEstimate(selection = {}) {
   }
 
   // Industry modules: one line each, priced as the live sum of their
-  // components (excluding covered ones). Components listed in the note.
+  // components (full coverage → free; basic coverage → upgrade diff only).
   (selection.modules || []).forEach((modId) => {
     const mod = getModule(modId);
     if (!mod) return;
-    const amount = getModulePrice(modId, covered);
+    const amount = getModulePrice(modId, fullCovered, basicCovered);
     const parts = mod.components.map((c) => {
       const a = getAddon(c.id);
-      const inc = covered.has(c.id);
-      return `${a?.name.en || c.id}${inc ? ' (included in base)' : ''}`;
+      const level = getAddonLevel(c.id, c.tier || 'low');
+      const name = `${a?.name.en || c.id}${level ? ` (${level.label})` : ''}`;
+      if (fullCovered.has(c.id)) return `${name} — included in base`;
+      if (basicCovered.has(c.id)) return `${name} — upgrade only, basic included in base`;
+      return name;
     });
     lines.push({
       kind: 'module',
@@ -709,49 +788,60 @@ export function buildEstimate(selection = {}) {
       labelAr: mod.name.ar,
       amount,
       basis: 'market',
-      note: `Composed of: ${parts.join(' + ')}`
+      note: `= ${parts.join(' + ')}`
     });
     subtotal += amount;
-    // Range: sum component low/high (excluding covered)
+    // Range: sum component low/high under the same coverage rules
     mod.components.forEach((c) => {
-      if (covered.has(c.id)) return;
       const a = getAddon(c.id);
-      if (!a) return;
+      if (!a || fullCovered.has(c.id)) return;
+      if (basicCovered.has(c.id)) { subtotalHigh += a.high - a.low; return; }
       subtotalLow += a.low;
       subtotalHigh += a.high;
     });
-    // Module components now count as covered (no double-charge if the same
-    // capability is also ticked as a standalone feature).
-    mod.components.forEach((c) => covered.add(c.id));
+    // Module components now count as fully covered (no double-charge if the
+    // same capability is also ticked as a standalone feature).
+    mod.components.forEach((c) => fullCovered.add(c.id));
   });
 
   (selection.addons || []).forEach((sel) => {
     const addon = getAddon(sel.id);
     if (!addon) return;
-    const isCovered = covered.has(addon.id);
+    const isFull = fullCovered.has(addon.id);
+    const isBasic = !isFull && basicCovered.has(addon.id);
     const qty = Math.max(1, Number(sel.qty) || 1);
     const tier = sel.tier || 'low';
-    const unit = isCovered ? 0 : getAddonPrice(sel.id, tier);
+    const fullPrice = getAddonPrice(sel.id, tier);
+    const unit = isFull ? 0 : isBasic ? Math.max(0, fullPrice - getAddonPrice(sel.id, 'low')) : fullPrice;
     const amount = unit * qty;
+    const level = getAddonLevel(sel.id, tier);
+    const isIncludedFree = isFull || (isBasic && unit === 0);
     lines.push({
       kind: 'addon',
       id: addon.id,
-      label: addon.name.en + (qty > 1 ? ` × ${qty}` : ''),
+      label: addon.name.en + (level ? ` — ${level.label}` : '') + (qty > 1 ? ` × ${qty}` : ''),
       labelAr: addon.name.ar,
       amount,
       unit,
       qty,
-      tier: addon.fixed || isCovered ? null : tier,
-      from: !isCovered && !!addon.from,
+      tier: addon.fixed || isIncludedFree ? null : tier,
+      from: !isIncludedFree && !!addon.from,
       basis: addon.basis,
       refs: addon.refs || [],
-      covered: isCovered,
-      note: isCovered ? 'Included in the selected base build — not charged.' : (addon.note || '')
+      covered: isIncludedFree,
+      upgraded: isBasic && unit > 0,
+      note: isFull
+        ? 'Fully included in the selected base build — not charged.'
+        : isBasic && unit === 0
+          ? 'Basic level included in the build — not charged.'
+          : isBasic
+            ? `Basic level included in the build — charged as the upgrade to ${level ? level.label : 'this level'} only.`
+            : (level ? level.spec : addon.note || '')
     });
     subtotal += amount;
-    subtotalLow += isCovered ? 0 : addon.low * qty;
-    subtotalHigh += isCovered ? 0 : addon.high * qty;
-    if (!isCovered && addon.from) openEnded = true;
+    subtotalLow += isFull || isBasic ? 0 : addon.low * qty;
+    subtotalHigh += isFull ? 0 : isBasic ? (addon.high - addon.low) * qty : addon.high * qty;
+    if (!isIncludedFree && addon.from) openEnded = true;
   });
 
   // Founding-client discount: explicit, capped, its own line.

@@ -501,3 +501,55 @@
 .qd-pricing-care-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .qd-pricing-care-row .qd-pricing-care { flex: 1; min-width: 220px; width: auto; }
 .qd-pricing-care-row .qd-pricing-qty-btns { padding: 0; }
+
+/* --- Spec-level cards (named levels with deliverables) --- */
+.qd-pricing-levels {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+.qd-pricing-level {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  text-align: left;
+  border: 1px solid var(--qd-admin-border-strong);
+  background: var(--qd-admin-panel-soft);
+  color: inherit;
+  border-radius: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.qd-pricing-level:hover { border-color: rgba(244, 241, 234, 0.45); }
+.qd-pricing-level.is-active {
+  border-color: rgba(120, 200, 160, 0.85);
+  background: rgba(120, 200, 160, 0.1);
+}
+.qd-pricing-level-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.78rem;
+}
+.qd-pricing-level-head em {
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.72rem;
+  opacity: 0.75;
+  white-space: nowrap;
+}
+.qd-pricing-level.is-active .qd-pricing-level-head em { color: rgba(150, 220, 180, 0.95); opacity: 1; }
+.qd-pricing-level-spec { font-size: 0.68rem; opacity: 0.6; line-height: 1.5; }
+
+.qd-pricing-foundations { margin-bottom: 12px; }
+.qd-pricing-foundation .qd-pricing-level-spec { line-height: 1.6; }
+
+.qd-pricing-level-row { flex-direction: column; align-items: stretch; }
+.qd-pricing-level-row > span { min-width: 0; margin-bottom: 6px; font-weight: 600; opacity: 0.85; }
+
+.qd-pricing-module-parts { font-size: 0.64rem; opacity: 0.5; line-height: 1.5; margin-top: 2px; }
+.qd-pricing-product-price s { opacity: 0.5; font-weight: 400; font-size: 0.7rem; margin-left: 4px; }
