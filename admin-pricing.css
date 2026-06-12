@@ -380,3 +380,124 @@
   flex: 1;
   min-width: 160px;
 }
+
+/* ===========================================================================
+   v3 — drill-down builder
+   =========================================================================== */
+.qd-pricing-step {
+  border: 1px solid var(--qd-admin-border);
+  background: var(--qd-admin-glass), var(--qd-admin-panel-soft);
+  border-radius: var(--qd-admin-radius-sm);
+  padding: 16px;
+}
+.qd-pricing-step-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.qd-pricing-step-title small { text-transform: none; letter-spacing: 0; font-weight: 400; opacity: 0.6; }
+.qd-pricing-step-sub { font-size: 0.72rem; opacity: 0.6; margin: 12px 0 8px; }
+
+/* Describe bar */
+.qd-pricing-describe-bar {
+  width: 100%;
+  text-align: left;
+  border: 1px dashed var(--qd-admin-border-strong);
+  background: transparent;
+  color: inherit;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  opacity: 0.85;
+}
+.qd-pricing-describe-bar:hover { opacity: 1; border-color: rgba(244, 241, 234, 0.4); }
+.qd-pricing-describe-bar.is-open { border-style: solid; opacity: 1; }
+.qd-pricing-describe-body { padding: 10px 2px 2px; }
+
+/* Product buttons */
+.qd-pricing-products {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 10px;
+}
+.qd-pricing-product, .qd-pricing-module {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  border: 1px solid var(--qd-admin-border-strong);
+  background: var(--qd-admin-panel-soft);
+  color: inherit;
+  border-radius: 14px;
+  padding: 14px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
+}
+.qd-pricing-product:hover, .qd-pricing-module:hover { border-color: rgba(244, 241, 234, 0.45); transform: translateY(-1px); }
+.qd-pricing-product.is-active, .qd-pricing-module.is-active {
+  border-color: rgba(120, 200, 160, 0.85);
+  background: rgba(120, 200, 160, 0.1);
+}
+.qd-pricing-product-name { font-weight: 700; font-size: 0.88rem; }
+.qd-pricing-product-desc { font-size: 0.7rem; opacity: 0.6; line-height: 1.45; }
+.qd-pricing-product-price { font-size: 0.8rem; font-weight: 700; color: rgba(150, 220, 180, 0.95); margin-top: 2px; }
+
+/* Industry module grid */
+.qd-pricing-modules {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+/* Option chips */
+.qd-pricing-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.qd-pricing-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--qd-admin-border-strong);
+  background: var(--qd-admin-panel-soft);
+  color: inherit;
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.qd-pricing-chip small { opacity: 0.65; font-size: 0.68rem; font-variant-numeric: tabular-nums; }
+.qd-pricing-chip:hover { border-color: rgba(244, 241, 234, 0.45); }
+.qd-pricing-chip.is-active {
+  border-color: rgba(120, 200, 160, 0.85);
+  background: rgba(120, 200, 160, 0.12);
+}
+.qd-pricing-chip.is-active small { color: rgba(150, 220, 180, 0.95); opacity: 1; }
+.qd-pricing-chip.is-covered { border-style: dashed; opacity: 0.75; }
+
+/* Per-product option panels */
+.qd-pricing-panel {
+  border-left: 2px solid rgba(120, 200, 160, 0.5);
+  padding: 4px 0 12px 14px;
+  margin-bottom: 12px;
+}
+.qd-pricing-panel:last-child { margin-bottom: 0; }
+.qd-pricing-panel-title { font-size: 0.82rem; font-weight: 700; margin-bottom: 10px; }
+.qd-pricing-panel-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: 0.74rem;
+}
+.qd-pricing-panel-row > span { opacity: 0.7; min-width: 130px; }
+.qd-pricing-panel-row .qd-pricing-tier-btns, .qd-pricing-panel-row .qd-pricing-qty-btns { padding: 0; }
+.qd-pricing-panel-note { font-size: 0.7rem; opacity: 0.55; line-height: 1.5; margin-top: 4px; }
+.qd-pricing-panel .qd-pricing-chips { margin-top: 6px; }
+
+/* Care + discount row */
+.qd-pricing-care-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.qd-pricing-care-row .qd-pricing-care { flex: 1; min-width: 220px; width: auto; }
+.qd-pricing-care-row .qd-pricing-qty-btns { padding: 0; }

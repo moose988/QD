@@ -386,6 +386,92 @@ export const OFFER_TEMPLATES = [
 
 export const getOfferTemplate = (id) => OFFER_TEMPLATES.find((t) => t.id === id) || null;
 
+// ---------------------------------------------------------------------------
+// Industry modules — vertical systems (e.g. patient management for clinics,
+// driver management for restaurants) priced as COMPOSITIONS of the verified
+// components above. A module's price = sum of its components at the stated
+// tiers (computed live, never a separate invented number). Components already
+// covered by the selected base are excluded from the sum.
+// ---------------------------------------------------------------------------
+export const INDUSTRY_MODULES = [
+  {
+    id: 'ind-clinic',
+    name: { en: 'Clinic / Medical', ar: 'عيادة / طبي' },
+    presetId: 'clinic-salon',
+    modules: [
+      { id: 'mod-patient-mgmt', name: { en: 'Patient management system', ar: 'نظام إدارة المرضى' }, pitch: 'Patient records, documents, history, follow-ups', components: [{ id: 'crm-setup', tier: 'mid' }, { id: 'file-uploads', tier: 'mid' }, { id: 'dashboard-pack', tier: 'low' }] },
+      { id: 'mod-surgery-mgmt', name: { en: 'Surgery / operations management', ar: 'نظام إدارة العمليات الجراحية' }, pitch: 'Operation scheduling, statuses, staff roles, approvals', components: [{ id: 'dashboard-pack', tier: 'mid' }, { id: 'roles-logic', tier: 'low' }, { id: 'smart-form', tier: 'low' }] },
+      { id: 'mod-appointments', name: { en: 'Appointments & reminders', ar: 'المواعيد والتذكيرات' }, pitch: 'Booking flow, staff calendars, reminder notifications', components: [{ id: 'booking-integration', tier: 'high' }] }
+    ]
+  },
+  {
+    id: 'ind-restaurant',
+    name: { en: 'Restaurant / Café', ar: 'مطعم / مقهى' },
+    presetId: 'restaurant-cafe',
+    modules: [
+      { id: 'mod-menu-mgmt', name: { en: 'Menu management panel', ar: 'لوحة إدارة المنيو' }, pitch: 'Edit items, prices, photos, availability yourself', components: [{ id: 'dashboard-pack', tier: 'low' }] },
+      { id: 'mod-order-status', name: { en: 'Ordering + live order status', ar: 'الطلبات + حالة الطلب المباشرة' }, pitch: 'Pickup/delivery flow with live status updates and admin view', components: [{ id: 'ordering-integration', tier: 'high' }, { id: 'dashboard-pack', tier: 'low' }] },
+      { id: 'mod-driver-mgmt', name: { en: 'Driver / delivery management', ar: 'إدارة السائقين والتوصيل' }, pitch: 'Driver roles, assignment, branch logic', components: [{ id: 'roles-logic', tier: 'mid' }] },
+      { id: 'mod-resto-loyalty', name: { en: 'Loyalty programme', ar: 'برنامج الولاء' }, pitch: 'Points, rewards, repeat-customer engine', components: [{ id: 'loyalty-integration', tier: 'mid' }] }
+    ]
+  },
+  {
+    id: 'ind-salon',
+    name: { en: 'Salon / Spa / Barber', ar: 'صالون / سبا / حلاق' },
+    presetId: 'clinic-salon',
+    modules: [
+      { id: 'mod-staff-calendars', name: { en: 'Staff calendars & booking', ar: 'تقويم الموظفين والحجوزات' }, pitch: 'Per-staff schedules, services, no-show policies', components: [{ id: 'booking-integration', tier: 'high' }] },
+      { id: 'mod-client-records', name: { en: 'Client records & history', ar: 'سجلات العملاء' }, pitch: 'Client profiles, visit history, preferences', components: [{ id: 'crm-setup', tier: 'mid' }] },
+      { id: 'mod-salon-loyalty', name: { en: 'Loyalty programme', ar: 'برنامج الولاء' }, pitch: 'Points and rewards for repeat visits', components: [{ id: 'loyalty-integration', tier: 'mid' }] }
+    ]
+  },
+  {
+    id: 'ind-retail',
+    name: { en: 'Retail / Shop', ar: 'متجر / تجزئة' },
+    presetId: null,
+    modules: [
+      { id: 'mod-inventory', name: { en: 'Inventory & product management', ar: 'إدارة المخزون والمنتجات' }, pitch: 'Product panel, stock levels, categories, reports', components: [{ id: 'dashboard-pack', tier: 'mid' }] },
+      { id: 'mod-retail-loyalty', name: { en: 'Loyalty programme', ar: 'برنامج الولاء' }, pitch: 'Points, rewards, repeat-customer engine', components: [{ id: 'loyalty-integration', tier: 'mid' }] },
+      { id: 'mod-retail-crm', name: { en: 'Customer management (CRM)', ar: 'إدارة العملاء' }, pitch: 'Customer profiles, segments, follow-ups', components: [{ id: 'crm-setup', tier: 'mid' }] }
+    ]
+  },
+  {
+    id: 'ind-services',
+    name: { en: 'Services / Contractor', ar: 'خدمات / مقاولات' },
+    presetId: 'services-contractor',
+    modules: [
+      { id: 'mod-quote-engine', name: { en: 'Quote / price calculator', ar: 'حاسبة عروض الأسعار' }, pitch: 'Instant quote forms that qualify leads', components: [{ id: 'smart-form', tier: 'mid' }] },
+      { id: 'mod-job-tracking', name: { en: 'Job / project tracking', ar: 'تتبع المشاريع والمهام' }, pitch: 'Jobs, statuses, assignments, exports', components: [{ id: 'dashboard-pack', tier: 'low' }, { id: 'roles-logic', tier: 'low' }] },
+      { id: 'mod-docs-approvals', name: { en: 'Documents & approvals', ar: 'المستندات والموافقات' }, pitch: 'File uploads, approval workflow, audit trail', components: [{ id: 'file-uploads', tier: 'mid' }] }
+    ]
+  },
+  {
+    id: 'ind-education',
+    name: { en: 'Education / Training', ar: 'تعليم / تدريب' },
+    presetId: 'education-training',
+    modules: [
+      { id: 'mod-student-mgmt', name: { en: 'Student management system', ar: 'نظام إدارة الطلاب' }, pitch: 'Student records, documents, progress tracking', components: [{ id: 'crm-setup', tier: 'mid' }, { id: 'file-uploads', tier: 'mid' }] },
+      { id: 'mod-course-booking', name: { en: 'Course / class booking', ar: 'حجز الدورات والصفوف' }, pitch: 'Schedules, enrolment, reminders', components: [{ id: 'booking-integration', tier: 'high' }] },
+      { id: 'mod-gated-content', name: { en: 'Gated content portal', ar: 'بوابة محتوى مغلقة' }, pitch: 'Member-only materials with roles', components: [{ id: 'file-uploads', tier: 'low' }, { id: 'roles-logic', tier: 'low' }] }
+    ]
+  }
+];
+
+const ALL_MODULES = INDUSTRY_MODULES.flatMap((g) => g.modules.map((mo) => ({ ...mo, groupId: g.id })));
+export const getIndustryGroup = (id) => INDUSTRY_MODULES.find((g) => g.id === id) || null;
+export const getModule = (id) => ALL_MODULES.find((mo) => mo.id === id) || null;
+
+// Module price = sum of component prices at stated tiers, excluding any
+// component capability already covered by the selected base (coveredSet).
+export function getModulePrice(moduleId, coveredSet = new Set()) {
+  const mod = getModule(moduleId);
+  if (!mod) return 0;
+  return mod.components.reduce((sum, c) => {
+    if (coveredSet.has(c.id)) return sum;
+    return sum + getAddonPrice(c.id, c.tier || 'low');
+  }, 0);
+}
+
 // Indicative starting price of a quick offer = sum of its components at low tier.
 export function getTemplateStartingPrice(templateId) {
   const tpl = getOfferTemplate(templateId);
@@ -604,6 +690,40 @@ export function buildEstimate(selection = {}) {
     subtotalHigh += pkg.oneTime;
     if (pkg.from) openEnded = true;
   }
+
+  // Industry modules: one line each, priced as the live sum of their
+  // components (excluding covered ones). Components listed in the note.
+  (selection.modules || []).forEach((modId) => {
+    const mod = getModule(modId);
+    if (!mod) return;
+    const amount = getModulePrice(modId, covered);
+    const parts = mod.components.map((c) => {
+      const a = getAddon(c.id);
+      const inc = covered.has(c.id);
+      return `${a?.name.en || c.id}${inc ? ' (included in base)' : ''}`;
+    });
+    lines.push({
+      kind: 'module',
+      id: modId,
+      label: mod.name.en,
+      labelAr: mod.name.ar,
+      amount,
+      basis: 'market',
+      note: `Composed of: ${parts.join(' + ')}`
+    });
+    subtotal += amount;
+    // Range: sum component low/high (excluding covered)
+    mod.components.forEach((c) => {
+      if (covered.has(c.id)) return;
+      const a = getAddon(c.id);
+      if (!a) return;
+      subtotalLow += a.low;
+      subtotalHigh += a.high;
+    });
+    // Module components now count as covered (no double-charge if the same
+    // capability is also ticked as a standalone feature).
+    mod.components.forEach((c) => covered.add(c.id));
+  });
 
   (selection.addons || []).forEach((sel) => {
     const addon = getAddon(sel.id);
