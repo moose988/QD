@@ -458,15 +458,28 @@ export const getOfferTemplate = (id) => OFFER_TEMPLATES.find((t) => t.id === id)
 // tiers (computed live, never a separate invented number). Components already
 // covered by the selected base are excluded from the sum.
 // ---------------------------------------------------------------------------
+// Design rules (after owner feedback "the pricing doesn't make sense"):
+//  - Each module is ONE clear deliverable, anchored to at most TWO components,
+//    so its price is obviously proportional to what it does.
+//  - `includes` is what the CLIENT reads (the deliverable, in plain words) —
+//    the component anchor is internal and never shown as the description.
+//  - Heavier capabilities (roles, deeper analytics) are separate upsells, not
+//    silently stacked into modules.
 export const INDUSTRY_MODULES = [
   {
     id: 'ind-clinic',
     name: { en: 'Clinic / Medical', ar: 'عيادة / طبي' },
     presetId: 'clinic-salon',
     modules: [
-      { id: 'mod-patient-mgmt', name: { en: 'Patient management system', ar: 'نظام إدارة المرضى' }, pitch: 'Patient records, documents, history, follow-ups', components: [{ id: 'crm-setup', tier: 'mid' }, { id: 'file-uploads', tier: 'mid' }, { id: 'dashboard-pack', tier: 'low' }] },
-      { id: 'mod-surgery-mgmt', name: { en: 'Surgery / operations management', ar: 'نظام إدارة العمليات الجراحية' }, pitch: 'Operation scheduling, statuses, staff roles, approvals', components: [{ id: 'dashboard-pack', tier: 'mid' }, { id: 'roles-logic', tier: 'low' }, { id: 'smart-form', tier: 'low' }] },
-      { id: 'mod-appointments', name: { en: 'Appointments & reminders', ar: 'المواعيد والتذكيرات' }, pitch: 'Booking flow, staff calendars, reminder notifications', components: [{ id: 'booking-integration', tier: 'high' }] }
+      { id: 'mod-appointments', name: { en: 'Appointments & reminders', ar: 'المواعيد والتذكيرات' }, pitch: 'Patients book online, the clinic stays in control',
+        includes: ['Online booking for services & doctors', 'Per-staff calendars and working hours', 'WhatsApp + email reminders, no-show policy'],
+        components: [{ id: 'booking-integration', tier: 'high' }] },
+      { id: 'mod-patient-mgmt', name: { en: 'Patient records', ar: 'سجلات المرضى' }, pitch: 'Every patient’s history in one place',
+        includes: ['Patient profiles with visit history', 'Follow-up reminders', 'Attach documents & reports to each patient'],
+        components: [{ id: 'crm-setup', tier: 'mid' }, { id: 'file-uploads', tier: 'low' }] },
+      { id: 'mod-surgery-mgmt', name: { en: 'Operations board', ar: 'لوحة العمليات' }, pitch: 'Schedule and track procedures',
+        includes: ['Procedure schedule with statuses', 'Day/week views and filters', 'Printable reports'],
+        components: [{ id: 'dashboard-pack', tier: 'mid' }] }
     ]
   },
   {
@@ -474,10 +487,18 @@ export const INDUSTRY_MODULES = [
     name: { en: 'Restaurant / Café', ar: 'مطعم / مقهى' },
     presetId: 'restaurant-cafe',
     modules: [
-      { id: 'mod-menu-mgmt', name: { en: 'Menu management panel', ar: 'لوحة إدارة المنيو' }, pitch: 'Edit items, prices, photos, availability yourself', components: [{ id: 'dashboard-pack', tier: 'low' }] },
-      { id: 'mod-order-status', name: { en: 'Ordering + live order status', ar: 'الطلبات + حالة الطلب المباشرة' }, pitch: 'Pickup/delivery flow with live status updates and admin view', components: [{ id: 'ordering-integration', tier: 'high' }, { id: 'dashboard-pack', tier: 'low' }] },
-      { id: 'mod-driver-mgmt', name: { en: 'Driver / delivery management', ar: 'إدارة السائقين والتوصيل' }, pitch: 'Driver roles, assignment, branch logic', components: [{ id: 'roles-logic', tier: 'mid' }] },
-      { id: 'mod-resto-loyalty', name: { en: 'Loyalty programme', ar: 'برنامج الولاء' }, pitch: 'Points, rewards, repeat-customer engine', components: [{ id: 'loyalty-integration', tier: 'mid' }] }
+      { id: 'mod-order-status', name: { en: 'Online ordering + live status', ar: 'الطلبات + الحالة المباشرة' }, pitch: 'Customers order and watch their order live',
+        includes: ['Pickup & delivery ordering flow', 'Live order status for the customer', 'Kitchen/admin order screen, promo codes'],
+        components: [{ id: 'ordering-integration', tier: 'high' }] },
+      { id: 'mod-menu-mgmt', name: { en: 'Menu manager', ar: 'إدارة المنيو' }, pitch: 'Change the menu yourself, no developer needed',
+        includes: ['Edit items, prices, photos, availability', 'Categories & specials', 'Out-of-stock toggle'],
+        components: [{ id: 'dashboard-pack', tier: 'low' }] },
+      { id: 'mod-driver-mgmt', name: { en: 'Driver logins & assignment', ar: 'حسابات السائقين والتوزيع' }, pitch: 'Hand orders to drivers cleanly',
+        includes: ['Driver accounts with their own view', 'Assign orders to drivers', 'Delivery status updates'],
+        components: [{ id: 'roles-logic', tier: 'low' }] },
+      { id: 'mod-resto-loyalty', name: { en: 'Loyalty programme', ar: 'برنامج الولاء' }, pitch: 'Turn first orders into regulars',
+        includes: ['Points per order', 'Reward tiers & redemption', 'Repeat-customer tracking'],
+        components: [{ id: 'loyalty-integration', tier: 'mid' }] }
     ]
   },
   {
@@ -485,9 +506,15 @@ export const INDUSTRY_MODULES = [
     name: { en: 'Salon / Spa / Barber', ar: 'صالون / سبا / حلاق' },
     presetId: 'clinic-salon',
     modules: [
-      { id: 'mod-staff-calendars', name: { en: 'Staff calendars & booking', ar: 'تقويم الموظفين والحجوزات' }, pitch: 'Per-staff schedules, services, no-show policies', components: [{ id: 'booking-integration', tier: 'high' }] },
-      { id: 'mod-client-records', name: { en: 'Client records & history', ar: 'سجلات العملاء' }, pitch: 'Client profiles, visit history, preferences', components: [{ id: 'crm-setup', tier: 'mid' }] },
-      { id: 'mod-salon-loyalty', name: { en: 'Loyalty programme', ar: 'برنامج الولاء' }, pitch: 'Points and rewards for repeat visits', components: [{ id: 'loyalty-integration', tier: 'mid' }] }
+      { id: 'mod-staff-calendars', name: { en: 'Staff calendars & booking', ar: 'تقويم الموظفين والحجوزات' }, pitch: 'Each chair fills itself',
+        includes: ['Online booking per staff member & service', 'WhatsApp + email reminders', 'No-show policies, deposit-ready'],
+        components: [{ id: 'booking-integration', tier: 'high' }] },
+      { id: 'mod-client-records', name: { en: 'Client records & history', ar: 'سجلات العملاء' }, pitch: 'Remember every client’s preferences',
+        includes: ['Client profiles with visit history', 'Preferences & notes', 'Follow-up reminders'],
+        components: [{ id: 'crm-setup', tier: 'mid' }] },
+      { id: 'mod-salon-loyalty', name: { en: 'Loyalty programme', ar: 'برنامج الولاء' }, pitch: 'Reward repeat visits',
+        includes: ['Points per visit', 'Reward tiers & redemption', 'Repeat-visit tracking'],
+        components: [{ id: 'loyalty-integration', tier: 'mid' }] }
     ]
   },
   {
@@ -495,9 +522,15 @@ export const INDUSTRY_MODULES = [
     name: { en: 'Retail / Shop', ar: 'متجر / تجزئة' },
     presetId: null,
     modules: [
-      { id: 'mod-inventory', name: { en: 'Inventory & product management', ar: 'إدارة المخزون والمنتجات' }, pitch: 'Product panel, stock levels, categories, reports', components: [{ id: 'dashboard-pack', tier: 'mid' }] },
-      { id: 'mod-retail-loyalty', name: { en: 'Loyalty programme', ar: 'برنامج الولاء' }, pitch: 'Points, rewards, repeat-customer engine', components: [{ id: 'loyalty-integration', tier: 'mid' }] },
-      { id: 'mod-retail-crm', name: { en: 'Customer management (CRM)', ar: 'إدارة العملاء' }, pitch: 'Customer profiles, segments, follow-ups', components: [{ id: 'crm-setup', tier: 'mid' }] }
+      { id: 'mod-inventory', name: { en: 'Product & stock panel', ar: 'لوحة المنتجات والمخزون' }, pitch: 'Run the catalogue yourself',
+        includes: ['Add/edit products, prices, photos', 'Stock levels & categories', 'Simple sales reports'],
+        components: [{ id: 'dashboard-pack', tier: 'mid' }] },
+      { id: 'mod-retail-crm', name: { en: 'Customer management', ar: 'إدارة العملاء' }, pitch: 'Know who buys and bring them back',
+        includes: ['Customer profiles & purchase history', 'Segments (VIP, inactive…)', 'Follow-up reminders'],
+        components: [{ id: 'crm-setup', tier: 'mid' }] },
+      { id: 'mod-retail-loyalty', name: { en: 'Loyalty programme', ar: 'برنامج الولاء' }, pitch: 'Points that drive repeat purchases',
+        includes: ['Points per purchase', 'Reward tiers & redemption', 'Loyalty tracking'],
+        components: [{ id: 'loyalty-integration', tier: 'mid' }] }
     ]
   },
   {
@@ -505,9 +538,15 @@ export const INDUSTRY_MODULES = [
     name: { en: 'Services / Contractor', ar: 'خدمات / مقاولات' },
     presetId: 'services-contractor',
     modules: [
-      { id: 'mod-quote-engine', name: { en: 'Quote / price calculator', ar: 'حاسبة عروض الأسعار' }, pitch: 'Instant quote forms that qualify leads', components: [{ id: 'smart-form', tier: 'mid' }] },
-      { id: 'mod-job-tracking', name: { en: 'Job / project tracking', ar: 'تتبع المشاريع والمهام' }, pitch: 'Jobs, statuses, assignments, exports', components: [{ id: 'dashboard-pack', tier: 'low' }, { id: 'roles-logic', tier: 'low' }] },
-      { id: 'mod-docs-approvals', name: { en: 'Documents & approvals', ar: 'المستندات والموافقات' }, pitch: 'File uploads, approval workflow, audit trail', components: [{ id: 'file-uploads', tier: 'mid' }] }
+      { id: 'mod-quote-engine', name: { en: 'Instant quote calculator', ar: 'حاسبة عروض الأسعار' }, pitch: 'Visitors price their own job and become leads',
+        includes: ['Price calculator from your own rules', 'Qualified-lead capture', 'Organized lead emails'],
+        components: [{ id: 'smart-form', tier: 'mid' }] },
+      { id: 'mod-job-tracking', name: { en: 'Jobs & status board', ar: 'لوحة المشاريع والحالات' }, pitch: 'Every job, its status, at a glance',
+        includes: ['Job list with statuses', 'Filters & search', 'CSV export'],
+        components: [{ id: 'dashboard-pack', tier: 'low' }] },
+      { id: 'mod-docs-approvals', name: { en: 'Documents & approvals', ar: 'المستندات والموافقات' }, pitch: 'Contracts and approvals without the email chaos',
+        includes: ['Document library', 'Approval steps', 'Organized per client/job'],
+        components: [{ id: 'file-uploads', tier: 'mid' }] }
     ]
   },
   {
@@ -515,9 +554,15 @@ export const INDUSTRY_MODULES = [
     name: { en: 'Education / Training', ar: 'تعليم / تدريب' },
     presetId: 'education-training',
     modules: [
-      { id: 'mod-student-mgmt', name: { en: 'Student management system', ar: 'نظام إدارة الطلاب' }, pitch: 'Student records, documents, progress tracking', components: [{ id: 'crm-setup', tier: 'mid' }, { id: 'file-uploads', tier: 'mid' }] },
-      { id: 'mod-course-booking', name: { en: 'Course / class booking', ar: 'حجز الدورات والصفوف' }, pitch: 'Schedules, enrolment, reminders', components: [{ id: 'booking-integration', tier: 'high' }] },
-      { id: 'mod-gated-content', name: { en: 'Gated content portal', ar: 'بوابة محتوى مغلقة' }, pitch: 'Member-only materials with roles', components: [{ id: 'file-uploads', tier: 'low' }, { id: 'roles-logic', tier: 'low' }] }
+      { id: 'mod-course-booking', name: { en: 'Class & course booking', ar: 'حجز الدورات والصفوف' }, pitch: 'Enrolment without phone calls',
+        includes: ['Course/class schedules online', 'Enrolment with confirmations', 'Reminders to reduce absence'],
+        components: [{ id: 'booking-integration', tier: 'high' }] },
+      { id: 'mod-student-mgmt', name: { en: 'Student records', ar: 'سجلات الطلاب' }, pitch: 'Every student’s file in one place',
+        includes: ['Student profiles & progress', 'Attach documents & certificates', 'Follow-up reminders'],
+        components: [{ id: 'crm-setup', tier: 'mid' }, { id: 'file-uploads', tier: 'low' }] },
+      { id: 'mod-gated-content', name: { en: 'Member materials area', ar: 'منطقة المواد للأعضاء' }, pitch: 'Course materials only for enrolled students',
+        includes: ['Protected downloads area', 'Organized by course', 'Simple member access'],
+        components: [{ id: 'file-uploads', tier: 'mid' }] }
     ]
   }
 ];
@@ -526,19 +571,40 @@ const ALL_MODULES = INDUSTRY_MODULES.flatMap((g) => g.modules.map((mo) => ({ ...
 export const getIndustryGroup = (id) => INDUSTRY_MODULES.find((g) => g.id === id) || null;
 export const getModule = (id) => ALL_MODULES.find((mo) => mo.id === id) || null;
 
-// Module price = sum of component prices at stated tiers.
-// fullSet  = capabilities fully included in the base → component free.
-// basicSet = basic level included in the base → component charged as the
-//            upgrade difference only (price(tier) − price(basic)).
-export function getModulePrice(moduleId, fullSet = new Set(), basicSet = new Set()) {
+// ---------------------------------------------------------------------------
+// UNIFIED COVERAGE: an "included map" (addonId → AED value already included
+// in the selection). Charging rule everywhere:
+//   charge = max(0, price(chosen level) − includedValue)
+// Sources of included value:
+//   - PACKAGE_COVERS (specials/packages): capability FULLY included → price(high)
+//   - FOUNDATION_COVERS: BASIC level included → price(low)
+//   - selected industry modules: each component included AT ITS TIER
+// This guarantees: never double-charged, upgrades cost only the difference,
+// and module cards always agree with the summary.
+// ---------------------------------------------------------------------------
+export function buildIncludedMap({ foundationId = null, specials = [], packageId = null, modules = [], excludeModuleId = null } = {}) {
+  const map = new Map();
+  const bump = (id, value) => map.set(id, Math.max(map.get(id) || 0, value));
+  if (foundationId) (FOUNDATION_COVERS[foundationId] || []).forEach((id) => bump(id, getAddonPrice(id, 'low')));
+  [...specials, ...(packageId ? [packageId] : [])].forEach((sid) =>
+    (PACKAGE_COVERS[sid] || []).forEach((id) => bump(id, getAddonPrice(id, 'high'))));
+  modules.forEach((modId) => {
+    if (modId === excludeModuleId) return;
+    const mod = getModule(modId);
+    if (!mod) return;
+    mod.components.forEach((c) => bump(c.id, getAddonPrice(c.id, c.tier || 'low')));
+  });
+  return map;
+}
+
+export const includedCharge = (addonId, tier, includedMap) =>
+  Math.max(0, getAddonPrice(addonId, tier) - (includedMap?.get(addonId) || 0));
+
+// Module price = sum of component charges under the included map.
+export function getModulePrice(moduleId, includedMap = new Map()) {
   const mod = getModule(moduleId);
   if (!mod) return 0;
-  return mod.components.reduce((sum, c) => {
-    if (fullSet.has(c.id)) return sum;
-    const price = getAddonPrice(c.id, c.tier || 'low');
-    if (basicSet.has(c.id)) return sum + Math.max(0, price - getAddonPrice(c.id, 'low'));
-    return sum + price;
-  }, 0);
+  return mod.components.reduce((sum, c) => sum + includedCharge(c.id, c.tier || 'low', includedMap), 0);
 }
 
 // Indicative starting price of a quick offer = sum of its components at low tier.
@@ -546,23 +612,18 @@ export function getTemplateStartingPrice(templateId) {
   const tpl = getOfferTemplate(templateId);
   if (!tpl) return 0;
   let total = 0;
-  const full = new Set();
-  const basic = new Set();
   if (tpl.foundationId) {
     const f = getFoundation(tpl.foundationId);
-    if (f) { total += f.base; (FOUNDATION_COVERS[f.id] || []).forEach((id) => basic.add(id)); }
+    if (f) total += f.base;
   }
   total += (tpl.pagesStandard || 0) * PAGE_RATE_STANDARD + (tpl.pagesLanding || 0) * PAGE_RATE_LANDING;
   for (const sid of tpl.specials || []) {
     const pkg = PACKAGES.find((p) => p.id === sid);
-    if (pkg) { total += pkg.oneTime; (PACKAGE_COVERS[sid] || []).forEach((id) => full.add(id)); }
+    if (pkg) total += pkg.oneTime;
   }
+  const included = buildIncludedMap({ foundationId: tpl.foundationId, specials: tpl.specials || [] });
   for (const a of tpl.addons || []) {
-    if (full.has(a.id)) continue;
-    const addon = ADDONS.find((x) => x.id === a.id);
-    if (!addon) continue;
-    const price = getAddonPrice(a.id, a.tier || 'low');
-    total += basic.has(a.id) ? Math.max(0, price - addon.low) : price;
+    total += includedCharge(a.id, a.tier || 'low', included);
   }
   return total;
 }
@@ -692,15 +753,16 @@ export function buildEstimate(selection = {}) {
   let subtotalHigh = 0;
   let openEnded = false;
 
-  // Coverage sets:
-  //  fullCovered  — capability fully included in a special/package → free.
-  //  basicCovered — BASIC level included in the foundation → higher levels
-  //                 charged as the upgrade difference only.
-  const fullCovered = new Set();
-  const basicCovered = new Set();
-  if (foundation) (FOUNDATION_COVERS[foundation.id] || []).forEach((id) => basicCovered.add(id));
-  specialIds.forEach((sid) => (PACKAGE_COVERS[sid] || []).forEach((id) => fullCovered.add(id)));
-  if (pkg) (PACKAGE_COVERS[pkg.id] || []).forEach((id) => fullCovered.add(id));
+  // Unified included-value map (see buildIncludedMap). Modules are excluded
+  // here and folded in sequentially below, so order-dependent coverage is
+  // identical to what the module cards show.
+  const includedMap = buildIncludedMap({
+    foundationId: foundation?.id || null,
+    specials: specialIds,
+    packageId: pkg?.id || null,
+    modules: []
+  });
+  const bumpIncluded = (id, value) => includedMap.set(id, Math.max(includedMap.get(id) || 0, value));
 
   if (foundation) {
     lines.push({
@@ -768,19 +830,13 @@ export function buildEstimate(selection = {}) {
   }
 
   // Industry modules: one line each, priced as the live sum of their
-  // components (full coverage → free; basic coverage → upgrade diff only).
+  // component charges under the included map (sequential, so a capability
+  // already included by the base or an earlier module is never re-charged).
   (selection.modules || []).forEach((modId) => {
     const mod = getModule(modId);
     if (!mod) return;
-    const amount = getModulePrice(modId, fullCovered, basicCovered);
-    const parts = mod.components.map((c) => {
-      const a = getAddon(c.id);
-      const level = getAddonLevel(c.id, c.tier || 'low');
-      const name = `${a?.name.en || c.id}${level ? ` (${level.label})` : ''}`;
-      if (fullCovered.has(c.id)) return `${name} — included in base`;
-      if (basicCovered.has(c.id)) return `${name} — upgrade only, basic included in base`;
-      return name;
-    });
+    const amount = getModulePrice(modId, includedMap);
+    const standalone = getModulePrice(modId);
     lines.push({
       kind: 'module',
       id: modId,
@@ -788,34 +844,38 @@ export function buildEstimate(selection = {}) {
       labelAr: mod.name.ar,
       amount,
       basis: 'market',
-      note: `= ${parts.join(' + ')}`
+      note: (mod.includes || []).join(' · ')
+        + (amount < standalone ? ` — overlap with the rest of this offer deducted (standalone AED ${standalone}).` : '')
     });
     subtotal += amount;
-    // Range: sum component low/high under the same coverage rules
+    // Range under the same rule: low/high charges vs included value
     mod.components.forEach((c) => {
       const a = getAddon(c.id);
-      if (!a || fullCovered.has(c.id)) return;
-      if (basicCovered.has(c.id)) { subtotalHigh += a.high - a.low; return; }
-      subtotalLow += a.low;
-      subtotalHigh += a.high;
+      if (!a) return;
+      const inc = includedMap.get(c.id) || 0;
+      subtotalLow += Math.max(0, a.low - inc);
+      subtotalHigh += Math.max(0, a.high - inc);
     });
-    // Module components now count as fully covered (no double-charge if the
-    // same capability is also ticked as a standalone feature).
-    mod.components.forEach((c) => fullCovered.add(c.id));
+    // Fold this module's components into the included map.
+    mod.components.forEach((c) => bumpIncluded(c.id, getAddonPrice(c.id, c.tier || 'low')));
   });
 
+  // Feature add-ons. Duplicate ids are skipped (first occurrence wins) so the
+  // same capability can never be charged twice however it was selected.
+  const seenAddonIds = new Set();
   (selection.addons || []).forEach((sel) => {
     const addon = getAddon(sel.id);
-    if (!addon) return;
-    const isFull = fullCovered.has(addon.id);
-    const isBasic = !isFull && basicCovered.has(addon.id);
+    if (!addon || seenAddonIds.has(sel.id)) return;
+    seenAddonIds.add(sel.id);
     const qty = Math.max(1, Number(sel.qty) || 1);
     const tier = sel.tier || 'low';
     const fullPrice = getAddonPrice(sel.id, tier);
-    const unit = isFull ? 0 : isBasic ? Math.max(0, fullPrice - getAddonPrice(sel.id, 'low')) : fullPrice;
+    const included = includedMap.get(sel.id) || 0;
+    const unit = Math.max(0, fullPrice - included);
     const amount = unit * qty;
     const level = getAddonLevel(sel.id, tier);
-    const isIncludedFree = isFull || (isBasic && unit === 0);
+    const isFree = included > 0 && unit === 0;
+    const isUpgrade = included > 0 && unit > 0;
     lines.push({
       kind: 'addon',
       id: addon.id,
@@ -824,24 +884,24 @@ export function buildEstimate(selection = {}) {
       amount,
       unit,
       qty,
-      tier: addon.fixed || isIncludedFree ? null : tier,
-      from: !isIncludedFree && !!addon.from,
+      tier: addon.fixed || isFree ? null : tier,
+      from: !isFree && !!addon.from,
       basis: addon.basis,
       refs: addon.refs || [],
-      covered: isIncludedFree,
-      upgraded: isBasic && unit > 0,
-      note: isFull
-        ? 'Fully included in the selected base build — not charged.'
-        : isBasic && unit === 0
-          ? 'Basic level included in the build — not charged.'
-          : isBasic
-            ? `Basic level included in the build — charged as the upgrade to ${level ? level.label : 'this level'} only.`
-            : (level ? level.spec : addon.note || '')
+      covered: isFree,
+      upgraded: isUpgrade,
+      note: isFree
+        ? 'Already included in this selection — not charged.'
+        : isUpgrade
+          ? `Partly included in this selection — charged as the upgrade to ${level ? level.label : 'this level'} only.`
+          : (level ? level.spec : addon.note || '')
     });
     subtotal += amount;
-    subtotalLow += isFull || isBasic ? 0 : addon.low * qty;
-    subtotalHigh += isFull ? 0 : isBasic ? (addon.high - addon.low) * qty : addon.high * qty;
-    if (!isIncludedFree && addon.from) openEnded = true;
+    subtotalLow += Math.max(0, addon.low - included) * qty;
+    subtotalHigh += Math.max(0, addon.high - included) * qty;
+    if (!isFree && addon.from) openEnded = true;
+    // This addon's value is now included for any later duplicate selections.
+    bumpIncluded(sel.id, fullPrice);
   });
 
   // Founding-client discount: explicit, capped, its own line.
@@ -875,13 +935,22 @@ export function buildEstimate(selection = {}) {
   }
 
   // UAE market sanity check (R30–R32): pick the band matching the offer shape.
+  // A build with systems (modules, ordering/booking/dashboard/CRM/roles/bots)
+  // is compared to the CMS-business or custom band — never the simple-site
+  // band, regardless of which foundation tier it sits on.
+  const SYSTEM_ADDON_IDS = new Set(['ordering-integration', 'booking-integration', 'dashboard-pack', 'crm-setup', 'roles-logic', 'ai-chatbot-upgrade', 'loyalty-integration', 'file-uploads']);
+  const chargedSystems = lines.filter((l) =>
+    (l.kind === 'module' && l.amount > 0) ||
+    (l.kind === 'addon' && l.amount > 0 && SYSTEM_ADDON_IDS.has(l.id))).length;
   let uaeCheck = null;
   if (discountedSubtotal > 0) {
     let bandKey = null;
     if (specialIds.some((id) => id.startsWith('qd-commerce'))) bandKey = 'ecommerce';
     else if (specialIds.includes('qd-ops-dashboard')) bandKey = 'custom-system';
-    else if (foundation && foundation.id !== 'foundation-essential') bandKey = 'business-site';
+    else if (foundation && chargedSystems >= 3) bandKey = 'custom-system';
+    else if (foundation && (foundation.id !== 'foundation-essential' || chargedSystems >= 1)) bandKey = 'business-site';
     else if (foundation) bandKey = 'simple-site';
+    else if (chargedSystems >= 1) bandKey = 'business-site';
     if (bandKey) {
       const band = UAE_MARKET_BANDS[bandKey];
       uaeCheck = {

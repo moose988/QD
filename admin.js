@@ -85,7 +85,9 @@ import {
   getIndustryGroup,
   getModule,
   getModulePrice,
-  getAddonLevel
+  getAddonLevel,
+  buildIncludedMap,
+  includedCharge
 } from '/app/lib/pricing-model.js';
 import { parseBrief } from '/app/lib/brief-parser.js';
 import {
@@ -275,7 +277,7 @@ const state = {
     briefText: '',
     analysis: null,    // parseBrief() result, kept for the review panel
     founding: { enabled: false, percent: 10 },
-    ui: { describeOpen: true, moreOpen: false, addonFilter: '' },
+    ui: { describeOpen: false, moreOpen: false, addonFilter: '' },
     copied: false
   },
   cardEditor: {
@@ -7437,7 +7439,7 @@ const defaultPricingState = () => ({
   briefText: '',
   analysis: null,
   founding: { enabled: false, percent: 10 },
-  ui: { describeOpen: true, moreOpen: false, addonFilter: '' },
+  ui: { describeOpen: false, moreOpen: false, addonFilter: '' },
   copied: false
 });
 
@@ -7448,11 +7450,18 @@ const getPricingSelection = () => {
   if (p.products.dashboard === 'standalone') specials.push('qd-ops-dashboard');
   if (p.products.chatbot === 'standalone') specials.push('qd-ai-chatbot');
 
-  const addons = Object.entries(p.addons).map(([id, cfg]) => ({ id, tier: cfg.tier || 'low', qty: cfg.qty || 1 }));
-  if (p.products.booking) addons.push({ id: 'booking-integration', tier: p.bookingTier, qty: 1 });
-  if (p.products.ordering) addons.push({ id: 'ordering-integration', tier: p.orderingTier, qty: 1 });
-  if (p.products.chatbot === 'attached') addons.push({ id: 'ai-chatbot-upgrade', tier: p.chatbotTier, qty: 1 });
-  if (p.products.dashboard === 'attached') addons.push({ id: 'dashboard-pack', tier: p.dashboardTier, qty: 1 });
+  // Product-managed capabilities come from the product buttons; the same id
+  // in the free-form feature set is ignored so nothing is ever counted twice.
+  const productManaged = new Set();
+  const addons = [];
+  if (p.products.booking) { addons.push({ id: 'booking-integration', tier: p.bookingTier, qty: 1 }); productManaged.add('booking-integration'); }
+  if (p.products.ordering) { addons.push({ id: 'ordering-integration', tier: p.orderingTier, qty: 1 }); productManaged.add('ordering-integration'); }
+  if (p.products.chatbot === 'attached') { addons.push({ id: 'ai-chatbot-upgrade', tier: p.chatbotTier, qty: 1 }); productManaged.add('ai-chatbot-upgrade'); }
+  if (p.products.dashboard === 'attached') { addons.push({ id: 'dashboard-pack', tier: p.dashboardTier, qty: 1 }); productManaged.add('dashboard-pack'); }
+  Object.entries(p.addons).forEach(([id, cfg]) => {
+    if (productManaged.has(id)) return;
+    addons.push({ id, tier: cfg.tier || 'low', qty: cfg.qty || 1 });
+  });
 
   return {
     foundationId: p.products.website ? p.foundationId : null,
@@ -7501,13 +7510,16 @@ const applyBriefAnalysis = (analysis) => {
   p.copied = false;
 };
 
-const getPricingCoveredSets = () => {
+// Included-value map for UI display. excludeModuleId lets a module card price
+// itself against everything EXCEPT itself (matches engine's sequential math).
+const getPricingIncludedMap = (excludeModuleId = null) => {
   const sel = getPricingSelection();
-  const full = new Set();
-  const basic = new Set();
-  if (sel.foundationId) (FOUNDATION_COVERS[sel.foundationId] || []).forEach((id) => basic.add(id));
-  sel.specials.forEach((sid) => (PACKAGE_COVERS[sid] || []).forEach((id) => full.add(id)));
-  return { full, basic };
+  return buildIncludedMap({
+    foundationId: sel.foundationId,
+    specials: sel.specials,
+    modules: sel.modules,
+    excludeModuleId
+  });
 };
 
 const PRICING_PRODUCTS = [
@@ -7521,16 +7533,15 @@ const PRICING_PRODUCTS = [
 
 // Level cards: every choice shows a NAME, a definite PRICE, and exactly WHAT
 // you get at that price — never a naked range.
-const renderLevelCards = (addonId, action, current, coverage) => {
+const renderLevelCards = (addonId, action, current, includedMap) => {
   const addon = getAddon(addonId);
   if (!addon || !addon.levels) return '';
-  const isBasic = coverage && coverage.basic.has(addonId);
+  const included = includedMap?.get(addonId) || 0;
   return `
     <div class="qd-pricing-levels">
       ${addon.levels.map((lvl) => {
-        const fullPrice = getAddonPrice(addonId, lvl.tier);
-        const price = isBasic ? Math.max(0, fullPrice - getAddonPrice(addonId, 'low')) : fullPrice;
-        const priceLabel = isBasic && price === 0 ? 'included in build' : `AED ${formatAED(price)}${isBasic ? ' (upgrade)' : ''}`;
+        const price = includedCharge(addonId, lvl.tier, includedMap);
+        const priceLabel = included > 0 && price === 0 ? 'included' : `AED ${formatAED(price)}${included > 0 ? ' (upgrade)' : ''}`;
         return `
           <button type="button" class="qd-pricing-level ${current === lvl.tier ? 'is-active' : ''}" data-action="${action}" data-tier="${lvl.tier}" ${action === 'pricing-set-addon-level' ? `data-addon="${addonId}"` : ''}>
             <span class="qd-pricing-level-head"><strong>${escTxt(lvl.label)}</strong><em>${priceLabel}</em></span>
@@ -7540,35 +7551,35 @@ const renderLevelCards = (addonId, action, current, coverage) => {
     </div>`;
 };
 
-const renderPricingOptionChip = (addonId, coverage, labelOverride) => {
+const renderPricingOptionChip = (addonId, includedMap, labelOverride) => {
   const addon = getAddon(addonId);
   if (!addon) return '';
   const selected = state.pricing.addons[addonId];
-  const isFull = coverage.full.has(addonId);
-  const isBasic = !isFull && coverage.basic.has(addonId);
-  const basicNoUpgrade = isBasic && addon.low === addon.high;
-  const price = isFull || basicNoUpgrade
+  const lowCharge = includedCharge(addonId, 'low', includedMap);
+  const highCharge = includedCharge(addonId, 'high', includedMap);
+  const fullyIncluded = highCharge === 0;
+  const price = fullyIncluded
     ? 'included'
-    : isBasic
-      ? `basic included · upgrades from AED ${formatAED(getAddonPrice(addonId, 'mid') - addon.low)}`
+    : lowCharge === 0
+      ? `basic included · upgrade from AED ${formatAED(includedCharge(addonId, 'mid', includedMap))}`
       : addon.low === addon.high
-        ? `AED ${formatAED(addon.low)}${addon.from ? '+' : ''}`
-        : `from AED ${formatAED(addon.low)}`;
+        ? `AED ${formatAED(lowCharge)}${addon.from ? '+' : ''}`
+        : `from AED ${formatAED(lowCharge)}`;
   return `
-    <button type="button" class="qd-pricing-chip ${selected ? 'is-active' : ''} ${isFull || basicNoUpgrade ? 'is-covered' : ''}" data-action="pricing-toggle-addon" data-addon="${addonId}" title="${escAttr(addon.desc || '')}">
+    <button type="button" class="qd-pricing-chip ${selected ? 'is-active' : ''} ${fullyIncluded ? 'is-covered' : ''}" data-action="pricing-toggle-addon" data-addon="${addonId}" title="${escAttr(addon.desc || '')}">
       <span>${escTxt(labelOverride || addon.name.en)}</span><small>${price}</small>
     </button>`;
 };
 
 // Level pickers for any leveled chips that are currently selected in a panel.
-const renderActiveChipLevels = (addonIds, coverage) => {
+const renderActiveChipLevels = (addonIds, includedMap) => {
   const p = state.pricing;
   return addonIds
-    .filter((id) => p.addons[id] && getAddon(id)?.levels && !coverage.full.has(id))
+    .filter((id) => p.addons[id] && getAddon(id)?.levels && includedCharge(id, 'high', includedMap) > 0)
     .map((id) => `
       <div class="qd-pricing-panel-row qd-pricing-level-row">
         <span>${escTxt(getAddon(id).name.en)} — choose level</span>
-        ${renderLevelCards(id, 'pricing-set-addon-level', p.addons[id].tier || 'low', coverage)}
+        ${renderLevelCards(id, 'pricing-set-addon-level', p.addons[id].tier || 'low', includedMap)}
       </div>`)
     .join('');
 };
@@ -7576,7 +7587,7 @@ const renderActiveChipLevels = (addonIds, coverage) => {
 const renderPricingManager = () => {
   const p = state.pricing;
   const estimate = buildEstimate(getPricingSelection());
-  const coverage = getPricingCoveredSets();
+  const coverage = getPricingIncludedMap();
 
   // ---- Describe bar ---------------------------------------------------------
   const analysis = p.analysis;
@@ -7740,22 +7751,16 @@ const renderPricingManager = () => {
     modulesHtml = `
       <div class="qd-pricing-modules">
         ${group.modules.map((mod) => {
-          const price = getModulePrice(mod.id, coverage.full, coverage.basic);
+          const mapForCard = getPricingIncludedMap(mod.id);
+          const price = getModulePrice(mod.id, mapForCard);
           const standalone = getModulePrice(mod.id);
           const active = !!p.modules[mod.id];
-          const parts = mod.components.map((c) => {
-            const lvl = getAddonLevel(c.id, c.tier || 'low');
-            const nm = getAddon(c.id)?.name.en || c.id;
-            if (coverage.full.has(c.id)) return `${nm}: in base`;
-            if (coverage.basic.has(c.id)) return `${lvl ? lvl.label : nm}: upgrade only`;
-            return lvl ? `${nm} (${lvl.label})` : nm;
-          });
           return `
             <button type="button" class="qd-pricing-module ${active ? 'is-active' : ''}" data-action="pricing-toggle-module" data-module="${mod.id}">
               <span class="qd-pricing-product-name">${escTxt(mod.name.en)}</span>
-              <span class="qd-pricing-product-desc">${escTxt(mod.pitch)}</span>
-              <span class="qd-pricing-product-price">AED ${formatAED(price)}${price < standalone ? ` <s>AED ${formatAED(standalone)}</s>` : ''}</span>
-              <span class="qd-pricing-module-parts">= ${escTxt(parts.join(' + '))}</span>
+              <span class="qd-pricing-product-price">${price === 0 ? 'already covered by your selection' : `AED ${formatAED(price)}`}${price > 0 && price < standalone ? ` <s>AED ${formatAED(standalone)}</s>` : ''}</span>
+              <span class="qd-pricing-module-parts">${mod.includes.map(escTxt).join('<br>')}</span>
+              ${price > 0 && price < standalone ? '<span class="qd-pricing-product-desc">overlap with your selection deducted</span>' : ''}
             </button>`;
         }).join('')}
       </div>`;
@@ -7764,7 +7769,8 @@ const renderPricingManager = () => {
   // ---- Step 4: more features + care + discount ---------------------------------
   const filterValue = p.ui.addonFilter || '';
   const filterNorm = filterValue.trim().toLowerCase();
-  const moreAddons = ADDONS.filter((a) => !['extra-page', 'extra-landing'].includes(a.id)).map((addon) => {
+  const PRODUCT_MANAGED_ADDONS = ['booking-integration', 'ordering-integration', 'ai-chatbot-upgrade', 'dashboard-pack'];
+  const moreAddons = ADDONS.filter((a) => !['extra-page', 'extra-landing', ...PRODUCT_MANAGED_ADDONS].includes(a.id)).map((addon) => {
     const matches = !filterNorm || addon.name.en.toLowerCase().includes(filterNorm) || addon.name.ar.includes(filterValue.trim());
     return `<div data-pricing-addon-row="${escAttr(addon.name.en.toLowerCase())}" ${matches ? '' : 'hidden'} style="display:${matches ? 'block' : 'none'}">${renderPricingOptionChip(addon.id, coverage)}</div>`;
   }).join('');
@@ -7832,7 +7838,7 @@ const renderPricingManager = () => {
             ${p.ui.moreOpen ? `
               <input class="qd-quote-input qd-pricing-filter" type="search" placeholder="Search features…" value="${escAttr(filterValue)}" data-pricing-filter>
               <div class="qd-pricing-chips">${moreAddons}</div>
-              ${renderActiveChipLevels(ADDONS.filter((a) => a.levels).map((a) => a.id), coverage)}` : ''}
+              ${renderActiveChipLevels(ADDONS.filter((a) => a.levels && !PRODUCT_MANAGED_ADDONS.includes(a.id)).map((a) => a.id), coverage)}` : ''}
           </div>
 
           <div class="qd-pricing-step">
@@ -7870,7 +7876,7 @@ const renderPricingManager = () => {
             </div>
             ${estimate.monthly.softwarePassThrough ? '<div class="qd-pricing-passthrough">⚠ Third-party software & usage fees billed at cost on top.</div>' : ''}
             ${renderBandBox(estimate.uaeCheck, 'UAE market (verified live)')}
-            ${renderBandBox(estimate.bandCheck && activePreset ? estimate.bandCheck : null, activePreset ? activePreset.name.en : '')}
+            ${Object.keys(p.modules).length === 0 ? renderBandBox(estimate.bandCheck && activePreset ? estimate.bandCheck : null, activePreset ? activePreset.name.en : '') : ''}
             <button type="button" class="qd-btn qd-btn-sm qd-admin-action-primary qd-pricing-copy" data-action="pricing-copy-summary">
               ${p.copied ? '✓ Copied' : 'Copy estimate summary'}
             </button>
