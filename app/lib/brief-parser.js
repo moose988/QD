@@ -205,6 +205,13 @@ export function parseBrief(text) {
     if (hits.length) needs[need] = hits;
   }
 
+  // Negation handling: "no website" / "without a website" must not count as
+  // wanting a website (otherwise system-only offers get a foundation added).
+  const WEBSITE_NEGATIONS = ['no website', 'without a website', 'without website', 'not a website', 'بدون موقع', 'من غير موقع', 'مش موقع'];
+  if (needs.website && WEBSITE_NEGATIONS.some((p) => normalized.includes(normalize(p)))) {
+    delete needs.website;
+  }
+
   let industry = null;
   for (const [id, phrases] of Object.entries(INDUSTRY_KEYWORDS)) {
     const hits = findMatches(normalized, phrases);

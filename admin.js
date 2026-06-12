@@ -70,7 +70,17 @@ import {
   buildEstimate,
   formatEstimateText,
   PACKAGE_COVERS,
-  FOUNDING_MAX_DISCOUNT_PERCENT
+  FOUNDING_MAX_DISCOUNT_PERCENT,
+  FOUNDATIONS,
+  FOUNDATION_COVERS,
+  SPECIAL_BUILDS,
+  OFFER_TEMPLATES,
+  getFoundation,
+  getSpecialBuild,
+  getOfferTemplate,
+  getTemplateStartingPrice,
+  PAGE_RATE_STANDARD,
+  PAGE_RATE_LANDING
 } from '/app/lib/pricing-model.js';
 import { parseBrief } from '/app/lib/brief-parser.js';
 import {
@@ -243,14 +253,18 @@ const state = {
   quoteDrawer: { open: false, quote: null, original: null, dirty: false },
   quoteToast: '',
   pricing: {
-    packageId: null,
+    foundationId: null,
+    pagesStandard: 0,
+    pagesLanding: 0,
+    specials: {},      // { [specialId]: true }
     addons: {},        // { [addonId]: { tier: 'low'|'mid'|'high', qty: number } }
     carePlanId: 'none',
-    industryId: null,
+    industryId: '',
     clientName: '',
     briefText: '',
     analysis: null,    // parseBrief() result, kept for the review panel
     founding: { enabled: false, percent: 10 },
+    ui: { open: { brief: true, base: true, features: false, care: false }, addonFilter: '' },
     copied: false
   },
   cardEditor: {
@@ -6855,6 +6869,10 @@ document.addEventListener('click', (event) => {
 });
 
 document.addEventListener('input', (event) => {
+  if (event.target.dataset && event.target.dataset.pricingFilter !== undefined) {
+    applyPricingAddonFilter(event.target.value);
+    return;
+  }
   handleDocumentInput(event);
 });
 
@@ -7571,13 +7589,23 @@ const renderPricingManager = () => {
     <div class="qd-pricing-subhead">Self-contained system builds</div>
     <div class="qd-pricing-packages">${specialCards}</div>
     <div class="qd-pricing-pages-row">
-      <label>Content pages (AED ${PAGE_RATE_STANDARD}/page)
-        <input class="qd-quote-input" type="number" min="0" max="200" value="${p.pagesStandard}" data-pricing-field="pages-standard">
-      </label>
-      <label>Advanced landing pages (AED ${PAGE_RATE_LANDING}/page)
-        <input class="qd-quote-input" type="number" min="0" max="50" value="${p.pagesLanding}" data-pricing-field="pages-landing">
-      </label>
-      <label>Industry band check
+      <div class="qd-pricing-stepper">
+        <span class="qd-pricing-stepper-label">Content pages · AED ${PAGE_RATE_STANDARD}/page</span>
+        <div class="qd-pricing-qty-btns">
+          <button type="button" class="qd-pricing-tier-btn" data-action="pricing-pages" data-kind="standard" data-delta="-1">−</button>
+          <span class="qd-pricing-qty-value">${p.pagesStandard}</span>
+          <button type="button" class="qd-pricing-tier-btn" data-action="pricing-pages" data-kind="standard" data-delta="1">+</button>
+        </div>
+      </div>
+      <div class="qd-pricing-stepper">
+        <span class="qd-pricing-stepper-label">Landing pages · AED ${PAGE_RATE_LANDING}/page</span>
+        <div class="qd-pricing-qty-btns">
+          <button type="button" class="qd-pricing-tier-btn" data-action="pricing-pages" data-kind="landing" data-delta="-1">−</button>
+          <span class="qd-pricing-qty-value">${p.pagesLanding}</span>
+          <button type="button" class="qd-pricing-tier-btn" data-action="pricing-pages" data-kind="landing" data-delta="1">+</button>
+        </div>
+      </div>
+      <label class="qd-pricing-industry-select">Industry band check
         <select class="qd-quote-input" data-pricing-field="industry">${industryOptions}</select>
       </label>
     </div>`;
@@ -7598,29 +7626,29 @@ const renderPricingManager = () => {
     const qty = selected?.qty || 1;
     const matches = !filterNorm || addon.name.en.toLowerCase().includes(filterNorm) || addon.name.ar.includes(filterValue.trim());
     const priceLabel = isCovered
-      ? 'included'
+      ? 'included in base'
       : addon.fixed || addon.low === addon.high
         ? `AED ${formatAED(addon.low)}${addon.from ? '+' : ''}${addon.perUnit ? ` / ${addon.perUnit}` : ''}`
         : `AED ${formatAED(addon.low)} – ${formatAED(addon.high)}`;
     return `
-      <div class="qd-pricing-addon ${selected ? 'is-active' : ''} ${isCovered ? 'is-covered' : ''}" data-pricing-addon-row="${escAttr(addon.name.en.toLowerCase())}" ${matches ? '' : 'hidden'}>
-        <label class="qd-pricing-addon-main">
-          <input type="checkbox" data-pricing-field="addon" data-addon="${addon.id}" ${selected ? 'checked' : ''}>
+      <div class="qd-pricing-addon-cell ${selected ? 'is-active' : ''} ${isCovered ? 'is-covered' : ''}" data-pricing-addon-row="${escAttr(addon.name.en.toLowerCase())}" ${matches ? '' : 'hidden'}>
+        <button type="button" class="qd-pricing-addon-btn" data-action="pricing-toggle-addon" data-addon="${addon.id}">
           <span class="qd-pricing-addon-name">${escTxt(addon.name.en)}</span>
           <span class="qd-pricing-addon-price">${priceLabel}</span>
-          ${isCovered ? '<span class="qd-pricing-basis is-market" title="Capability already inside the selected base build">in base</span>' : renderPricingBasisTag(addon.basis, addon.refs)}
-        </label>
+        </button>
         ${selected && !isCovered && !addon.fixed && addon.low !== addon.high ? `
-          <select class="qd-quote-input qd-pricing-addon-tier" data-pricing-field="addon-tier" data-addon="${addon.id}">
-            <option value="low" ${tier === 'low' ? 'selected' : ''}>Light scope — AED ${formatAED(getAddonPrice(addon.id, 'low'))}</option>
-            <option value="mid" ${tier === 'mid' ? 'selected' : ''}>Standard scope — AED ${formatAED(getAddonPrice(addon.id, 'mid'))}</option>
-            <option value="high" ${tier === 'high' ? 'selected' : ''}>Complex scope — AED ${formatAED(getAddonPrice(addon.id, 'high'))}</option>
-          </select>` : ''}
+          <div class="qd-pricing-tier-btns">
+            ${['low', 'mid', 'high'].map((t) => `
+              <button type="button" class="qd-pricing-tier-btn ${tier === t ? 'is-active' : ''}" data-action="pricing-set-addon-tier" data-addon="${addon.id}" data-tier="${t}">
+                ${t === 'low' ? 'Light' : t === 'mid' ? 'Standard' : 'Complex'} · ${formatAED(getAddonPrice(addon.id, t))}
+              </button>`).join('')}
+          </div>` : ''}
         ${selected && !isCovered && addon.perUnit ? `
-          <label class="qd-pricing-addon-qty">Qty
-            <input class="qd-quote-input" type="number" min="1" max="99" value="${qty}" data-pricing-field="addon-qty" data-addon="${addon.id}">
-            ${escTxt(addon.perUnit)}(s)
-          </label>` : ''}
+          <div class="qd-pricing-qty-btns">
+            <button type="button" class="qd-pricing-tier-btn" data-action="pricing-addon-qty" data-addon="${addon.id}" data-delta="-1">−</button>
+            <span class="qd-pricing-qty-value">${qty} ${escTxt(addon.perUnit)}(s)</span>
+            <button type="button" class="qd-pricing-tier-btn" data-action="pricing-addon-qty" data-addon="${addon.id}" data-delta="1">+</button>
+          </div>` : ''}
         ${selected && addon.note && !isCovered ? `<div class="qd-pricing-addon-note">${escTxt(addon.note)}</div>` : ''}
       </div>`;
   }).join('');
@@ -7819,6 +7847,42 @@ const handlePricingAction = async (action, actionTarget) => {
     const id = actionTarget.dataset.special;
     if (state.pricing.specials[id]) delete state.pricing.specials[id];
     else state.pricing.specials[id] = true;
+    state.pricing.copied = false;
+    render();
+    return true;
+  }
+  if (action === 'pricing-toggle-addon') {
+    const id = actionTarget.dataset.addon;
+    if (state.pricing.addons[id]) delete state.pricing.addons[id];
+    else state.pricing.addons[id] = { tier: 'low', qty: 1 };
+    state.pricing.copied = false;
+    render();
+    return true;
+  }
+  if (action === 'pricing-set-addon-tier') {
+    const id = actionTarget.dataset.addon;
+    if (state.pricing.addons[id]) state.pricing.addons[id].tier = actionTarget.dataset.tier;
+    state.pricing.copied = false;
+    render();
+    return true;
+  }
+  if (action === 'pricing-addon-qty') {
+    const id = actionTarget.dataset.addon;
+    const delta = Number(actionTarget.dataset.delta) || 0;
+    if (state.pricing.addons[id]) {
+      state.pricing.addons[id].qty = Math.max(1, Math.min(99, (state.pricing.addons[id].qty || 1) + delta));
+    }
+    state.pricing.copied = false;
+    render();
+    return true;
+  }
+  if (action === 'pricing-pages') {
+    const delta = Number(actionTarget.dataset.delta) || 0;
+    if (actionTarget.dataset.kind === 'standard') {
+      state.pricing.pagesStandard = Math.max(0, Math.min(200, state.pricing.pagesStandard + delta));
+    } else {
+      state.pricing.pagesLanding = Math.max(0, Math.min(50, state.pricing.pagesLanding + delta));
+    }
     state.pricing.copied = false;
     render();
     return true;

@@ -1,7 +1,23 @@
 # QD Systems Pricing Model — Traceability Document
 
 **Version:** 2026-06-11 · **Currency:** AED · **VAT:** 5% (UAE)
-**Code:** `app/lib/pricing-model.js` (single source of truth) → consumed by `app/lib/quote-catalog.js`, `app/lib/quote-prefill.js`, and the admin **Pricing** tab + quote drawer in `admin.js`.
+**Code:** `app/lib/pricing-model.js` (single source of truth) → consumed by `app/lib/brief-parser.js`, `app/lib/quote-catalog.js`, `app/lib/quote-prefill.js`, and the admin **Pricing** tab + quote drawer in `admin.js`.
+
+## Component-based pricing (primary model — not package based)
+
+An offer is priced as **base build + pages + features** (+ care plan, − capped founding-client discount). Foundations are arithmetic derivations of the package anchors (anchor − pages × 250), so foundation + N pages reproduces each anchor exactly:
+
+| Foundation | Base (AED) | Derivation |
+|---|---|---|
+| Essential build | 4,650 | Launch anchor 5,900 − 5 × 250 |
+| Professional build | 7,400 | Growth anchor 9,900 − 10 × 250 |
+| Premium build | 10,900 | Business Pro anchor 14,900 − 16 × 250 |
+
+Pages always billed per page: **250 standard / 450 landing**. Self-contained system builds (online store ≤50 / 50–250 products, internal ops MVP, standalone chatbot) reuse the package anchors 1:1. Quick-offer templates are priced as the **sum of their components** — never a separate number. Add-ons covered by the selected base are shown at AED 0 ("included"), never dropped and never double-charged.
+
+## UAE market verification (independent of the original research)
+
+Fetched directly on 2026-06-11 (R30–R32): RDS Dubai guide, Tenet Dubai 2026 guide (450+ projects), Upscape Tech. The engine checks every estimate against these bands and warns above/below: simple site 2,000–12,000 · CMS business site 7,000–55,000 · e-commerce 8,000–110,000 · custom system 15,000–145,000. **Conclusion: QD prices sit lower-middle of the verified UAE market — not overcharging.**
 
 ## Provenance
 
