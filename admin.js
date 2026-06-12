@@ -278,7 +278,8 @@ const state = {
     analysis: null,    // parseBrief() result, kept for the review panel
     founding: { enabled: false, percent: 10 },
     ui: { describeOpen: false, moreOpen: false, addonFilter: '' },
-    copied: false
+    copied: false,
+    quoteCreating: false
   },
   cardEditor: {
     open: false,
@@ -7440,7 +7441,8 @@ const defaultPricingState = () => ({
   analysis: null,
   founding: { enabled: false, percent: 10 },
   ui: { describeOpen: false, moreOpen: false, addonFilter: '' },
-  copied: false
+  copied: false,
+  quoteCreating: false
 });
 
 const getPricingSelection = () => {
@@ -7880,6 +7882,9 @@ const renderPricingManager = () => {
             <button type="button" class="qd-btn qd-btn-sm qd-admin-action-primary qd-pricing-copy" data-action="pricing-copy-summary">
               ${p.copied ? '✓ Copied' : 'Copy estimate summary'}
             </button>
+            <button type="button" class="qd-btn qd-btn-sm qd-admin-action-primary qd-pricing-create-quote" data-action="pricing-create-quote" ${p.quoteCreating ? 'disabled' : ''}>
+              ${p.quoteCreating ? 'Creating quote...' : 'Create quote'}
+            </button>
             <button type="button" class="qd-btn qd-btn-sm qd-admin-action-secondary" data-action="pricing-reset">Reset</button>
           `}
           <details class="qd-pricing-sources">
@@ -7997,6 +8002,49 @@ const handlePricingAction = async (action, actionTarget) => {
     state.pricing = defaultPricingState();
     state.pricing.clientName = keepName;
     render();
+    return true;
+  }
+  if (action === 'pricing-create-quote') {
+    const selection = getPricingSelection();
+    const estimate = buildEstimate(selection);
+    if (!estimate.lines.some((line) => Number(line.amount) !== 0)) {
+      showAdminToast('Click at least one billable product before creating a quote.');
+      return true;
+    }
+    const user = auth.currentUser;
+    if (!user) {
+      showAdminToast('Not signed in.');
+      return true;
+    }
+    p.quoteCreating = true;
+    p.copied = false;
+    render();
+    try {
+      const token = await user.getIdToken();
+      const res = await fetch('/api/quote-from-estimate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({
+          selection,
+          clientName: p.clientName,
+          language: 'en'
+        })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        showAdminToast(`Could not create quote: ${err.error || res.status}`);
+        p.quoteCreating = false;
+        render();
+        return true;
+      }
+      const created = await res.json();
+      p.quoteCreating = false;
+      openQuoteDrawer(created);
+    } catch (error) {
+      p.quoteCreating = false;
+      showAdminToast(`Could not create quote: ${error.message}`);
+      render();
+    }
     return true;
   }
   if (action === 'pricing-copy-summary') {

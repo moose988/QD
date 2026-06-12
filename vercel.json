@@ -20,6 +20,7 @@
     "api/demo-verify.js":  { "memory": 512,  "maxDuration": 10 },
     "api/maps-extract.js": { "memory": 512,  "maxDuration": 15 },
     "api/quote-create.js": { "memory": 512,  "maxDuration": 10 },
+    "api/quote-from-estimate.js": { "memory": 512,  "maxDuration": 10 },
     "api/quote-save.js":   { "memory": 512,  "maxDuration": 10 },
     "api/quote-verify.js": { "memory": 512,  "maxDuration": 10 }
   },
