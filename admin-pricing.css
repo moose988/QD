@@ -1,0 +1,382 @@
+/* ===========================================================================
+   Pricing Estimator tab (admin)
+   Follows the qd-admin glass/dark panel conventions in admin.css
+   =========================================================================== */
+
+.qd-pricing-section { padding: 22px; }
+
+.qd-pricing-head h2 { margin: 0 0 4px; font-size: 1.25rem; }
+.qd-pricing-sub { margin: 0; font-size: 0.78rem; opacity: 0.65; }
+
+.qd-pricing-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(280px, 1fr);
+  gap: 20px;
+  margin-top: 18px;
+  align-items: start;
+}
+
+@media (max-width: 980px) {
+  .qd-pricing-layout { grid-template-columns: 1fr; }
+}
+
+/* --- Industry presets --- */
+.qd-pricing-presets { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
+.qd-pricing-preset {
+  border: 1px solid var(--qd-admin-border-strong);
+  background: var(--qd-admin-glass), var(--qd-admin-panel-soft);
+  color: inherit;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.qd-pricing-preset:hover { border-color: rgba(244, 241, 234, 0.4); }
+.qd-pricing-preset.is-active {
+  border-color: rgba(120, 200, 160, 0.7);
+  background: rgba(120, 200, 160, 0.12);
+}
+.qd-pricing-preset.is-clear { opacity: 0.7; }
+
+/* --- Package cards --- */
+.qd-pricing-packages {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+  gap: 10px;
+}
+.qd-pricing-package {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  border: 1px solid var(--qd-admin-border);
+  background: var(--qd-admin-glass), var(--qd-admin-panel-soft);
+  color: inherit;
+  border-radius: var(--qd-admin-radius-sm);
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+.qd-pricing-package:hover { border-color: rgba(244, 241, 234, 0.35); transform: translateY(-1px); }
+.qd-pricing-package.is-active {
+  border-color: rgba(120, 200, 160, 0.75);
+  background: rgba(120, 200, 160, 0.08);
+}
+.qd-pricing-package-name { font-weight: 600; font-size: 0.9rem; }
+.qd-pricing-package-price { font-size: 0.95rem; font-weight: 700; color: rgba(150, 220, 180, 0.95); }
+.qd-pricing-package-for { font-size: 0.72rem; opacity: 0.65; }
+.qd-pricing-package-includes { font-size: 0.68rem; opacity: 0.5; line-height: 1.5; }
+
+.qd-pricing-pkg-note { margin-top: 8px; font-size: 0.74rem; opacity: 0.75; line-height: 1.5; }
+
+/* --- Add-ons --- */
+.qd-pricing-addons { display: flex; flex-direction: column; gap: 6px; }
+.qd-pricing-addon {
+  border: 1px solid var(--qd-admin-border);
+  background: var(--qd-admin-panel-soft);
+  border-radius: 12px;
+  padding: 8px 12px;
+}
+.qd-pricing-addon.is-active { border-color: rgba(120, 200, 160, 0.45); }
+.qd-pricing-addon-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.84rem;
+}
+.qd-pricing-addon-main input[type="checkbox"] { accent-color: rgb(120, 200, 160); }
+.qd-pricing-addon-name { flex: 1; }
+.qd-pricing-addon-price { font-variant-numeric: tabular-nums; opacity: 0.85; font-size: 0.78rem; white-space: nowrap; }
+.qd-pricing-addon-tier { margin-top: 8px; width: 100%; }
+.qd-pricing-addon-qty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 0.76rem;
+  opacity: 0.85;
+}
+.qd-pricing-addon-qty input { width: 70px; }
+.qd-pricing-addon-note { margin-top: 6px; font-size: 0.72rem; opacity: 0.65; }
+
+/* --- Basis tags --- */
+.qd-pricing-basis {
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: 6px;
+  padding: 2px 7px;
+  white-space: nowrap;
+}
+.qd-pricing-basis.is-market { background: rgba(110, 170, 230, 0.16); color: rgb(150, 195, 240); }
+.qd-pricing-basis.is-positioning { background: rgba(230, 190, 110, 0.14); color: rgb(235, 205, 145); }
+
+/* --- Care plan --- */
+.qd-pricing-care { width: 100%; }
+.qd-pricing-care-scope { margin-top: 6px; font-size: 0.74rem; opacity: 0.65; line-height: 1.5; }
+
+/* --- Summary panel --- */
+.qd-pricing-summary {
+  position: sticky;
+  top: 16px;
+  border: 1px solid var(--qd-admin-border-strong);
+  background: var(--qd-admin-glass), var(--qd-admin-panel);
+  border-radius: var(--qd-admin-radius-sm);
+  padding: 16px;
+  box-shadow: var(--qd-admin-shadow);
+}
+.qd-pricing-empty { font-size: 0.82rem; opacity: 0.6; padding: 10px 0 16px; }
+.qd-pricing-summary-lines { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+.qd-pricing-summary-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.82rem;
+}
+.qd-pricing-summary-line em { font-style: normal; opacity: 0.6; font-size: 0.72rem; }
+.qd-pricing-summary-line span:last-child { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.qd-pricing-summary-totals {
+  border-top: 1px solid var(--qd-admin-border);
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.qd-pricing-summary-line.is-muted { opacity: 0.65; font-size: 0.76rem; }
+.qd-pricing-summary-line.is-grand { font-weight: 700; font-size: 0.95rem; color: rgba(150, 220, 180, 0.95); }
+.qd-pricing-summary-line.is-monthly { font-weight: 600; color: rgba(150, 195, 240, 0.95); }
+
+.qd-pricing-passthrough {
+  font-size: 0.72rem;
+  line-height: 1.5;
+  background: rgba(230, 190, 110, 0.1);
+  border: 1px solid rgba(230, 190, 110, 0.25);
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin-bottom: 12px;
+}
+
+.qd-pricing-band {
+  font-size: 0.74rem;
+  line-height: 1.6;
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin-bottom: 12px;
+  border: 1px solid var(--qd-admin-border);
+}
+.qd-pricing-band.is-within { border-color: rgba(120, 200, 160, 0.4); background: rgba(120, 200, 160, 0.08); }
+.qd-pricing-band.is-below { border-color: rgba(110, 170, 230, 0.4); background: rgba(110, 170, 230, 0.08); }
+.qd-pricing-band.is-above { border-color: rgba(230, 140, 110, 0.4); background: rgba(230, 140, 110, 0.08); }
+
+.qd-pricing-copy { width: 100%; margin-bottom: 8px; }
+.qd-pricing-summary .qd-admin-action-secondary { width: 100%; }
+
+/* --- Sources --- */
+.qd-pricing-sources { margin-top: 14px; font-size: 0.72rem; }
+.qd-pricing-sources summary { cursor: pointer; opacity: 0.7; }
+.qd-pricing-sources ul { margin: 8px 0 0; padding-left: 16px; max-height: 220px; overflow-y: auto; }
+.qd-pricing-sources li { margin-bottom: 4px; line-height: 1.5; }
+.qd-pricing-sources a { color: rgba(150, 195, 240, 0.9); text-decoration: none; }
+.qd-pricing-sources a:hover { text-decoration: underline; }
+.qd-pricing-verified { color: rgb(120, 200, 160); font-size: 0.66rem; }
+
+/* --- Client brief & analysis --- */
+.qd-pricing-brief { width: 100%; min-height: 96px; margin-top: 6px; resize: vertical; }
+#pricing-client-name { width: 100%; }
+.qd-pricing-brief-actions { display: flex; gap: 8px; margin-top: 8px; }
+
+.qd-pricing-analysis {
+  margin-top: 10px;
+  border: 1px solid var(--qd-admin-border-strong);
+  background: var(--qd-admin-panel-soft);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.qd-pricing-analysis-head {
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.6;
+  margin-bottom: 2px;
+}
+.qd-pricing-det { font-size: 0.78rem; line-height: 1.55; padding-left: 10px; border-left: 2px solid transparent; }
+.qd-pricing-det.is-ok { border-left-color: rgba(120, 200, 160, 0.7); }
+.qd-pricing-det.is-covered { border-left-color: rgba(110, 170, 230, 0.7); opacity: 0.85; }
+.qd-pricing-det.is-suggested { border-left-color: rgba(230, 190, 110, 0.7); }
+.qd-pricing-det.is-warning { border-left-color: rgba(230, 140, 110, 0.85); color: rgb(240, 185, 165); }
+.qd-pricing-det.is-note { border-left-color: rgba(244, 241, 234, 0.25); opacity: 0.7; }
+.qd-pricing-evidence { opacity: 0.55; font-size: 0.7rem; }
+
+/* --- Founding-client discount --- */
+.qd-pricing-founding {
+  border: 1px solid var(--qd-admin-border);
+  background: var(--qd-admin-panel-soft);
+  border-radius: 12px;
+  padding: 8px 12px;
+}
+.qd-pricing-founding.is-active { border-color: rgba(230, 190, 110, 0.5); }
+.qd-pricing-founding .qd-pricing-addon-qty input { width: 64px; }
+
+.qd-pricing-summary-line.is-discount { color: rgb(235, 205, 145); }
+
+/* --- Collapsible sections (v2 component UI) --- */
+.qd-pricing-controls { display: flex; flex-direction: column; gap: 12px; }
+.qd-pricing-sec {
+  border: 1px solid var(--qd-admin-border);
+  background: var(--qd-admin-glass), var(--qd-admin-panel-soft);
+  border-radius: var(--qd-admin-radius-sm);
+  overflow: hidden;
+}
+.qd-pricing-sec.is-open { border-color: var(--qd-admin-border-strong); }
+.qd-pricing-sec-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.qd-pricing-sec-head:hover { background: rgba(255, 255, 255, 0.03); }
+.qd-pricing-sec-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.qd-pricing-sec-summary {
+  flex: 1;
+  font-size: 0.74rem;
+  opacity: 0.6;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+}
+.qd-pricing-sec-chevron { opacity: 0.5; font-size: 0.8rem; }
+.qd-pricing-sec-body { padding: 4px 16px 16px; }
+
+.qd-pricing-subhead {
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.55;
+  margin: 14px 0 8px;
+}
+.qd-pricing-subhead:first-child { margin-top: 6px; }
+.qd-pricing-subhead small { text-transform: none; letter-spacing: 0; opacity: 0.8; }
+
+/* Pages + industry row */
+.qd-pricing-pages-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 14px;
+}
+.qd-pricing-pages-row label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.72rem;
+  opacity: 0.85;
+  flex: 1;
+  min-width: 150px;
+}
+.qd-pricing-pages-row input, .qd-pricing-pages-row select { width: 100%; }
+
+/* Feature search */
+.qd-pricing-filter { width: 100%; margin-bottom: 10px; }
+
+/* Special build cards + covered addon rows */
+.qd-pricing-special .qd-pricing-package-includes { font-size: 0.66rem; }
+.qd-pricing-addon.is-covered { opacity: 0.75; border-style: dashed; }
+.qd-pricing-package-price small { font-size: 0.66rem; font-weight: 400; opacity: 0.7; }
+
+/* --- Button-based feature grid + steppers --- */
+.qd-pricing-addons {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 8px;
+}
+.qd-pricing-addon-cell {
+  border: 1px solid var(--qd-admin-border);
+  background: var(--qd-admin-panel-soft);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.qd-pricing-addon-cell.is-active { border-color: rgba(120, 200, 160, 0.6); background: rgba(120, 200, 160, 0.06); }
+.qd-pricing-addon-cell.is-covered { opacity: 0.75; border-style: dashed; }
+.qd-pricing-addon-btn {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.qd-pricing-addon-btn:hover { background: rgba(255, 255, 255, 0.04); }
+.qd-pricing-addon-btn .qd-pricing-addon-name { font-size: 0.8rem; font-weight: 600; }
+.qd-pricing-addon-btn .qd-pricing-addon-price { font-size: 0.72rem; opacity: 0.75; }
+.qd-pricing-addon-cell.is-active .qd-pricing-addon-price { color: rgba(150, 220, 180, 0.95); opacity: 1; }
+
+.qd-pricing-tier-btns, .qd-pricing-qty-btns {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 0 10px 10px;
+  flex-wrap: wrap;
+}
+.qd-pricing-tier-btn {
+  border: 1px solid var(--qd-admin-border-strong);
+  background: var(--qd-admin-panel-soft);
+  color: inherit;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+.qd-pricing-tier-btn:hover { border-color: rgba(244, 241, 234, 0.4); }
+.qd-pricing-tier-btn.is-active {
+  border-color: rgba(120, 200, 160, 0.8);
+  background: rgba(120, 200, 160, 0.14);
+}
+.qd-pricing-qty-value { font-size: 0.76rem; min-width: 60px; text-align: center; font-variant-numeric: tabular-nums; }
+.qd-pricing-addon-cell .qd-pricing-addon-note { padding: 0 12px 10px; margin-top: 0; }
+
+/* Page steppers */
+.qd-pricing-stepper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 1px solid var(--qd-admin-border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  flex: 1;
+  min-width: 170px;
+}
+.qd-pricing-stepper-label { font-size: 0.7rem; opacity: 0.7; }
+.qd-pricing-stepper .qd-pricing-qty-btns { padding: 0; }
+.qd-pricing-industry-select {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.7rem;
+  opacity: 0.85;
+  flex: 1;
+  min-width: 160px;
+}

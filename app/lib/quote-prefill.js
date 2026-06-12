@@ -22,8 +22,9 @@ function countNeededPages(rawPages) {
 
 function pickSiteCatalogKey(pageCount) {
   if (pageCount <= 0) return null;
-  if (pageCount <= 6) return 'site-5p';
-  return 'site-10p';
+  if (pageCount <= 6) return 'site-5p';   // QD Launch Site
+  if (pageCount <= 12) return 'site-10p'; // QD Growth Website
+  return 'site-pro';                      // QD Business Pro Website
 }
 
 function detectLanguage(submission) {
