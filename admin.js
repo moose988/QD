@@ -83,6 +83,7 @@ const DEMO_STATUS_OPTIONS = ['draft', 'active', 'expired', 'disabled'];
 const OUTREACH_STATUS_OPTIONS = [
   { value: 'call_them', label: 'Call Them' },
   { value: 'visit_them', label: 'Visit Them' },
+  { value: 'send_details', label: 'Send Details' },
   { value: 'setting_meeting', label: 'Setting Meeting' },
   { value: 'declined', label: 'Declined' },
   { value: 'they_will_call_back', label: 'They Will Call Back' },
@@ -461,6 +462,9 @@ const rawValueLabels = {
   blog_news_offers: 'Blog / News / Offers',
   call_them: 'Call Them',
   visit_them: 'Visit Them',
+  send_details: 'Send Details',
+  send_them_details_on_whatsapp: 'Send Details',
+  send_details_on_whatsapp: 'Send Details',
   setting_meeting: 'Setting Meeting',
   they_will_call_back: 'They Will Call Back',
   declined: 'Declined',
@@ -1325,6 +1329,7 @@ const getOutreachStatusTone = (value) => {
   if (value === 'confirmed') return 'accepted';
   if (value === 'call_them') return 'contacted';
   if (value === 'visit_them') return 'contacted';
+  if (value === 'send_details' || value === 'send_them_details_on_whatsapp' || value === 'send_details_on_whatsapp') return 'contacted';
   if (value === 'they_will_call_back') return 'quoted';
   if (value === 'declined') return 'archived';
   return 'new';
