@@ -1,0 +1,60 @@
+import { getDb, admin } from './firebase.js';
+import { generateQuoteId, generatePasscode, hashPasscode } from './quote-id.js';
+import { getNextQuoteNumber } from './quote-counter.js';
+import { buildEstimate } from '../../app/lib/pricing-model.js';
+import { estimateToQuoteDraft } from '../../app/lib/estimate-quote.js';
+
+export async function createQuoteFromEstimate(body, adminUser) {
+  const selection = body?.selection && typeof body.selection === 'object' ? body.selection : {};
+  const clientName = String(body?.clientName || '').trim();
+  const language = body?.language === 'ar' ? 'ar' : 'en';
+  const estimate = buildEstimate(selection);
+  const draft = estimateToQuoteDraft(estimate, { clientName, language });
+  if (!draft.lineItems.length) {
+    const error = new Error('Estimate has no billable lines');
+    error.status = 400;
+    throw error;
+  }
+
+  const id = generateQuoteId();
+  const passcodePlain = generatePasscode();
+  const passcodeHash = hashPasscode(passcodePlain);
+  const quoteNumber = await getNextQuoteNumber();
+  const now = admin.firestore.FieldValue.serverTimestamp();
+
+  const quote = {
+    quoteNumber,
+    status: 'draft',
+    language: draft.language,
+    validDays: draft.validDays,
+    vatPercent: draft.vatPercent,
+    customer: draft.customer,
+    estimateSnapshot: {
+      selection,
+      version: estimate.version,
+      subtotal: estimate.subtotal,
+      discountPercent: estimate.discountPercent,
+      discountAmount: estimate.discountAmount,
+      discountedSubtotal: estimate.discountedSubtotal,
+      vatPercent: estimate.vatPercent,
+      vat: estimate.vat,
+      grandTotal: estimate.grandTotal,
+      monthly: estimate.monthly,
+      createdBy: adminUser.email || adminUser.uid || ''
+    },
+    lineItems: draft.lineItems,
+    pages: draft.pages,
+    terms: draft.terms,
+    notes: draft.notes,
+    passcodeHash,
+    _passcodePlain: passcodePlain,
+    createdAt: now,
+    updatedAt: now,
+    lastSentAt: null
+  };
+
+  const db = getDb();
+  await db.collection('quotes').doc(id).set(quote);
+  const after = await db.collection('quotes').doc(id).get();
+  return { id, ...after.data(), passcodePlain };
+}

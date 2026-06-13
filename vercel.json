@@ -11,7 +11,8 @@
     { "source": "/q/quote.js", "destination": "/q/quote.js" },
     { "source": "/q/quote.css", "destination": "/q/quote.css" },
     { "source": "/q/index.html", "destination": "/q" },
-    { "source": "/q/(.*)", "destination": "/q" }
+    { "source": "/q/(.*)", "destination": "/q" },
+    { "source": "/api/quote-from-estimate", "destination": "/api/quote-create" }
   ],
   "functions": {
     "api/chat.js":         { "memory": 1024, "maxDuration": 30 },
@@ -20,7 +21,6 @@
     "api/demo-verify.js":  { "memory": 512,  "maxDuration": 10 },
     "api/maps-extract.js": { "memory": 512,  "maxDuration": 15 },
     "api/quote-create.js": { "memory": 512,  "maxDuration": 10 },
-    "api/quote-from-estimate.js": { "memory": 512,  "maxDuration": 10 },
     "api/quote-save.js":   { "memory": 512,  "maxDuration": 10 },
     "api/quote-verify.js": { "memory": 512,  "maxDuration": 10 }
   },

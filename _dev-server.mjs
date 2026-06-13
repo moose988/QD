@@ -61,20 +61,33 @@ function apiName(pathname) {
   return name || null;
 }
 
+// Match vercel.json API rewrites (alias path → handler file).
+const API_REWRITES = {
+  'quote-from-estimate': 'quote-create',
+};
+
+function resolveApiHandler(pathname) {
+  const name = apiName(pathname);
+  if (!name) return null;
+  return API_REWRITES[name] || name;
+}
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
   const pathname = url.pathname;
 
-  const name = apiName(pathname);
-  if (name) {
-    const file = path.join(ROOT, 'api', name + '.js');
+  const routeName = apiName(pathname);
+  const handlerName = resolveApiHandler(pathname);
+  if (handlerName) {
+    const file = path.join(ROOT, 'api', handlerName + '.js');
     if (!fs.existsSync(file)) {
       res.statusCode = 404;
       res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ error: `No api/${name}.js` }));
+      res.end(JSON.stringify({ error: `No api/${handlerName}.js` }));
       return;
     }
-    console.log(`[${new Date().toISOString()}] ${req.method} /api/${name}`);
+    const routeLabel = routeName !== handlerName ? `/api/${routeName} → /api/${handlerName}` : `/api/${routeName}`;
+    console.log(`[${new Date().toISOString()}] ${req.method} ${routeLabel}`);
     shimRes(res);
     try {
       if (req.method !== 'GET' && req.method !== 'OPTIONS') req.body = await readBody(req);

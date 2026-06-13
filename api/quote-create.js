@@ -1,11 +1,14 @@
 // POST /api/quote-create  { submissionId } -> { quote }
-// Admin-only. Pre-fills from submission, generates passcode + quote number, persists.
+// POST /api/quote-create  { selection, clientName?, language? } -> { quote }  (pricing estimate)
+// POST /api/quote-from-estimate rewrites here on Vercel (same body as estimate flow).
+// Admin-only. Pre-fills from submission or estimate, generates passcode + quote number, persists.
 
 import { getDb, admin } from './_lib/firebase.js';
 import { requireAdmin } from './_lib/admin-auth.js';
 import { generateQuoteId, generatePasscode, hashPasscode } from './_lib/quote-id.js';
 import { getNextQuoteNumber } from './_lib/quote-counter.js';
 import { prefillFromSubmission } from '../app/lib/quote-prefill.js';
+import { createQuoteFromEstimate } from './_lib/create-quote-from-estimate.js';
 
 export const config = { runtime: 'nodejs', maxDuration: 10 };
 
@@ -18,8 +21,9 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
+    let adminUser;
     try {
-      await requireAdmin(req);
+      adminUser = await requireAdmin(req);
     } catch (error) {
       console.warn('[quote-create] auth failed:', error.message);
       return res.status(401).json({ error: error.message });
@@ -34,6 +38,17 @@ export default async function handler(req, res) {
       }
     }
     console.log('[quote-create] parsed body', body);
+
+    const hasEstimateSelection = body?.selection && typeof body.selection === 'object';
+    if (hasEstimateSelection) {
+      try {
+        const created = await createQuoteFromEstimate(body, adminUser);
+        return res.status(201).json(created);
+      } catch (error) {
+        if (error.status === 400) return res.status(400).json({ error: error.message });
+        throw error;
+      }
+    }
 
     const submissionId = (body?.submissionId || '').toString().trim();
     if (!submissionId) return res.status(400).json({ error: 'submissionId is required' });
