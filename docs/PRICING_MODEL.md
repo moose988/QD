@@ -1,7 +1,19 @@
 # QD Systems Pricing Model — Traceability Document
 
 **Version:** 2026-06-11 · **Currency:** AED · **VAT:** 5% (UAE)
-**Code:** `app/lib/pricing-model.js` (single source of truth) → consumed by `app/lib/brief-parser.js`, `app/lib/quote-catalog.js`, `app/lib/quote-prefill.js`, and the admin **Pricing** tab + quote drawer in `admin.js`.
+**Code:** `app/lib/pricing/src/` (TypeScript source) compiled to committed ESM in `app/lib/pricing/dist/`. `app/lib/pricing-model.js` is a facade so existing consumers keep importing the same path: `app/lib/brief-parser.js`, `app/lib/quote-catalog.js`, `app/lib/quote-prefill.js`, and the admin **Pricing** tab + quote drawer in `admin.js`.
+
+## Pricing Brain v2 layers
+
+The current market anchors stay unchanged. The v2 engine adds:
+
+1. Integer money in fils, with `roundFils()` as the single money rounding primitive.
+2. Runtime validation through `PricingInputSchema`; invalid `price()` input throws `PricingError`.
+3. Delivery-cost accounting and an absolute cost floor. Discounts are capped before net build price can breach the floor.
+4. A signed price waterfall: list price → market tier/risk/discount adjustments → net → VAT → total.
+5. Deterministic audit output: `inputHash`, version, margin, floor detail, approval, flags, and waterfall.
+
+`buildEstimate()` remains the compatibility wrapper for current UI and quote code. It returns the legacy whole-AED fields (`subtotal`, `discountedSubtotal`, `vat`, `grandTotal`, and line `amount`) plus appended v2 audit fields. Use `price()` directly for the new fils-based contract.
 
 ## Component-based pricing (primary model — not package based)
 
@@ -106,4 +118,11 @@ Benchmarked against WP Buffs' verified public range ≈ AED 327–1,318/mo (R26)
 
 ## How to update prices
 
-Edit **only** `app/lib/pricing-model.js`. The quote catalog, submission prefill, quote drawer, and Pricing tab all read from it. When changing a number, update its `basis`/`refs` and bump `PRICING_VERSION`. Re-verify anchors periodically (sources list with URLs is in `SOURCES`).
+Edit the TypeScript source, not `dist` by hand:
+
+- Market/catalog facts live in `app/lib/pricing/src/catalog.ts`.
+- Tunable assumptions live in `app/lib/pricing/src/config.ts`: internal rate, hours, margins, market tiers, posture, approval thresholds, VAT, and FX.
+- Rebuild committed runtime files with `npm run build:pricing`.
+- Run `npm run test:pricing` before deploy. This runs invariant tests, property tests, and golden snapshots.
+
+When changing any price or tuning assumption, bump `PRICING_VERSION`, regenerate `scripts/pricing-golden.json` intentionally, update basis/refs where relevant, and keep `app/lib/pricing/dist/` committed. Re-verify anchors periodically (sources list with URLs is in `SOURCES`).
