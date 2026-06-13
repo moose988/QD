@@ -7,7 +7,7 @@ export const FOUNDING_MAX_DISCOUNT_PERCENT = 15;
 export const APPROVAL = Object.freeze({ auto: 15, manager: 25 });
 export { FX };
 export const MARKET_TIERS = Object.freeze({
-    sharjah: { factor: 0.90, label: 'Sharjah / Northern Emirates (home market)' },
+    sharjah: { factor: 0.70, label: 'Sharjah / Northern Emirates launch price' },
     dubai: { factor: 1.00, label: 'Dubai market rate' },
     'abu-dhabi': { factor: 1.00, label: 'Abu Dhabi market rate' }
 });
@@ -17,6 +17,7 @@ export const POSTURE = Object.freeze({
         tier: 'sharjah',
         maxFoundingDiscount: 15,
         attachCarePlan: true,
+        defaultCarePlan: 'care-basic',
         label: 'Launch / land-clients'
     },
     standard: {
@@ -37,6 +38,7 @@ export const DEFAULT_POSTURE = 'launch';
 const fixed = (hours) => Object.freeze({ low: hours, mid: hours, high: hours });
 const ranged = (low, mid, high) => Object.freeze({ low, mid, high });
 export const HOURS = Object.freeze({
+    'foundation-starter': ranged(8, 10, 14),
     'foundation-essential': ranged(16, 18, 22),
     'foundation-professional': ranged(26, 30, 36),
     'foundation-premium': ranged(44, 50, 60),

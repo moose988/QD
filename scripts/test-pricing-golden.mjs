@@ -28,6 +28,18 @@ const cases = [
     input: { foundationId: 'foundation-essential', pagesStandard: 5, discountPercent: 15, posture: 'standard' }
   },
   {
+    id: 'edge:starter-launch-vat-off',
+    input: { foundationId: 'foundation-starter', posture: 'launch', vatPercent: 0 }
+  },
+  {
+    id: 'edge:essential-launch-vat-off',
+    input: { foundationId: 'foundation-essential', pagesStandard: 5, posture: 'launch', vatPercent: 0 }
+  },
+  {
+    id: 'edge:essential-launch-vat-on',
+    input: { foundationId: 'foundation-essential', pagesStandard: 5, posture: 'launch', vatPercent: 5 }
+  },
+  {
     id: 'edge:floor-binding-ops-40',
     input: {
       specials: ['qd-ops-dashboard'],

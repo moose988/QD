@@ -128,6 +128,43 @@
   box-shadow: var(--qd-admin-shadow);
 }
 .qd-pricing-empty { font-size: 0.82rem; opacity: 0.6; padding: 10px 0 16px; }
+.qd-pricing-hero-total {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-bottom: 1px solid var(--qd-admin-border);
+  padding-bottom: 14px;
+  margin-bottom: 12px;
+}
+.qd-pricing-hero-total span {
+  color: rgba(150, 220, 180, 0.98);
+  font-size: 1.2rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+.qd-pricing-hero-total small {
+  color: rgba(244, 241, 234, 0.68);
+  font-size: 0.74rem;
+  line-height: 1.5;
+}
+.qd-pricing-anchor {
+  display: grid;
+  gap: 7px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--qd-admin-border);
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 12px;
+}
+.qd-pricing-anchor div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.78rem;
+}
+.qd-pricing-anchor span { opacity: 0.68; }
+.qd-pricing-anchor s { opacity: 0.55; font-variant-numeric: tabular-nums; }
+.qd-pricing-anchor strong { color: rgba(150, 220, 180, 0.98); font-variant-numeric: tabular-nums; }
 .qd-pricing-summary-lines { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
 .qd-pricing-summary-line {
   display: flex;
@@ -152,11 +189,35 @@
 .qd-pricing-passthrough {
   font-size: 0.72rem;
   line-height: 1.5;
-  background: rgba(230, 190, 110, 0.1);
-  border: 1px solid rgba(230, 190, 110, 0.25);
+  background: rgba(244, 241, 234, 0.04);
+  border: 1px solid var(--qd-admin-border);
   border-radius: 10px;
   padding: 8px 10px;
+  margin-bottom: 8px;
+  opacity: 0.76;
+}
+.qd-pricing-soft-note {
+  font-size: 0.72rem;
+  line-height: 1.5;
+  opacity: 0.68;
+  margin: 0 0 10px;
+}
+.qd-pricing-internal-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  border-top: 1px solid var(--qd-admin-border);
+  padding-top: 10px;
   margin-bottom: 12px;
+}
+.qd-pricing-internal-strip span {
+  border: 1px solid rgba(110, 170, 230, 0.24);
+  background: rgba(110, 170, 230, 0.08);
+  border-radius: 999px;
+  color: rgba(190, 215, 245, 0.9);
+  font-size: 0.66rem;
+  line-height: 1;
+  padding: 6px 8px;
 }
 
 .qd-pricing-band {
@@ -171,8 +232,37 @@
 .qd-pricing-band.is-below { border-color: rgba(110, 170, 230, 0.4); background: rgba(110, 170, 230, 0.08); }
 .qd-pricing-band.is-above { border-color: rgba(230, 140, 110, 0.4); background: rgba(230, 140, 110, 0.08); }
 
-.qd-pricing-copy { width: 100%; margin-bottom: 8px; }
-.qd-pricing-summary .qd-admin-action-secondary { width: 100%; }
+.qd-pricing-create-quote,
+.qd-pricing-copy,
+.qd-pricing-reset {
+  width: 100%;
+  min-height: 44px;
+  margin-bottom: 8px;
+}
+.qd-pricing-create-quote {
+  background: linear-gradient(180deg, rgba(120, 200, 160, 0.96), rgba(75, 155, 118, 0.96));
+  border-color: rgba(150, 220, 180, 0.8);
+  color: rgb(14, 32, 26);
+  font-weight: 800;
+}
+.qd-pricing-copy {
+  background: transparent;
+  border-color: rgba(120, 200, 160, 0.42);
+  color: rgba(180, 235, 205, 0.95);
+}
+.qd-pricing-reset {
+  border: 0;
+  background: transparent;
+  color: rgba(244, 241, 234, 0.55);
+}
+.qd-pricing-create-quote:disabled { opacity: 0.55; cursor: not-allowed; }
+.qd-pricing-create-quote:focus-visible,
+.qd-pricing-copy:focus-visible,
+.qd-pricing-reset:focus-visible,
+.qd-pricing-vat-toggle:focus-within {
+  outline: 2px solid rgba(150, 220, 180, 0.8);
+  outline-offset: 2px;
+}
 
 /* --- Sources --- */
 .qd-pricing-sources { margin-top: 14px; font-size: 0.72rem; }
@@ -418,12 +508,13 @@
 .qd-pricing-describe-body { padding: 10px 2px 2px; }
 
 /* Product buttons */
-.qd-pricing-products {
+.qd-pricing-products,
+.qd-pricing-goals {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
   gap: 10px;
 }
-.qd-pricing-product, .qd-pricing-module {
+.qd-pricing-product, .qd-pricing-module, .qd-pricing-goal {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -436,11 +527,13 @@
   cursor: pointer;
   transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
 }
-.qd-pricing-product:hover, .qd-pricing-module:hover { border-color: rgba(244, 241, 234, 0.45); transform: translateY(-1px); }
-.qd-pricing-product.is-active, .qd-pricing-module.is-active {
+.qd-pricing-product:hover, .qd-pricing-module:hover, .qd-pricing-goal:hover { border-color: rgba(244, 241, 234, 0.45); transform: translateY(-1px); }
+.qd-pricing-product.is-active, .qd-pricing-module.is-active, .qd-pricing-goal.is-active {
   border-color: rgba(120, 200, 160, 0.85);
   background: rgba(120, 200, 160, 0.1);
 }
+.qd-pricing-goal span { font-weight: 700; font-size: 0.86rem; }
+.qd-pricing-goal small { opacity: 0.62; font-size: 0.7rem; line-height: 1.45; }
 .qd-pricing-product-name { font-weight: 700; font-size: 0.88rem; }
 .qd-pricing-product-desc { font-size: 0.7rem; opacity: 0.6; line-height: 1.45; }
 .qd-pricing-product-price { font-size: 0.8rem; font-weight: 700; color: rgba(150, 220, 180, 0.95); margin-top: 2px; }
@@ -501,6 +594,19 @@
 .qd-pricing-care-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .qd-pricing-care-row .qd-pricing-care { flex: 1; min-width: 220px; width: auto; }
 .qd-pricing-care-row .qd-pricing-qty-btns { padding: 0; }
+.qd-pricing-vat-toggle {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  gap: 8px;
+  border: 1px solid var(--qd-admin-border-strong);
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 0.76rem;
+  cursor: pointer;
+  background: var(--qd-admin-panel-soft);
+}
+.qd-pricing-vat-toggle input { accent-color: rgb(120, 200, 160); }
 
 /* --- Spec-level cards (named levels with deliverables) --- */
 .qd-pricing-levels {

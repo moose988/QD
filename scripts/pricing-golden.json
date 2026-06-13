@@ -1,7 +1,7 @@
 {
   "template:tpl-starter-presence": {
-    "version": "2026-06-11",
-    "inputHash": "0c14dec22cb0af32a595942324458b304567820b57c2a4ec97817575d82f670d",
+    "version": "2026-06-13",
+    "inputHash": "a902299f752b91283f1485641c9949fb5bc3d6d9ba5cdf39d4278e10fe615bf1",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "standard",
@@ -131,8 +131,8 @@
     "openEnded": false
   },
   "template:tpl-site-chatbot": {
-    "version": "2026-06-11",
-    "inputHash": "4cde3e5286eeacbeefb7f025fbe34e809203709f79b2036a00ff3d81dd2eaab6",
+    "version": "2026-06-13",
+    "inputHash": "df3ba3fd965a93b9fbe573e580c5794b70b9558a9c261000a84ac2f8a382a34e",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "standard",
@@ -267,8 +267,8 @@
     "openEnded": false
   },
   "template:tpl-full-business": {
-    "version": "2026-06-11",
-    "inputHash": "55f19d7e44873de0418272ca91afca48b6f5fccfc67b6454e583478d431e87b5",
+    "version": "2026-06-13",
+    "inputHash": "c4e8b13fefe32e4c39813c84c2e3b72aabc53b64c1f2e836519a4be2687779eb",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "standard",
@@ -455,8 +455,8 @@
     "openEnded": false
   },
   "template:tpl-commerce-complete": {
-    "version": "2026-06-11",
-    "inputHash": "905066604fef4470ee478affb9f05c3dcfd069ac6bb29617bfec3f1d0fbbf893",
+    "version": "2026-06-13",
+    "inputHash": "4235052aa9c8e89d0a5ee5bd37027aef99cfdbe47dda79f99db67d2121d7092b",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "standard",
@@ -625,8 +625,8 @@
     "openEnded": false
   },
   "template:tpl-premium-custom": {
-    "version": "2026-06-11",
-    "inputHash": "fcb715411b6c1aa400f950a09fef5ba00216370b822dc6eaffd04f587db4fe8b",
+    "version": "2026-06-13",
+    "inputHash": "d86c4d0cfcffe75c616a07b5d3ed0089f0bba2b3ab05310dae1efdafa7a72571",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "standard",
@@ -802,8 +802,8 @@
     "openEnded": true
   },
   "preset:clinic-salon": {
-    "version": "2026-06-11",
-    "inputHash": "ce42e40b657e331fd589f1edfc2a70b3d7e45767474e159d85edb8540a60d39d",
+    "version": "2026-06-13",
+    "inputHash": "d3160f822cd4a67ce2b1825fefb95ba55db1f99cd7421f98bc07b96d1c194978",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "standard",
@@ -1004,8 +1004,8 @@
     "openEnded": false
   },
   "preset:restaurant-cafe": {
-    "version": "2026-06-11",
-    "inputHash": "72e6bdf2173d60bd83edbbf858b0cddc95cfc3c3104ad970876fc8fc583f4879",
+    "version": "2026-06-13",
+    "inputHash": "111c5028917c99aac0f595b4d4de8ae8b05d2938e14a3b6413ce7ec8754b3313",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "standard",
@@ -1202,8 +1202,8 @@
     "openEnded": false
   },
   "preset:real-estate": {
-    "version": "2026-06-11",
-    "inputHash": "8edc6ae701f1441b65b27c2560620540dccc082b549e6081eb9e2eb5f56cde93",
+    "version": "2026-06-13",
+    "inputHash": "390b076a5631695f2d2aeff2ccff3c521a81dcd462d805ab07497603f9cd4631",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "standard",
@@ -1388,8 +1388,8 @@
     "openEnded": true
   },
   "preset:services-contractor": {
-    "version": "2026-06-11",
-    "inputHash": "338fca823004a9a9c95216b47236d3c9747b211c4319262b11dd6a3e5520f87f",
+    "version": "2026-06-13",
+    "inputHash": "991199bd136a31f4b5a4218872d8776f41c2a017b0c6d071c87d8316f6cdcb5e",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "standard",
@@ -1560,8 +1560,8 @@
     "openEnded": false
   },
   "preset:education-training": {
-    "version": "2026-06-11",
-    "inputHash": "a9c8037d797853933ce745cea4eef0e04407f28ab203dc661f932df22529b678",
+    "version": "2026-06-13",
+    "inputHash": "a7580495bcbc9abd88d217aa42f784bce55e0ed42ce5309d8df948b5f1af9b1a",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "standard",
@@ -1736,8 +1736,8 @@
     "openEnded": false
   },
   "edge:max-founding-essential": {
-    "version": "2026-06-11",
-    "inputHash": "1873ba13c6c96656f6e193b20d7153e6ddfdbb389035552d1027241ecfb75c5a",
+    "version": "2026-06-13",
+    "inputHash": "81cd7fe424488bd4cb172e5674d12510a45c0a530847d55896e3bcb91aa88539",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "standard",
@@ -1867,9 +1867,356 @@
     },
     "openEnded": false
   },
+  "edge:starter-launch-vat-off": {
+    "version": "2026-06-13",
+    "inputHash": "46059f87d720b56d971d9eeca282042b238d423c1891a1809d54c8e8264920ec",
+    "currency": "AED",
+    "vatPercent": 0,
+    "posture": "launch",
+    "marketTier": "sharjah",
+    "selection": {
+      "foundationId": "foundation-starter",
+      "pagesStandard": 0,
+      "pagesLanding": 0,
+      "specials": [],
+      "packageId": null,
+      "modules": [],
+      "addons": [],
+      "carePlanId": "care-basic",
+      "industryId": null,
+      "posture": "launch",
+      "marketTier": "sharjah",
+      "maxFoundingDiscount": 15,
+      "riskPercent": 0,
+      "discountPercent": 0,
+      "promoPercent": 0,
+      "bundleDiscountPercent": 0,
+      "ownerOverride": false,
+      "vatPercent": 0,
+      "legacyCompat": false
+    },
+    "lines": [
+      {
+        "kind": "foundation",
+        "id": "foundation-starter",
+        "label": "Starter site",
+        "labelAr": "موقع البداية",
+        "amount": 240000,
+        "basis": "positioning",
+        "note": "Sharjah launch starter tier; positioned below Essential without changing verified anchors",
+        "costFils": 80000
+      }
+    ],
+    "listPrice": 240000,
+    "subtotal": 240000,
+    "subtotalLow": 240000,
+    "subtotalMid": 240000,
+    "subtotalHigh": 240000,
+    "taxableSubtotal": 168000,
+    "waterfall": [
+      {
+        "step": "tier",
+        "label": "Sharjah / Northern Emirates launch price positioning",
+        "reason": "Market tier factor 0.7",
+        "amount": -72000,
+        "requestedAmount": -72000,
+        "basis": "positioning",
+        "discountLike": false
+      }
+    ],
+    "net": 168000,
+    "discountedSubtotal": 168000,
+    "vat": 0,
+    "grandTotal": 168000,
+    "deliveryCost": 80000,
+    "chargedCost": 80000,
+    "marginAmount": 88000,
+    "marginPercent": 52.38,
+    "costFloorNet": 114286,
+    "hardCostFloorNet": 100000,
+    "floorBound": false,
+    "floorDetail": {
+      "operativeFloor": 114286,
+      "hardFloor": 100000,
+      "floorUsed": 114286,
+      "ownerOverride": false
+    },
+    "monthly": {
+      "amount": 14900,
+      "planId": "care-basic",
+      "planName": "Care Basic",
+      "usage": false,
+      "softwarePassThrough": false
+    },
+    "passThrough": [],
+    "discountPercent": 0,
+    "discountPercentRequested": 0,
+    "discountPercentApplied": 0,
+    "discountAmount": 0,
+    "discountRequested": 0,
+    "discountApplied": 0,
+    "discountCapped": false,
+    "approval": "auto",
+    "flags": [
+      "below_market_band"
+    ],
+    "bandCheck": null,
+    "uaeCheck": {
+      "key": "business-site",
+      "label": "UAE CMS business site (R31)",
+      "band": [
+        700000,
+        5500000
+      ],
+      "status": "below"
+    },
+    "valueCheck": {
+      "status": "not-provided",
+      "annualValueAED": null,
+      "netAED": 1680,
+      "note": "No client annual value input provided."
+    },
+    "openEnded": false
+  },
+  "edge:essential-launch-vat-off": {
+    "version": "2026-06-13",
+    "inputHash": "57e95050fb8723dde8cee7c4163db7f0e70b86b5534748aaf2607bb35bd70688",
+    "currency": "AED",
+    "vatPercent": 0,
+    "posture": "launch",
+    "marketTier": "sharjah",
+    "selection": {
+      "foundationId": "foundation-essential",
+      "pagesStandard": 5,
+      "pagesLanding": 0,
+      "specials": [],
+      "packageId": null,
+      "modules": [],
+      "addons": [],
+      "carePlanId": "care-basic",
+      "industryId": null,
+      "posture": "launch",
+      "marketTier": "sharjah",
+      "maxFoundingDiscount": 15,
+      "riskPercent": 0,
+      "discountPercent": 0,
+      "promoPercent": 0,
+      "bundleDiscountPercent": 0,
+      "ownerOverride": false,
+      "vatPercent": 0,
+      "legacyCompat": false
+    },
+    "lines": [
+      {
+        "kind": "foundation",
+        "id": "foundation-essential",
+        "label": "Essential build",
+        "labelAr": "بناء أساسي",
+        "amount": 465000,
+        "basis": "positioning",
+        "note": "Launch anchor 5,900 − 5 pages × 250",
+        "costFils": 144000
+      },
+      {
+        "kind": "pages",
+        "id": "pages-standard",
+        "label": "Content pages x 5 (AED 250/page)",
+        "labelAr": "صفحات محتوى × 5",
+        "amount": 125000,
+        "basis": "positioning",
+        "costFils": 60000
+      }
+    ],
+    "listPrice": 590000,
+    "subtotal": 590000,
+    "subtotalLow": 590000,
+    "subtotalMid": 590000,
+    "subtotalHigh": 590000,
+    "taxableSubtotal": 413000,
+    "waterfall": [
+      {
+        "step": "tier",
+        "label": "Sharjah / Northern Emirates launch price positioning",
+        "reason": "Market tier factor 0.7",
+        "amount": -177000,
+        "requestedAmount": -177000,
+        "basis": "positioning",
+        "discountLike": false
+      }
+    ],
+    "net": 413000,
+    "discountedSubtotal": 413000,
+    "vat": 0,
+    "grandTotal": 413000,
+    "deliveryCost": 204000,
+    "chargedCost": 204000,
+    "marginAmount": 209000,
+    "marginPercent": 50.61,
+    "costFloorNet": 291429,
+    "hardCostFloorNet": 255000,
+    "floorBound": false,
+    "floorDetail": {
+      "operativeFloor": 291429,
+      "hardFloor": 255000,
+      "floorUsed": 291429,
+      "ownerOverride": false
+    },
+    "monthly": {
+      "amount": 14900,
+      "planId": "care-basic",
+      "planName": "Care Basic",
+      "usage": false,
+      "softwarePassThrough": false
+    },
+    "passThrough": [],
+    "discountPercent": 0,
+    "discountPercentRequested": 0,
+    "discountPercentApplied": 0,
+    "discountAmount": 0,
+    "discountRequested": 0,
+    "discountApplied": 0,
+    "discountCapped": false,
+    "approval": "auto",
+    "flags": [],
+    "bandCheck": null,
+    "uaeCheck": {
+      "key": "simple-site",
+      "label": "UAE simple / small business site (R30–R32)",
+      "band": [
+        200000,
+        1200000
+      ],
+      "status": "within"
+    },
+    "valueCheck": {
+      "status": "not-provided",
+      "annualValueAED": null,
+      "netAED": 4130,
+      "note": "No client annual value input provided."
+    },
+    "openEnded": false
+  },
+  "edge:essential-launch-vat-on": {
+    "version": "2026-06-13",
+    "inputHash": "43ea3ae12c99ef0aee662902cf11bc95f1930876f0bea71c820ebc3c7128e2b1",
+    "currency": "AED",
+    "vatPercent": 5,
+    "posture": "launch",
+    "marketTier": "sharjah",
+    "selection": {
+      "foundationId": "foundation-essential",
+      "pagesStandard": 5,
+      "pagesLanding": 0,
+      "specials": [],
+      "packageId": null,
+      "modules": [],
+      "addons": [],
+      "carePlanId": "care-basic",
+      "industryId": null,
+      "posture": "launch",
+      "marketTier": "sharjah",
+      "maxFoundingDiscount": 15,
+      "riskPercent": 0,
+      "discountPercent": 0,
+      "promoPercent": 0,
+      "bundleDiscountPercent": 0,
+      "ownerOverride": false,
+      "vatPercent": 5,
+      "legacyCompat": false
+    },
+    "lines": [
+      {
+        "kind": "foundation",
+        "id": "foundation-essential",
+        "label": "Essential build",
+        "labelAr": "بناء أساسي",
+        "amount": 465000,
+        "basis": "positioning",
+        "note": "Launch anchor 5,900 − 5 pages × 250",
+        "costFils": 144000
+      },
+      {
+        "kind": "pages",
+        "id": "pages-standard",
+        "label": "Content pages x 5 (AED 250/page)",
+        "labelAr": "صفحات محتوى × 5",
+        "amount": 125000,
+        "basis": "positioning",
+        "costFils": 60000
+      }
+    ],
+    "listPrice": 590000,
+    "subtotal": 590000,
+    "subtotalLow": 590000,
+    "subtotalMid": 590000,
+    "subtotalHigh": 590000,
+    "taxableSubtotal": 413000,
+    "waterfall": [
+      {
+        "step": "tier",
+        "label": "Sharjah / Northern Emirates launch price positioning",
+        "reason": "Market tier factor 0.7",
+        "amount": -177000,
+        "requestedAmount": -177000,
+        "basis": "positioning",
+        "discountLike": false
+      }
+    ],
+    "net": 413000,
+    "discountedSubtotal": 413000,
+    "vat": 20650,
+    "grandTotal": 433650,
+    "deliveryCost": 204000,
+    "chargedCost": 204000,
+    "marginAmount": 209000,
+    "marginPercent": 50.61,
+    "costFloorNet": 291429,
+    "hardCostFloorNet": 255000,
+    "floorBound": false,
+    "floorDetail": {
+      "operativeFloor": 291429,
+      "hardFloor": 255000,
+      "floorUsed": 291429,
+      "ownerOverride": false
+    },
+    "monthly": {
+      "amount": 14900,
+      "planId": "care-basic",
+      "planName": "Care Basic",
+      "usage": false,
+      "softwarePassThrough": false
+    },
+    "passThrough": [],
+    "discountPercent": 0,
+    "discountPercentRequested": 0,
+    "discountPercentApplied": 0,
+    "discountAmount": 0,
+    "discountRequested": 0,
+    "discountApplied": 0,
+    "discountCapped": false,
+    "approval": "auto",
+    "flags": [],
+    "bandCheck": null,
+    "uaeCheck": {
+      "key": "simple-site",
+      "label": "UAE simple / small business site (R30–R32)",
+      "band": [
+        200000,
+        1200000
+      ],
+      "status": "within"
+    },
+    "valueCheck": {
+      "status": "not-provided",
+      "annualValueAED": null,
+      "netAED": 4130,
+      "note": "No client annual value input provided."
+    },
+    "openEnded": false
+  },
   "edge:floor-binding-ops-40": {
-    "version": "2026-06-11",
-    "inputHash": "588ac070f908b1f22078cc49ec7747e97093f3bda6bd6954fe4b809a486ef7bb",
+    "version": "2026-06-13",
+    "inputHash": "6f64908d3c34801b97a5275610f03cb66d23049edb1a8ecd0f88b9048063f68a",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "standard",
@@ -2080,8 +2427,8 @@
     "openEnded": true
   },
   "edge:premium-dashboard-upgrade": {
-    "version": "2026-06-11",
-    "inputHash": "144bf4a33f675344617124ca6a86de82989b73b1d46f89ef58901197f8d05515",
+    "version": "2026-06-13",
+    "inputHash": "5df5bb60bf94a982f38073c51de75e42e116d484be47115f24b865ac47c57549",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "standard",
@@ -2206,8 +2553,8 @@
     "openEnded": false
   },
   "edge:commerce-growth-loyalty-included": {
-    "version": "2026-06-11",
-    "inputHash": "5c12785f27cc4f90891643f57bd845b9224344320322599ab3a8bf7a5727fb9a",
+    "version": "2026-06-13",
+    "inputHash": "db40155e8cf2e359ae8a798309b99228c9a0dbabe49e87475cf3ed04e5d8dcd8",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "standard",
@@ -2351,8 +2698,8 @@
     "openEnded": false
   },
   "edge:sharjah-tier": {
-    "version": "2026-06-11",
-    "inputHash": "2a3ffcdc5cb56fb327bd6e5b1845e16e84c7a8a6a285aab6530f647dc12b6232",
+    "version": "2026-06-13",
+    "inputHash": "e71933e40627c73a608806808db320d6024660e4fa91660a49c8f6d83ddc0ed0",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "standard",
@@ -2404,26 +2751,26 @@
     "subtotalLow": 940000,
     "subtotalMid": 940000,
     "subtotalHigh": 940000,
-    "taxableSubtotal": 846000,
+    "taxableSubtotal": 658000,
     "waterfall": [
       {
         "step": "tier",
-        "label": "Sharjah / Northern Emirates (home market) positioning",
-        "reason": "Market tier factor 0.9",
-        "amount": -94000,
-        "requestedAmount": -94000,
+        "label": "Sharjah / Northern Emirates launch price positioning",
+        "reason": "Market tier factor 0.7",
+        "amount": -282000,
+        "requestedAmount": -282000,
         "basis": "positioning",
         "discountLike": false
       }
     ],
-    "net": 846000,
-    "discountedSubtotal": 846000,
-    "vat": 42300,
-    "grandTotal": 888300,
+    "net": 658000,
+    "discountedSubtotal": 658000,
+    "vat": 32900,
+    "grandTotal": 690900,
     "deliveryCost": 336000,
     "chargedCost": 336000,
-    "marginAmount": 510000,
-    "marginPercent": 60.28,
+    "marginAmount": 322000,
+    "marginPercent": 48.94,
     "costFloorNet": 480000,
     "hardCostFloorNet": 420000,
     "floorBound": false,
@@ -2449,7 +2796,9 @@
     "discountApplied": 0,
     "discountCapped": false,
     "approval": "auto",
-    "flags": [],
+    "flags": [
+      "below_market_band"
+    ],
     "bandCheck": null,
     "uaeCheck": {
       "key": "business-site",
@@ -2458,19 +2807,19 @@
         700000,
         5500000
       ],
-      "status": "within"
+      "status": "below"
     },
     "valueCheck": {
       "status": "not-provided",
       "annualValueAED": null,
-      "netAED": 8460,
+      "netAED": 6580,
       "note": "No client annual value input provided."
     },
     "openEnded": false
   },
   "edge:dubai-tier": {
-    "version": "2026-06-11",
-    "inputHash": "58f5d2df9ea85ccd3e2e787c1fbdea6edaf1db7494facde909723bb1d35f3c9c",
+    "version": "2026-06-13",
+    "inputHash": "44da2381febbe98e039c36a3518de422bd2eac848789c023933b241b516c7247",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "standard",
@@ -2577,8 +2926,8 @@
     "openEnded": false
   },
   "edge:ai-chatbot-pass-through": {
-    "version": "2026-06-11",
-    "inputHash": "0ad331e9f75e4d686a64edb46014b5eb4ad2549d1d93205e4fec35cd533f5a0c",
+    "version": "2026-06-13",
+    "inputHash": "ed1df07c4b6ba2c3fd5c6d7570be99d186da63b03f40cf07027731099babeb65",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "standard",

@@ -67,6 +67,8 @@ import {
   getCarePlan,
   getIndustryPreset,
   getAddonPrice,
+  price,
+  displayAED,
   buildEstimate,
   formatEstimateText,
   PACKAGE_COVERS,
@@ -7424,8 +7426,8 @@ const renderQuoteDrawer = () => {
 // ============================================================================
 
 const defaultPricingState = () => ({
-  products: { website: false, store: null, dashboard: null, booking: false, ordering: false, chatbot: null },
-  foundationId: null,
+  products: { website: true, store: null, dashboard: null, booking: false, ordering: false, chatbot: null },
+  foundationId: 'foundation-starter',
   pagesStandard: 0,
   pagesLanding: 0,
   bookingTier: 'mid',
@@ -7435,7 +7437,9 @@ const defaultPricingState = () => ({
   addons: {},              // extra features: { [addonId]: { tier, qty } }
   industryGroupId: null,
   modules: {},             // { [moduleId]: true }
-  carePlanId: 'none',
+  carePlanId: null,
+  vatOn: false,
+  goalId: 'get-found',
   clientName: '',
   briefText: '',
   analysis: null,
@@ -7465,17 +7469,23 @@ const getPricingSelection = () => {
     addons.push({ id, tier: cfg.tier || 'low', qty: cfg.qty || 1 });
   });
 
-  return {
+  const selection = {
     foundationId: p.products.website ? p.foundationId : null,
     pagesStandard: p.products.website || p.products.store ? p.pagesStandard : 0,
     pagesLanding: p.products.website || p.products.store ? p.pagesLanding : 0,
     specials,
     modules: Object.keys(p.modules),
     addons,
-    carePlanId: p.carePlanId,
     industryId: getIndustryGroup(p.industryGroupId)?.presetId || null,
     discountPercent: p.founding.enabled ? p.founding.percent : 0
   };
+  if (p.carePlanId) selection.carePlanId = p.carePlanId;
+  return selection;
+};
+
+const getPricingLaunchSelection = () => {
+  const p = state.pricing;
+  return { ...getPricingSelection(), posture: 'launch', vatPercent: p.vatOn ? 5 : 0 };
 };
 
 // Map a parseBrief() analysis onto the product-based state.
@@ -7512,6 +7522,54 @@ const applyBriefAnalysis = (analysis) => {
   p.copied = false;
 };
 
+const applyIndustryPresetSuggestion = (groupId) => {
+  const p = state.pricing;
+  const group = getIndustryGroup(groupId);
+  const preset = group?.presetId ? getIndustryPreset(group.presetId) : null;
+  p.products = { website: false, store: null, dashboard: null, booking: false, ordering: false, chatbot: null };
+  p.addons = {};
+  p.modules = Object.fromEntries((group?.modules || []).map((mod) => [mod.id, true]));
+  p.foundationId = null;
+  p.pagesStandard = 0;
+  p.pagesLanding = 0;
+  p.carePlanId = null;
+
+  if (!preset) return;
+  if (preset.packageId === 'qd-booking-pro') {
+    p.products.website = true;
+    p.foundationId = 'foundation-professional';
+    p.pagesStandard = 5;
+    p.products.booking = true;
+    p.bookingTier = 'mid';
+  } else if (preset.packageId === 'qd-ordering-pro') {
+    p.products.website = true;
+    p.foundationId = 'foundation-professional';
+    p.pagesStandard = 5;
+    p.products.ordering = true;
+    p.orderingTier = 'mid';
+  } else if (preset.packageId === 'qd-business-pro') {
+    p.products.website = true;
+    p.foundationId = 'foundation-premium';
+    p.pagesStandard = 12;
+  } else if (preset.packageId === 'qd-growth') {
+    p.products.website = true;
+    p.foundationId = 'foundation-professional';
+    p.pagesStandard = 8;
+  } else if (preset.packageId?.startsWith('qd-commerce')) {
+    p.products.store = preset.packageId;
+  }
+
+  const productManaged = new Set([
+    p.products.booking ? 'booking-integration' : null,
+    p.products.ordering ? 'ordering-integration' : null,
+    p.products.dashboard === 'attached' ? 'dashboard-pack' : null,
+    p.products.chatbot === 'attached' ? 'ai-chatbot-upgrade' : null
+  ].filter(Boolean));
+  (preset.addonIds || []).forEach((id) => {
+    if (!productManaged.has(id)) p.addons[id] = { tier: 'low', qty: 1 };
+  });
+};
+
 // Included-value map for UI display. excludeModuleId lets a module card price
 // itself against everything EXCEPT itself (matches engine's sequential math).
 const getPricingIncludedMap = (excludeModuleId = null) => {
@@ -7524,13 +7582,36 @@ const getPricingIncludedMap = (excludeModuleId = null) => {
   });
 };
 
+const formatPricingFils = (fils, mode = 'aed') => formatAED(displayAED(fils, mode));
+const launchFromAED = (selection) => displayAED(price({ ...selection, posture: 'launch', vatPercent: 0 }).net, 'rack50');
+
 const PRICING_PRODUCTS = [
-  { key: 'website', name: 'Website', desc: 'Pages, design, forms, SEO basics', from: () => getFoundation('foundation-essential').base + 5 * PAGE_RATE_STANDARD },
-  { key: 'store', name: 'Online Store', desc: 'Products, payments, shipping', from: () => getPackage('qd-commerce-start').oneTime },
-  { key: 'dashboard', name: 'Dashboard / Portal', desc: 'Admin panel, reports, records', from: () => getAddon('dashboard-pack').low },
-  { key: 'booking', name: 'Booking System', desc: 'Appointments, calendars, reminders', from: () => getAddon('booking-integration').low },
-  { key: 'ordering', name: 'Ordering System', desc: 'Pickup / delivery, order flow', from: () => getAddon('ordering-integration').low },
-  { key: 'chatbot', name: 'AI Chatbot', desc: 'Lead capture, FAQ, handoff', from: () => getPackage('qd-ai-chatbot').oneTime }
+  { key: 'website', name: 'Professional site', desc: 'Get found, look credible, and receive calls', from: () => launchFromAED({ foundationId: 'foundation-starter' }) },
+  { key: 'store', name: 'Sell online', desc: 'Products, payments, delivery or pickup', from: () => launchFromAED({ specials: ['qd-commerce-start'] }) },
+  { key: 'dashboard', name: 'Run operations', desc: 'Admin panel, records, reports, team access', from: () => launchFromAED({ specials: ['qd-ops-dashboard'] }) },
+  { key: 'booking', name: 'Take bookings online', desc: 'Appointments, calendars, reminders', from: () => launchFromAED({ addons: [{ id: 'booking-integration', tier: 'mid', qty: 1 }] }) },
+  { key: 'ordering', name: 'Take orders online', desc: 'Menu, pickup/delivery, live status', from: () => launchFromAED({ addons: [{ id: 'ordering-integration', tier: 'mid', qty: 1 }] }) },
+  { key: 'chatbot', name: 'Answer leads automatically', desc: 'FAQ, lead capture, handoff', from: () => launchFromAED({ specials: ['qd-ai-chatbot'] }) }
+];
+
+const PRICING_GOALS = [
+  { id: 'get-found', label: 'Get found & get calls', desc: 'Starter site, WhatsApp, Google visibility', apply: (p) => {
+    p.products.website = true; p.foundationId = 'foundation-starter'; p.pagesStandard = 0; p.pagesLanding = 0;
+    p.products.store = null; p.products.dashboard = null; p.products.booking = false; p.products.ordering = false; p.products.chatbot = null;
+    p.addons = {};
+  } },
+  { id: 'bookings', label: 'Take bookings', desc: 'Site plus online appointments', apply: (p) => {
+    p.products.website = true; p.foundationId = 'foundation-professional'; p.pagesStandard = Math.max(p.pagesStandard || 0, 5);
+    p.products.booking = true; p.bookingTier = 'mid';
+  } },
+  { id: 'sell-online', label: 'Sell online', desc: 'Store, payments, basic launch support', apply: (p) => {
+    p.products.website = false; p.foundationId = null; p.pagesStandard = 0; p.pagesLanding = 0;
+    p.products.store = 'qd-commerce-start'; p.addons['seo-pack'] = { tier: 'low', qty: 1 };
+  } },
+  { id: 'operations', label: 'Run operations', desc: 'Dashboard, records, roles, reports', apply: (p) => {
+    p.products.website = false; p.foundationId = null; p.products.dashboard = 'standalone';
+    p.modules = p.industryGroupId ? Object.fromEntries((getIndustryGroup(p.industryGroupId)?.modules || []).slice(0, 2).map((mod) => [mod.id, true])) : p.modules;
+  } }
 ];
 
 // Level cards: every choice shows a NAME, a definite PRICE, and exactly WHAT
@@ -7588,7 +7669,7 @@ const renderActiveChipLevels = (addonIds, includedMap) => {
 
 const renderPricingManager = () => {
   const p = state.pricing;
-  const estimate = buildEstimate(getPricingSelection());
+  const estimate = price({ ...getPricingSelection(), posture: 'launch', vatPercent: p.vatOn ? 5 : 0 });
   const coverage = getPricingIncludedMap();
 
   // ---- Describe bar ---------------------------------------------------------
@@ -7626,27 +7707,33 @@ const renderPricingManager = () => {
       </button>`;
   }).join('');
 
+  const goalBtns = PRICING_GOALS.map((goal) => `
+    <button type="button" class="qd-pricing-goal ${p.goalId === goal.id ? 'is-active' : ''}" data-action="pricing-set-goal" data-goal="${goal.id}">
+      <span>${escTxt(goal.label)}</span>
+      <small>${escTxt(goal.desc)}</small>
+    </button>`).join('');
+
   // ---- Step 2: per-product panels ---------------------------------------------
   const panels = [];
 
   if (p.products.website) {
     const sizeCards = FOUNDATIONS.map((f) => `
       <button type="button" class="qd-pricing-level qd-pricing-foundation ${p.foundationId === f.id ? 'is-active' : ''}" data-action="pricing-set-foundation" data-foundation="${f.id}">
-        <span class="qd-pricing-level-head"><strong>${escTxt(f.name.en.replace(' build', ''))}</strong><em>AED ${formatAED(f.base)} + pages</em></span>
-        <span class="qd-pricing-level-spec">${f.diff.map(escTxt).join('<br>')}</span>
+        <span class="qd-pricing-level-head"><strong>${escTxt(f.name.en.replace(' build', ''))}</strong><em>from AED ${formatAED(launchFromAED({ foundationId: f.id }))}</em></span>
+        <span class="qd-pricing-level-spec">${(f.diff || f.includes || []).map(escTxt).join('<br>')}</span>
       </button>`).join('');
     panels.push(`
       <div class="qd-pricing-panel">
         <div class="qd-pricing-panel-title">Website</div>
         <div class="qd-pricing-levels qd-pricing-foundations">${sizeCards}</div>
-        <div class="qd-pricing-panel-row"><span>Content pages · AED ${PAGE_RATE_STANDARD} each</span>
+        <div class="qd-pricing-panel-row"><span>Extra content pages · AED ${PAGE_RATE_STANDARD} each before launch pricing</span>
           <div class="qd-pricing-qty-btns">
             <button type="button" class="qd-pricing-tier-btn" data-action="pricing-pages" data-kind="standard" data-delta="-1">−</button>
             <span class="qd-pricing-qty-value">${p.pagesStandard}</span>
             <button type="button" class="qd-pricing-tier-btn" data-action="pricing-pages" data-kind="standard" data-delta="1">+</button>
           </div>
         </div>
-        <div class="qd-pricing-panel-row"><span>Landing pages (video / animated hero) · AED ${PAGE_RATE_LANDING} each</span>
+        <div class="qd-pricing-panel-row"><span>Campaign landing pages · AED ${PAGE_RATE_LANDING} each before launch pricing</span>
           <div class="qd-pricing-qty-btns">
             <button type="button" class="qd-pricing-tier-btn" data-action="pricing-pages" data-kind="landing" data-delta="-1">−</button>
             <span class="qd-pricing-qty-value">${p.pagesLanding}</span>
@@ -7777,8 +7864,9 @@ const renderPricingManager = () => {
     return `<div data-pricing-addon-row="${escAttr(addon.name.en.toLowerCase())}" ${matches ? '' : 'hidden'} style="display:${matches ? 'block' : 'none'}">${renderPricingOptionChip(addon.id, coverage)}</div>`;
   }).join('');
 
+  const selectedCarePlanId = p.carePlanId || estimate.monthly.planId;
   const carePlanOptions = CARE_PLANS.map((plan) => `
-    <option value="${plan.id}" ${p.carePlanId === plan.id ? 'selected' : ''}>
+    <option value="${plan.id}" ${selectedCarePlanId === plan.id ? 'selected' : ''}>
       ${escTxt(plan.name.en)}${plan.monthly > 0 ? ` — AED ${formatAED(plan.monthly)}/mo${plan.usage ? ' + usage' : ''}` : ''}
     </option>`).join('');
 
@@ -7786,7 +7874,7 @@ const renderPricingManager = () => {
   const lineRows = estimate.lines.filter((line) => line.kind !== 'discount').map((line) => `
     <div class="qd-pricing-summary-line ${line.covered ? 'is-muted' : ''}" ${line.note ? `title="${escAttr(line.note)}"` : ''}>
       <span>${escTxt(line.label)}${line.covered ? ' <em>(included)</em>' : ''}${line.upgraded ? ' <em>(upgrade only — basic in base)</em>' : ''}</span>
-      <span>${line.covered ? '—' : `${line.from ? 'from ' : ''}AED ${formatAED(line.amount)}`}</span>
+      <span>${line.covered ? '—' : `${line.from ? 'from ' : ''}AED ${formatPricingFils(line.amount, 'rack50')}`}</span>
     </div>`).join('');
 
   const renderBandBox = (check, heading) => {
@@ -7797,9 +7885,20 @@ const renderPricingManager = () => {
       below: '↓ Below the verified range — room to grow scope',
       above: '↑ Above the verified range — justify with scope, or trim'
     }[check.status];
-    return `<div class="qd-pricing-band is-${check.status}"><strong>${escTxt(heading)}:</strong> AED ${formatAED(lo)}–${formatAED(hi)}<br>${statusText}</div>`;
+    return `<div class="qd-pricing-band is-${check.status}"><strong>${escTxt(heading)}:</strong> AED ${formatPricingFils(lo, 'rack50')}–${formatPricingFils(hi, 'rack50')}<br>${statusText}</div>`;
   };
   const activePreset = getIndustryPreset(getPricingSelection().industryId);
+  const hasEstimate = estimate.lines.some((line) => Number(line.amount) !== 0);
+  const marketRate = formatPricingFils(estimate.listPrice, 'rack50');
+  const launchPrice = formatPricingFils(estimate.net, 'rack50');
+  const monthlyPrice = formatPricingFils(estimate.monthly.amount, 'aed');
+  const internalBadges = [
+    `Approval: ${estimate.approval}`,
+    `Margin: ${estimate.marginPercent}%`,
+    `Delivery cost: AED ${formatPricingFils(estimate.deliveryCost, 'aed')}`,
+    ...(estimate.floorBound ? ['floor_bound'] : []),
+    ...(estimate.flags || [])
+  ];
 
   return `
     <section class="qd-admin-section qd-pricing-section">
@@ -7827,11 +7926,16 @@ const renderPricingManager = () => {
           </div>
 
           <div class="qd-pricing-step">
-            <div class="qd-pricing-step-title">2 · What are you building?</div>
+            <div class="qd-pricing-step-title">2 · Goal <small>Pick the owner's main need</small></div>
+            <div class="qd-pricing-goals">${goalBtns}</div>
+          </div>
+
+          <div class="qd-pricing-step">
+            <div class="qd-pricing-step-title">3 · Customize <small>Adjust the suggested stack if needed</small></div>
             <div class="qd-pricing-products">${productBtns}</div>
           </div>
 
-          ${panels.length ? `<div class="qd-pricing-step"><div class="qd-pricing-step-title">3 · Options</div>${panels.join('')}</div>` : ''}
+          ${panels.length ? `<div class="qd-pricing-step"><div class="qd-pricing-step-title">Options</div>${panels.join('')}</div>` : ''}
 
           <div class="qd-pricing-step">
             <button type="button" class="qd-pricing-describe-bar" data-action="pricing-toggle-more">
@@ -7844,9 +7948,13 @@ const renderPricingManager = () => {
           </div>
 
           <div class="qd-pricing-step">
-            <div class="qd-pricing-step-title">4 · Monthly care & discount</div>
+            <div class="qd-pricing-step-title">Monthly care, VAT & discount</div>
             <div class="qd-pricing-care-row">
               <select class="qd-quote-input qd-pricing-care" data-pricing-field="care-plan">${carePlanOptions}</select>
+              <label class="qd-pricing-vat-toggle">
+                <input type="checkbox" data-pricing-field="vat-on" ${p.vatOn ? 'checked' : ''}>
+                <span>Add 5% VAT (if VAT-registered)</span>
+              </label>
               <button type="button" class="qd-pricing-chip ${p.founding.enabled ? 'is-active' : ''}" data-action="pricing-toggle-founding">
                 <span>Founding-client discount</span><small>${p.founding.enabled ? `−${p.founding.percent}%` : `up to −${FOUNDING_MAX_DISCOUNT_PERCENT}%`}</small>
               </button>
@@ -7862,30 +7970,37 @@ const renderPricingManager = () => {
 
         <aside class="qd-pricing-summary">
           <div class="qd-quote-section-label">${p.clientName ? `ESTIMATE — ${escTxt(p.clientName.toUpperCase())}` : 'ESTIMATE'}</div>
-          ${estimate.lines.length === 0
+          ${!hasEstimate
             ? '<div class="qd-pricing-empty">Click a product to start building the price.</div>'
             : `
+            <div class="qd-pricing-hero-total">
+              <span>From AED ${launchPrice} once + AED ${monthlyPrice}/month</span>
+              <small>One payment for the build, a small monthly to keep it running and supported. No hidden fees.</small>
+            </div>
+            <div class="qd-pricing-anchor">
+              <div><span>Market rate (Dubai)</span><s>AED ${marketRate}</s></div>
+              <div><span>Your Sharjah launch price</span><strong>AED ${launchPrice}</strong></div>
+            </div>
             <div class="qd-pricing-summary-lines">${lineRows}</div>
             <div class="qd-pricing-summary-totals">
-              <div class="qd-pricing-summary-line"><span>One-time subtotal</span><span>AED ${formatAED(estimate.subtotal)}</span></div>
-              ${estimate.discountAmount > 0 ? `
-                <div class="qd-pricing-summary-line is-discount"><span>Founding-client discount (−${estimate.discountPercent}%)</span><span>−AED ${formatAED(estimate.discountAmount)}</span></div>
-                <div class="qd-pricing-summary-line"><span>After discount</span><span>AED ${formatAED(estimate.discountedSubtotal)}</span></div>` : ''}
-              <div class="qd-pricing-summary-line is-muted"><span>VAT ${estimate.vatPercent}%</span><span>AED ${formatAED(estimate.vat)}</span></div>
-              <div class="qd-pricing-summary-line is-grand"><span>One-time total</span><span>${estimate.openEnded ? 'from ' : ''}AED ${formatAED(estimate.grandTotal)}</span></div>
+              <div class="qd-pricing-summary-line"><span>One-time build</span><span>${estimate.openEnded ? 'from ' : ''}AED ${launchPrice}</span></div>
+              ${p.vatOn ? `<div class="qd-pricing-summary-line is-muted"><span>VAT 5%</span><span>AED ${formatPricingFils(estimate.vat, 'aed')}</span></div>` : ''}
+              ${p.vatOn ? `<div class="qd-pricing-summary-line is-grand"><span>Total with VAT</span><span>AED ${formatPricingFils(estimate.grandTotal, 'rack50')}</span></div>` : ''}
               ${estimate.monthly.amount > 0 ? `
-                <div class="qd-pricing-summary-line is-monthly"><span>Monthly · ${escTxt(estimate.monthly.planName)}</span><span>AED ${formatAED(estimate.monthly.amount)}/mo${estimate.monthly.usage ? ' + usage' : ''}</span></div>` : ''}
+                <div class="qd-pricing-summary-line is-monthly"><span>Monthly · ${escTxt(estimate.monthly.planName)}</span><span>AED ${monthlyPrice}/mo${estimate.monthly.usage ? ' + usage' : ''}</span></div>` : ''}
             </div>
-            ${estimate.monthly.softwarePassThrough ? '<div class="qd-pricing-passthrough">⚠ Third-party software & usage fees billed at cost on top.</div>' : ''}
+            <div class="qd-pricing-passthrough">Third-party software billed at cost${estimate.monthly.softwarePassThrough ? ' where needed' : ' when applicable'}.</div>
+            <div class="qd-pricing-soft-note">Prefer to split the build over 2–3 months? Ask us.</div>
+            <div class="qd-pricing-internal-strip">${internalBadges.map((badge) => `<span>${escTxt(badge)}</span>`).join('')}</div>
             ${renderBandBox(estimate.uaeCheck, 'UAE market (verified live)')}
             ${Object.keys(p.modules).length === 0 ? renderBandBox(estimate.bandCheck && activePreset ? estimate.bandCheck : null, activePreset ? activePreset.name.en : '') : ''}
-            <button type="button" class="qd-btn qd-btn-sm qd-admin-action-primary qd-pricing-copy" data-action="pricing-copy-summary">
-              ${p.copied ? '✓ Copied' : 'Copy estimate summary'}
-            </button>
             <button type="button" class="qd-btn qd-btn-sm qd-admin-action-primary qd-pricing-create-quote" data-action="pricing-create-quote" ${p.quoteCreating ? 'disabled' : ''}>
               ${p.quoteCreating ? 'Creating quote...' : 'Create quote'}
             </button>
-            <button type="button" class="qd-btn qd-btn-sm qd-admin-action-secondary" data-action="pricing-reset">Reset</button>
+            <button type="button" class="qd-btn qd-btn-sm qd-admin-action-secondary qd-pricing-copy" data-action="pricing-copy-summary">
+              ${p.copied ? 'Copied' : 'Copy summary'}
+            </button>
+            <button type="button" class="qd-btn qd-btn-sm qd-pricing-reset" data-action="pricing-reset">Reset</button>
           `}
           <details class="qd-pricing-sources">
             <summary>Source register (${SOURCES.length} · ${SOURCES.filter((s) => s.verified).length} verified live)</summary>
@@ -7903,6 +8018,7 @@ const handlePricingFieldChange = (target) => {
   syncPricingBriefInputs();
   const field = target.dataset.pricingField;
   if (field === 'care-plan') state.pricing.carePlanId = target.value;
+  if (field === 'vat-on') state.pricing.vatOn = !!target.checked;
   state.pricing.copied = false;
   render();
 };
@@ -7936,13 +8052,20 @@ const handlePricingAction = async (action, actionTarget) => {
     applyBriefAnalysis(parseBrief(p.briefText));
     return done();
   }
+  if (action === 'pricing-set-goal') {
+    const goal = PRICING_GOALS.find((item) => item.id === actionTarget.dataset.goal);
+    if (goal) {
+      p.goalId = goal.id;
+      goal.apply(p);
+    }
+    return done();
+  }
   if (action === 'pricing-toggle-product') {
     const key = actionTarget.dataset.product;
     if (key === 'website') {
       p.products.website = !p.products.website;
       if (p.products.website) {
-        if (!p.foundationId) p.foundationId = 'foundation-essential';
-        if (!p.pagesStandard) p.pagesStandard = 5;
+        if (!p.foundationId) p.foundationId = 'foundation-starter';
       }
     } else if (key === 'store') {
       p.products.store = p.products.store ? null : 'qd-commerce-start';
@@ -7977,6 +8100,8 @@ const handlePricingAction = async (action, actionTarget) => {
   if (action === 'pricing-set-industry') {
     const id = actionTarget.dataset.industry;
     p.industryGroupId = p.industryGroupId === id ? null : id;
+    if (p.industryGroupId) applyIndustryPresetSuggestion(p.industryGroupId);
+    else p.modules = {};
     return done();
   }
   if (action === 'pricing-toggle-module') {
@@ -8005,7 +8130,7 @@ const handlePricingAction = async (action, actionTarget) => {
     return true;
   }
   if (action === 'pricing-create-quote') {
-    const selection = getPricingSelection();
+    const selection = getPricingLaunchSelection();
     const estimate = buildEstimate(selection);
     if (!estimate.lines.some((line) => Number(line.amount) !== 0)) {
       showAdminToast('Click at least one billable product before creating a quote.');
@@ -8048,7 +8173,7 @@ const handlePricingAction = async (action, actionTarget) => {
     return true;
   }
   if (action === 'pricing-copy-summary') {
-    const estimate = buildEstimate(getPricingSelection());
+    const estimate = buildEstimate(getPricingLaunchSelection());
     try {
       await navigator.clipboard.writeText(formatEstimateText(estimate, { businessName: p.clientName }));
       p.copied = true;

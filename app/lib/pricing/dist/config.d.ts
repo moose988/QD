@@ -32,6 +32,7 @@ export declare const POSTURE: Readonly<{
         tier: "sharjah";
         maxFoundingDiscount: number;
         attachCarePlan: true;
+        defaultCarePlan: string;
         label: string;
     };
     standard: {
@@ -50,6 +51,7 @@ export declare const POSTURE: Readonly<{
 }>;
 export declare const DEFAULT_POSTURE: PostureId;
 export declare const HOURS: Readonly<{
+    'foundation-starter': Readonly<Record<ScopeTier, number>>;
     'foundation-essential': Readonly<Record<ScopeTier, number>>;
     'foundation-professional': Readonly<Record<ScopeTier, number>>;
     'foundation-premium': Readonly<Record<ScopeTier, number>>;

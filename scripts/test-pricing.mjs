@@ -3,12 +3,15 @@
 // fails, the change being made is breaking a pricing guarantee — fix the
 // change, not the test (unless the owner explicitly changed the pricing).
 
+import fs from 'node:fs';
+
 import {
   FOUNDATIONS, ADDONS, CARE_PLANS, INDUSTRY_MODULES, SOURCES,
   OFFER_TEMPLATES, INDUSTRY_PRESETS,
   PAGE_RATE_STANDARD, FOUNDING_MAX_DISCOUNT_PERCENT,
-  getFoundation, getAddonPrice, getModulePrice, getPackage,
-  buildEstimate, buildIncludedMap, formatEstimateText, price
+  PRICING_VERSION, MARKET_TIERS, POSTURE,
+  getFoundation, getAddonPrice, getModulePrice, getPackage, getCarePlan,
+  buildEstimate, buildIncludedMap, formatEstimateText, price, displayAED
 } from '../app/lib/pricing-model.js';
 import { parseBrief } from '../app/lib/brief-parser.js';
 import { estimateToQuoteDraft } from '../app/lib/estimate-quote.js';
@@ -138,12 +141,39 @@ eq('margin uses delivery cost', overlapCase.marginAmount, overlapCase.net - over
 
 eq('approval 10 percent auto', price({ foundationId: 'foundation-professional', pagesStandard: 8, promoPercent: 10, posture: 'launch' }).approval, 'auto');
 eq('approval 20 percent manager', price({ foundationId: 'foundation-professional', pagesStandard: 8, promoPercent: 20, posture: 'launch' }).approval, 'manager');
-eq('approval 30 percent owner', price({ foundationId: 'foundation-professional', pagesStandard: 8, promoPercent: 30, posture: 'launch' }).approval, 'owner');
+eq('approval 30 percent owner', price({ foundationId: 'foundation-professional', pagesStandard: 8, promoPercent: 30, posture: 'launch', marketTier: 'dubai' }).approval, 'owner');
 
 const shj = price({ foundationId: 'foundation-professional', pagesStandard: 8, marketTier: 'sharjah', posture: 'standard' });
 const dubai = price({ foundationId: 'foundation-professional', pagesStandard: 8, marketTier: 'dubai', posture: 'standard' });
 eq('Sharjah tier below Dubai', shj.net < dubai.net, true);
-eq('Sharjah tier factor applied once', shj.net, Math.round(dubai.listPrice * 0.9));
+eq('Sharjah tier factor applied once', shj.net, Math.round(dubai.listPrice * 0.7));
+
+// --- 13. V2.1 Sharjah launch tuning and VAT-off launch behavior ---
+eq('pricing version bumped for v2.1', PRICING_VERSION, '2026-06-13');
+eq('Sharjah launch factor is 0.70', MARKET_TIERS.sharjah.factor, 0.70);
+eq('launch posture defaults to Care Basic', POSTURE.launch.defaultCarePlan, 'care-basic');
+eq('Care Basic monthly plan exists', [getCarePlan('care-basic')?.monthly, getCarePlan('care-basic')?.refs?.includes('R26')], [149, true]);
+eq('Starter foundation exists', [getFoundation('foundation-starter')?.base, buildIncludedMap({ foundationId: 'foundation-starter' }).get('gbp-setup')], [2400, getAddonPrice('gbp-setup', 'low')]);
+
+const starterLaunch = price({ foundationId: 'foundation-starter', posture: 'launch', vatPercent: 0 });
+eq('Starter launch opens at AED 1,680 once', displayAED(starterLaunch.net, 'aed'), 1680);
+eq('Starter launch defaults to Care Basic monthly', [starterLaunch.monthly.planId, displayAED(starterLaunch.monthly.amount, 'aed')], ['care-basic', 149]);
+eq('VAT off produces no VAT or gross-up', [starterLaunch.vatPercent, starterLaunch.vat, starterLaunch.grandTotal], [0, 0, starterLaunch.net]);
+
+const launchFivePage = price({ foundationId: 'foundation-essential', pagesStandard: 5, posture: 'launch', vatPercent: 0 });
+eq('5-page launch site is AED 4,130 before VAT', displayAED(launchFivePage.net, 'aed'), 4130);
+eq('5-page launch site keeps Dubai market anchor', displayAED(launchFivePage.listPrice, 'aed'), 5900);
+const launchFivePageVat = price({ foundationId: 'foundation-essential', pagesStandard: 5, posture: 'launch', vatPercent: 5 });
+eq('VAT toggle adds exactly 5 percent on net', launchFivePageVat.vat, Math.round(launchFivePageVat.net * 0.05));
+
+// --- 14. Browser estimator wiring stays on launch posture with client-safe framing ---
+const adminSource = fs.readFileSync(new URL('../admin.js', import.meta.url), 'utf8');
+const pricingSchemaSource = fs.readFileSync(new URL('../app/lib/pricing/dist/schema.js', import.meta.url), 'utf8');
+eq('admin imports live price API', /import\s*\{[\s\S]*\bprice\b[\s\S]*\}\s*from\s*'\/app\/lib\/pricing-model\.js'/.test(adminSource), true);
+eq('admin estimator calls price with launch posture and VAT toggle', adminSource.includes("price({ ...getPricingSelection(), posture: 'launch', vatPercent: p.vatOn ? 5 : 0 })"), true);
+eq('admin estimator has VAT-off toggle copy', adminSource.includes('Add 5% VAT (if VAT-registered)'), true);
+eq('admin estimator shows Sharjah anchor language', adminSource.includes('Market rate (Dubai)') && adminSource.includes('Your Sharjah launch price'), true);
+eq('browser pricing model avoids bare zod import', /from\s+['"]zod['"]/.test(pricingSchemaSource), false);
 
 const legacyTemplateGrandTotals = {
   'tpl-starter-presence': 7770,

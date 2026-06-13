@@ -25,7 +25,7 @@
 // See docs/PRICING_MODEL.md for the full source table.
 // ============================================================================
 
-export const PRICING_VERSION = '2026-06-11';
+export const PRICING_VERSION = '2026-06-13';
 export const CURRENCY = 'AED';
 export const DEFAULT_VAT_PERCENT = 5;
 
@@ -258,6 +258,7 @@ export const getAddonLevel = (addonId, tier = 'low') => {
 // ---------------------------------------------------------------------------
 export const CARE_PLANS = [
   { id: 'none',            name: { en: 'No monthly plan', ar: 'بدون خطة شهرية' }, monthly: 0,    scope: '' },
+  { id: 'care-basic',      name: { en: 'Care Basic', ar: 'العناية المبدئية' },    monthly: 149,  scope: 'Hosting, SSL, backups, uptime checks, security updates, 1 small content edit / month', refs: ['R26'] },
   { id: 'care-lite',       name: { en: 'Care Lite', ar: 'العناية الأساسية' },     monthly: 249,  scope: 'Updates, backups, uptime checks, minor content edits, monthly snapshot report', refs: ['R26'] },
   { id: 'care-growth',     name: { en: 'Care Growth', ar: 'عناية النمو' },        monthly: 599,  scope: '+ One focused improvement task, form testing, GA4 review, basic SEO hygiene', refs: ['R26'] },
   { id: 'care-commerce',   name: { en: 'Care Commerce', ar: 'عناية المتاجر' },    monthly: 1299, scope: '+ Checkout / order-flow checks, app & plugin monitoring, promo implementation support', refs: ['R26'] },
@@ -336,6 +337,16 @@ export const PAGE_RATE_LANDING = 450;  // = ADDONS extra-landing
 
 export const FOUNDATIONS = [
   {
+    id: 'foundation-starter',
+    name: { en: 'Starter site', ar: 'موقع البداية' },
+    base: 2400,
+    derivation: 'Sharjah launch starter tier; positioned below Essential without changing verified anchors',
+    bestFor: { en: 'A small local business getting online fast', ar: 'نشاط محلي صغير يريد الظهور بسرعة' },
+    diff: ['1–3 page professional site', 'Mobile-friendly', 'Contact + WhatsApp button', 'Google Business Profile setup', 'Basic analytics'],
+    includes: ['1–3 page professional site', 'Mobile-friendly', 'Contact + WhatsApp button', 'Google Business Profile setup', 'Basic analytics'],
+    basis: 'positioning'
+  },
+  {
     id: 'foundation-essential',
     name: { en: 'Essential build', ar: 'بناء أساسي' },
     base: 4650,
@@ -374,6 +385,7 @@ export const FOUNDATIONS = [
 // top of a build that already does part of the work.
 // Foundations are supersets: higher tiers cover everything lower ones do.
 export const FOUNDATION_COVERS = {
+  'foundation-starter':      ['gbp-setup'],
   'foundation-essential':    ['gbp-setup'],
   'foundation-professional': ['gbp-setup', 'smart-form'],                                    // advanced forms included
   'foundation-premium':      ['gbp-setup', 'smart-form', 'extra-language', 'dashboard-pack'] // + AR/EN structure + mini-dashboard

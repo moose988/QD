@@ -1,4 +1,4 @@
-export declare const PRICING_VERSION = "2026-06-11";
+export declare const PRICING_VERSION = "2026-06-13";
 export declare const CURRENCY = "AED";
 export declare const DEFAULT_VAT_PERCENT = 5;
 export declare const PACKAGES: ({
@@ -203,6 +203,7 @@ export declare const FOUNDATIONS: {
     basis: string;
 }[];
 export declare const FOUNDATION_COVERS: {
+    'foundation-starter': string[];
     'foundation-essential': string[];
     'foundation-professional': string[];
     'foundation-premium': string[];
