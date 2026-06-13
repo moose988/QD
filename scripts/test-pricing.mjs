@@ -5,9 +5,10 @@
 
 import {
   FOUNDATIONS, ADDONS, CARE_PLANS, INDUSTRY_MODULES, SOURCES,
+  OFFER_TEMPLATES, INDUSTRY_PRESETS,
   PAGE_RATE_STANDARD, FOUNDING_MAX_DISCOUNT_PERCENT,
   getFoundation, getAddonPrice, getModulePrice, getPackage,
-  buildEstimate, buildIncludedMap, formatEstimateText
+  buildEstimate, buildIncludedMap, formatEstimateText, price
 } from '../app/lib/pricing-model.js';
 import { parseBrief } from '../app/lib/brief-parser.js';
 import { estimateToQuoteDraft } from '../app/lib/estimate-quote.js';
@@ -98,6 +99,79 @@ const coveredEstimate = buildEstimate({
 });
 const coveredDraft = estimateToQuoteDraft(coveredEstimate);
 eq('estimate quote bridge skips covered zero lines', coveredDraft.lineItems.some((li) => /Analytics/.test(li.name.en)), false);
+
+// --- 12. V2 engine: floor, waterfall, governance, market tier, compatibility ---
+const floorCase = price({
+  specials: ['qd-ops-dashboard'],
+  addons: [
+    { id: 'roles-logic', tier: 'high' },
+    { id: 'dashboard-pack', tier: 'high' },
+    { id: 'crm-setup', tier: 'high' }
+  ],
+  discountPercent: 100,
+  promoPercent: 100,
+  posture: 'standard'
+});
+eq('floor binds heavily discounted custom build', floorCase.floorBound && floorCase.net >= floorCase.costFloorNet, true);
+
+const waterfallCase = price({
+  foundationId: 'foundation-professional',
+  pagesStandard: 8,
+  addons: [{ id: 'ai-chatbot-upgrade', tier: 'low' }],
+  discountPercent: 10,
+  posture: 'standard'
+});
+eq('waterfall reconciles list to net', waterfallCase.listPrice + waterfallCase.waterfall.reduce((sum, step) => sum + step.amount, 0), waterfallCase.net);
+eq('VAT reconciles net to grand total', waterfallCase.net + waterfallCase.vat, waterfallCase.grandTotal);
+
+const passThroughCase = price({ specials: ['qd-ai-chatbot'], carePlanId: 'automation-desk', posture: 'standard' });
+eq('pass-through stays outside taxable subtotal', passThroughCase.passThrough.length > 0 && passThroughCase.taxableSubtotal === passThroughCase.net, true);
+
+const overlapCase = price({
+  foundationId: 'foundation-premium',
+  pagesStandard: 12,
+  modules: ['mod-order-status', 'mod-menu-mgmt', 'mod-resto-loyalty'],
+  addons: [{ id: 'dashboard-pack', tier: 'high' }],
+  posture: 'standard'
+});
+eq('margin uses delivery cost', overlapCase.marginAmount, overlapCase.net - overlapCase.deliveryCost);
+
+eq('approval 10 percent auto', price({ foundationId: 'foundation-professional', pagesStandard: 8, promoPercent: 10, posture: 'launch' }).approval, 'auto');
+eq('approval 20 percent manager', price({ foundationId: 'foundation-professional', pagesStandard: 8, promoPercent: 20, posture: 'launch' }).approval, 'manager');
+eq('approval 30 percent owner', price({ foundationId: 'foundation-professional', pagesStandard: 8, promoPercent: 30, posture: 'launch' }).approval, 'owner');
+
+const shj = price({ foundationId: 'foundation-professional', pagesStandard: 8, marketTier: 'sharjah', posture: 'standard' });
+const dubai = price({ foundationId: 'foundation-professional', pagesStandard: 8, marketTier: 'dubai', posture: 'standard' });
+eq('Sharjah tier below Dubai', shj.net < dubai.net, true);
+eq('Sharjah tier factor applied once', shj.net, Math.round(dubai.listPrice * 0.9));
+
+const legacyTemplateGrandTotals = {
+  'tpl-starter-presence': 7770,
+  'tpl-site-chatbot': 12915,
+  'tpl-full-business': 19635,
+  'tpl-commerce-complete': 27615,
+  'tpl-premium-custom': 24990
+};
+for (const tpl of OFFER_TEMPLATES) {
+  eq(`legacy template ${tpl.id} grand total`, buildEstimate(tpl).grandTotal, legacyTemplateGrandTotals[tpl.id]);
+}
+
+const legacyPresetGrandTotals = {
+  'clinic-salon': 18008,
+  'restaurant-cafe': 17588,
+  'real-estate': 22890,
+  'services-contractor': 14175,
+  'education-training': 18533
+};
+for (const preset of INDUSTRY_PRESETS) {
+  const estimate = buildEstimate({
+    packageId: preset.packageId,
+    addons: preset.addonIds.map((id) => ({ id, tier: 'low' })),
+    carePlanId: preset.carePlanId,
+    industryId: preset.id
+  });
+  eq(`legacy preset ${preset.id} grand total`, estimate.grandTotal, legacyPresetGrandTotals[preset.id]);
+}
 
 console.log(failures === 0 ? '\nALL PRICING INVARIANTS HOLD' : `\n${failures} INVARIANT VIOLATIONS`);
 process.exit(failures ? 1 : 0);

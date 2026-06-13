@@ -10,18 +10,24 @@
     "dev": "node _dev-server.mjs",
     "dev:vercel": "vercel dev",
     "deploy": "vercel --prod",
-    "test:pricing": "node scripts/test-pricing.mjs"
+    "build:pricing": "tsc -p app/lib/pricing/tsconfig.json",
+    "pretest:pricing": "npm run build:pricing",
+    "prepricing": "npm run build:pricing",
+    "test:pricing": "node scripts/test-pricing.mjs && node scripts/test-pricing-property.mjs && node scripts/test-pricing-golden.mjs"
   },
   "dependencies": {
     "@xenova/transformers": "^2.17.2",
     "dotenv": "^16.4.5",
     "firebase-admin": "^12.7.0",
     "groq-sdk": "^0.7.0",
-    "nodemailer": "^8.0.10"
+    "nodemailer": "^8.0.10",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "cheerio": "^1.0.0",
-    "playwright": "^1.49.0"
+    "fast-check": "^4.8.0",
+    "playwright": "^1.49.0",
+    "typescript": "^6.0.3"
   },
   "engines": {
     "node": ">=20"
