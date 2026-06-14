@@ -1,6 +1,5 @@
 import {
   DIRECT_COST_AED,
-  FLOOR_HARD_MIN,
   HOURS,
   INTERNAL_RATE_AED_PER_HOUR,
   MIN_REALIZATION,
@@ -26,15 +25,18 @@ export function componentCost(componentId: string, tier: ScopeTier = 'mid', qty 
 }
 
 export function costFloorNet(deliveryCost: Fils, listPrice: Fils): CostFloors {
+  // Value floor ONLY. QD's real delivery cost is ~0 (AI + Vercel), so a cost-based floor would
+  // wrongly inflate multi-system bundles (store/booking/dashboard carry fictional hours). The
+  // value floor — a minimum share of the Dubai-anchored list — is the honest guardrail. costFloor
+  // is kept for the internal margin readout only; it never gates the price.
   const valueFloor = roundFils(listPrice * MIN_REALIZATION);
   const costFloor = roundFils(deliveryCost / (1 - MIN_GROSS_MARGIN));
-  const hardCostFloor = roundFils(deliveryCost / (1 - FLOOR_HARD_MIN));
   return {
     deliveryCost,
     valueFloor,
     costFloor,
-    operativeFloor: fromFils(Math.max(valueFloor, costFloor)),
-    hardFloor: fromFils(Math.max(valueFloor, hardCostFloor))
+    operativeFloor: valueFloor,
+    hardFloor: valueFloor
   };
 }
 

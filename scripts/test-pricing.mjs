@@ -31,7 +31,7 @@ const webFive = price({ foundationId: 'web-base', pagesStandard: 5, posture: 'st
 const webSeven = price({ foundationId: 'web-base', pagesStandard: 7, posture: 'standard', vatPercent: 0 });
 eq('web-base + 5 pages has no page overage line', webFive.lines.some((l) => l.id === 'pages-standard'), false);
 eq('web-base + 7 pages charges 2 page overages', displayAED(webSeven.lines.find((l) => l.id === 'pages-standard')?.amount || 0, 'aed'), 2 * PAGE_RATE_STANDARD);
-eq('Store anchors', [getPackage('qd-commerce-start').oneTime, getPackage('qd-commerce-growth').oneTime], [12900, 21900]);
+eq('Store anchors', [getPackage('qd-commerce-start').oneTime, getPackage('qd-commerce-growth').oneTime], [9900, 16900]);
 
 // --- 2. No naked ranges: every ranged addon has 3 named levels with specs ---
 const ranged = ADDONS.filter((a) => !a.fixed && a.low !== a.high);
@@ -186,8 +186,8 @@ const legacyTemplateGrandTotals = {
   'tpl-starter-presence': 5408,
   'tpl-site-chatbot': 7665,
   'tpl-full-business': 13335,
-  'tpl-commerce-complete': 27615,
-  'tpl-premium-custom': 24990
+  'tpl-commerce-complete': 22365,
+  'tpl-premium-custom': 20790
 };
 for (const tpl of OFFER_TEMPLATES) {
   eq(`legacy template ${tpl.id} grand total`, buildEstimate(tpl).grandTotal, legacyTemplateGrandTotals[tpl.id]);

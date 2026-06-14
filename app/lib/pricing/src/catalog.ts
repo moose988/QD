@@ -80,7 +80,7 @@ export const PACKAGES = [
   {
     id: 'qd-commerce-start',
     name: { en: 'QD Commerce Start', ar: 'المتجر الإلكتروني — بداية' },
-    oneTime: 12900,
+    oneTime: 9900,
     from: false,
     suggestedCarePlan: 'care-commerce',
     softwarePassThrough: true,
@@ -95,7 +95,7 @@ export const PACKAGES = [
   {
     id: 'qd-commerce-growth',
     name: { en: 'QD Commerce Growth', ar: 'المتجر الإلكتروني — نمو' },
-    oneTime: 21900,
+    oneTime: 16900,
     from: false,
     suggestedCarePlan: 'care-commerce',
     softwarePassThrough: true,
@@ -140,7 +140,7 @@ export const PACKAGES = [
   {
     id: 'qd-ops-dashboard',
     name: { en: 'QD Ops Dashboard MVP', ar: 'لوحة العمليات الداخلية MVP' },
-    oneTime: 18900,
+    oneTime: 14900,
     from: true,
     suggestedCarePlan: 'portal-ops',
     bestFor: { en: 'SMEs wanting internal tools', ar: 'الشركات التي تحتاج أدوات داخلية' },

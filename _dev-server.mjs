@@ -5,17 +5,25 @@
 
 import dotenv from 'dotenv';
 import path from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { pathToFileURL, fileURLToPath } from 'node:url';
 import http from 'node:http';
 import fs from 'node:fs';
 
-const ROOT = process.cwd();
+// Resolve paths relative to THIS file, not the launch cwd, so .env.local and
+// static/api files load correctly no matter where the server is started from.
+const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PORT = 3000;
 
 dotenv.config({ path: path.join(ROOT, '.env.local') });
 
 if (!process.env.ZOHO_SMTP_USER || !process.env.ZOHO_SMTP_PASS) {
   console.warn('[dev-server] Zoho SMTP env vars not loaded — /api/contact-email will fail until .env.local is configured');
+}
+
+if (!process.env.QUOTE_PASSCODE_SALT) {
+  console.warn('[dev-server] QUOTE_PASSCODE_SALT not loaded — /api/quote-* will fail. Check QUOTE_PASSCODE_SALT in .env.local at the project root.');
+} else {
+  console.log('[dev-server] QUOTE_PASSCODE_SALT loaded ✓');
 }
 
 const MIME = {
@@ -61,33 +69,20 @@ function apiName(pathname) {
   return name || null;
 }
 
-// Match vercel.json API rewrites (alias path → handler file).
-const API_REWRITES = {
-  'quote-from-estimate': 'quote-create',
-};
-
-function resolveApiHandler(pathname) {
-  const name = apiName(pathname);
-  if (!name) return null;
-  return API_REWRITES[name] || name;
-}
-
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
   const pathname = url.pathname;
 
-  const routeName = apiName(pathname);
-  const handlerName = resolveApiHandler(pathname);
-  if (handlerName) {
-    const file = path.join(ROOT, 'api', handlerName + '.js');
+  const name = apiName(pathname);
+  if (name) {
+    const file = path.join(ROOT, 'api', name + '.js');
     if (!fs.existsSync(file)) {
       res.statusCode = 404;
       res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ error: `No api/${handlerName}.js` }));
+      res.end(JSON.stringify({ error: `No api/${name}.js` }));
       return;
     }
-    const routeLabel = routeName !== handlerName ? `/api/${routeName} → /api/${handlerName}` : `/api/${routeName}`;
-    console.log(`[${new Date().toISOString()}] ${req.method} ${routeLabel}`);
+    console.log(`[${new Date().toISOString()}] ${req.method} /api/${name}`);
     shimRes(res);
     try {
       if (req.method !== 'GET' && req.method !== 'OPTIONS') req.body = await readBody(req);
