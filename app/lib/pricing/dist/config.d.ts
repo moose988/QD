@@ -5,6 +5,7 @@ export type PostureId = keyof typeof POSTURE;
 export declare const INTERNAL_RATE_AED_PER_HOUR = 80;
 export declare const MIN_GROSS_MARGIN = 0.3;
 export declare const FLOOR_HARD_MIN = 0.2;
+export declare const MIN_REALIZATION = 0.55;
 export declare const VAT_PERCENT = 5;
 export declare const FOUNDING_MAX_DISCOUNT_PERCENT = 15;
 export declare const APPROVAL: Readonly<{
@@ -51,6 +52,7 @@ export declare const POSTURE: Readonly<{
 }>;
 export declare const DEFAULT_POSTURE: PostureId;
 export declare const HOURS: Readonly<{
+    'web-base': Readonly<Record<ScopeTier, number>>;
     'foundation-starter': Readonly<Record<ScopeTier, number>>;
     'foundation-essential': Readonly<Record<ScopeTier, number>>;
     'foundation-professional': Readonly<Record<ScopeTier, number>>;

@@ -83,6 +83,8 @@ export interface PassThroughLine {
 
 export interface FloorDetail {
   readonly operativeFloor: Fils;
+  readonly valueFloor: Fils;
+  readonly costFloor: Fils;
   readonly hardFloor: Fils;
   readonly floorUsed: Fils;
   readonly ownerOverride: boolean;
@@ -150,7 +152,7 @@ export function price(input: unknown = {}): PricingResult {
 export function priceInternal(input: unknown = {}, options: { readonly legacyCompat?: boolean } = {}): PricingResult {
   const selection = normalize(input, { legacyCompat: options.legacyCompat === true });
   const lineBuild = buildLines(selection);
-  const floors = costFloorNet(lineBuild.deliveryCost);
+  const floors = costFloorNet(lineBuild.deliveryCost, lineBuild.listPrice);
   const floorUsed = selection.ownerOverride ? floors.hardFloor : floors.operativeFloor;
   const waterfallResult = buildWaterfall(lineBuild.listPrice, selection, floorUsed);
   const discountLineResults = discountLinesFromWaterfall(waterfallResult.waterfall);
@@ -203,6 +205,8 @@ export function priceInternal(input: unknown = {}, options: { readonly legacyCom
     floorBound: waterfallResult.floorBound,
     floorDetail: {
       operativeFloor: floors.operativeFloor,
+      valueFloor: floors.valueFloor,
+      costFloor: floors.costFloor,
       hardFloor: floors.hardFloor,
       floorUsed,
       ownerOverride: selection.ownerOverride
@@ -271,21 +275,24 @@ function buildLines(selection: Selection): BuildLinesResult {
   }
 
   if (selection.pagesStandard > 0) {
-    const amount = AED(selection.pagesStandard * PAGE_RATE_STANDARD);
-    const costFils = componentCost('pages-standard', 'mid', selection.pagesStandard);
-    pushLine({
-      kind: 'pages',
-      id: 'pages-standard',
-      label: `Content pages x ${selection.pagesStandard} (AED ${PAGE_RATE_STANDARD}/page)`,
-      labelAr: `صفحات محتوى × ${selection.pagesStandard}`,
-      amount,
-      basis: 'positioning',
-      costFils
-    });
+    const includedStandardPages = Number((foundation as { includedStandardPages?: number } | null)?.includedStandardPages || 0);
+    const billablePages = Math.max(0, selection.pagesStandard - includedStandardPages);
+    const amount = AED(billablePages * PAGE_RATE_STANDARD);
+    const costFils = componentCost('pages-standard', 'mid', billablePages);
+    if (billablePages > 0) {
+      pushLine({
+        kind: 'pages',
+        id: 'pages-standard',
+        label: `Extra content pages x ${billablePages} (AED ${PAGE_RATE_STANDARD}/page; ${includedStandardPages} included)`,
+        labelAr: `صفحات محتوى إضافية × ${billablePages}`,
+        amount,
+        basis: 'positioning',
+        costFils
+      });
+    }
     subtotalLow = fromFils(subtotalLow + amount);
     subtotalHigh = fromFils(subtotalHigh + amount);
   }
-
   if (selection.pagesLanding > 0) {
     const amount = AED(selection.pagesLanding * PAGE_RATE_LANDING);
     const costFils = componentCost('pages-landing', 'mid', selection.pagesLanding);
@@ -543,7 +550,7 @@ function buildUaeCheck(selection: Selection, lines: readonly PricingLine[], net:
   if (selection.specials.some((id) => id.startsWith('qd-commerce'))) bandKey = 'ecommerce';
   else if (selection.specials.includes('qd-ops-dashboard')) bandKey = 'custom-system';
   else if (selection.foundationId && chargedSystems >= 3) bandKey = 'custom-system';
-  else if (selection.foundationId && (selection.foundationId !== 'foundation-essential' || chargedSystems >= 1)) bandKey = 'business-site';
+  else if (selection.foundationId && (selection.pagesStandard > 5 || chargedSystems >= 1)) bandKey = 'business-site';
   else if (selection.foundationId) bandKey = 'simple-site';
   else if (chargedSystems >= 1) bandKey = 'business-site';
   if (!bandKey) return null;

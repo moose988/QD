@@ -1,13 +1,13 @@
 {
   "template:tpl-starter-presence": {
-    "version": "2026-06-13",
-    "inputHash": "a902299f752b91283f1485641c9949fb5bc3d6d9ba5cdf39d4278e10fe615bf1",
+    "version": "2026-06-14",
+    "inputHash": "c8b89e1f12ecf8fcafd00067839cd82f09bf62de264fe35c6f87a4cf6b4aaae4",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "standard",
     "marketTier": "dubai",
     "selection": {
-      "foundationId": "foundation-essential",
+      "foundationId": "web-base",
       "pagesStandard": 5,
       "pagesLanding": 0,
       "specials": [],
@@ -36,22 +36,13 @@
     "lines": [
       {
         "kind": "foundation",
-        "id": "foundation-essential",
-        "label": "Essential build",
-        "labelAr": "بناء أساسي",
-        "amount": 465000,
+        "id": "web-base",
+        "label": "Website",
+        "labelAr": "موقع إلكتروني",
+        "amount": 365000,
         "basis": "positioning",
-        "note": "Launch anchor 5,900 − 5 pages × 250",
-        "costFils": 144000
-      },
-      {
-        "kind": "pages",
-        "id": "pages-standard",
-        "label": "Content pages x 5 (AED 250/page)",
-        "labelAr": "صفحات محتوى × 5",
-        "amount": 125000,
-        "basis": "positioning",
-        "costFils": 60000
+        "note": "Single website base with 5 standard pages included; extra standard pages are AED 250 each.",
+        "costFils": 0
       },
       {
         "kind": "addon",
@@ -71,28 +62,30 @@
         "costFils": 96000
       }
     ],
-    "listPrice": 740000,
-    "subtotal": 740000,
-    "subtotalLow": 740000,
-    "subtotalMid": 740000,
-    "subtotalHigh": 740000,
-    "taxableSubtotal": 740000,
+    "listPrice": 515000,
+    "subtotal": 515000,
+    "subtotalLow": 515000,
+    "subtotalMid": 515000,
+    "subtotalHigh": 515000,
+    "taxableSubtotal": 515000,
     "waterfall": [],
-    "net": 740000,
-    "discountedSubtotal": 740000,
-    "vat": 37000,
-    "grandTotal": 777000,
-    "deliveryCost": 300000,
-    "chargedCost": 300000,
-    "marginAmount": 440000,
-    "marginPercent": 59.46,
-    "costFloorNet": 428571,
-    "hardCostFloorNet": 375000,
+    "net": 515000,
+    "discountedSubtotal": 515000,
+    "vat": 25750,
+    "grandTotal": 540750,
+    "deliveryCost": 96000,
+    "chargedCost": 96000,
+    "marginAmount": 419000,
+    "marginPercent": 81.36,
+    "costFloorNet": 283250,
+    "hardCostFloorNet": 283250,
     "floorBound": false,
     "floorDetail": {
-      "operativeFloor": 428571,
-      "hardFloor": 375000,
-      "floorUsed": 428571,
+      "operativeFloor": 283250,
+      "valueFloor": 283250,
+      "costFloor": 137143,
+      "hardFloor": 283250,
+      "floorUsed": 283250,
       "ownerOverride": false
     },
     "monthly": {
@@ -125,20 +118,20 @@
     "valueCheck": {
       "status": "not-provided",
       "annualValueAED": null,
-      "netAED": 7400,
+      "netAED": 5150,
       "note": "No client annual value input provided."
     },
     "openEnded": false
   },
   "template:tpl-site-chatbot": {
-    "version": "2026-06-13",
-    "inputHash": "df3ba3fd965a93b9fbe573e580c5794b70b9558a9c261000a84ac2f8a382a34e",
+    "version": "2026-06-14",
+    "inputHash": "a19082be7a28dbe83a991950871e4e039104d4d3dd794777636d99a4158bdb58",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "standard",
     "marketTier": "dubai",
     "selection": {
-      "foundationId": "foundation-professional",
+      "foundationId": "web-base",
       "pagesStandard": 8,
       "pagesLanding": 0,
       "specials": [],
@@ -167,22 +160,22 @@
     "lines": [
       {
         "kind": "foundation",
-        "id": "foundation-professional",
-        "label": "Professional build",
-        "labelAr": "بناء احترافي",
-        "amount": 740000,
+        "id": "web-base",
+        "label": "Website",
+        "labelAr": "موقع إلكتروني",
+        "amount": 365000,
         "basis": "positioning",
-        "note": "Growth anchor 9,900 − 10 pages × 250",
-        "costFils": 240000
+        "note": "Single website base with 5 standard pages included; extra standard pages are AED 250 each.",
+        "costFils": 0
       },
       {
         "kind": "pages",
         "id": "pages-standard",
-        "label": "Content pages x 8 (AED 250/page)",
-        "labelAr": "صفحات محتوى × 8",
-        "amount": 200000,
+        "label": "Extra content pages x 3 (AED 250/page; 5 included)",
+        "labelAr": "صفحات محتوى إضافية × 3",
+        "amount": 75000,
         "basis": "positioning",
-        "costFils": 96000
+        "costFils": 36000
       },
       {
         "kind": "addon",
@@ -207,28 +200,30 @@
         "costFils": 80000
       }
     ],
-    "listPrice": 1230000,
-    "subtotal": 1230000,
-    "subtotalLow": 1230000,
-    "subtotalMid": 1230000,
-    "subtotalHigh": 1630000,
-    "taxableSubtotal": 1230000,
+    "listPrice": 730000,
+    "subtotal": 730000,
+    "subtotalLow": 730000,
+    "subtotalMid": 730000,
+    "subtotalHigh": 1130000,
+    "taxableSubtotal": 730000,
     "waterfall": [],
-    "net": 1230000,
-    "discountedSubtotal": 1230000,
-    "vat": 61500,
-    "grandTotal": 1291500,
-    "deliveryCost": 416000,
-    "chargedCost": 416000,
-    "marginAmount": 814000,
-    "marginPercent": 66.18,
-    "costFloorNet": 594286,
-    "hardCostFloorNet": 520000,
+    "net": 730000,
+    "discountedSubtotal": 730000,
+    "vat": 36500,
+    "grandTotal": 766500,
+    "deliveryCost": 116000,
+    "chargedCost": 116000,
+    "marginAmount": 614000,
+    "marginPercent": 84.11,
+    "costFloorNet": 401500,
+    "hardCostFloorNet": 401500,
     "floorBound": false,
     "floorDetail": {
-      "operativeFloor": 594286,
-      "hardFloor": 520000,
-      "floorUsed": 594286,
+      "operativeFloor": 401500,
+      "valueFloor": 401500,
+      "costFloor": 165714,
+      "hardFloor": 401500,
+      "floorUsed": 401500,
       "ownerOverride": false
     },
     "monthly": {
@@ -261,20 +256,20 @@
     "valueCheck": {
       "status": "not-provided",
       "annualValueAED": null,
-      "netAED": 12300,
+      "netAED": 7300,
       "note": "No client annual value input provided."
     },
     "openEnded": false
   },
   "template:tpl-full-business": {
-    "version": "2026-06-13",
-    "inputHash": "c4e8b13fefe32e4c39813c84c2e3b72aabc53b64c1f2e836519a4be2687779eb",
+    "version": "2026-06-14",
+    "inputHash": "c5c3d41d30fd50d9a030c453195b5839920f9de0ffa540eec9aa45973332bd5c",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "standard",
     "marketTier": "dubai",
     "selection": {
-      "foundationId": "foundation-premium",
+      "foundationId": "web-base",
       "pagesStandard": 12,
       "pagesLanding": 0,
       "specials": [],
@@ -313,32 +308,32 @@
     "lines": [
       {
         "kind": "foundation",
-        "id": "foundation-premium",
-        "label": "Premium build",
-        "labelAr": "بناء متميز",
-        "amount": 1090000,
+        "id": "web-base",
+        "label": "Website",
+        "labelAr": "موقع إلكتروني",
+        "amount": 365000,
         "basis": "positioning",
-        "note": "Business Pro anchor 14,900 − 16 pages × 250",
-        "costFils": 400000
+        "note": "Single website base with 5 standard pages included; extra standard pages are AED 250 each.",
+        "costFils": 0
       },
       {
         "kind": "pages",
         "id": "pages-standard",
-        "label": "Content pages x 12 (AED 250/page)",
-        "labelAr": "صفحات محتوى × 12",
-        "amount": 300000,
+        "label": "Extra content pages x 7 (AED 250/page; 5 included)",
+        "labelAr": "صفحات محتوى إضافية × 7",
+        "amount": 175000,
         "basis": "positioning",
-        "costFils": 144000
+        "costFils": 84000
       },
       {
         "kind": "addon",
         "id": "dashboard-pack",
         "label": "Analytics & reports — KPI panel",
         "labelAr": "التحليلات والتقارير",
-        "amount": 0,
-        "unit": 0,
+        "amount": 250000,
+        "unit": 250000,
         "qty": 1,
-        "tier": null,
+        "tier": "low",
         "from": false,
         "basis": "market",
         "refs": [
@@ -346,9 +341,9 @@
           "R10",
           "R11"
         ],
-        "covered": true,
+        "covered": false,
         "upgraded": false,
-        "note": "Already included in this selection — not charged.",
+        "note": "One screen: sales, leads, top items, with CSV export",
         "costFils": 96000
       },
       {
@@ -395,28 +390,30 @@
         "costFils": 80000
       }
     ],
-    "listPrice": 1870000,
-    "subtotal": 1870000,
-    "subtotalLow": 1870000,
-    "subtotalMid": 1870000,
-    "subtotalHigh": 3010000,
-    "taxableSubtotal": 1870000,
+    "listPrice": 1270000,
+    "subtotal": 1270000,
+    "subtotalLow": 1270000,
+    "subtotalMid": 1270000,
+    "subtotalHigh": 2410000,
+    "taxableSubtotal": 1270000,
     "waterfall": [],
-    "net": 1870000,
-    "discountedSubtotal": 1870000,
-    "vat": 93500,
-    "grandTotal": 1963500,
-    "deliveryCost": 800000,
-    "chargedCost": 704000,
-    "marginAmount": 1070000,
-    "marginPercent": 57.22,
-    "costFloorNet": 1142857,
-    "hardCostFloorNet": 1000000,
+    "net": 1270000,
+    "discountedSubtotal": 1270000,
+    "vat": 63500,
+    "grandTotal": 1333500,
+    "deliveryCost": 340000,
+    "chargedCost": 340000,
+    "marginAmount": 930000,
+    "marginPercent": 73.23,
+    "costFloorNet": 698500,
+    "hardCostFloorNet": 698500,
     "floorBound": false,
     "floorDetail": {
-      "operativeFloor": 1142857,
-      "hardFloor": 1000000,
-      "floorUsed": 1142857,
+      "operativeFloor": 698500,
+      "valueFloor": 698500,
+      "costFloor": 485714,
+      "hardFloor": 698500,
+      "floorUsed": 698500,
       "ownerOverride": false
     },
     "monthly": {
@@ -435,28 +432,30 @@
     "discountApplied": 0,
     "discountCapped": false,
     "approval": "auto",
-    "flags": [],
+    "flags": [
+      "below_market_band"
+    ],
     "bandCheck": null,
     "uaeCheck": {
-      "key": "business-site",
-      "label": "UAE CMS business site (R31)",
+      "key": "custom-system",
+      "label": "UAE custom development (R30, R31)",
       "band": [
-        700000,
-        5500000
+        1500000,
+        14500000
       ],
-      "status": "within"
+      "status": "below"
     },
     "valueCheck": {
       "status": "not-provided",
       "annualValueAED": null,
-      "netAED": 18700,
+      "netAED": 12700,
       "note": "No client annual value input provided."
     },
     "openEnded": false
   },
   "template:tpl-commerce-complete": {
-    "version": "2026-06-13",
-    "inputHash": "4235052aa9c8e89d0a5ee5bd37027aef99cfdbe47dda79f99db67d2121d7092b",
+    "version": "2026-06-14",
+    "inputHash": "76619ee473f5b6c1dc1e6564a84f3c8047bbfb1012c4292f9633d155dccba18d",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "standard",
@@ -567,6 +566,8 @@
     "floorBound": false,
     "floorDetail": {
       "operativeFloor": 1965714,
+      "valueFloor": 1446500,
+      "costFloor": 1965714,
       "hardFloor": 1720000,
       "floorUsed": 1965714,
       "ownerOverride": false
@@ -625,8 +626,8 @@
     "openEnded": false
   },
   "template:tpl-premium-custom": {
-    "version": "2026-06-13",
-    "inputHash": "d86c4d0cfcffe75c616a07b5d3ed0089f0bba2b3ab05310dae1efdafa7a72571",
+    "version": "2026-06-14",
+    "inputHash": "8db0b0fc3fc252d02778dca94ec23d463deebc133b0702d8b6134bed2837a85b",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "standard",
@@ -762,6 +763,8 @@
     "floorBound": false,
     "floorDetail": {
       "operativeFloor": 1988571,
+      "valueFloor": 1309000,
+      "costFloor": 1988571,
       "hardFloor": 1740000,
       "floorUsed": 1988571,
       "ownerOverride": false
@@ -802,8 +805,8 @@
     "openEnded": true
   },
   "preset:clinic-salon": {
-    "version": "2026-06-13",
-    "inputHash": "d3160f822cd4a67ce2b1825fefb95ba55db1f99cd7421f98bc07b96d1c194978",
+    "version": "2026-06-14",
+    "inputHash": "063dde69c465c12706a181bd2a11d9c7cbfb60faa60863420323280499466132",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "standard",
@@ -931,13 +934,15 @@
     "chargedCost": 152000,
     "marginAmount": 1563000,
     "marginPercent": 91.14,
-    "costFloorNet": 217143,
-    "hardCostFloorNet": 190000,
+    "costFloorNet": 943250,
+    "hardCostFloorNet": 943250,
     "floorBound": false,
     "floorDetail": {
-      "operativeFloor": 217143,
-      "hardFloor": 190000,
-      "floorUsed": 217143,
+      "operativeFloor": 943250,
+      "valueFloor": 943250,
+      "costFloor": 217143,
+      "hardFloor": 943250,
+      "floorUsed": 943250,
       "ownerOverride": false
     },
     "monthly": {
@@ -1004,8 +1009,8 @@
     "openEnded": false
   },
   "preset:restaurant-cafe": {
-    "version": "2026-06-13",
-    "inputHash": "111c5028917c99aac0f595b4d4de8ae8b05d2938e14a3b6413ce7ec8754b3313",
+    "version": "2026-06-14",
+    "inputHash": "879743b48912e0ca962238335ffc9024a547f60e4870289b723f3acf5fbcf434",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "standard",
@@ -1129,13 +1134,15 @@
     "chargedCost": 144000,
     "marginAmount": 1531000,
     "marginPercent": 91.4,
-    "costFloorNet": 205714,
-    "hardCostFloorNet": 180000,
+    "costFloorNet": 921250,
+    "hardCostFloorNet": 921250,
     "floorBound": false,
     "floorDetail": {
-      "operativeFloor": 205714,
-      "hardFloor": 180000,
-      "floorUsed": 205714,
+      "operativeFloor": 921250,
+      "valueFloor": 921250,
+      "costFloor": 205714,
+      "hardFloor": 921250,
+      "floorUsed": 921250,
       "ownerOverride": false
     },
     "monthly": {
@@ -1202,8 +1209,8 @@
     "openEnded": false
   },
   "preset:real-estate": {
-    "version": "2026-06-13",
-    "inputHash": "390b076a5631695f2d2aeff2ccff3c521a81dcd462d805ab07497603f9cd4631",
+    "version": "2026-06-14",
+    "inputHash": "7ae9d560769b4adf37230b78f9e6c88316fcf68e57e574758af0459c242a610e",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "standard",
@@ -1333,13 +1340,15 @@
     "chargedCost": 320000,
     "marginAmount": 1860000,
     "marginPercent": 85.32,
-    "costFloorNet": 457143,
-    "hardCostFloorNet": 400000,
+    "costFloorNet": 1199000,
+    "hardCostFloorNet": 1199000,
     "floorBound": false,
     "floorDetail": {
-      "operativeFloor": 457143,
-      "hardFloor": 400000,
-      "floorUsed": 457143,
+      "operativeFloor": 1199000,
+      "valueFloor": 1199000,
+      "costFloor": 457143,
+      "hardFloor": 1199000,
+      "floorUsed": 1199000,
       "ownerOverride": false
     },
     "monthly": {
@@ -1388,8 +1397,8 @@
     "openEnded": true
   },
   "preset:services-contractor": {
-    "version": "2026-06-13",
-    "inputHash": "991199bd136a31f4b5a4218872d8776f41c2a017b0c6d071c87d8316f6cdcb5e",
+    "version": "2026-06-14",
+    "inputHash": "d854479dc99296e0814ab70d40bb80564aeabf1097a8bc07891c5d3a6027b7ba",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "standard",
@@ -1513,13 +1522,15 @@
     "chargedCost": 184000,
     "marginAmount": 1166000,
     "marginPercent": 86.37,
-    "costFloorNet": 262857,
-    "hardCostFloorNet": 230000,
+    "costFloorNet": 742500,
+    "hardCostFloorNet": 742500,
     "floorBound": false,
     "floorDetail": {
-      "operativeFloor": 262857,
-      "hardFloor": 230000,
-      "floorUsed": 262857,
+      "operativeFloor": 742500,
+      "valueFloor": 742500,
+      "costFloor": 262857,
+      "hardFloor": 742500,
+      "floorUsed": 742500,
       "ownerOverride": false
     },
     "monthly": {
@@ -1560,8 +1571,8 @@
     "openEnded": false
   },
   "preset:education-training": {
-    "version": "2026-06-13",
-    "inputHash": "a7580495bcbc9abd88d217aa42f784bce55e0ed42ce5309d8df948b5f1af9b1a",
+    "version": "2026-06-14",
+    "inputHash": "142c0c5b67921f338fdc279d693cf4f2e620a77bec3f36149c5ccbe38568eaf1",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "standard",
@@ -1663,13 +1674,15 @@
     "chargedCost": 144000,
     "marginAmount": 1621000,
     "marginPercent": 91.84,
-    "costFloorNet": 205714,
-    "hardCostFloorNet": 180000,
+    "costFloorNet": 970750,
+    "hardCostFloorNet": 970750,
     "floorBound": false,
     "floorDetail": {
-      "operativeFloor": 205714,
-      "hardFloor": 180000,
-      "floorUsed": 205714,
+      "operativeFloor": 970750,
+      "valueFloor": 970750,
+      "costFloor": 205714,
+      "hardFloor": 970750,
+      "floorUsed": 970750,
       "ownerOverride": false
     },
     "monthly": {
@@ -1736,8 +1749,8 @@
     "openEnded": false
   },
   "edge:max-founding-essential": {
-    "version": "2026-06-13",
-    "inputHash": "81cd7fe424488bd4cb172e5674d12510a45c0a530847d55896e3bcb91aa88539",
+    "version": "2026-06-14",
+    "inputHash": "84a06533b5b05deab5a112f7405bb535ba667326c7cf0f1959f85d201eea8be4",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "standard",
@@ -1777,8 +1790,8 @@
       {
         "kind": "pages",
         "id": "pages-standard",
-        "label": "Content pages x 5 (AED 250/page)",
-        "labelAr": "صفحات محتوى × 5",
+        "label": "Extra content pages x 5 (AED 250/page; 0 included)",
+        "labelAr": "صفحات محتوى إضافية × 5",
         "amount": 125000,
         "basis": "positioning",
         "costFils": 60000
@@ -1821,13 +1834,15 @@
     "chargedCost": 204000,
     "marginAmount": 327000,
     "marginPercent": 61.58,
-    "costFloorNet": 291429,
-    "hardCostFloorNet": 255000,
+    "costFloorNet": 324500,
+    "hardCostFloorNet": 324500,
     "floorBound": false,
     "floorDetail": {
-      "operativeFloor": 291429,
-      "hardFloor": 255000,
-      "floorUsed": 291429,
+      "operativeFloor": 324500,
+      "valueFloor": 324500,
+      "costFloor": 291429,
+      "hardFloor": 324500,
+      "floorUsed": 324500,
       "ownerOverride": false
     },
     "monthly": {
@@ -1868,8 +1883,8 @@
     "openEnded": false
   },
   "edge:starter-launch-vat-off": {
-    "version": "2026-06-13",
-    "inputHash": "46059f87d720b56d971d9eeca282042b238d423c1891a1809d54c8e8264920ec",
+    "version": "2026-06-14",
+    "inputHash": "86532f3d88db40ea8a2524671dfa998ebd29c1fa1d0a3c052ab850b659e1543e",
     "currency": "AED",
     "vatPercent": 0,
     "posture": "launch",
@@ -1932,13 +1947,15 @@
     "chargedCost": 80000,
     "marginAmount": 88000,
     "marginPercent": 52.38,
-    "costFloorNet": 114286,
-    "hardCostFloorNet": 100000,
+    "costFloorNet": 132000,
+    "hardCostFloorNet": 132000,
     "floorBound": false,
     "floorDetail": {
-      "operativeFloor": 114286,
-      "hardFloor": 100000,
-      "floorUsed": 114286,
+      "operativeFloor": 132000,
+      "valueFloor": 132000,
+      "costFloor": 114286,
+      "hardFloor": 132000,
+      "floorUsed": 132000,
       "ownerOverride": false
     },
     "monthly": {
@@ -1962,11 +1979,11 @@
     ],
     "bandCheck": null,
     "uaeCheck": {
-      "key": "business-site",
-      "label": "UAE CMS business site (R31)",
+      "key": "simple-site",
+      "label": "UAE simple / small business site (R30–R32)",
       "band": [
-        700000,
-        5500000
+        200000,
+        1200000
       ],
       "status": "below"
     },
@@ -1979,8 +1996,8 @@
     "openEnded": false
   },
   "edge:essential-launch-vat-off": {
-    "version": "2026-06-13",
-    "inputHash": "57e95050fb8723dde8cee7c4163db7f0e70b86b5534748aaf2607bb35bd70688",
+    "version": "2026-06-14",
+    "inputHash": "b3a1239ccc9d0696230d96456f7b40e7adc4334e600f1ffb07600cc18f703311",
     "currency": "AED",
     "vatPercent": 0,
     "posture": "launch",
@@ -2020,8 +2037,8 @@
       {
         "kind": "pages",
         "id": "pages-standard",
-        "label": "Content pages x 5 (AED 250/page)",
-        "labelAr": "صفحات محتوى × 5",
+        "label": "Extra content pages x 5 (AED 250/page; 0 included)",
+        "labelAr": "صفحات محتوى إضافية × 5",
         "amount": 125000,
         "basis": "positioning",
         "costFils": 60000
@@ -2052,13 +2069,15 @@
     "chargedCost": 204000,
     "marginAmount": 209000,
     "marginPercent": 50.61,
-    "costFloorNet": 291429,
-    "hardCostFloorNet": 255000,
+    "costFloorNet": 324500,
+    "hardCostFloorNet": 324500,
     "floorBound": false,
     "floorDetail": {
-      "operativeFloor": 291429,
-      "hardFloor": 255000,
-      "floorUsed": 291429,
+      "operativeFloor": 324500,
+      "valueFloor": 324500,
+      "costFloor": 291429,
+      "hardFloor": 324500,
+      "floorUsed": 324500,
       "ownerOverride": false
     },
     "monthly": {
@@ -2097,8 +2116,8 @@
     "openEnded": false
   },
   "edge:essential-launch-vat-on": {
-    "version": "2026-06-13",
-    "inputHash": "43ea3ae12c99ef0aee662902cf11bc95f1930876f0bea71c820ebc3c7128e2b1",
+    "version": "2026-06-14",
+    "inputHash": "c0bf3b39cb905bde36289a899d40bf494e11a2ea71570dd25204e82f3f3b1563",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "launch",
@@ -2138,8 +2157,8 @@
       {
         "kind": "pages",
         "id": "pages-standard",
-        "label": "Content pages x 5 (AED 250/page)",
-        "labelAr": "صفحات محتوى × 5",
+        "label": "Extra content pages x 5 (AED 250/page; 0 included)",
+        "labelAr": "صفحات محتوى إضافية × 5",
         "amount": 125000,
         "basis": "positioning",
         "costFils": 60000
@@ -2170,13 +2189,15 @@
     "chargedCost": 204000,
     "marginAmount": 209000,
     "marginPercent": 50.61,
-    "costFloorNet": 291429,
-    "hardCostFloorNet": 255000,
+    "costFloorNet": 324500,
+    "hardCostFloorNet": 324500,
     "floorBound": false,
     "floorDetail": {
-      "operativeFloor": 291429,
-      "hardFloor": 255000,
-      "floorUsed": 291429,
+      "operativeFloor": 324500,
+      "valueFloor": 324500,
+      "costFloor": 291429,
+      "hardFloor": 324500,
+      "floorUsed": 324500,
       "ownerOverride": false
     },
     "monthly": {
@@ -2215,8 +2236,8 @@
     "openEnded": false
   },
   "edge:floor-binding-ops-40": {
-    "version": "2026-06-13",
-    "inputHash": "6f64908d3c34801b97a5275610f03cb66d23049edb1a8ecd0f88b9048063f68a",
+    "version": "2026-06-14",
+    "inputHash": "39c3eb986d8a70b059427357b91c2d6215a62247b6ddd14aad8baf1d80543fe4",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "standard",
@@ -2384,6 +2405,8 @@
     "floorBound": true,
     "floorDetail": {
       "operativeFloor": 3108571,
+      "valueFloor": 1309000,
+      "costFloor": 3108571,
       "hardFloor": 2720000,
       "floorUsed": 3108571,
       "ownerOverride": false
@@ -2427,8 +2450,8 @@
     "openEnded": true
   },
   "edge:premium-dashboard-upgrade": {
-    "version": "2026-06-13",
-    "inputHash": "5df5bb60bf94a982f38073c51de75e42e116d484be47115f24b865ac47c57549",
+    "version": "2026-06-14",
+    "inputHash": "12a2e0db5bb25e67b98ffc7aa30630c1be7c2bb3c60dd3f4a36fe27634145a4a",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "standard",
@@ -2513,6 +2536,8 @@
     "floorBound": false,
     "floorDetail": {
       "operativeFloor": 982857,
+      "valueFloor": 841500,
+      "costFloor": 982857,
       "hardFloor": 860000,
       "floorUsed": 982857,
       "ownerOverride": false
@@ -2553,8 +2578,8 @@
     "openEnded": false
   },
   "edge:commerce-growth-loyalty-included": {
-    "version": "2026-06-13",
-    "inputHash": "db40155e8cf2e359ae8a798309b99228c9a0dbabe49e87475cf3ed04e5d8dcd8",
+    "version": "2026-06-14",
+    "inputHash": "2c1a71fe3ef60f77eb7450b02142b16fc9cf7e9650ac88c84ecbcac2acd6290d",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "standard",
@@ -2640,6 +2665,8 @@
     "floorBound": false,
     "floorDetail": {
       "operativeFloor": 2011429,
+      "valueFloor": 1204500,
+      "costFloor": 2011429,
       "hardFloor": 1760000,
       "floorUsed": 2011429,
       "ownerOverride": false
@@ -2698,8 +2725,8 @@
     "openEnded": false
   },
   "edge:sharjah-tier": {
-    "version": "2026-06-13",
-    "inputHash": "e71933e40627c73a608806808db320d6024660e4fa91660a49c8f6d83ddc0ed0",
+    "version": "2026-06-14",
+    "inputHash": "c96b0271d77ff911e4a8f1e54a5333132ceaf51692a02f5c728036b498519b8a",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "standard",
@@ -2739,8 +2766,8 @@
       {
         "kind": "pages",
         "id": "pages-standard",
-        "label": "Content pages x 8 (AED 250/page)",
-        "labelAr": "صفحات محتوى × 8",
+        "label": "Extra content pages x 8 (AED 250/page; 0 included)",
+        "labelAr": "صفحات محتوى إضافية × 8",
         "amount": 200000,
         "basis": "positioning",
         "costFils": 96000
@@ -2771,13 +2798,15 @@
     "chargedCost": 336000,
     "marginAmount": 322000,
     "marginPercent": 48.94,
-    "costFloorNet": 480000,
-    "hardCostFloorNet": 420000,
+    "costFloorNet": 517000,
+    "hardCostFloorNet": 517000,
     "floorBound": false,
     "floorDetail": {
-      "operativeFloor": 480000,
-      "hardFloor": 420000,
-      "floorUsed": 480000,
+      "operativeFloor": 517000,
+      "valueFloor": 517000,
+      "costFloor": 480000,
+      "hardFloor": 517000,
+      "floorUsed": 517000,
       "ownerOverride": false
     },
     "monthly": {
@@ -2818,8 +2847,8 @@
     "openEnded": false
   },
   "edge:dubai-tier": {
-    "version": "2026-06-13",
-    "inputHash": "44da2381febbe98e039c36a3518de422bd2eac848789c023933b241b516c7247",
+    "version": "2026-06-14",
+    "inputHash": "0c514918be9b88688d5bec2ca7386d2ebc5255fe5c497be769511d28f0aebb26",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "standard",
@@ -2859,8 +2888,8 @@
       {
         "kind": "pages",
         "id": "pages-standard",
-        "label": "Content pages x 8 (AED 250/page)",
-        "labelAr": "صفحات محتوى × 8",
+        "label": "Extra content pages x 8 (AED 250/page; 0 included)",
+        "labelAr": "صفحات محتوى إضافية × 8",
         "amount": 200000,
         "basis": "positioning",
         "costFils": 96000
@@ -2881,13 +2910,15 @@
     "chargedCost": 336000,
     "marginAmount": 604000,
     "marginPercent": 64.26,
-    "costFloorNet": 480000,
-    "hardCostFloorNet": 420000,
+    "costFloorNet": 517000,
+    "hardCostFloorNet": 517000,
     "floorBound": false,
     "floorDetail": {
-      "operativeFloor": 480000,
-      "hardFloor": 420000,
-      "floorUsed": 480000,
+      "operativeFloor": 517000,
+      "valueFloor": 517000,
+      "costFloor": 480000,
+      "hardFloor": 517000,
+      "floorUsed": 517000,
       "ownerOverride": false
     },
     "monthly": {
@@ -2926,8 +2957,8 @@
     "openEnded": false
   },
   "edge:ai-chatbot-pass-through": {
-    "version": "2026-06-13",
-    "inputHash": "ed1df07c4b6ba2c3fd5c6d7570be99d186da63b03f40cf07027731099babeb65",
+    "version": "2026-06-14",
+    "inputHash": "6947b484794a73f48b4197612c68c4d20f543a9a7ea177e08b94715a50974a66",
     "currency": "AED",
     "vatPercent": 5,
     "posture": "standard",
@@ -2988,6 +3019,8 @@
     "floorBound": false,
     "floorDetail": {
       "operativeFloor": 228571,
+      "valueFloor": 159500,
+      "costFloor": 228571,
       "hardFloor": 200000,
       "floorUsed": 228571,
       "ownerOverride": false

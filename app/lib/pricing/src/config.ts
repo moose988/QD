@@ -7,6 +7,7 @@ export type PostureId = keyof typeof POSTURE;
 export const INTERNAL_RATE_AED_PER_HOUR = 80; // ASSUMPTION: Sharjah lean team cost/hr, not billing. Tune.
 export const MIN_GROSS_MARGIN = 0.30; // ASSUMPTION: normal target floor margin. Tune.
 export const FLOOR_HARD_MIN = 0.20; // ASSUMPTION: absolute hard minimum margin. Tune.
+export const MIN_REALIZATION = 0.55; // never realize below 55% of Dubai-anchored list value.
 export const VAT_PERCENT = 5;
 export const FOUNDING_MAX_DISCOUNT_PERCENT = 15;
 export const APPROVAL = Object.freeze({ auto: 15, manager: 25 });
@@ -58,6 +59,7 @@ const fixed = (hours: number): Hours => Object.freeze({ low: hours, mid: hours, 
 const ranged = (low: number, mid: number, high: number): Hours => Object.freeze({ low, mid, high });
 
 export const HOURS = Object.freeze({
+  'web-base': fixed(0),
   'foundation-starter': ranged(8, 10, 14),
   'foundation-essential': ranged(16, 18, 22),
   'foundation-professional': ranged(26, 30, 36),

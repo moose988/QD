@@ -262,21 +262,13 @@ export function parseBrief(text) {
   const isSystemOnly = specials.length > 0 && !signals.wantsWebsite;
   const storeSelected = specials.some((s) => s.id.startsWith('qd-commerce'));
   if (!isSystemOnly && !storeSelected && (signals.wantsWebsite || wantsOrdering || wantsBooking || needCount > 0)) {
-    if (signals.bilingual && (pageCount == null || pageCount >= 10) && (featureHeavy >= 1 || (pageCount != null && pageCount > 12))) {
-      foundation = { id: 'foundation-premium', reason: 'Bilingual + feature-heavy scope → Premium build', evidence: needs.bilingual || [] };
-    } else if ((pageCount != null && pageCount > 12) || needs.roles) {
-      foundation = { id: 'foundation-premium', reason: pageCount > 12 ? `${pageCount} pages (>12 → Premium build)` : 'Staff roles on the website → Premium build', evidence: needs.roles || [] };
-    } else if (wantsOrdering || wantsBooking || needs.blog || needs.crm || needs.seo || (pageCount != null && pageCount > 5)) {
-      foundation = { id: 'foundation-professional', reason: 'Workflow / content features detected → Professional build', evidence: [] };
-    } else {
-      foundation = { id: 'foundation-essential', reason: 'Simple presence → Essential build', evidence: [] };
-    }
+    foundation = { id: 'web-base', reason: 'Website requested or implied → Website base with 5 pages included', evidence: needs.website || [] };
 
     // Pages: stated count, else honest defaults per tier (always flagged)
     if (pageCount != null) {
       pagesStandard = Math.min(pageCount, 200);
     } else {
-      pagesStandard = foundation.id === 'foundation-premium' ? 12 : foundation.id === 'foundation-professional' ? 8 : 5;
+      pagesStandard = 5;
       warnings.push(`Page count not stated — defaulted to ${pagesStandard} content pages. Adjust before quoting.`);
     }
   } else if (storeSelected && pageCount != null && pageCount > 0) {
@@ -317,8 +309,7 @@ export function parseBrief(text) {
   if (specials.some((s) => s.id.startsWith('qd-commerce'))) carePlanId = 'care-commerce';
   else if (specials.some((s) => s.id === 'qd-ops-dashboard')) carePlanId = 'portal-ops';
   else if (specials.some((s) => s.id === 'qd-ai-chatbot') && !foundation) carePlanId = 'automation-desk';
-  else if (foundation && foundation.id === 'foundation-essential') carePlanId = 'care-lite';
-  else if (foundation) carePlanId = 'care-growth';
+  else if (foundation) carePlanId = 'care-basic';
   if (carePlanId && !needs.maintenance) {
     notes.push('Care plan suggested to match the build — client did not explicitly ask for maintenance.');
   }

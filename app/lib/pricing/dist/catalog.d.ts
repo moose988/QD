@@ -1,4 +1,4 @@
-export declare const PRICING_VERSION = "2026-06-13";
+export declare const PRICING_VERSION = "2026-06-14";
 export declare const CURRENCY = "AED";
 export declare const DEFAULT_VAT_PERCENT = 5;
 export declare const PACKAGES: ({
@@ -186,7 +186,24 @@ export declare const INDUSTRY_PRESETS: {
 }[];
 export declare const PAGE_RATE_STANDARD = 250;
 export declare const PAGE_RATE_LANDING = 450;
-export declare const FOUNDATIONS: {
+export declare const FOUNDATIONS: ({
+    id: string;
+    name: {
+        en: string;
+        ar: string;
+    };
+    base: number;
+    includedStandardPages: number;
+    derivation: string;
+    bestFor: {
+        en: string;
+        ar: string;
+    };
+    diff: string[];
+    includes: string[];
+    basis: string;
+    legacy?: never;
+} | {
     id: string;
     name: {
         en: string;
@@ -201,8 +218,11 @@ export declare const FOUNDATIONS: {
     diff: string[];
     includes: string[];
     basis: string;
-}[];
+    legacy: boolean;
+    includedStandardPages?: never;
+})[];
 export declare const FOUNDATION_COVERS: {
+    'web-base': string[];
     'foundation-starter': string[];
     'foundation-essential': string[];
     'foundation-professional': string[];
@@ -223,6 +243,7 @@ export declare const getFoundation: (id: any) => {
         ar: string;
     };
     base: number;
+    includedStandardPages: number;
     derivation: string;
     bestFor: {
         en: string;
@@ -231,6 +252,24 @@ export declare const getFoundation: (id: any) => {
     diff: string[];
     includes: string[];
     basis: string;
+    legacy?: never;
+} | {
+    id: string;
+    name: {
+        en: string;
+        ar: string;
+    };
+    base: number;
+    derivation: string;
+    bestFor: {
+        en: string;
+        ar: string;
+    };
+    diff: string[];
+    includes: string[];
+    basis: string;
+    legacy: boolean;
+    includedStandardPages?: never;
 } | null;
 export declare const getSpecialBuild: (id: any) => {
     id: string;

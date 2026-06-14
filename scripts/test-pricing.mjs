@@ -24,10 +24,13 @@ const eq = (label, got, want) => {
   } else console.log(`ok   ${label}`);
 };
 
-// --- 1. Market anchors must reproduce exactly (UAE-verified, do not drift) ---
-eq('Essential + 5 pages = Launch anchor 5,900', getFoundation('foundation-essential').base + 5 * PAGE_RATE_STANDARD, 5900);
-eq('Professional + 10 pages = Growth anchor 9,900', getFoundation('foundation-professional').base + 10 * PAGE_RATE_STANDARD, 9900);
-eq('Premium + 16 pages = Business Pro anchor 14,900', getFoundation('foundation-premium').base + 16 * PAGE_RATE_STANDARD, 14900);
+// --- 1. Website base includes the first 5 pages; only overage is charged ---
+eq('Website base exists in the foundation catalog', FOUNDATIONS.some((f) => f.id === 'web-base'), true);
+eq('Website base includes 5 standard pages', getFoundation('web-base').includedStandardPages, 5);
+const webFive = price({ foundationId: 'web-base', pagesStandard: 5, posture: 'standard', vatPercent: 0 });
+const webSeven = price({ foundationId: 'web-base', pagesStandard: 7, posture: 'standard', vatPercent: 0 });
+eq('web-base + 5 pages has no page overage line', webFive.lines.some((l) => l.id === 'pages-standard'), false);
+eq('web-base + 7 pages charges 2 page overages', displayAED(webSeven.lines.find((l) => l.id === 'pages-standard')?.amount || 0, 'aed'), 2 * PAGE_RATE_STANDARD);
 eq('Store anchors', [getPackage('qd-commerce-start').oneTime, getPackage('qd-commerce-growth').oneTime], [12900, 21900]);
 
 // --- 2. No naked ranges: every ranged addon has 3 named levels with specs ---
@@ -50,24 +53,24 @@ eq('duplicate addon → single line', dup.lines.filter((l) => l.id === 'ai-chatb
 const ov = buildEstimate({ modules: ['mod-order-status'], addons: [{ id: 'ordering-integration', tier: 'mid' }] });
 eq('module-covered addon free', ov.lines.find((l) => l.kind === 'addon' && l.id === 'ordering-integration').amount, 0);
 
-const up = buildEstimate({ foundationId: 'foundation-premium', addons: [{ id: 'dashboard-pack', tier: 'high' }] });
-eq('basic-in-base → upgrade diff only', up.lines.find((l) => l.id === 'dashboard-pack').amount, getAddonPrice('dashboard-pack', 'high') - getAddonPrice('dashboard-pack', 'low'));
+const gbpCovered = buildEstimate({ foundationId: 'web-base', addons: [{ id: 'gbp-setup', tier: 'low' }] });
+eq('web-base includes Google Business Profile setup', gbpCovered.lines.find((l) => l.id === 'gbp-setup').amount, 0);
 
 const st = buildEstimate({ specials: ['qd-commerce-growth'], addons: [{ id: 'loyalty-integration', tier: 'high' }] });
 eq('fully-included addon free at any tier', st.lines.find((l) => l.id === 'loyalty-integration').amount, 0);
 
 // --- 5. Discount: explicit line, hard cap, VAT after discount ---
-const d = buildEstimate({ foundationId: 'foundation-essential', pagesStandard: 4, discountPercent: 40 });
+const d = buildEstimate({ foundationId: 'web-base', pagesStandard: 5, discountPercent: 40 });
 eq('discount capped', d.discountPercent, FOUNDING_MAX_DISCOUNT_PERCENT);
 eq('discount is its own line', d.lines.some((l) => l.kind === 'discount'), true);
 eq('VAT applies after discount', d.vat, Math.round(d.discountedSubtotal * 0.05));
 
 // --- 6. UAE band: system-rich builds never compared to simple-site band ---
-const rich = buildEstimate({ foundationId: 'foundation-essential', pagesStandard: 5, modules: ['mod-order-status', 'mod-menu-mgmt'] });
+const rich = buildEstimate({ foundationId: 'web-base', pagesStandard: 5, modules: ['mod-order-status', 'mod-menu-mgmt'] });
 eq('rich build not simple-site band', rich.uaeCheck.key !== 'simple-site', true);
 
 // --- 7. Realistic offers land within verified UAE bands ---
-const resto = buildEstimate({ foundationId: 'foundation-professional', pagesStandard: 8, modules: ['mod-order-status', 'mod-menu-mgmt', 'mod-resto-loyalty'], carePlanId: 'care-growth' });
+const resto = buildEstimate({ foundationId: 'web-base', pagesStandard: 8, modules: ['mod-order-status', 'mod-menu-mgmt', 'mod-resto-loyalty'], carePlanId: 'care-growth' });
 eq('restaurant offer within UAE band', resto.uaeCheck.status, 'within');
 
 // --- 8. Parser: deterministic, warns instead of guessing ---
@@ -84,7 +87,7 @@ eq('sources present with verified UAE entries', SOURCES.length >= 32 && SOURCES.
 
 // --- 11. Estimate → quote bridge preserves pricing invariants ---
 const quoteEstimate = buildEstimate({
-  foundationId: 'foundation-essential',
+  foundationId: 'web-base',
   pagesStandard: 5,
   addons: [{ id: 'gbp-setup', tier: 'low' }],
   discountPercent: 10
@@ -92,16 +95,17 @@ const quoteEstimate = buildEstimate({
 const quoteDraft = estimateToQuoteDraft(quoteEstimate, { clientName: 'Bridge Test LLC' });
 const quoteTotals = computeTotals(quoteDraft.lineItems, quoteDraft.vatPercent, quoteDraft.pages.price);
 eq('estimate quote bridge keeps customer name', quoteDraft.customer.businessName, 'Bridge Test LLC');
-eq('estimate quote bridge uses Arabic labels', quoteDraft.lineItems.some((li) => /خصم|صفحات|إعداد/.test(li.name.ar)), true);
-eq('estimate quote bridge includes negative discount line', quoteDraft.lineItems.some((li) => li.unitPrice < 0 && /discount/i.test(li.name.en)), true);
+eq('estimate quote bridge uses three client-safe lines', quoteDraft.lineItems.map((li) => li.catalogKey), ['qd-build', 'third-party-software', 'monthly-care']);
+eq('estimate quote bridge uses Arabic labels', quoteDraft.lineItems.some((li) => /البناء|البرامج|العناية/.test(li.name.ar)), true);
+eq('estimate quote bridge hides internal discount lines', quoteDraft.lineItems.some((li) => li.unitPrice < 0 || /discount|margin|floor|approval/i.test(li.name.en)), false);
 eq('estimate quote bridge totals match estimate', quoteTotals.grandTotal, quoteEstimate.grandTotal);
 
 const coveredEstimate = buildEstimate({
-  foundationId: 'foundation-premium',
-  addons: [{ id: 'dashboard-pack', tier: 'low' }]
+  foundationId: 'web-base',
+  addons: [{ id: 'gbp-setup', tier: 'low' }]
 });
 const coveredDraft = estimateToQuoteDraft(coveredEstimate);
-eq('estimate quote bridge skips covered zero lines', coveredDraft.lineItems.some((li) => /Analytics/.test(li.name.en)), false);
+eq('estimate quote bridge skips covered zero lines', coveredDraft.lineItems.some((li) => /Google Business Profile/.test(li.name.en)), false);
 
 // --- 12. V2 engine: floor, waterfall, governance, market tier, compatibility ---
 const floorCase = price({
@@ -118,7 +122,7 @@ const floorCase = price({
 eq('floor binds heavily discounted custom build', floorCase.floorBound && floorCase.net >= floorCase.costFloorNet, true);
 
 const waterfallCase = price({
-  foundationId: 'foundation-professional',
+  foundationId: 'web-base',
   pagesStandard: 8,
   addons: [{ id: 'ai-chatbot-upgrade', tier: 'low' }],
   discountPercent: 10,
@@ -131,7 +135,7 @@ const passThroughCase = price({ specials: ['qd-ai-chatbot'], carePlanId: 'automa
 eq('pass-through stays outside taxable subtotal', passThroughCase.passThrough.length > 0 && passThroughCase.taxableSubtotal === passThroughCase.net, true);
 
 const overlapCase = price({
-  foundationId: 'foundation-premium',
+  foundationId: 'web-base',
   pagesStandard: 12,
   modules: ['mod-order-status', 'mod-menu-mgmt', 'mod-resto-loyalty'],
   addons: [{ id: 'dashboard-pack', tier: 'high' }],
@@ -139,46 +143,49 @@ const overlapCase = price({
 });
 eq('margin uses delivery cost', overlapCase.marginAmount, overlapCase.net - overlapCase.deliveryCost);
 
-eq('approval 10 percent auto', price({ foundationId: 'foundation-professional', pagesStandard: 8, promoPercent: 10, posture: 'launch' }).approval, 'auto');
-eq('approval 20 percent manager', price({ foundationId: 'foundation-professional', pagesStandard: 8, promoPercent: 20, posture: 'launch' }).approval, 'manager');
-eq('approval 30 percent owner', price({ foundationId: 'foundation-professional', pagesStandard: 8, promoPercent: 30, posture: 'launch', marketTier: 'dubai' }).approval, 'owner');
+eq('approval 10 percent auto', price({ foundationId: 'web-base', pagesStandard: 8, promoPercent: 10, posture: 'standard', marketTier: 'dubai' }).approval, 'auto');
+eq('approval 20 percent manager', price({ foundationId: 'web-base', pagesStandard: 8, promoPercent: 20, posture: 'standard', marketTier: 'dubai' }).approval, 'manager');
+eq('approval 30 percent owner', price({ foundationId: 'web-base', pagesStandard: 8, promoPercent: 30, posture: 'standard', marketTier: 'dubai' }).approval, 'owner');
 
-const shj = price({ foundationId: 'foundation-professional', pagesStandard: 8, marketTier: 'sharjah', posture: 'standard' });
-const dubai = price({ foundationId: 'foundation-professional', pagesStandard: 8, marketTier: 'dubai', posture: 'standard' });
+const shj = price({ foundationId: 'web-base', pagesStandard: 8, marketTier: 'sharjah', posture: 'standard' });
+const dubai = price({ foundationId: 'web-base', pagesStandard: 8, marketTier: 'dubai', posture: 'standard' });
 eq('Sharjah tier below Dubai', shj.net < dubai.net, true);
 eq('Sharjah tier factor applied once', shj.net, Math.round(dubai.listPrice * 0.7));
 
+const valueFloorCase = price({ foundationId: 'web-base', pagesStandard: 5, marketTier: 'dubai', posture: 'standard', bundleDiscountPercent: 50, vatPercent: 0 });
+eq('value floor caps a 50% discount at 55% realization', displayAED(valueFloorCase.net, 'aed'), Math.round(displayAED(valueFloorCase.listPrice, 'aed') * 0.55));
+eq('value floor emits floor flag', valueFloorCase.flags.includes('floor_bound'), true);
+
 // --- 13. V2.1 Sharjah launch tuning and VAT-off launch behavior ---
-eq('pricing version bumped for v2.1', PRICING_VERSION, '2026-06-13');
+eq('pricing version bumped for v3', PRICING_VERSION, '2026-06-14');
 eq('Sharjah launch factor is 0.70', MARKET_TIERS.sharjah.factor, 0.70);
 eq('launch posture defaults to Care Basic', POSTURE.launch.defaultCarePlan, 'care-basic');
 eq('Care Basic monthly plan exists', [getCarePlan('care-basic')?.monthly, getCarePlan('care-basic')?.refs?.includes('R26')], [149, true]);
-eq('Starter foundation exists', [getFoundation('foundation-starter')?.base, buildIncludedMap({ foundationId: 'foundation-starter' }).get('gbp-setup')], [2400, getAddonPrice('gbp-setup', 'low')]);
+eq('Website base exists', [getFoundation('web-base')?.base, buildIncludedMap({ foundationId: 'web-base' }).get('gbp-setup')], [3650, getAddonPrice('gbp-setup', 'low')]);
 
-const starterLaunch = price({ foundationId: 'foundation-starter', posture: 'launch', vatPercent: 0 });
-eq('Starter launch opens at AED 1,680 once', displayAED(starterLaunch.net, 'aed'), 1680);
-eq('Starter launch defaults to Care Basic monthly', [starterLaunch.monthly.planId, displayAED(starterLaunch.monthly.amount, 'aed')], ['care-basic', 149]);
-eq('VAT off produces no VAT or gross-up', [starterLaunch.vatPercent, starterLaunch.vat, starterLaunch.grandTotal], [0, 0, starterLaunch.net]);
-
-const launchFivePage = price({ foundationId: 'foundation-essential', pagesStandard: 5, posture: 'launch', vatPercent: 0 });
-eq('5-page launch site is AED 4,130 before VAT', displayAED(launchFivePage.net, 'aed'), 4130);
-eq('5-page launch site keeps Dubai market anchor', displayAED(launchFivePage.listPrice, 'aed'), 5900);
-const launchFivePageVat = price({ foundationId: 'foundation-essential', pagesStandard: 5, posture: 'launch', vatPercent: 5 });
+const launchFivePage = price({ foundationId: 'web-base', pagesStandard: 5, posture: 'launch', vatPercent: 0 });
+eq('5-page launch website is about AED 2,555 before VAT', displayAED(launchFivePage.net, 'aed'), 2555);
+eq('5-page launch defaults to Care Basic monthly', [launchFivePage.monthly.planId, displayAED(launchFivePage.monthly.amount, 'aed')], ['care-basic', 149]);
+eq('VAT off produces no VAT or gross-up', [launchFivePage.vatPercent, launchFivePage.vat, launchFivePage.grandTotal], [0, 0, launchFivePage.net]);
+eq('5-page launch site keeps Dubai market anchor', displayAED(launchFivePage.listPrice, 'aed'), 3650);
+const launchFivePageVat = price({ foundationId: 'web-base', pagesStandard: 5, posture: 'launch', vatPercent: 5 });
 eq('VAT toggle adds exactly 5 percent on net', launchFivePageVat.vat, Math.round(launchFivePageVat.net * 0.05));
 
 // --- 14. Browser estimator wiring stays on launch posture with client-safe framing ---
 const adminSource = fs.readFileSync(new URL('../admin.js', import.meta.url), 'utf8');
 const pricingSchemaSource = fs.readFileSync(new URL('../app/lib/pricing/dist/schema.js', import.meta.url), 'utf8');
 eq('admin imports live price API', /import\s*\{[\s\S]*\bprice\b[\s\S]*\}\s*from\s*'\/app\/lib\/pricing-model\.js'/.test(adminSource), true);
-eq('admin estimator calls price with launch posture and VAT toggle', adminSource.includes("price({ ...getPricingSelection(), posture: 'launch', vatPercent: p.vatOn ? 5 : 0 })"), true);
+eq('admin estimator calls launch pricing helper with VAT toggle', adminSource.includes('getPricingLaunchSelection()') && adminSource.includes('vatPercent: p.vatOn ? 5 : 0'), true);
 eq('admin estimator has VAT-off toggle copy', adminSource.includes('Add 5% VAT (if VAT-registered)'), true);
 eq('admin estimator shows Sharjah anchor language', adminSource.includes('Market rate (Dubai)') && adminSource.includes('Your Sharjah launch price'), true);
+eq('admin estimator has no package tier cards', !adminSource.includes('pricing-set-foundation') && !adminSource.includes('qd-pricing-foundations'), true);
+eq('admin estimator has flat spec list', adminSource.includes('PRICING_SPEC_LIST') && adminSource.includes('What do you need?'), true);
 eq('browser pricing model avoids bare zod import', /from\s+['"]zod['"]/.test(pricingSchemaSource), false);
 
 const legacyTemplateGrandTotals = {
-  'tpl-starter-presence': 7770,
-  'tpl-site-chatbot': 12915,
-  'tpl-full-business': 19635,
+  'tpl-starter-presence': 5408,
+  'tpl-site-chatbot': 7665,
+  'tpl-full-business': 13335,
   'tpl-commerce-complete': 27615,
   'tpl-premium-custom': 24990
 };

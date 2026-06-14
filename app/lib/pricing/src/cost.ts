@@ -3,6 +3,7 @@ import {
   FLOOR_HARD_MIN,
   HOURS,
   INTERNAL_RATE_AED_PER_HOUR,
+  MIN_REALIZATION,
   MIN_GROSS_MARGIN,
   type ScopeTier
 } from './config.js';
@@ -10,6 +11,8 @@ import { AED, fromFils, roundFils, type Fils } from './money.js';
 
 export interface CostFloors {
   readonly deliveryCost: Fils;
+  readonly valueFloor: Fils;
+  readonly costFloor: Fils;
   readonly operativeFloor: Fils;
   readonly hardFloor: Fils;
 }
@@ -22,11 +25,16 @@ export function componentCost(componentId: string, tier: ScopeTier = 'mid', qty 
   return fromFils((roundFils(hours * INTERNAL_RATE_AED_PER_HOUR * 100) + AED(direct)) * qty);
 }
 
-export function costFloorNet(deliveryCost: Fils): CostFloors {
+export function costFloorNet(deliveryCost: Fils, listPrice: Fils): CostFloors {
+  const valueFloor = roundFils(listPrice * MIN_REALIZATION);
+  const costFloor = roundFils(deliveryCost / (1 - MIN_GROSS_MARGIN));
+  const hardCostFloor = roundFils(deliveryCost / (1 - FLOOR_HARD_MIN));
   return {
     deliveryCost,
-    operativeFloor: roundFils(deliveryCost / (1 - MIN_GROSS_MARGIN)),
-    hardFloor: roundFils(deliveryCost / (1 - FLOOR_HARD_MIN))
+    valueFloor,
+    costFloor,
+    operativeFloor: fromFils(Math.max(valueFloor, costFloor)),
+    hardFloor: fromFils(Math.max(valueFloor, hardCostFloor))
   };
 }
 

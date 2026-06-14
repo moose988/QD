@@ -24,7 +24,7 @@
 //
 // See docs/PRICING_MODEL.md for the full source table.
 // ============================================================================
-export const PRICING_VERSION = '2026-06-13';
+export const PRICING_VERSION = '2026-06-14';
 export const CURRENCY = 'AED';
 export const DEFAULT_VAT_PERCENT = 5;
 // ---------------------------------------------------------------------------
@@ -314,20 +314,23 @@ export const INDUSTRY_PRESETS = [
 // ---------------------------------------------------------------------------
 // COMPONENT-BASED PRICING (primary model — not package based)
 // ---------------------------------------------------------------------------
-// An offer is priced as: BASE BUILD + PAGES + FEATURES (+ care, − discount).
-//
-// FOUNDATIONS are derived arithmetically from the package anchors above by
-// removing the per-page rate (AED 250/page), so the numbers stay traceable:
-//   Essential    = Launch anchor 5,900 − 5 × 250  = 4,650
-//   Professional = Growth anchor 9,900 − 10 × 250 = 7,400
-//   Premium      = Business Pro anchor 14,900 − 16 × 250 = 10,900
-// Pages are then ALWAYS billed per page (250 standard / 450 landing), making
-// the price continuous in scope instead of locked to package boxes.
-// Sanity check: foundation + N pages reproduces each anchor exactly.
+// Website pricing is one base build that includes the first 5 standard pages.
+// Standard pages are billed only as overage beyond the included count.
 // ---------------------------------------------------------------------------
 export const PAGE_RATE_STANDARD = 250; // = ADDONS extra-page
 export const PAGE_RATE_LANDING = 450; // = ADDONS extra-landing
 export const FOUNDATIONS = [
+    {
+        id: 'web-base',
+        name: { en: 'Website', ar: 'موقع إلكتروني' },
+        base: 3650,
+        includedStandardPages: 5,
+        derivation: 'Single website base with 5 standard pages included; extra standard pages are AED 250 each.',
+        bestFor: { en: 'A polished bilingual-ready SME website foundation', ar: 'أساس موقع احترافي قابل للتوسع للشركات الصغيرة والمتوسطة' },
+        diff: ['Custom responsive design', 'Up to 5 pages', 'Contact + WhatsApp', 'Google Business Profile', 'Analytics', 'Hosting & domain setup'],
+        includes: ['Custom responsive design', 'Up to 5 pages', 'Contact + WhatsApp', 'Google Business Profile', 'Analytics', 'Hosting & domain setup'],
+        basis: 'positioning'
+    },
     {
         id: 'foundation-starter',
         name: { en: 'Starter site', ar: 'موقع البداية' },
@@ -336,7 +339,8 @@ export const FOUNDATIONS = [
         bestFor: { en: 'A small local business getting online fast', ar: 'نشاط محلي صغير يريد الظهور بسرعة' },
         diff: ['1–3 page professional site', 'Mobile-friendly', 'Contact + WhatsApp button', 'Google Business Profile setup', 'Basic analytics'],
         includes: ['1–3 page professional site', 'Mobile-friendly', 'Contact + WhatsApp button', 'Google Business Profile setup', 'Basic analytics'],
-        basis: 'positioning'
+        basis: 'positioning',
+        legacy: true
     },
     {
         id: 'foundation-essential',
@@ -346,7 +350,8 @@ export const FOUNDATIONS = [
         bestFor: { en: 'A clean professional presence', ar: 'حضور بسيط' },
         diff: ['Custom responsive design', 'Contact forms + WhatsApp button', 'Basic Google visibility + analytics', 'Hosting & domain setup'],
         includes: ['Custom responsive design', 'Contact / lead forms', 'WhatsApp CTA', 'Basic on-page SEO', 'Google Business Profile setup', 'Analytics install', 'Hosting & domain setup'],
-        basis: 'positioning'
+        basis: 'positioning',
+        legacy: true
     },
     {
         id: 'foundation-professional',
@@ -356,7 +361,8 @@ export const FOUNDATIONS = [
         bestFor: { en: 'Businesses that publish and capture leads', ar: 'أعمال متنامية' },
         diff: ['Everything in Essential, plus:', 'Blog / news + case studies', 'Smart lead forms + CRM handoff', 'Speed optimization + sharper design'],
         includes: ['Everything in Essential', 'Blog / news system', 'Case studies', 'Advanced forms', 'CRM handoff', 'GA4 / Search Console', 'Speed pass', 'Stronger design polish'],
-        basis: 'positioning'
+        basis: 'positioning',
+        legacy: true
     },
     {
         id: 'foundation-premium',
@@ -366,7 +372,8 @@ export const FOUNDATIONS = [
         bestFor: { en: 'Bilingual brands & multi-service firms', ar: 'علامات ثنائية اللغة' },
         diff: ['Everything in Professional, plus:', 'Full Arabic + English structure', 'Staff editing roles', 'Mini-dashboard (basic KPI panel) included'],
         includes: ['Everything in Professional', 'Arabic / English structure', 'Custom sections', 'Staff / admin editing roles', 'Automation-ready forms', 'Mini-dashboard / reporting'],
-        basis: 'positioning'
+        basis: 'positioning',
+        legacy: true
     }
 ];
 // Capabilities whose BASIC level is already inside each foundation.
@@ -376,10 +383,11 @@ export const FOUNDATIONS = [
 // top of a build that already does part of the work.
 // Foundations are supersets: higher tiers cover everything lower ones do.
 export const FOUNDATION_COVERS = {
+    'web-base': ['gbp-setup'],
     'foundation-starter': ['gbp-setup'],
     'foundation-essential': ['gbp-setup'],
-    'foundation-professional': ['gbp-setup', 'smart-form'], // advanced forms included
-    'foundation-premium': ['gbp-setup', 'smart-form', 'extra-language', 'dashboard-pack'] // + AR/EN structure + mini-dashboard
+    'foundation-professional': ['gbp-setup', 'smart-form'],
+    'foundation-premium': ['gbp-setup', 'smart-form', 'extra-language', 'dashboard-pack']
 };
 // Self-contained system builds that do NOT need a website foundation.
 // These reuse the verified package anchors 1:1 (same ids, same prices,
@@ -417,21 +425,21 @@ export const OFFER_TEMPLATES = [
         id: 'tpl-starter-presence',
         name: { en: 'Starter Presence', ar: 'حضور أساسي' },
         pitch: 'Get found and look professional: essential build, 5 pages, SEO pack.',
-        foundationId: 'foundation-essential', pagesStandard: 5, pagesLanding: 0,
+        foundationId: 'web-base', pagesStandard: 5, pagesLanding: 0,
         specials: [], addons: [{ id: 'seo-pack' }], carePlanId: 'care-lite'
     },
     {
         id: 'tpl-site-chatbot',
         name: { en: 'Website + AI Chatbot', ar: 'موقع + روبوت ذكي' },
         pitch: 'Professional site with an AI assistant capturing leads 24/7.',
-        foundationId: 'foundation-professional', pagesStandard: 8, pagesLanding: 0,
+        foundationId: 'web-base', pagesStandard: 8, pagesLanding: 0,
         specials: [], addons: [{ id: 'ai-chatbot-upgrade', tier: 'low' }], carePlanId: 'care-growth'
     },
     {
         id: 'tpl-full-business',
         name: { en: 'Full Business System', ar: 'نظام أعمال متكامل' },
         pitch: 'Bilingual premium site + dashboard + CRM + AI chatbot.',
-        foundationId: 'foundation-premium', pagesStandard: 12, pagesLanding: 0,
+        foundationId: 'web-base', pagesStandard: 12, pagesLanding: 0,
         specials: [], addons: [{ id: 'dashboard-pack', tier: 'low' }, { id: 'crm-setup', tier: 'low' }, { id: 'ai-chatbot-upgrade', tier: 'low' }], carePlanId: 'portal-ops'
     },
     {

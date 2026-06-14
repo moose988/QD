@@ -11,7 +11,7 @@ export function price(input = {}) {
 export function priceInternal(input = {}, options = {}) {
     const selection = normalize(input, { legacyCompat: options.legacyCompat === true });
     const lineBuild = buildLines(selection);
-    const floors = costFloorNet(lineBuild.deliveryCost);
+    const floors = costFloorNet(lineBuild.deliveryCost, lineBuild.listPrice);
     const floorUsed = selection.ownerOverride ? floors.hardFloor : floors.operativeFloor;
     const waterfallResult = buildWaterfall(lineBuild.listPrice, selection, floorUsed);
     const discountLineResults = discountLinesFromWaterfall(waterfallResult.waterfall);
@@ -63,6 +63,8 @@ export function priceInternal(input = {}, options = {}) {
         floorBound: waterfallResult.floorBound,
         floorDetail: {
             operativeFloor: floors.operativeFloor,
+            valueFloor: floors.valueFloor,
+            costFloor: floors.costFloor,
             hardFloor: floors.hardFloor,
             floorUsed,
             ownerOverride: selection.ownerOverride
@@ -127,17 +129,21 @@ function buildLines(selection) {
         subtotalHigh = fromFils(subtotalHigh + AED(foundation.base));
     }
     if (selection.pagesStandard > 0) {
-        const amount = AED(selection.pagesStandard * PAGE_RATE_STANDARD);
-        const costFils = componentCost('pages-standard', 'mid', selection.pagesStandard);
-        pushLine({
-            kind: 'pages',
-            id: 'pages-standard',
-            label: `Content pages x ${selection.pagesStandard} (AED ${PAGE_RATE_STANDARD}/page)`,
-            labelAr: `صفحات محتوى × ${selection.pagesStandard}`,
-            amount,
-            basis: 'positioning',
-            costFils
-        });
+        const includedStandardPages = Number(foundation?.includedStandardPages || 0);
+        const billablePages = Math.max(0, selection.pagesStandard - includedStandardPages);
+        const amount = AED(billablePages * PAGE_RATE_STANDARD);
+        const costFils = componentCost('pages-standard', 'mid', billablePages);
+        if (billablePages > 0) {
+            pushLine({
+                kind: 'pages',
+                id: 'pages-standard',
+                label: `Extra content pages x ${billablePages} (AED ${PAGE_RATE_STANDARD}/page; ${includedStandardPages} included)`,
+                labelAr: `صفحات محتوى إضافية × ${billablePages}`,
+                amount,
+                basis: 'positioning',
+                costFils
+            });
+        }
         subtotalLow = fromFils(subtotalLow + amount);
         subtotalHigh = fromFils(subtotalHigh + amount);
     }
@@ -393,7 +399,7 @@ function buildUaeCheck(selection, lines, net) {
         bandKey = 'custom-system';
     else if (selection.foundationId && chargedSystems >= 3)
         bandKey = 'custom-system';
-    else if (selection.foundationId && (selection.foundationId !== 'foundation-essential' || chargedSystems >= 1))
+    else if (selection.foundationId && (selection.pagesStandard > 5 || chargedSystems >= 1))
         bandKey = 'business-site';
     else if (selection.foundationId)
         bandKey = 'simple-site';

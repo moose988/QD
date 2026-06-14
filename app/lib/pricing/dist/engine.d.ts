@@ -52,6 +52,8 @@ export interface PassThroughLine {
 }
 export interface FloorDetail {
     readonly operativeFloor: Fils;
+    readonly valueFloor: Fils;
+    readonly costFloor: Fils;
     readonly hardFloor: Fils;
     readonly floorUsed: Fils;
     readonly ownerOverride: boolean;
