@@ -569,6 +569,68 @@
 .qd-pricing-chip.is-active small { color: rgba(150, 220, 180, 0.95); opacity: 1; }
 .qd-pricing-chip.is-covered { border-style: dashed; opacity: 0.75; }
 
+/* Flat spec list */
+.qd-pricing-filter { margin: 8px 0 10px; }
+.qd-pricing-spec-list {
+  display: grid;
+  gap: 8px;
+}
+.qd-pricing-spec {
+  border: 1px solid var(--qd-admin-border-strong);
+  background: var(--qd-admin-panel-soft);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.qd-pricing-spec.is-active {
+  border-color: rgba(120, 200, 160, 0.85);
+  background: rgba(120, 200, 160, 0.08);
+}
+.qd-pricing-spec.is-covered {
+  border-style: dashed;
+  border-color: rgba(150, 220, 180, 0.42);
+}
+.qd-pricing-spec-main {
+  width: 100%;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 11px 13px;
+  cursor: pointer;
+}
+.qd-pricing-spec-main strong {
+  display: block;
+  font-size: 0.82rem;
+  line-height: 1.2;
+}
+.qd-pricing-spec-main small {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.68rem;
+  line-height: 1.35;
+  opacity: 0.62;
+}
+.qd-pricing-spec-main em {
+  flex: 0 0 auto;
+  font-style: normal;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: rgba(150, 220, 180, 0.95);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.qd-pricing-spec-main:hover { background: rgba(255, 255, 255, 0.025); }
+.qd-pricing-spec .qd-pricing-levels {
+  border-top: 1px solid var(--qd-admin-border);
+  padding: 10px;
+}
+
 /* Per-product option panels */
 .qd-pricing-panel {
   border-left: 2px solid rgba(120, 200, 160, 0.5);
