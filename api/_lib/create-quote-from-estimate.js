@@ -33,6 +33,8 @@ export async function createQuoteFromEstimate(body, adminUser) {
       selection,
       version: estimate.version,
       inputHash: estimate.inputHash,
+      listPrice: estimate.listPrice,
+      net: estimate.net,
       subtotal: estimate.subtotal,
       discountPercent: estimate.discountPercent,
       discountAmount: estimate.discountAmount,

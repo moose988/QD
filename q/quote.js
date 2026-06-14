@@ -72,6 +72,14 @@ function pickText(field) {
   return `${tag} ${other}`;
 }
 
+function lineUnitDisplay(lineItem) {
+  return lineItem?.billingNote ? escape(lineItem.billingNote) : formatAED(lineItem?.unitPrice);
+}
+
+function lineTotalDisplay(lineItem) {
+  return lineItem?.billingNote ? '—' : formatAED((Number(lineItem?.qty) || 0) * (Number(lineItem?.unitPrice) || 0));
+}
+
 function renderQuote(data) {
   const totals = computeTotals(data.lineItems, data.vatPercent, data.pages?.price);
   const issued = data.createdAt
@@ -119,8 +127,8 @@ function renderQuote(data) {
             <tr>
               <td class="desc">${escape(pickText(li.name))}${li.description && pickText(li.description) ? `<small>${escape(pickText(li.description))}</small>`:''}</td>
               <td class="center">${escape(li.qty)}</td>
-              <td class="num">${formatAED(li.unitPrice)}</td>
-              <td class="num">${formatAED((Number(li.qty)||0)*(Number(li.unitPrice)||0))}</td>
+              <td class="num">${lineUnitDisplay(li)}</td>
+              <td class="num">${lineTotalDisplay(li)}</td>
             </tr>`).join('')}
         </tbody>
       </table>
