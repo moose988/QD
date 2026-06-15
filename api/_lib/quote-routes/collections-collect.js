@@ -1,10 +1,10 @@
 // POST /api/collections-collect { ref|id, type:'care'|'milestone', monthKey?, milestoneKey?, collectedOn?, method? }
 // Admin-only collection action. Appends an internal payment and updates collection state.
 
-import { getDb, admin } from './_lib/firebase.js';
-import { requireAdmin } from './_lib/admin-auth.js';
-import { getQuoteRefFromRequest, parseJsonBody, resolveQuoteByRef } from './_lib/quote-admin.js';
-import { buildQuoteCollectionPatch, buildQuoteFieldsAfterCollection, todayIso } from './_lib/collections.js';
+import { getDb, admin } from '../firebase.js';
+import { requireAdmin } from '../admin-auth.js';
+import { getQuoteRefFromRequest, parseJsonBody, resolveQuoteByRef } from '../quote-admin.js';
+import { buildQuoteCollectionPatch, buildQuoteFieldsAfterCollection, todayIso } from '../collections.js';
 
 export const config = { runtime: 'nodejs', maxDuration: 10 };
 

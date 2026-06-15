@@ -12,6 +12,12 @@
     { "source": "/q/quote.css", "destination": "/q/quote.css" },
     { "source": "/q/index.html", "destination": "/q" },
     { "source": "/q/(.*)", "destination": "/q" },
+    { "source": "/api/quotes", "destination": "/api/quote-save?__quoteRoute=quotes" },
+    { "source": "/api/quote-update", "destination": "/api/quote-save?__quoteRoute=quote-update" },
+    { "source": "/api/quote-payment", "destination": "/api/quote-save?__quoteRoute=quote-payment" },
+    { "source": "/api/collections", "destination": "/api/quote-save?__quoteRoute=collections" },
+    { "source": "/api/collections-collect", "destination": "/api/quote-save?__quoteRoute=collections-collect" },
+    { "source": "/api/collections-digest", "destination": "/api/quote-save?__quoteRoute=collections-digest" },
     { "source": "/api/quote-from-estimate", "destination": "/api/quote-create" }
   ],
   "functions": {
@@ -21,14 +27,8 @@
     "api/demo-verify.js":  { "memory": 512,  "maxDuration": 10 },
     "api/maps-extract.js": { "memory": 512,  "maxDuration": 15 },
     "api/quote-create.js": { "memory": 512,  "maxDuration": 10 },
-    "api/quote-save.js":   { "memory": 512,  "maxDuration": 10 },
-    "api/quote-verify.js": { "memory": 512,  "maxDuration": 10 },
-    "api/quotes.js":       { "memory": 512,  "maxDuration": 10 },
-    "api/quote-update.js": { "memory": 512,  "maxDuration": 10 },
-    "api/quote-payment.js": { "memory": 512, "maxDuration": 10 },
-    "api/collections.js":  { "memory": 512,  "maxDuration": 10 },
-    "api/collections-collect.js": { "memory": 512, "maxDuration": 10 },
-    "api/collections-digest.js": { "memory": 512, "maxDuration": 15 }
+    "api/quote-save.js":   { "memory": 512,  "maxDuration": 15 },
+    "api/quote-verify.js": { "memory": 512,  "maxDuration": 10 }
   },
   "crons": [
     { "path": "/api/collections-digest", "schedule": "0 4 * * *" }

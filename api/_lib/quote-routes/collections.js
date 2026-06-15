@@ -1,9 +1,9 @@
 // GET /api/collections?on=YYYY-MM-DD - admin-only collections cockpit data.
 
-import { getDb } from './_lib/firebase.js';
-import { requireAdmin } from './_lib/admin-auth.js';
-import { getQueryParam } from './_lib/quote-admin.js';
-import { buildCollectionsSummary, todayIso } from './_lib/collections.js';
+import { getDb } from '../firebase.js';
+import { requireAdmin } from '../admin-auth.js';
+import { getQueryParam } from '../quote-admin.js';
+import { buildCollectionsSummary, todayIso } from '../collections.js';
 
 export const config = { runtime: 'nodejs', maxDuration: 10 };
 

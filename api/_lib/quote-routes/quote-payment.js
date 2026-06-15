@@ -2,15 +2,15 @@
 // POST /api/quote-payment { quoteRef, amount, date, method, note? } -> append payment
 // Admin-only. Payment records are internal and must never be exposed by /q/.
 
-import { getDb, admin } from './_lib/firebase.js';
-import { requireAdmin } from './_lib/admin-auth.js';
-import { getQuoteRefFromRequest, parseJsonBody, resolveQuoteByRef } from './_lib/quote-admin.js';
+import { getDb, admin } from '../firebase.js';
+import { requireAdmin } from '../admin-auth.js';
+import { getQuoteRefFromRequest, parseJsonBody, resolveQuoteByRef } from '../quote-admin.js';
 import {
   buildQuotePaymentFields,
   buildQuotePaymentView,
   normalizePaymentInput,
   normalizePaymentList
-} from './_lib/quote-payments.js';
+} from '../quote-payments.js';
 
 export const config = { runtime: 'nodejs', maxDuration: 10 };
 

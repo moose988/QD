@@ -1,9 +1,9 @@
 // GET /api/collections-digest?secret=... - Vercel Cron daily internal collections digest.
 
-import { getDb } from './_lib/firebase.js';
-import { getQueryParam } from './_lib/quote-admin.js';
-import { buildCollectionsSummary, todayIso } from './_lib/collections.js';
-import { escapeHtml, getAdminRecipients, safeError, sendZohoMail } from './_lib/zoho-mail.js';
+import { getDb } from '../firebase.js';
+import { getQueryParam } from '../quote-admin.js';
+import { buildCollectionsSummary, todayIso } from '../collections.js';
+import { escapeHtml, getAdminRecipients, safeError, sendZohoMail } from '../zoho-mail.js';
 
 export const config = { runtime: 'nodejs', maxDuration: 15 };
 

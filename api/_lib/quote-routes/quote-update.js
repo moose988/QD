@@ -1,8 +1,8 @@
 // POST /api/quote-update { ref|id, status?, remarks?, markSent?, markGoLive?, goLiveDate?, milestoneDueDates? }
 // Admin-only workflow metadata updates for quotations.
 
-import { getDb, admin } from './_lib/firebase.js';
-import { requireAdmin } from './_lib/admin-auth.js';
+import { getDb, admin } from '../firebase.js';
+import { requireAdmin } from '../admin-auth.js';
 import {
   buildQuoteListRow,
   buildQuoteSearchFields,
@@ -10,7 +10,7 @@ import {
   normalizeQuoteWorkflowStatus,
   parseJsonBody,
   resolveQuoteByRef
-} from './_lib/quote-admin.js';
+} from '../quote-admin.js';
 import {
   buildDefaultMilestones,
   getCareMonthly,
@@ -18,7 +18,7 @@ import {
   normalizeMilestones,
   toIsoDate,
   todayIso
-} from './_lib/collections.js';
+} from '../collections.js';
 
 export const config = { runtime: 'nodejs', maxDuration: 10 };
 

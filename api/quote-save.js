@@ -5,6 +5,7 @@ import { getDb, admin } from './_lib/firebase.js';
 import { requireAdmin } from './_lib/admin-auth.js';
 import { buildQuoteSearchFields } from './_lib/quote-admin.js';
 import { buildDefaultMilestones } from './_lib/collections.js';
+import { getConsolidatedQuoteRoute, handleConsolidatedQuoteRoute } from './_lib/quote-consolidated-routes.js';
 import { buildQuotePaymentFields } from './_lib/quote-payments.js';
 
 export const config = { runtime: 'nodejs', maxDuration: 10 };
@@ -16,6 +17,11 @@ const ALLOWED = new Set([
 ]);
 
 export default async function handler(req, res) {
+  const consolidatedRoute = getConsolidatedQuoteRoute(req);
+  if (consolidatedRoute) {
+    return handleConsolidatedQuoteRoute(consolidatedRoute, req, res);
+  }
+
   console.log('[quote-save] hit', { method: req.method, url: req.url });
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'PATCH, OPTIONS');

@@ -1,7 +1,7 @@
 // GET /api/quotes?q=&status= - admin-only quotation list.
 
-import { getDb } from './_lib/firebase.js';
-import { requireAdmin } from './_lib/admin-auth.js';
+import { getDb } from '../firebase.js';
+import { requireAdmin } from '../admin-auth.js';
 import {
   buildQuoteListRow,
   buildQuoteSearchFields,
@@ -9,7 +9,7 @@ import {
   normalizeQuoteWorkflowStatus,
   quoteMatchesSearch,
   resolveQuoteByRef
-} from './_lib/quote-admin.js';
+} from '../quote-admin.js';
 
 export const config = { runtime: 'nodejs', maxDuration: 10 };
 

@@ -69,12 +69,27 @@ function apiName(pathname) {
   return name || null;
 }
 
+const API_REWRITES = new Map([
+  ['quotes', 'quotes'],
+  ['quote-update', 'quote-update'],
+  ['quote-payment', 'quote-payment'],
+  ['collections', 'collections'],
+  ['collections-collect', 'collections-collect'],
+  ['collections-digest', 'collections-digest'],
+]);
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
   const pathname = url.pathname;
 
-  const name = apiName(pathname);
+  let name = apiName(pathname);
   if (name) {
+    const consolidatedRoute = API_REWRITES.get(name);
+    if (consolidatedRoute) {
+      url.searchParams.set('__quoteRoute', consolidatedRoute);
+      req.url = `/api/quote-save?${url.searchParams.toString()}`;
+      name = 'quote-save';
+    }
     const file = path.join(ROOT, 'api', name + '.js');
     if (!fs.existsSync(file)) {
       res.statusCode = 404;
