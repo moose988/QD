@@ -2880,9 +2880,36 @@ function renderPaymentSummaryCards(summary) {
   `;
 }
 
-function renderQuotePaymentForm(form = {}, saving = false) {
+function renderQuoteSchedule(schedule = []) {
+  if (!schedule.length) {
+    return `<div class="qd-admin-empty"><strong>No payment schedule</strong>Save the quote to generate advance and final items.</div>`;
+  }
+  return `
+    <div class="qd-payment-schedule">
+      ${schedule.map((item) => `
+        <div class="qd-payment-schedule-row" data-state="${escapeHtml(item.state || 'Unpaid')}">
+          <div>
+            <strong>${escapeHtml(item.label || item.type || item.itemKey)}</strong>
+            <span>AED ${escapeHtml(formatPaymentAED(item.amount))} - ${escapeHtml(item.state || 'Unpaid')}${item.remaining > 0 ? ` / Remaining AED ${escapeHtml(formatPaymentAED(item.remaining))}` : ' ✓'}</span>
+          </div>
+          <small>${item.dueDate ? `Due ${escapeHtml(formatAdminDate(item.dueDate))}` : 'No due date'}</small>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderQuotePaymentForm(form = {}, saving = false, schedule = []) {
+  const payableItems = schedule.filter((item) => Number(item.remaining) > 0);
   return `
     <form id="quote-payment-form" class="qd-payment-form">
+      <label class="qd-admin-field qd-payment-item-field">
+        <span>Item</span>
+        <select class="qd-admin-select" id="quote-payment-item-key" name="itemKey">
+          <option value="">Choose schedule item</option>
+          ${payableItems.map((item) => `<option value="${escapeHtml(item.itemKey)}" ${String(form.itemKey || '') === item.itemKey ? 'selected' : ''}>${escapeHtml(item.label || item.type || item.itemKey)} - remaining AED ${escapeHtml(formatPaymentAED(item.remaining))}</option>`).join('')}
+        </select>
+      </label>
       <label class="qd-admin-field">
         <span>Amount</span>
         <input class="qd-admin-input" id="quote-payment-amount" name="amount" type="number" min="0.01" step="0.01" value="${escapeHtml(form.amount || '')}" placeholder="AED">
@@ -2928,7 +2955,7 @@ function renderPaymentsTable(payments = []) {
             <tr>
               <td>${escapeHtml(payment.date || '')}</td>
               <td>${escapeHtml(payment.method || '')}</td>
-              <td>${escapeHtml(payment.note || '')}</td>
+              <td>${escapeHtml(payment.note || payment.itemKey || '')}</td>
               <td style="text-align:right">AED ${escapeHtml(formatPaymentAED(payment.amount))}</td>
             </tr>
           `).join('')}
@@ -3008,6 +3035,8 @@ function renderQuotationDetail(quote) {
         </form>
         <button class="qd-btn qd-admin-action-secondary" type="button" data-action="quote-mark-sent">Mark as sent</button>
         <button class="qd-btn qd-admin-action-secondary" type="button" data-action="quote-copy-client-link">Copy client link</button>
+        <button class="qd-btn qd-admin-action-secondary" type="button" data-action="quote-edit-selected">Edit quote</button>
+        <button class="qd-btn qd-admin-action-danger" type="button" data-action="quote-delete-selected">Delete quote</button>
         <a class="qd-btn qd-admin-action-secondary" href="${escapeHtml(clientUrl)}" target="_blank" rel="noreferrer noopener">View / Print</a>
       </div>
 
@@ -3039,8 +3068,9 @@ function renderQuotationDetail(quote) {
       </div>
 
       <div class="qd-quote-section-label qd-payment-section-label">PAYMENTS</div>
+      ${renderQuoteSchedule(quote.schedule || [])}
       ${renderPaymentsTable(quote.payments || [])}
-      ${renderQuotePaymentForm(state.paymentLookup.form || {}, state.paymentLookup.saving)}
+      ${renderQuotePaymentForm(state.paymentLookup.form || {}, state.paymentLookup.saving, quote.schedule || [])}
     </article>
   `;
 }
@@ -3100,11 +3130,11 @@ function renderCollectionBucket(title, key, bucket) {
             <div class="qd-collection-row">
               <button type="button" class="qd-admin-row-button" data-action="collection-open-quote" data-ref="${escapeHtml(item.quoteId)}">
                 <strong>${escapeHtml(item.client || 'Client')}</strong>
-                <span>${escapeHtml(item.quoteNumber || '')} · ${escapeHtml(item.type || '')} · due ${escapeHtml(item.dueDate || '')}</span>
+                <span>${escapeHtml(item.quoteNumber || '')} · ${escapeHtml(item.label || item.type || '')} · due ${escapeHtml(item.dueDate || '')}</span>
               </button>
               <div class="qd-collection-row-side">
                 <strong>AED ${escapeHtml(formatPaymentAED(item.amount))}</strong>
-                <button class="qd-btn qd-btn-sm qd-admin-action-primary" type="button" data-action="collection-mark-collected" data-ref="${escapeHtml(item.quoteId)}" data-type="${escapeHtml(item.collectionType)}" data-month-key="${escapeHtml(item.monthKey || '')}" data-milestone-key="${escapeHtml(item.milestoneKey || '')}">Mark collected</button>
+                <button class="qd-btn qd-btn-sm qd-admin-action-primary" type="button" data-action="collection-mark-collected" data-ref="${escapeHtml(item.quoteId)}" data-item-key="${escapeHtml(item.itemKey || '')}" data-type="${escapeHtml(item.collectionType)}" data-month-key="${escapeHtml(item.monthKey || '')}" data-milestone-key="${escapeHtml(item.milestoneKey || '')}">Mark collected</button>
               </div>
             </div>
           `).join('')}
@@ -6978,6 +7008,17 @@ const handleDocumentClick = async (event) => {
     return;
   }
 
+  if (action === 'quote-edit-selected') {
+    const q = state.paymentLookup.quote;
+    if (q) openQuoteDrawer(q);
+    return;
+  }
+
+  if (action === 'quote-delete-selected') {
+    await deleteSelectedQuote();
+    return;
+  }
+
   if (action === 'quote-mark-sent') {
     try {
       await updateSelectedQuote({ markSent: true });
@@ -7879,6 +7920,7 @@ async function openQuotationDetail(quoteRef) {
       loading: false,
       error: ''
     };
+    openQuoteDrawer(quote);
     render();
   } catch (error) {
     state.paymentLookup = {
@@ -7934,6 +7976,7 @@ async function markCollectionCollected(target) {
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
     body: JSON.stringify({
       id: target.dataset.ref,
+      itemKey: target.dataset.itemKey || '',
       type: target.dataset.type,
       monthKey: target.dataset.monthKey || '',
       milestoneKey: target.dataset.milestoneKey || '',
@@ -7958,6 +8001,7 @@ async function submitQuotePayment(form) {
   }
 
   const payment = {
+    itemKey: form.elements.itemKey?.value || '',
     amount: form.elements.amount?.value || '',
     date: form.elements.date?.value || '',
     method: form.elements.method?.value || '',
@@ -8017,6 +8061,31 @@ async function submitQuotePayment(form) {
       form: payment
     };
     render();
+  }
+}
+
+async function deleteSelectedQuote() {
+  const quote = state.paymentLookup.quote;
+  const quoteRef = String(quote?.id || state.paymentLookup.quoteRef || '').trim();
+  if (!quoteRef) return;
+  const label = quote.quoteNumber || quote.quoteRef || quoteRef;
+  const confirmed = window.confirm(`Delete quote ${label}? This can't be undone.`);
+  if (!confirmed) return;
+  try {
+    const token = await getAdminIdToken();
+    const res = await fetch('/api/quote-update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ id: quoteRef, delete: true })
+    });
+    const payload = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(payload.error || `Quote delete failed: ${res.status}`);
+    state.paymentLookup = { ...state.paymentLookup, quote: null, quoteRef: '' };
+    showAdminToast('Quote deleted.');
+    await loadQuotesList({ keepDetail: false });
+    await loadCollections();
+  } catch (error) {
+    showAdminToast(error.message || 'Could not delete quote.');
   }
 }
 

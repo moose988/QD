@@ -1,8 +1,15 @@
-import { computeTotals } from '../../app/lib/quote-totals.js';
-import { buildQuotePaymentFields, normalizePaymentList, roundMoney } from './quote-payments.js';
+import {
+  applyPaymentToQuote,
+  buildDefaultMilestones,
+  buildQuotePaymentFields,
+  buildQuotePaymentView,
+  getCareMonthly,
+  getQuoteBuildTotal,
+  roundMoney
+} from './quote-payments.js';
 import { getQuoteWorkflowStatus } from './quote-admin.js';
 
-const DAY_MS = 24 * 60 * 60 * 1000;
+export { buildDefaultMilestones, getCareMonthly };
 
 export function todayIso() {
   return new Date().toISOString().slice(0, 10);
@@ -45,102 +52,19 @@ export function compareIso(a, b) {
 }
 
 export function getQuoteTotal(quote = {}) {
-  return roundMoney(computeTotals(quote.lineItems, quote.vatPercent, quote.pages?.price).grandTotal);
-}
-
-export function buildDefaultMilestones(total) {
-  const quoteTotal = roundMoney(total);
-  const advance = Math.round(quoteTotal * 0.3);
-  return [
-    { key: 'advance', label: '30% advance', amount: advance, dueDate: '', status: 'pending', collectedAt: '' },
-    { key: 'final', label: '70% completion', amount: roundMoney(quoteTotal - advance), dueDate: '', status: 'pending', collectedAt: '' }
-  ];
+  return getQuoteBuildTotal(quote);
 }
 
 export function normalizeMilestones(quote = {}) {
-  const defaults = buildDefaultMilestones(getQuoteTotal(quote));
-  const existing = Array.isArray(quote.milestones) ? quote.milestones : [];
-  return defaults.map((base) => {
-    const found = existing.find((milestone) => milestone?.key === base.key) || {};
-    return {
-      ...base,
-      ...found,
-      label: found.label || base.label,
-      amount: Number.isFinite(Number(found.amount)) ? roundMoney(found.amount) : base.amount,
-      dueDate: toIsoDate(found.dueDate) || '',
-      status: found.status === 'collected' ? 'collected' : 'pending',
-      collectedAt: toIsoDate(found.collectedAt) || ''
-    };
-  });
+  return buildQuotePaymentView(quote.id || '', quote).milestones;
 }
 
-export function getCareMonthly(quote = {}) {
-  const direct = Number(quote.careMonthly);
-  if (Number.isFinite(direct) && direct > 0) return roundMoney(direct);
-  const fromSnapshot = Number(quote.estimateSnapshot?.monthly?.amount);
-  return Number.isFinite(fromSnapshot) && fromSnapshot > 0 ? roundMoney(fromSnapshot) : 0;
-}
-
-export function getBillingDay(quote = {}) {
-  const goLive = parseIsoDate(toIsoDate(quote.goLiveDate));
-  if (!goLive) return 0;
-  return Math.max(1, Math.min(31, Number(quote.billingDay) || goLive.getUTCDate()));
-}
-
-export function buildCareItems(quote = {}, on = todayIso()) {
-  const goLiveDate = toIsoDate(quote.goLiveDate);
-  const goLive = parseIsoDate(goLiveDate);
-  const through = parseIsoDate(addDaysIso(on, 7));
-  const monthly = getCareMonthly(quote);
-  const billingDay = getBillingDay(quote);
-  if (!goLive || !through || monthly <= 0 || billingDay <= 0) return [];
-
-  const collected = new Set(Array.isArray(quote.careCollected) ? quote.careCollected.map(String) : []);
-  const items = [];
-  let year = goLive.getUTCFullYear();
-  let month = goLive.getUTCMonth();
-  while (new Date(Date.UTC(year, month, 1)) <= through) {
-    const day = clampBillingDay(billingDay, year, month);
-    const dueDate = new Date(Date.UTC(year, month, day)).toISOString().slice(0, 10);
-    const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
-    if (compareIso(dueDate, goLiveDate) >= 0 && compareIso(dueDate, addDaysIso(on, 7)) <= 0 && !collected.has(monthKey)) {
-      items.push({
-        type: 'Monthly care',
-        collectionType: 'care',
-        monthKey,
-        amount: monthly,
-        dueDate
-      });
-    }
-    month += 1;
-    if (month > 11) {
-      month = 0;
-      year += 1;
-    }
-  }
-  return items;
-}
-
-export function buildMilestoneItems(quote = {}, on = todayIso()) {
+function milestoneDueDate(item, quote, on) {
+  if (item.dueDate) return item.dueDate;
   const workflow = getQuoteWorkflowStatus(quote);
-  const goLiveDate = toIsoDate(quote.goLiveDate);
-  const sevenDays = addDaysIso(on, 7);
-  return normalizeMilestones(quote)
-    .filter((milestone) => milestone.status !== 'collected')
-    .map((milestone) => {
-      let dueDate = milestone.dueDate;
-      if (!dueDate && milestone.key === 'advance' && ['accepted', 'paid'].includes(workflow)) dueDate = on;
-      if (!dueDate && milestone.key === 'final' && goLiveDate) dueDate = goLiveDate;
-      return { ...milestone, dueDate };
-    })
-    .filter((milestone) => milestone.dueDate && compareIso(milestone.dueDate, sevenDays) <= 0)
-    .map((milestone) => ({
-      type: milestone.label,
-      collectionType: 'milestone',
-      milestoneKey: milestone.key,
-      amount: roundMoney(milestone.amount),
-      dueDate: milestone.dueDate
-    }));
+  if (item.key === 'advance' && ['accepted', 'paid'].includes(workflow)) return on;
+  if (item.key === 'final' && toIsoDate(quote.goLiveDate)) return toIsoDate(quote.goLiveDate);
+  return '';
 }
 
 export function bucketForDueDate(dueDate, on = todayIso()) {
@@ -154,12 +78,30 @@ export function buildCollectionItemsForQuote(quote = {}, on = todayIso()) {
   const quoteId = quote.id || '';
   const quoteNumber = quote.quoteNumber || '';
   const client = quote.customer?.businessName || '';
-  return [...buildMilestoneItems(quote, on), ...buildCareItems(quote, on)]
+  const paymentView = buildQuotePaymentView(quoteId, quote, { on });
+  return paymentView.schedule
+    .map((item) => {
+      const dueDate = item.itemKey.startsWith('milestone:') ? milestoneDueDate(item, quote, on) : item.dueDate;
+      return { ...item, dueDate };
+    })
+    .filter((item) => item.remaining > 0 && item.dueDate && compareIso(item.dueDate, addDaysIso(on, 7)) <= 0)
     .map((item) => ({
       quoteId,
       quoteNumber,
       client,
-      ...item,
+      itemKey: item.itemKey,
+      type: item.itemKey.startsWith('care:') ? 'Monthly care' : item.label,
+      label: item.label,
+      collectionType: item.itemKey.startsWith('care:') ? 'care' : 'milestone',
+      monthKey: item.itemKey.startsWith('care:') ? item.key : '',
+      milestoneKey: item.itemKey.startsWith('milestone:') ? item.key : '',
+      amount: item.remaining,
+      remaining: item.remaining,
+      itemAmount: item.amount,
+      paidAmount: item.paidAmount,
+      dueDate: item.dueDate,
+      outstanding: paymentView.outstanding,
+      balance: paymentView.balance,
       bucket: bucketForDueDate(item.dueDate, on)
     }))
     .filter((item) => item.bucket);
@@ -193,72 +135,45 @@ export function buildCollectionsSummary(quotes = [], on = todayIso()) {
 }
 
 export function buildQuoteCollectionPatch(quote = {}, action = {}) {
+  const itemKey = String(action.itemKey || (action.type === 'care' ? `care:${action.monthKey || ''}` : `milestone:${action.milestoneKey || ''}`)).trim();
   const collectedOn = toIsoDate(action.collectedOn) || todayIso();
   const method = String(action.method || 'Collection').trim();
-  if (action.type === 'care') {
-    const monthKey = String(action.monthKey || '').trim();
-    if (!/^\d{4}-\d{2}$/.test(monthKey)) {
-      const error = new Error('monthKey is required');
-      error.status = 400;
-      throw error;
-    }
-    const existingCollected = Array.isArray(quote.careCollected) ? quote.careCollected.map(String) : [];
-    if (existingCollected.includes(monthKey)) {
-      const error = new Error('Care month already collected');
-      error.status = 409;
-      throw error;
-    }
-    const collected = Array.from(new Set([...existingCollected, monthKey])).sort();
-    const payment = { amount: getCareMonthly(quote), date: collectedOn, method, note: `Care ${monthKey}` };
-    return {
-      careCollected: collected,
-      payment
-    };
+  const view = buildQuotePaymentView(quote.id || '', quote, { on: collectedOn });
+  const item = view.schedule.find((entry) => entry.itemKey === itemKey);
+  if (!item) {
+    const error = new Error('itemKey does not match a payable schedule item');
+    error.status = 400;
+    throw error;
   }
-
-  if (action.type === 'milestone') {
-    const milestoneKey = String(action.milestoneKey || '').trim();
-    const milestones = normalizeMilestones(quote);
-    const milestone = milestones.find((item) => item.key === milestoneKey);
-    if (!milestone) {
-      const error = new Error('milestoneKey is invalid');
-      error.status = 400;
-      throw error;
-    }
-    if (milestone.status === 'collected') {
-      const error = new Error('Milestone already collected');
-      error.status = 409;
-      throw error;
-    }
-    const nextMilestones = milestones.map((item) => item.key === milestoneKey ? {
-      ...item,
-      status: 'collected',
-      collectedAt: collectedOn
-    } : item);
-    const payment = { amount: milestone.amount, date: collectedOn, method, note: milestone.label };
-    return {
-      milestones: nextMilestones,
-      payment
-    };
+  if (item.remaining <= 0) {
+    const error = new Error('Schedule item already paid');
+    error.status = 409;
+    throw error;
   }
-
-  const error = new Error('type must be care or milestone');
-  error.status = 400;
-  throw error;
+  const amount = action.amount != null ? roundMoney(action.amount) : item.remaining;
+  if (!Number.isFinite(amount) || amount <= 0) {
+    const error = new Error('amount must be greater than 0');
+    error.status = 400;
+    throw error;
+  }
+  if (amount > item.remaining) {
+    const error = new Error('amount exceeds remaining item balance');
+    error.status = 400;
+    throw error;
+  }
+  return {
+    payment: {
+      itemKey,
+      amount,
+      date: collectedOn,
+      method,
+      note: item.itemKey.startsWith('care:') ? item.label : item.label
+    }
+  };
 }
 
 export function buildQuoteFieldsAfterCollection(id, quote = {}, patch = {}) {
-  const payments = [...normalizePaymentList(quote.payments), patch.payment].filter(Boolean);
-  const nextQuote = {
-    ...quote,
-    ...patch,
-    payments
-  };
-  delete nextQuote.payment;
-  const { payment, ...writePatch } = patch;
-  return {
-    ...writePatch,
-    payments,
-    ...buildQuotePaymentFields(id, nextQuote)
-  };
+  if (!patch.payment) return buildQuotePaymentFields(id, quote);
+  const nextQuote = applyPaymentToQuote(id, quote, patch.payment, { on: patch.payment.date });
+  return buildQuotePaymentFields(id, nextQuote, { on: patch.payment.date });
 }

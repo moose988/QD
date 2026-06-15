@@ -16,6 +16,15 @@ const PUBLIC_INTERNAL_FIELDS = new Set([
   'lastSentAt',
   'remarks',
   'status',
+  'milestones',
+  'careCollected',
+  'careMonthly',
+  'goLiveDate',
+  'billingDay',
+  'buildTotal',
+  'buildBalance',
+  'careOutstanding',
+  'outstanding',
   'quoteNumberLower',
   'businessNameLower'
 ]);

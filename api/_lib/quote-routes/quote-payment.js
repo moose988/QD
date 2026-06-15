@@ -6,10 +6,9 @@ import { getDb, admin } from '../firebase.js';
 import { requireAdmin } from '../admin-auth.js';
 import { getQuoteRefFromRequest, parseJsonBody, resolveQuoteByRef } from '../quote-admin.js';
 import {
-  buildQuotePaymentFields,
+  applyPaymentToQuote,
   buildQuotePaymentView,
-  normalizePaymentInput,
-  normalizePaymentList
+  normalizePaymentInput
 } from '../quote-payments.js';
 
 export const config = { runtime: 'nodejs', maxDuration: 10 };
@@ -55,11 +54,17 @@ export default async function handler(req, res) {
         throw error;
       }
       const quote = snap.data() || {};
-      const payments = [...normalizePaymentList(quote.payments), payment];
-      const nextQuote = { ...quote, payments };
-      const fields = buildQuotePaymentFields(resolved.id, nextQuote);
+      const nextQuote = applyPaymentToQuote(resolved.id, quote, payment, { on: payment.date });
       transaction.set(resolved.ref, {
-        ...fields,
+        payments: nextQuote.payments,
+        milestones: nextQuote.milestones,
+        paid: nextQuote.paid,
+        balance: nextQuote.balance,
+        buildTotal: nextQuote.buildTotal,
+        buildBalance: nextQuote.buildBalance,
+        careOutstanding: nextQuote.careOutstanding,
+        outstanding: nextQuote.outstanding,
+        paymentStatus: nextQuote.paymentStatus,
         lastPaymentAt: payment.date,
         updatedAt: admin.firestore.FieldValue.serverTimestamp()
       }, { merge: true });

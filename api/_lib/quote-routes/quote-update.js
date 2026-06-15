@@ -64,6 +64,10 @@ export default async function handler(req, res) {
     const db = getDb();
     const resolved = await resolveQuoteByRef(db, quoteRef);
     if (!resolved) return res.status(404).json({ error: 'Quote not found' });
+    if (body.delete === true) {
+      await resolved.ref.delete();
+      return res.status(200).json({ ok: true, deleted: true, id: resolved.id });
+    }
 
     const existing = resolved.data || {};
     const safe = {};
