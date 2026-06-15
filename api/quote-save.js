@@ -3,6 +3,9 @@
 
 import { getDb, admin } from './_lib/firebase.js';
 import { requireAdmin } from './_lib/admin-auth.js';
+import { buildQuoteSearchFields } from './_lib/quote-admin.js';
+import { buildDefaultMilestones } from './_lib/collections.js';
+import { buildQuotePaymentFields } from './_lib/quote-payments.js';
 
 export const config = { runtime: 'nodejs', maxDuration: 10 };
 
@@ -51,7 +54,7 @@ export default async function handler(req, res) {
 
     safe.updatedAt = admin.firestore.FieldValue.serverTimestamp();
     if (markSent) {
-      safe.status = 'active';
+      safe.status = 'sent';
       safe.lastSentAt = admin.firestore.FieldValue.serverTimestamp();
     }
 
@@ -61,6 +64,12 @@ export default async function handler(req, res) {
     const snap = await ref.get();
     if (!snap.exists) return res.status(404).json({ error: 'Quote not found' });
     const existingQuote = snap.data() || {};
+    const nextQuote = { ...existingQuote, ...safe };
+    Object.assign(safe, buildQuotePaymentFields(id, nextQuote));
+    Object.assign(safe, buildQuoteSearchFields(nextQuote));
+    if (!Array.isArray(existingQuote.milestones)) {
+      safe.milestones = buildDefaultMilestones(safe.balance);
+    }
 
     console.log('[quote-save] writing merged updates');
     await ref.set(safe, { merge: true });

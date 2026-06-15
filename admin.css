@@ -1969,6 +1969,301 @@ body.qd-admin-page.qd-modal-open {
   margin-top: 4px; padding-top: 6px;
   font-weight: 700; font-size: 14px;
 }
+.qd-payment-dashboard {
+  display: grid;
+  gap: 18px;
+}
+.qd-payment-lookup-form {
+  grid-template-columns: minmax(260px, 1fr) auto;
+  align-items: end;
+}
+.qd-payment-lookup-form .qd-admin-field > span,
+.qd-payment-form .qd-admin-field > span {
+  display: block;
+  margin-bottom: 6px;
+  color: rgba(244, 241, 234, 0.72);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.qd-payment-detail-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+.qd-payment-detail-head h2 {
+  margin: 3px 0 4px;
+  font-size: 1.2rem;
+}
+.qd-payment-detail-head p {
+  margin: 0;
+  color: rgba(244, 241, 234, 0.66);
+  font-size: 0.82rem;
+}
+.qd-payment-status {
+  border: 1px solid rgba(244, 241, 234, 0.2);
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 5px 10px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+.qd-payment-status[data-tone="paid"] {
+  background: rgba(120, 200, 160, 0.14);
+  border-color: rgba(120, 200, 160, 0.45);
+  color: rgb(160, 230, 190);
+}
+.qd-payment-status[data-tone="partial"] {
+  background: rgba(230, 190, 110, 0.14);
+  border-color: rgba(230, 190, 110, 0.45);
+  color: rgb(245, 210, 145);
+}
+.qd-payment-status[data-tone="unpaid"] {
+  background: rgba(244, 241, 234, 0.07);
+  border-color: rgba(244, 241, 234, 0.18);
+  color: rgba(244, 241, 234, 0.72);
+}
+.qd-quote-workflow-status {
+  border: 1px solid rgba(244, 241, 234, 0.2);
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 5px 10px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+.qd-quote-workflow-status[data-tone="draft"] { background: rgba(244,241,234,.08); color: rgba(244,241,234,.74); }
+.qd-quote-workflow-status[data-tone="sent"] { background: rgba(110,170,230,.13); border-color: rgba(110,170,230,.38); color: rgb(165,205,245); }
+.qd-quote-workflow-status[data-tone="accepted"] { background: rgba(120,200,160,.14); border-color: rgba(120,200,160,.42); color: rgb(160,230,190); }
+.qd-quote-workflow-status[data-tone="paid"] { background: rgba(120,200,160,.22); border-color: rgba(120,200,160,.6); color: rgb(190,245,210); }
+.qd-quote-workflow-status[data-tone="declined"] { background: rgba(230,110,110,.12); border-color: rgba(230,110,110,.4); color: rgb(245,165,165); }
+.qd-quotation-status-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 14px;
+}
+.qd-quotations-table-wrap {
+  margin-top: 8px;
+}
+.qd-quotation-ref-button {
+  color: rgba(180, 235, 205, 0.95);
+  font-weight: 800;
+}
+.qd-quotation-detail-card {
+  display: grid;
+  gap: 14px;
+}
+.qd-quotation-status-stack {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.qd-quotation-actions,
+.qd-quotation-inline-form,
+.qd-quotation-milestones-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: end;
+}
+.qd-quotation-actions {
+  border-top: 1px solid var(--qd-admin-border);
+  border-bottom: 1px solid var(--qd-admin-border);
+  padding: 12px 0;
+}
+.qd-quotation-actions .qd-admin-field,
+.qd-quotation-inline-form .qd-admin-field,
+.qd-quotation-milestones-form .qd-admin-field {
+  min-width: 150px;
+}
+.qd-quotation-remarks-form {
+  display: grid;
+  gap: 10px;
+}
+.qd-quotation-billing-grid {
+  display: grid;
+  grid-template-columns: minmax(240px, .8fr) minmax(280px, 1.2fr);
+  gap: 14px;
+  align-items: end;
+}
+.qd-collections-dashboard {
+  display: grid;
+  gap: 18px;
+}
+.qd-collections-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  align-items: start;
+}
+.qd-collection-bucket {
+  display: grid;
+  gap: 12px;
+}
+.qd-collection-bucket[data-tone="danger"] { border-color: rgba(230,110,110,.3); }
+.qd-collection-bucket[data-tone="today"] { border-color: rgba(230,190,110,.34); }
+.qd-collection-bucket-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+.qd-collection-bucket-head strong {
+  display: block;
+  margin-top: 4px;
+  color: rgba(150, 220, 180, 0.95);
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+}
+.qd-collection-list {
+  display: grid;
+  gap: 10px;
+}
+.qd-collection-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  border: 1px solid var(--qd-admin-border);
+  border-radius: 12px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.03);
+}
+.qd-collection-row .qd-admin-row-button {
+  text-align: left;
+  padding: 0;
+}
+.qd-collection-row .qd-admin-row-button span {
+  display: block;
+  margin-top: 4px;
+  color: rgba(244, 241, 234, 0.62);
+  font-size: 0.76rem;
+}
+.qd-collection-row-side {
+  display: grid;
+  gap: 8px;
+  justify-items: end;
+  align-content: center;
+}
+.qd-collection-row-side strong {
+  font-variant-numeric: tabular-nums;
+}
+.qd-payment-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.qd-payment-summary-card {
+  border: 1px solid var(--qd-admin-border);
+  background: rgba(255, 255, 255, 0.035);
+  border-radius: 12px;
+  padding: 12px;
+}
+.qd-payment-summary-card span {
+  display: block;
+  margin-bottom: 6px;
+  color: rgba(244, 241, 234, 0.62);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.qd-payment-summary-card strong {
+  font-size: 1.05rem;
+  color: rgba(150, 220, 180, 0.95);
+  font-variant-numeric: tabular-nums;
+}
+.qd-payment-table-wrap {
+  margin-bottom: 14px;
+}
+.qd-payment-form {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.7fr) minmax(150px, 0.8fr) minmax(160px, 0.9fr);
+  gap: 12px;
+  align-items: end;
+}
+.qd-payment-note-field {
+  grid-column: 1 / -2;
+}
+.qd-payment-save-btn {
+  min-height: 42px;
+}
+.qd-quote-payment-panel {
+  border: 1px solid #d8dee7;
+  background: #f8fafc;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin: -4px 0 14px;
+}
+.qd-quote-payment-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.qd-quote-payment-head > span {
+  color: #667085;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+.qd-quote-payment-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.qd-quote-payment-grid div {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  padding: 8px;
+}
+.qd-quote-payment-grid span {
+  display: block;
+  color: #667085;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.qd-quote-payment-grid strong {
+  display: block;
+  margin-top: 4px;
+  color: #1a1a1a;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.qd-quote-payment-panel .qd-payment-status[data-tone="paid"] {
+  color: #047857;
+  background: #ecfdf3;
+  border-color: #abefc6;
+}
+.qd-quote-payment-panel .qd-payment-status[data-tone="partial"] {
+  color: #b54708;
+  background: #fffaeb;
+  border-color: #fedf89;
+}
+.qd-quote-payment-panel .qd-payment-status[data-tone="unpaid"] {
+  color: #475467;
+  background: #f2f4f7;
+  border-color: #d0d5dd;
+}
 .qd-quote-meta-row {
   display: flex; gap: 18px; flex-wrap: wrap;
   font-size: 11px; color: #555;
@@ -2433,6 +2728,26 @@ body.qd-admin-page.qd-modal-open {
 }
 
 @media (max-width: 900px) {
+  .qd-payment-lookup-form,
+  .qd-payment-form,
+  .qd-payment-summary-grid,
+  .qd-quote-payment-grid,
+  .qd-quotation-billing-grid,
+  .qd-collections-grid,
+  .qd-collection-row {
+    grid-template-columns: 1fr;
+  }
+
+  .qd-payment-note-field {
+    grid-column: auto;
+  }
+
+  .qd-quotation-status-stack,
+  .qd-collection-row-side {
+    justify-items: start;
+    justify-content: start;
+  }
+
   .qd-quote-body {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;

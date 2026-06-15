@@ -1,3 +1,12 @@
+import {
+  getAddon,
+  getAddonLevel,
+  getFoundation,
+  getModule,
+  getPackage,
+  getSpecialBuild
+} from './pricing-model.js';
+
 const DEFAULT_TERMS = {
   en: '50% upfront, 50% on delivery. Third-party software, payment, messaging, maps, and AI usage are billed at cost.',
   ar: '50% مقدماً، 50% عند التسليم. تكاليف البرامج والمدفوعات والرسائل والخرائط واستخدام الذكاء الاصطناعي من أطراف ثالثة تُحسب بالتكلفة.'
@@ -8,6 +17,33 @@ const money = (value) => {
   const n = Number(value);
   return Number.isFinite(n) ? Math.round(n) : 0;
 };
+
+const unique = (items) => Array.from(new Set(items.map(cleanText).filter(Boolean)));
+
+function lineIncludes(line = {}) {
+  if (line.kind === 'foundation') return getFoundation(line.id)?.includes || [];
+  if (line.kind === 'package') return getPackage(line.id)?.includes || [];
+  if (line.kind === 'special') {
+    return getPackage(line.id)?.includes || getSpecialBuild(line.id)?.includes || [];
+  }
+  if (line.kind === 'module') return getModule(line.id)?.includes || [];
+  if (line.kind === 'addon') {
+    const level = line.tier ? getAddonLevel(line.id, line.tier) : null;
+    const addon = getAddon(line.id);
+    return unique([level?.spec, addon?.note, line.note]);
+  }
+  return [];
+}
+
+function buildIncludedGroups(estimate = {}) {
+  return (estimate.lines || [])
+    .filter((line) => Number(line.amount) > 0 && !['discount'].includes(line.kind))
+    .map((line) => ({
+      label: cleanText(line.label) || cleanText(line.name?.en),
+      includes: unique(lineIncludes(line))
+    }))
+    .filter((group) => group.label && group.includes.length);
+}
 
 export function estimateToQuoteLineItems(estimate = {}) {
   const oneTime = money(estimate.discountedSubtotal ?? estimate.net ?? 0);
@@ -22,9 +58,11 @@ export function estimateToQuoteLineItems(estimate = {}) {
         ar: 'البناء لمرة واحدة'
       },
       description: {
-        en: `Typical Dubai AED ${market.toLocaleString('en-AE')} · Sharjah launch AED ${oneTime.toLocaleString('en-AE')}. Includes the selected website/specs and setup.`,
+        en: `Typical Dubai AED ${market.toLocaleString('en-AE')} - Sharjah launch AED ${oneTime.toLocaleString('en-AE')}. Includes the selected website/specs and setup.`,
         ar: `سعر دبي المعتاد ${market.toLocaleString('en-AE')} درهم · سعر إطلاق الشارقة ${oneTime.toLocaleString('en-AE')} درهم. يشمل الموقع/المواصفات المختارة والإعداد.`
       },
+      includes: unique(buildIncludedGroups(estimate).flatMap((group) => group.includes)),
+      includedGroups: buildIncludedGroups(estimate),
       qty: 1,
       unitPrice: oneTime
     },

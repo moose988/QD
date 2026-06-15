@@ -1,6 +1,9 @@
 import { getDb, admin } from './firebase.js';
 import { generateQuoteId, generatePasscode, hashPasscode } from './quote-id.js';
 import { getNextQuoteNumber } from './quote-counter.js';
+import { buildQuoteSearchFields } from './quote-admin.js';
+import { buildDefaultMilestones } from './collections.js';
+import { buildQuotePaymentFields } from './quote-payments.js';
 import { buildEstimate } from '../../app/lib/pricing-model.js';
 import { estimateToQuoteDraft } from '../../app/lib/estimate-quote.js';
 
@@ -57,12 +60,19 @@ export async function createQuoteFromEstimate(body, adminUser) {
     pages: draft.pages,
     terms: draft.terms,
     notes: draft.notes,
+    remarks: '',
     passcodeHash,
     _passcodePlain: passcodePlain,
+    payments: [],
+    careMonthly: Number(estimate.monthly?.amount) || 0,
+    careCollected: [],
     createdAt: now,
     updatedAt: now,
     lastSentAt: null
   };
+  Object.assign(quote, buildQuotePaymentFields(id, quote));
+  Object.assign(quote, buildQuoteSearchFields(quote));
+  quote.milestones = buildDefaultMilestones(quote.balance);
 
   const db = getDb();
   await db.collection('quotes').doc(id).set(quote);

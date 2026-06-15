@@ -144,11 +144,13 @@ const demoStatusLabels = {
   expired: 'Expired',
   disabled: 'Disabled'
 };
-const adminTabs = new Set(['dashboard', 'cards', 'demos', 'activity', 'invitations', 'outreach']);
+const adminTabs = new Set(['dashboard', 'cards', 'demos', 'activity', 'invitations', 'outreach', 'pricing', 'payments', 'collections']);
 const initialAdminTab = new URLSearchParams(window.location.search).get('tab');
 const dashboardSections = new Set(['overview', 'pipeline', 'archive']);
 const initialDashboardSection = new URLSearchParams(window.location.search).get('section');
 const initialActivitySearch = new URLSearchParams(window.location.search).get('activitySearch') || '';
+const initialQuoteSearch = new URLSearchParams(window.location.search).get('q') || '';
+const initialQuoteStatus = new URLSearchParams(window.location.search).get('quoteStatus') || 'All';
 const activityActionLabels = {
   login: 'Logged in',
   logout: 'Logged out',
@@ -262,6 +264,30 @@ const state = {
   quotesBySubmissionId: {},
   quoteDrawer: { open: false, quote: null, original: null, dirty: false },
   quoteToast: '',
+  paymentLookup: {
+    quoteRef: '',
+    quote: null,
+    quotes: [],
+    quotesLoading: false,
+    quotesError: '',
+    search: initialQuoteSearch,
+    status: initialQuoteStatus,
+    loading: false,
+    saving: false,
+    error: '',
+    form: {
+      amount: '',
+      date: new Date().toISOString().slice(0, 10),
+      method: 'Bank transfer',
+      note: ''
+    }
+  },
+  collections: {
+    loading: false,
+    error: '',
+    data: null,
+    on: new Date().toISOString().slice(0, 10)
+  },
   pricing: {
     website: true,
     pagesStandard: 5,
@@ -2775,6 +2801,344 @@ const renderOutreachManager = () => {
   `;
 };
 
+function formatPaymentAED(value) {
+  const number = Number(value) || 0;
+  const hasCents = Math.abs(number - Math.round(number)) > 0.001;
+  return new Intl.NumberFormat('en-AE', {
+    minimumFractionDigits: hasCents ? 2 : 0,
+    maximumFractionDigits: 2
+  }).format(number);
+}
+
+function getPaymentStatusFromAmounts(paid, balance) {
+  if ((Number(paid) || 0) <= 0) return 'Unpaid';
+  if ((Number(balance) || 0) <= 0) return 'Paid';
+  return 'Partial';
+}
+
+function getQuotePaymentSummary(quote = {}) {
+  const totals = computeTotals(quote.lineItems, quote.vatPercent, quote.pages?.price);
+  const total = Number(totals.grandTotal) || 0;
+  const paid = Number.isFinite(Number(quote.paid))
+    ? Number(quote.paid)
+    : (Array.isArray(quote.payments) ? quote.payments.reduce((sum, payment) => sum + (Number(payment.amount) || 0), 0) : 0);
+  const balance = Math.max(0, total - paid);
+  return {
+    total,
+    paid,
+    balance,
+    status: quote.paymentStatus || getPaymentStatusFromAmounts(paid, balance)
+  };
+}
+
+function getPaymentTone(status) {
+  if (status === 'Paid') return 'paid';
+  if (status === 'Partial') return 'partial';
+  return 'unpaid';
+}
+
+function renderPaymentStatusChip(status) {
+  return `<span class="qd-payment-status" data-tone="${escapeHtml(getPaymentTone(status))}">${escapeHtml(status)}</span>`;
+}
+
+function formatAdminDate(value) {
+  if (!value) return '—';
+  let date = null;
+  if (typeof value.toDate === 'function') date = value.toDate();
+  else if (value._seconds) date = new Date(value._seconds * 1000);
+  else date = new Date(value);
+  if (!date || Number.isNaN(date.getTime())) return String(value).slice(0, 10) || '—';
+  return date.toLocaleDateString('en-AE', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+function todayInputValue() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+const quoteWorkflowStatuses = ['draft', 'sent', 'accepted', 'paid', 'declined'];
+function renderWorkflowStatusChip(status) {
+  const normalized = quoteWorkflowStatuses.includes(String(status || '').toLowerCase()) ? String(status).toLowerCase() : 'draft';
+  return `<span class="qd-quote-workflow-status" data-tone="${escapeHtml(normalized)}">${escapeHtml(normalized)}</span>`;
+}
+
+function renderPaymentSummaryCards(summary) {
+  return `
+    <div class="qd-payment-summary-grid">
+      <div class="qd-payment-summary-card">
+        <span>Total</span>
+        <strong>AED ${escapeHtml(formatPaymentAED(summary.total))}</strong>
+      </div>
+      <div class="qd-payment-summary-card">
+        <span>Paid</span>
+        <strong>AED ${escapeHtml(formatPaymentAED(summary.paid))}</strong>
+      </div>
+      <div class="qd-payment-summary-card">
+        <span>Balance</span>
+        <strong>AED ${escapeHtml(formatPaymentAED(summary.balance))}</strong>
+      </div>
+    </div>
+  `;
+}
+
+function renderQuotePaymentForm(form = {}, saving = false) {
+  return `
+    <form id="quote-payment-form" class="qd-payment-form">
+      <label class="qd-admin-field">
+        <span>Amount</span>
+        <input class="qd-admin-input" id="quote-payment-amount" name="amount" type="number" min="0.01" step="0.01" value="${escapeHtml(form.amount || '')}" placeholder="AED">
+      </label>
+      <label class="qd-admin-field">
+        <span>Date</span>
+        <input class="qd-admin-input" id="quote-payment-date" name="date" type="date" value="${escapeHtml(form.date || todayInputValue())}">
+      </label>
+      <label class="qd-admin-field">
+        <span>Method</span>
+        <select class="qd-admin-select" id="quote-payment-method" name="method">
+          ${['Bank transfer', 'Cash', 'Card', 'Cheque', 'Other'].map((method) => `<option value="${escapeHtml(method)}" ${String(form.method || 'Bank transfer') === method ? 'selected' : ''}>${escapeHtml(method)}</option>`).join('')}
+        </select>
+      </label>
+      <label class="qd-admin-field qd-payment-note-field">
+        <span>Note</span>
+        <input class="qd-admin-input" id="quote-payment-note" name="note" value="${escapeHtml(form.note || '')}" placeholder="Optional internal note">
+      </label>
+      <button class="qd-btn qd-admin-action-primary qd-payment-save-btn" type="submit" ${saving ? 'disabled' : ''}>
+        ${saving ? 'Logging...' : 'Log payment'}
+      </button>
+    </form>
+  `;
+}
+
+function renderPaymentsTable(payments = []) {
+  if (!payments.length) {
+    return `<div class="qd-admin-empty"><strong>No payments logged</strong>Use the form below when money is received.</div>`;
+  }
+  return `
+    <div class="qd-admin-table-wrap qd-payment-table-wrap">
+      <table class="qd-admin-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Method</th>
+            <th>Note</th>
+            <th style="text-align:right">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${payments.map((payment) => `
+            <tr>
+              <td>${escapeHtml(payment.date || '')}</td>
+              <td>${escapeHtml(payment.method || '')}</td>
+              <td>${escapeHtml(payment.note || '')}</td>
+              <td style="text-align:right">AED ${escapeHtml(formatPaymentAED(payment.amount))}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderQuotationRows(quotes = []) {
+  if (state.paymentLookup.quotesLoading && !quotes.length) {
+    return `<tr><td colspan="8"><div class="qd-admin-empty"><strong>Loading quotations</strong>Fetching the latest quote records.</div></td></tr>`;
+  }
+  if (!quotes.length) {
+    return `<tr><td colspan="8"><div class="qd-admin-empty"><strong>No quotations found</strong>Try a different reference, client, or status filter.</div></td></tr>`;
+  }
+  return quotes.map((quote) => `
+    <tr>
+      <td><button class="qd-admin-row-button qd-quotation-ref-button" type="button" data-action="open-quotation" data-ref="${escapeHtml(quote.id)}">${escapeHtml(quote.quoteNumber || quote.id)}</button></td>
+      <td>${escapeHtml(quote.businessName || '—')}</td>
+      <td>${escapeHtml(formatAdminDate(quote.createdAt))}</td>
+      <td>AED ${escapeHtml(formatPaymentAED(quote.total))}</td>
+      <td>${renderWorkflowStatusChip(quote.status)}</td>
+      <td>AED ${escapeHtml(formatPaymentAED(quote.paid))}</td>
+      <td>AED ${escapeHtml(formatPaymentAED(quote.balance))}</td>
+      <td>${escapeHtml(formatAdminDate(quote.lastSentAt))}</td>
+    </tr>
+  `).join('');
+}
+
+function renderQuotationDetail(quote) {
+  if (!quote) {
+    return `
+      <article class="qd-admin-card qd-payment-empty-card">
+        <div class="qd-admin-empty">
+          <strong>No quotation selected</strong>
+          Open a row or jump directly to a quote ref.
+        </div>
+      </article>
+    `;
+  }
+  const summary = {
+    total: Number(quote.total) || 0,
+    paid: Number(quote.paid) || 0,
+    balance: Number(quote.balance) || 0,
+    status: quote.paymentStatus || quote.status || getPaymentStatusFromAmounts(quote.paid, quote.balance)
+  };
+  const workflowStatus = quote.workflowStatus || 'draft';
+  const clientUrl = `${location.origin}/q/${quote.id}`;
+  const goLiveDate = quote.goLiveDate || todayInputValue();
+  const milestones = Array.isArray(quote.milestones) ? quote.milestones : [];
+
+  return `
+    <article class="qd-admin-card qd-payment-detail-card qd-quotation-detail-card">
+      <div class="qd-payment-detail-head">
+        <div>
+          <span class="qd-admin-kicker">QUOTE DETAIL</span>
+          <h2>${escapeHtml(quote.quoteRef || quote.quoteNumber || quote.id)}</h2>
+          <p>${escapeHtml(quote.customer?.businessName || 'No customer name')} · Created ${escapeHtml(formatAdminDate(quote.createdAt))}</p>
+        </div>
+        <div class="qd-quotation-status-stack">
+          ${renderWorkflowStatusChip(workflowStatus)}
+          ${renderPaymentStatusChip(summary.status)}
+        </div>
+      </div>
+      ${renderPaymentSummaryCards(summary)}
+
+      <div class="qd-quotation-actions">
+        <form id="quote-workflow-form" class="qd-quotation-inline-form">
+          <label class="qd-admin-field">
+            <span>Status</span>
+            <select class="qd-admin-select" name="status">
+              ${quoteWorkflowStatuses.map((status) => `<option value="${status}" ${workflowStatus === status ? 'selected' : ''}>${status}</option>`).join('')}
+            </select>
+          </label>
+          <button class="qd-btn qd-admin-action-primary" type="submit">Save status</button>
+        </form>
+        <button class="qd-btn qd-admin-action-secondary" type="button" data-action="quote-mark-sent">Mark as sent</button>
+        <button class="qd-btn qd-admin-action-secondary" type="button" data-action="quote-copy-client-link">Copy client link</button>
+        <a class="qd-btn qd-admin-action-secondary" href="${escapeHtml(clientUrl)}" target="_blank" rel="noreferrer noopener">View / Print</a>
+      </div>
+
+      <form id="quote-remarks-form" class="qd-quotation-remarks-form">
+        <label class="qd-admin-field">
+          <span>Remarks</span>
+          <textarea class="qd-admin-textarea" name="remarks" placeholder="Paid 30%, follow up Monday">${escapeHtml(quote.remarks || '')}</textarea>
+        </label>
+        <button class="qd-btn qd-admin-action-primary" type="submit">Save remarks</button>
+      </form>
+
+      <div class="qd-quotation-billing-grid">
+        <form id="quote-golive-form" class="qd-quotation-inline-form">
+          <label class="qd-admin-field">
+            <span>Go-live date</span>
+            <input class="qd-admin-input" type="date" name="goLiveDate" value="${escapeHtml(goLiveDate)}">
+          </label>
+          <button class="qd-btn qd-admin-action-secondary" type="submit">Mark go-live</button>
+        </form>
+        <form id="quote-milestones-form" class="qd-quotation-milestones-form">
+          ${milestones.map((milestone) => `
+            <label class="qd-admin-field">
+              <span>${escapeHtml(milestone.label || milestone.key)} due</span>
+              <input class="qd-admin-input" type="date" name="${escapeHtml(milestone.key)}" value="${escapeHtml(milestone.dueDate || '')}">
+            </label>
+          `).join('')}
+          <button class="qd-btn qd-admin-action-secondary" type="submit">Save due dates</button>
+        </form>
+      </div>
+
+      <div class="qd-quote-section-label qd-payment-section-label">PAYMENTS</div>
+      ${renderPaymentsTable(quote.payments || [])}
+      ${renderQuotePaymentForm(state.paymentLookup.form || {}, state.paymentLookup.saving)}
+    </article>
+  `;
+}
+
+function renderPaymentsManager() {
+  const lookup = state.paymentLookup;
+  const status = lookup.status || 'All';
+  return `
+    <section class="qd-admin-dashboard qd-payment-dashboard">
+      <article class="qd-admin-card qd-payment-lookup-card">
+        <div class="qd-admin-section-head qd-payment-head">
+          <div>
+            <span class="qd-admin-kicker">QUOTATIONS</span>
+            <h2>Quote follow-up</h2>
+            <p>Track every quote, sent status, remarks, paid amount, and balance.</p>
+          </div>
+        </div>
+        <form id="quotation-search-form" class="qd-admin-form-grid qd-payment-lookup-form">
+          <label class="qd-admin-field">
+            <span>Search</span>
+            <input class="qd-admin-input" name="q" value="${escapeHtml(lookup.search || '')}" placeholder="Quote ref or client name" autocomplete="off">
+          </label>
+          <button class="qd-btn qd-admin-action-primary qd-payment-open-btn" type="submit">${lookup.quotesLoading ? 'Searching...' : 'Search'}</button>
+        </form>
+        <div class="qd-quotation-status-filter">
+          ${['All', ...quoteWorkflowStatuses].map((item) => `
+            <button class="qd-btn qd-btn-sm ${status === item ? 'qd-admin-action-primary' : 'qd-admin-action-secondary'}" type="button" data-action="quote-status-filter" data-status="${escapeHtml(item)}">${escapeHtml(item[0].toUpperCase() + item.slice(1))}</button>
+          `).join('')}
+        </div>
+        ${lookup.quotesError ? `<div class="qd-admin-alert">${escapeHtml(lookup.quotesError)}</div>` : ''}
+        <div class="qd-admin-table-wrap qd-quotations-table-wrap">
+          <table class="qd-admin-table">
+            <thead>
+              <tr><th>Ref</th><th>Client</th><th>Date</th><th>Total</th><th>Status</th><th>Paid</th><th>Balance</th><th>Last sent</th></tr>
+            </thead>
+            <tbody>${renderQuotationRows(lookup.quotes || [])}</tbody>
+          </table>
+        </div>
+      </article>
+      ${renderQuotationDetail(lookup.quote)}
+    </section>
+  `;
+}
+
+function renderCollectionBucket(title, key, bucket) {
+  const tone = key === 'overdue' ? 'danger' : key === 'dueToday' ? 'today' : 'upcoming';
+  const items = bucket?.items || [];
+  return `
+    <article class="qd-admin-card qd-collection-bucket" data-tone="${tone}">
+      <div class="qd-collection-bucket-head">
+        <div><span class="qd-admin-kicker">${escapeHtml(title)}</span><strong>AED ${escapeHtml(formatPaymentAED(bucket?.total || 0))}</strong></div>
+        <span class="qd-admin-count-badge">${items.length}</span>
+      </div>
+      ${items.length ? `
+        <div class="qd-collection-list">
+          ${items.map((item) => `
+            <div class="qd-collection-row">
+              <button type="button" class="qd-admin-row-button" data-action="collection-open-quote" data-ref="${escapeHtml(item.quoteId)}">
+                <strong>${escapeHtml(item.client || 'Client')}</strong>
+                <span>${escapeHtml(item.quoteNumber || '')} · ${escapeHtml(item.type || '')} · due ${escapeHtml(item.dueDate || '')}</span>
+              </button>
+              <div class="qd-collection-row-side">
+                <strong>AED ${escapeHtml(formatPaymentAED(item.amount))}</strong>
+                <button class="qd-btn qd-btn-sm qd-admin-action-primary" type="button" data-action="collection-mark-collected" data-ref="${escapeHtml(item.quoteId)}" data-type="${escapeHtml(item.collectionType)}" data-month-key="${escapeHtml(item.monthKey || '')}" data-milestone-key="${escapeHtml(item.milestoneKey || '')}">Mark collected</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      ` : `<div class="qd-admin-empty"><strong>No items</strong>Nothing in this bucket.</div>`}
+    </article>
+  `;
+}
+
+function renderCollectionsManager() {
+  const data = state.collections.data;
+  const buckets = data?.buckets || {};
+  return `
+    <section class="qd-admin-dashboard qd-collections-dashboard">
+      <article class="qd-admin-card qd-payment-lookup-card">
+        <div class="qd-admin-section-head qd-payment-head">
+          <div>
+            <span class="qd-admin-kicker">COLLECTIONS</span>
+            <h2>Money due</h2>
+            <p>Overdue, due today, and the next 7 days across quote milestones and monthly care.</p>
+          </div>
+          <button class="qd-btn qd-admin-action-secondary" type="button" data-action="collections-refresh">${state.collections.loading ? 'Refreshing...' : 'Refresh'}</button>
+        </div>
+        ${state.collections.error ? `<div class="qd-admin-alert">${escapeHtml(state.collections.error)}</div>` : ''}
+      </article>
+      <div class="qd-collections-grid">
+        ${renderCollectionBucket('Overdue', 'overdue', buckets.overdue || { total: 0, items: [] })}
+        ${renderCollectionBucket('Due today', 'dueToday', buckets.dueToday || { total: 0, items: [] })}
+        ${renderCollectionBucket('Upcoming', 'upcoming', buckets.upcoming || { total: 0, items: [] })}
+      </div>
+    </section>
+  `;
+}
+
 const renderAdminTabs = () => `
   <nav class="qd-admin-tabs" aria-label="Admin sections">
     <button class="qd-admin-tab ${state.activeTab === 'dashboard' ? 'is-active' : ''}" type="button" data-action="set-admin-tab" data-tab="dashboard">Pipeline</button>
@@ -2784,6 +3148,8 @@ const renderAdminTabs = () => `
     <button class="qd-admin-tab ${state.activeTab === 'cards' ? 'is-active' : ''}" type="button" data-action="set-admin-tab" data-tab="cards">Smart Cards</button>
     <button class="qd-admin-tab ${state.activeTab === 'invitations' ? 'is-active' : ''}" type="button" data-action="set-admin-tab" data-tab="invitations">Invitations</button>
     <button class="qd-admin-tab ${state.activeTab === 'pricing' ? 'is-active' : ''}" type="button" data-action="set-admin-tab" data-tab="pricing">Pricing</button>
+    <button class="qd-admin-tab ${state.activeTab === 'payments' ? 'is-active' : ''}" type="button" data-action="set-admin-tab" data-tab="payments">Quotations</button>
+    <button class="qd-admin-tab ${state.activeTab === 'collections' ? 'is-active' : ''}" type="button" data-action="set-admin-tab" data-tab="collections">Collections${state.collections.data?.count ? ` ${state.collections.data.count}` : ''}</button>
     <button class="qd-admin-tab ${state.activeTab === 'activity' ? 'is-active' : ''}" type="button" data-action="set-admin-tab" data-tab="activity">Activity</button>
   </nav>
 `;
@@ -4215,6 +4581,10 @@ const render = () => {
       ? renderOutreachManager()
     : state.activeTab === 'pricing'
       ? renderPricingManager()
+    : state.activeTab === 'payments'
+      ? renderPaymentsManager()
+    : state.activeTab === 'collections'
+      ? renderCollectionsManager()
     : state.activeTab === 'activity'
       ? renderActivityManager()
       : renderDashboard();
@@ -6171,6 +6541,8 @@ const handleDocumentClick = async (event) => {
     }
     syncAdminTabUrl();
     render();
+    if (state.activeTab === 'payments') await loadQuotesList();
+    if (state.activeTab === 'collections') await loadCollections();
     return;
   }
 
@@ -6594,6 +6966,64 @@ const handleDocumentClick = async (event) => {
     return;
   }
 
+  if (action === 'quote-status-filter') {
+    state.paymentLookup.status = actionTarget.dataset.status || 'All';
+    syncAdminTabUrl();
+    await loadQuotesList({ keepDetail: true });
+    return;
+  }
+
+  if (action === 'open-quotation') {
+    await openQuotationDetail(actionTarget.dataset.ref);
+    return;
+  }
+
+  if (action === 'quote-mark-sent') {
+    try {
+      await updateSelectedQuote({ markSent: true });
+      showAdminToast('Quote marked sent.');
+    } catch (error) {
+      showAdminToast(error.message || 'Could not mark sent.');
+    }
+    return;
+  }
+
+  if (action === 'quote-copy-client-link') {
+    const q = state.paymentLookup.quote;
+    if (!q) return;
+    const text = `Your quotation from QD Systems:\n${location.origin}/q/${q.id}\nPasscode: ${q.passcodePlain || '(check admin)'}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      showAdminToast('Client link copied.');
+    } catch {
+      prompt('Copy this client link:', text);
+    }
+    return;
+  }
+
+  if (action === 'collections-refresh') {
+    await loadCollections();
+    return;
+  }
+
+  if (action === 'collection-open-quote') {
+    state.activeTab = 'payments';
+    syncAdminTabUrl();
+    render();
+    await openQuotationDetail(actionTarget.dataset.ref);
+    await loadQuotesList({ keepDetail: true });
+    return;
+  }
+
+  if (action === 'collection-mark-collected') {
+    try {
+      await markCollectionCollected(actionTarget);
+    } catch (error) {
+      showAdminToast(error.message || 'Could not mark collected.');
+    }
+    return;
+  }
+
   if (action === 'generate-quote') {
     await openQuoteFromSubmission(actionTarget.dataset.submissionId);
     return;
@@ -7010,6 +7440,58 @@ document.addEventListener('change', (event) => {
 });
 
 document.addEventListener('submit', async (event) => {
+  if (event.target.id === 'quotation-search-form') {
+    event.preventDefault();
+    state.paymentLookup.search = event.target.elements.q?.value || '';
+    syncAdminTabUrl();
+    await loadQuotesList({ keepDetail: false });
+  }
+  if (event.target.id === 'quote-workflow-form') {
+    event.preventDefault();
+    try {
+      await updateSelectedQuote({ status: event.target.elements.status?.value || 'draft' });
+      showAdminToast('Status saved.');
+    } catch (error) {
+      showAdminToast(error.message || 'Could not save status.');
+    }
+  }
+  if (event.target.id === 'quote-remarks-form') {
+    event.preventDefault();
+    try {
+      await updateSelectedQuote({ remarks: event.target.elements.remarks?.value || '' });
+      showAdminToast('Remarks saved.');
+    } catch (error) {
+      showAdminToast(error.message || 'Could not save remarks.');
+    }
+  }
+  if (event.target.id === 'quote-golive-form') {
+    event.preventDefault();
+    try {
+      await updateSelectedQuote({ markGoLive: true, goLiveDate: event.target.elements.goLiveDate?.value || todayInputValue() });
+      await loadCollections();
+      showAdminToast('Go-live saved.');
+    } catch (error) {
+      showAdminToast(error.message || 'Could not save go-live.');
+    }
+  }
+  if (event.target.id === 'quote-milestones-form') {
+    event.preventDefault();
+    const milestoneDueDates = {};
+    for (const element of Array.from(event.target.elements)) {
+      if (element.name && element.type === 'date') milestoneDueDates[element.name] = element.value || '';
+    }
+    try {
+      await updateSelectedQuote({ milestoneDueDates });
+      await loadCollections();
+      showAdminToast('Due dates saved.');
+    } catch (error) {
+      showAdminToast(error.message || 'Could not save due dates.');
+    }
+  }
+  if (event.target.id === 'quote-payment-form') {
+    event.preventDefault();
+    await submitQuotePayment(event.target);
+  }
   if (event.target.id === 'card-editor-form') {
     event.preventDefault();
     await saveCardEditor();
@@ -7103,10 +7585,20 @@ const renderQuoteButton = (submission) => {
   return `<button class="qd-btn qd-btn-sm qd-admin-action-secondary qd-btn-with-dot" type="button" data-action="open-quote" data-quote-id="${escAttr(q.id)}">View Quote · ${escTxt(q.quoteNumber)}</button>`;
 };
 
+const goToQuotationDetail = async (quote) => {
+  if (!quote) return;
+  state.activeTab = 'payments';
+  state.paymentLookup.search = quote.quoteNumber || '';
+  syncAdminTabUrl();
+  render();
+  await openQuotationDetail(quote.id || quote.quoteNumber);
+  await loadQuotesList({ keepDetail: true });
+};
+
 const openQuoteFromSubmission = async (submissionId) => {
   const existing = state.quotesBySubmissionId[submissionId];
   if (existing) {
-    openQuoteDrawer(existing);
+    await goToQuotationDetail(existing);
     return;
   }
   try {
@@ -7130,7 +7622,7 @@ const openQuoteFromSubmission = async (submissionId) => {
       // If quote already exists (409), open the existing one
       if (res.status === 409 && err.existing) {
         state.quotesBySubmissionId[submissionId] = err.existing;
-        openQuoteDrawer(err.existing);
+        await goToQuotationDetail(err.existing);
         return;
       }
       showToast(`Could not create: ${err.error || res.status}`);
@@ -7150,7 +7642,7 @@ const openQuoteFromSubmission = async (submissionId) => {
         submissionLabel: submission ? getSubmissionActivityLabel(submission) : submissionId
       }
     });
-    openQuoteDrawer(created);
+    await goToQuotationDetail(created);
   } catch (e) {
     console.error('[quote-create] error:', e);
     showToast('Quote API is missing or not deployed.');
@@ -7238,6 +7730,8 @@ const updateQuoteTotalsPreview = () => {
     <div class="qd-quote-totals-row" style="opacity:0.85"><span>VAT ${q.vatPercent}%</span><span>${formatAED(t.vat)}</span></div>
     <div class="qd-quote-totals-row is-grand"><span>Total AED</span><span>${formatAED(t.grandTotal)}</span></div>
   `;
+  const paymentPreview = document.querySelector('#qd-quote-drawer .qd-quote-payment-panel');
+  if (paymentPreview) paymentPreview.outerHTML = renderQuoteDrawerPaymentSummary(q);
 };
 
 const saveQuoteDrawer = async ({ markSent = false, copy = false, silent = false } = {}) => {
@@ -7307,6 +7801,225 @@ const saveQuoteDrawer = async ({ markSent = false, copy = false, silent = false 
   }
 };
 
+async function getAdminIdToken() {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Not signed in.');
+  return user.getIdToken();
+}
+
+async function fetchQuotePaymentView(quoteRef) {
+  const token = await getAdminIdToken();
+  const res = await fetch(`/api/quote-payment?quoteRef=${encodeURIComponent(quoteRef)}`, {
+    method: 'GET',
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  const payload = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(payload.error || `Payment lookup failed: ${res.status}`);
+  return payload;
+}
+
+async function loadQuotesList({ keepDetail = true } = {}) {
+  state.paymentLookup = {
+    ...state.paymentLookup,
+    quotesLoading: true,
+    quotesError: ''
+  };
+  render();
+
+  try {
+    const token = await getAdminIdToken();
+    const params = new URLSearchParams();
+    if (state.paymentLookup.search) params.set('q', state.paymentLookup.search);
+    if (state.paymentLookup.status && state.paymentLookup.status !== 'All') params.set('status', state.paymentLookup.status);
+    const res = await fetch(`/api/quotes${params.toString() ? `?${params}` : ''}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const payload = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(payload.error || `Quote list failed: ${res.status}`);
+    state.paymentLookup = {
+      ...state.paymentLookup,
+      quotes: payload.quotes || [],
+      quote: keepDetail ? state.paymentLookup.quote : null,
+      quotesLoading: false,
+      quotesError: ''
+    };
+    render();
+  } catch (error) {
+    state.paymentLookup = {
+      ...state.paymentLookup,
+      quotesLoading: false,
+      quotesError: error.message || 'Could not load quotations.'
+    };
+    render();
+  }
+}
+
+async function openQuotationDetail(quoteRef) {
+  const cleanRef = String(quoteRef || '').trim();
+  if (!cleanRef) {
+    state.paymentLookup.error = 'Quote ref is required.';
+    render();
+    return;
+  }
+
+  state.paymentLookup = {
+    ...state.paymentLookup,
+    quoteRef: cleanRef,
+    loading: true,
+    error: ''
+  };
+  render();
+
+  try {
+    const quote = await fetchQuotePaymentView(cleanRef);
+    state.paymentLookup = {
+      ...state.paymentLookup,
+      quoteRef: quote.quoteRef || cleanRef,
+      quote,
+      loading: false,
+      error: ''
+    };
+    render();
+  } catch (error) {
+    state.paymentLookup = {
+      ...state.paymentLookup,
+      loading: false,
+      error: error.message || 'Could not open quote.'
+    };
+    render();
+  }
+}
+
+async function loadQuotePaymentsByRef(quoteRef) {
+  await openQuotationDetail(quoteRef);
+}
+
+async function updateSelectedQuote(payload) {
+  const quoteRef = String(state.paymentLookup.quote?.id || state.paymentLookup.quoteRef || '').trim();
+  if (!quoteRef) return;
+  const token = await getAdminIdToken();
+  const res = await fetch('/api/quote-update', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify({ id: quoteRef, ...payload })
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.error || `Quote update failed: ${res.status}`);
+  await openQuotationDetail(quoteRef);
+  await loadQuotesList({ keepDetail: true });
+}
+
+async function loadCollections() {
+  state.collections = { ...state.collections, loading: true, error: '' };
+  render();
+  try {
+    const token = await getAdminIdToken();
+    const res = await fetch(`/api/collections?on=${encodeURIComponent(state.collections.on || todayInputValue())}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const payload = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(payload.error || `Collections failed: ${res.status}`);
+    state.collections = { ...state.collections, loading: false, error: '', data: payload };
+    render();
+  } catch (error) {
+    state.collections = { ...state.collections, loading: false, error: error.message || 'Could not load collections.' };
+    render();
+  }
+}
+
+async function markCollectionCollected(target) {
+  const token = await getAdminIdToken();
+  const res = await fetch('/api/collections-collect', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify({
+      id: target.dataset.ref,
+      type: target.dataset.type,
+      monthKey: target.dataset.monthKey || '',
+      milestoneKey: target.dataset.milestoneKey || '',
+      collectedOn: todayInputValue(),
+      method: 'Collection'
+    })
+  });
+  const payload = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(payload.error || `Collection update failed: ${res.status}`);
+  showAdminToast('Marked collected.');
+  await loadCollections();
+  if (state.paymentLookup.quote?.id === target.dataset.ref) await openQuotationDetail(target.dataset.ref);
+  await loadQuotesList({ keepDetail: true });
+}
+
+async function submitQuotePayment(form) {
+  const quoteRef = String(state.paymentLookup.quote?.quoteRef || state.paymentLookup.quoteRef || '').trim();
+  if (!quoteRef) {
+    state.paymentLookup.error = 'Open a quote before logging a payment.';
+    render();
+    return;
+  }
+
+  const payment = {
+    amount: form.elements.amount?.value || '',
+    date: form.elements.date?.value || '',
+    method: form.elements.method?.value || '',
+    note: form.elements.note?.value || ''
+  };
+  state.paymentLookup = {
+    ...state.paymentLookup,
+    saving: true,
+    error: '',
+    form: payment
+  };
+  render();
+
+  try {
+    const user = auth.currentUser;
+    if (!user) throw new Error('Not signed in.');
+    const token = await user.getIdToken();
+    const res = await fetch('/api/quote-payment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ quoteRef, payment })
+    });
+    const payload = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(payload.error || `Payment save failed: ${res.status}`);
+
+    if (state.quoteDrawer.quote?.id === payload.id) {
+      state.quoteDrawer.quote = {
+        ...state.quoteDrawer.quote,
+        payments: payload.payments,
+        paid: payload.paid,
+        balance: payload.balance,
+        paymentStatus: payload.status
+      };
+    }
+    state.paymentLookup = {
+      ...state.paymentLookup,
+      quoteRef: payload.quoteRef || quoteRef,
+      quote: payload,
+      saving: false,
+      error: '',
+      form: {
+        amount: '',
+        date: new Date().toISOString().slice(0, 10),
+        method: payment.method || 'Bank transfer',
+        note: ''
+      }
+    };
+    showAdminToast('Payment logged.');
+    await loadQuotesList({ keepDetail: true });
+    await loadCollections();
+    render();
+  } catch (error) {
+    state.paymentLookup = {
+      ...state.paymentLookup,
+      saving: false,
+      error: error.message || 'Could not log payment.',
+      form: payment
+    };
+    render();
+  }
+}
+
 let toastTimeout = null;
 const showToast = (msg) => {
   state.quoteToast = msg;
@@ -7316,6 +8029,23 @@ const showToast = (msg) => {
     state.quoteToast = '';
     render();
   }, 2600);
+};
+
+const renderQuoteDrawerPaymentSummary = (quote) => {
+  const summary = getQuotePaymentSummary(quote);
+  return `
+    <div class="qd-quote-payment-panel">
+      <div class="qd-quote-payment-head">
+        <span>Payment status</span>
+        ${renderPaymentStatusChip(summary.status)}
+      </div>
+      <div class="qd-quote-payment-grid">
+        <div><span>Total</span><strong>AED ${escTxt(formatPaymentAED(summary.total))}</strong></div>
+        <div><span>Paid</span><strong>AED ${escTxt(formatPaymentAED(summary.paid))}</strong></div>
+        <div><span>Balance</span><strong>AED ${escTxt(formatPaymentAED(summary.balance))}</strong></div>
+      </div>
+    </div>
+  `;
 };
 
 const renderQuoteDrawer = () => {
@@ -7391,6 +8121,7 @@ const renderQuoteDrawer = () => {
           <div class="qd-quote-totals-row" style="opacity:0.85"><span>VAT ${q.vatPercent}%</span><span>${formatAED(t.vat)}</span></div>
           <div class="qd-quote-totals-row is-grand"><span>Total AED</span><span>${formatAED(t.grandTotal)}</span></div>
         </div>
+        ${renderQuoteDrawerPaymentSummary(q)}
 
         <div class="qd-quote-meta-row">
           <label>VALID <input class="qd-quote-input" type="number" min="1" data-qfield="validDays" value="${escAttr(q.validDays ?? 30)}" style="width:54px"> days</label>
@@ -7973,7 +8704,7 @@ const handlePricingAction = async (action, actionTarget) => {
       }
       const created = await res.json();
       p.quoteCreating = false;
-      openQuoteDrawer(created);
+      await goToQuotationDetail(created);
     } catch (error) {
       p.quoteCreating = false;
       showAdminToast(`Could not create quote: ${error.message}`);
@@ -8020,6 +8751,8 @@ onAuthStateChanged(auth, async (user) => {
     subscribeToDemos();
     subscribeToInvitations();
     subscribeToOutreachLeads();
+    if (state.activeTab === 'payments') loadQuotesList();
+    if (state.activeTab === 'collections') loadCollections();
     if (state.pendingLoginAudit) {
       await logAdminActivity({
         action: 'login',
@@ -8064,6 +8797,30 @@ onAuthStateChanged(auth, async (user) => {
     state.submissionActivityLogs = [];
     state.quotesBySubmissionId = {};
     state.quoteDrawer = { open: false, quote: null, original: null, dirty: false };
+    state.paymentLookup = {
+      quoteRef: '',
+      quote: null,
+      quotes: [],
+      quotesLoading: false,
+      quotesError: '',
+      search: '',
+      status: 'All',
+      loading: false,
+      saving: false,
+      error: '',
+      form: {
+        amount: '',
+        date: new Date().toISOString().slice(0, 10),
+        method: 'Bank transfer',
+        note: ''
+      }
+    };
+    state.collections = {
+      loading: false,
+      error: '',
+      data: null,
+      on: new Date().toISOString().slice(0, 10)
+    };
     state.cardEditor = {
       open: false,
       mode: 'create',
@@ -8147,6 +8904,15 @@ const syncAdminTabUrl = () => {
     url.searchParams.set('section', state.dashboardSection);
   } else {
     url.searchParams.delete('section');
+  }
+  if (state.activeTab === 'payments') {
+    if (state.paymentLookup.search) url.searchParams.set('q', state.paymentLookup.search);
+    else url.searchParams.delete('q');
+    if (state.paymentLookup.status && state.paymentLookup.status !== 'All') url.searchParams.set('quoteStatus', state.paymentLookup.status);
+    else url.searchParams.delete('quoteStatus');
+  } else {
+    url.searchParams.delete('q');
+    url.searchParams.delete('quoteStatus');
   }
   window.history.replaceState({}, '', url);
 };

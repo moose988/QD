@@ -7,6 +7,9 @@ import { getDb, admin } from './_lib/firebase.js';
 import { requireAdmin } from './_lib/admin-auth.js';
 import { generateQuoteId, generatePasscode, hashPasscode } from './_lib/quote-id.js';
 import { getNextQuoteNumber } from './_lib/quote-counter.js';
+import { buildQuoteSearchFields } from './_lib/quote-admin.js';
+import { buildDefaultMilestones } from './_lib/collections.js';
+import { buildQuotePaymentFields } from './_lib/quote-payments.js';
 import { prefillFromSubmission } from '../app/lib/quote-prefill.js';
 import { createQuoteFromEstimate } from './_lib/create-quote-from-estimate.js';
 
@@ -92,12 +95,19 @@ export default async function handler(req, res) {
         ar: '50% مقدماً، 50% عند التسليم. لا يشمل الاستضافة (نوصي بـ Vercel المجاني).'
       },
       notes: { en: '', ar: '' },
+      remarks: '',
       passcodeHash,
       _passcodePlain: passcodePlain,
+      payments: [],
+      careMonthly: 0,
+      careCollected: [],
       createdAt: now,
       updatedAt: now,
       lastSentAt: null
     };
+    Object.assign(quote, buildQuotePaymentFields(id, quote));
+    Object.assign(quote, buildQuoteSearchFields(quote));
+    quote.milestones = buildDefaultMilestones(quote.balance);
 
     console.log('[quote-create] writing quote:', { id, quoteNumber, lineItems: quote.lineItems?.length || 0 });
     await db.collection('quotes').doc(id).set(quote);

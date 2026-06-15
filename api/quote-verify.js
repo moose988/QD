@@ -3,6 +3,7 @@
 
 import { getDb } from './_lib/firebase.js';
 import { verifyPasscode } from './_lib/quote-id.js';
+import { sanitizePublicQuote } from './_lib/quote-admin.js';
 
 export const config = { runtime: 'nodejs', maxDuration: 10 };
 
@@ -14,11 +15,7 @@ const BRAND = {
 
 // Strip fields that should never leave the server.
 function sanitize(quote) {
-  const { passcodeHash, _passcodePlain, submissionId, ...safe } = quote;
-  for (const key of Object.keys(safe)) {
-    if (key.startsWith('_')) delete safe[key];
-  }
-  return safe;
+  return sanitizePublicQuote(quote);
 }
 
 export default async function handler(req, res) {

@@ -22,8 +22,17 @@
     "api/maps-extract.js": { "memory": 512,  "maxDuration": 15 },
     "api/quote-create.js": { "memory": 512,  "maxDuration": 10 },
     "api/quote-save.js":   { "memory": 512,  "maxDuration": 10 },
-    "api/quote-verify.js": { "memory": 512,  "maxDuration": 10 }
+    "api/quote-verify.js": { "memory": 512,  "maxDuration": 10 },
+    "api/quotes.js":       { "memory": 512,  "maxDuration": 10 },
+    "api/quote-update.js": { "memory": 512,  "maxDuration": 10 },
+    "api/quote-payment.js": { "memory": 512, "maxDuration": 10 },
+    "api/collections.js":  { "memory": 512,  "maxDuration": 10 },
+    "api/collections-collect.js": { "memory": 512, "maxDuration": 10 },
+    "api/collections-digest.js": { "memory": 512, "maxDuration": 15 }
   },
+  "crons": [
+    { "path": "/api/collections-digest", "schedule": "0 4 * * *" }
+  ],
   "headers": [
     {
       "source": "/api/chat",
