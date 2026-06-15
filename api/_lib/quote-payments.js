@@ -95,6 +95,16 @@ function getPaymentStatusFromRemaining(amount, paidAmount) {
 }
 
 function withScheduleDerived(item) {
+  if (item.waived) {
+    return {
+      ...item,
+      amount: 0,
+      paidAmount: 0,
+      remaining: 0,
+      state: 'waived',
+      status: 'waived'
+    };
+  }
   const paidAmount = roundMoney(Math.max(0, Number(item.paidAmount) || 0));
   const amount = roundMoney(item.amount);
   const remaining = roundMoney(Math.max(0, amount - paidAmount));
@@ -121,7 +131,9 @@ function baseCareItems(quote = {}, on = new Date().toISOString().slice(0, 10)) {
   if (!goLive || !through || monthly <= 0 || billingDay <= 0) return [];
 
   const legacyCollected = new Set(Array.isArray(quote.careCollected) ? quote.careCollected.map(String) : []);
+  const waived = new Set(Array.isArray(quote.careWaived) ? quote.careWaived.map(String) : []);
   const items = [];
+  let firstCareMonth = true;
   let year = goLive.getUTCFullYear();
   let month = goLive.getUTCMonth();
   while (new Date(Date.UTC(year, month, 1)) <= through) {
@@ -129,15 +141,18 @@ function baseCareItems(quote = {}, on = new Date().toISOString().slice(0, 10)) {
     const dueDate = new Date(Date.UTC(year, month, day)).toISOString().slice(0, 10);
     const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
     if (compareIso(dueDate, goLiveDate) >= 0 && compareIso(dueDate, addDaysIso(on, 7)) <= 0) {
+      const isWaived = waived.has(monthKey) || (quote.firstMonthFree === true && firstCareMonth);
       items.push({
         key: monthKey,
         itemKey: `care:${monthKey}`,
         label: `Care ${monthKey}`,
         type: 'Monthly care',
-        amount: monthly,
+        amount: isWaived ? 0 : monthly,
         dueDate,
-        paidAmount: legacyCollected.has(monthKey) ? monthly : 0
+        paidAmount: legacyCollected.has(monthKey) && !isWaived ? monthly : 0,
+        waived: isWaived
       });
+      firstCareMonth = false;
     }
     month += 1;
     if (month > 11) {
@@ -290,6 +305,8 @@ export function buildQuotePaymentView(id, quote = {}, options = {}) {
     billingDay: quote.billingDay || 0,
     careMonthly: quote.careMonthly || 0,
     careCollected: Array.isArray(quote.careCollected) ? quote.careCollected : [],
+    careWaived: Array.isArray(quote.careWaived) ? quote.careWaived : [],
+    firstMonthFree: quote.firstMonthFree === true,
     milestones,
     schedule,
     total: buildTotal,

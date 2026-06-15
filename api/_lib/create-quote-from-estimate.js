@@ -66,6 +66,8 @@ export async function createQuoteFromEstimate(body, adminUser) {
     payments: [],
     careMonthly: Number(estimate.monthly?.amount) || 0,
     careCollected: [],
+    careWaived: [],
+    firstMonthFree: false,
     createdAt: now,
     updatedAt: now,
     lastSentAt: null

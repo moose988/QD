@@ -2105,62 +2105,163 @@ body.qd-admin-page.qd-modal-open {
   display: grid;
   gap: 18px;
 }
-.qd-collections-grid {
+.qd-collection-kpis {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+.qd-collection-kpi {
+  border: 1px solid var(--qd-admin-border);
+  border-radius: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.035);
+}
+.qd-collection-kpi[data-tone="overdue"] { border-color: rgba(230,110,110,.38); }
+.qd-collection-kpi[data-tone="dueToday"] { border-color: rgba(230,190,110,.42); }
+.qd-collection-kpi span,
+.qd-collection-kpi small {
+  display: block;
+  color: rgba(244, 241, 234, 0.62);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.qd-collection-kpi strong {
+  display: block;
+  margin: 6px 0 4px;
+  color: rgba(150, 220, 180, 0.95);
+  font-size: 1.12rem;
+  font-variant-numeric: tabular-nums;
+}
+.qd-collection-tools,
+.qd-collection-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-top: 14px;
+}
+.qd-collection-tools .qd-admin-input {
+  max-width: 320px;
+}
+.qd-collection-cockpit {
+  display: grid;
   gap: 14px;
-  align-items: start;
 }
-.qd-collection-bucket {
+.qd-collection-section {
   display: grid;
-  gap: 12px;
+  gap: 8px;
 }
-.qd-collection-bucket[data-tone="danger"] { border-color: rgba(230,110,110,.3); }
-.qd-collection-bucket[data-tone="today"] { border-color: rgba(230,190,110,.34); }
-.qd-collection-bucket-head {
+.qd-collection-section-head {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  align-items: center;
+  color: rgba(244, 241, 234, 0.72);
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid var(--qd-admin-border);
+  padding-bottom: 6px;
 }
-.qd-collection-bucket-head strong {
-  display: block;
-  margin-top: 4px;
-  color: rgba(150, 220, 180, 0.95);
-  font-size: 1.05rem;
-  font-variant-numeric: tabular-nums;
+.qd-collection-empty-line {
+  color: rgba(244, 241, 234, 0.55);
+  font-size: 0.86rem;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,.06);
 }
 .qd-collection-list {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 .qd-collection-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 10px;
   border: 1px solid var(--qd-admin-border);
-  border-radius: 12px;
+  border-radius: 10px;
   padding: 10px;
   background: rgba(255, 255, 255, 0.03);
 }
-.qd-collection-row .qd-admin-row-button {
+.qd-collection-main {
+  display: grid;
+  grid-template-columns: 38px minmax(140px, 1.1fr) minmax(140px, 1fr) 100px;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
   text-align: left;
   padding: 0;
+  cursor: pointer;
 }
-.qd-collection-row .qd-admin-row-button span {
+.qd-collection-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(255,255,255,.08);
+  color: rgba(244,241,234,.82);
+  font-weight: 700;
+  font-size: 0.72rem;
+}
+.qd-collection-client small {
   display: block;
-  margin-top: 4px;
   color: rgba(244, 241, 234, 0.62);
   font-size: 0.76rem;
 }
+.qd-collection-date,
+.qd-collection-item {
+  color: rgba(244, 241, 234, 0.72);
+  font-size: 0.86rem;
+}
 .qd-collection-row-side {
-  display: grid;
+  display: flex;
   gap: 8px;
-  justify-items: end;
-  align-content: center;
+  align-items: center;
+  justify-content: flex-end;
 }
 .qd-collection-row-side strong {
   font-variant-numeric: tabular-nums;
+}
+.qd-collection-pill {
+  border: 1px solid var(--qd-admin-border);
+  border-radius: 999px;
+  padding: 4px 8px;
+  color: rgba(244,241,234,.7);
+  font-size: 0.7rem;
+}
+.qd-collection-pill[data-tone="overdue"] { color: #ffb7b7; border-color: rgba(230,110,110,.38); }
+.qd-collection-pill[data-tone="dueToday"] { color: #ffdca3; border-color: rgba(230,190,110,.42); }
+.qd-payment-schedule {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.qd-payment-schedule-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--qd-admin-border);
+  border-radius: 10px;
+  padding: 10px;
+  background: rgba(255,255,255,.03);
+}
+.qd-payment-schedule-row span,
+.qd-payment-schedule-actions small {
+  display: block;
+  color: rgba(244,241,234,.62);
+  font-size: 0.78rem;
+}
+.qd-payment-schedule-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.qd-admin-checkbox-field {
+  justify-content: center;
 }
 .qd-payment-summary-grid {
   display: grid;

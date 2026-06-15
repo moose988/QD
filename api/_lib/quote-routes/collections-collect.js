@@ -3,6 +3,7 @@
 
 import { getDb, admin } from '../firebase.js';
 import { requireAdmin } from '../admin-auth.js';
+import { logQuoteAudit } from '../audit-log.js';
 import { getQuoteRefFromRequest, parseJsonBody, resolveQuoteByRef } from '../quote-admin.js';
 import { buildQuoteCollectionPatch, buildQuoteFieldsAfterCollection, todayIso } from '../collections.js';
 
@@ -18,7 +19,7 @@ export default async function handler(req, res) {
 
   try {
     try {
-      await requireAdmin(req);
+      var adminUser = await requireAdmin(req);
     } catch (error) {
       console.warn('[collections-collect] auth failed:', error.message);
       return res.status(401).json({ error: error.message });
@@ -50,9 +51,16 @@ export default async function handler(req, res) {
         lastPaymentAt: patch.payment.date,
         updatedAt: admin.firestore.FieldValue.serverTimestamp()
       }, { merge: true });
-      return { ok: true, payment: patch.payment };
+      return { ok: true, payment: patch.payment, quoteNumber: quote.quoteNumber };
     });
 
+    await logQuoteAudit({
+      action: 'recorded_payment',
+      quoteId: resolved.id,
+      quoteNumber: result.quoteNumber,
+      actor: adminUser,
+      details: `Recorded AED ${result.payment.amount} against ${result.payment.note || result.payment.itemKey}`
+    });
     return res.status(200).json(result);
   } catch (error) {
     console.error('[collections-collect] unhandled error:', error);

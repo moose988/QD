@@ -4,6 +4,7 @@
 
 import { getDb, admin } from '../firebase.js';
 import { requireAdmin } from '../admin-auth.js';
+import { logQuoteAudit } from '../audit-log.js';
 import { getQuoteRefFromRequest, parseJsonBody, resolveQuoteByRef } from '../quote-admin.js';
 import {
   applyPaymentToQuote,
@@ -27,7 +28,7 @@ export default async function handler(req, res) {
 
   try {
     try {
-      await requireAdmin(req);
+      var adminUser = await requireAdmin(req);
     } catch (error) {
       console.warn('[quote-payment] auth failed:', error.message);
       return res.status(401).json({ error: error.message });
@@ -68,10 +69,17 @@ export default async function handler(req, res) {
         lastPaymentAt: payment.date,
         updatedAt: admin.firestore.FieldValue.serverTimestamp()
       }, { merge: true });
-      return buildQuotePaymentView(resolved.id, nextQuote);
+      return { view: buildQuotePaymentView(resolved.id, nextQuote), quoteNumber: quote.quoteNumber };
     });
 
-    return res.status(201).json(result);
+    await logQuoteAudit({
+      action: 'recorded_payment',
+      quoteId: resolved.id,
+      quoteNumber: result.quoteNumber,
+      actor: adminUser,
+      details: `Recorded AED ${payment.amount} against ${payment.itemKey}`
+    });
+    return res.status(201).json(result.view);
   } catch (error) {
     console.error('[quote-payment] unhandled error:', error);
     return res.status(error.status || 500).json({ error: error.message || 'Internal server error' });

@@ -161,6 +161,13 @@ const activityActionLabels = {
   delete_submission: 'Deleted submission',
   create_quote: 'Created quote',
   update_quote: 'Updated quote',
+  deleted_quote: 'Deleted quote',
+  recorded_payment: 'Recorded payment',
+  waived_care: 'Waived monthly care',
+  unwaived_care: 'Un-waived care',
+  marked_sent: 'Marked as sent',
+  changed_quote_status: 'Changed quote status',
+  marked_go_live: 'Set go-live date',
   import_chat_lead: 'Imported chat lead',
   delete_chat_lead: 'Deleted chat lead',
   delete_chat_conversation: 'Deleted chat conversation',
@@ -286,7 +293,9 @@ const state = {
     loading: false,
     error: '',
     data: null,
-    on: new Date().toISOString().slice(0, 10)
+    on: new Date().toISOString().slice(0, 10),
+    search: '',
+    filter: 'All'
   },
   pricing: {
     website: true,
@@ -2890,9 +2899,12 @@ function renderQuoteSchedule(schedule = []) {
         <div class="qd-payment-schedule-row" data-state="${escapeHtml(item.state || 'Unpaid')}">
           <div>
             <strong>${escapeHtml(item.label || item.type || item.itemKey)}</strong>
-            <span>AED ${escapeHtml(formatPaymentAED(item.amount))} - ${escapeHtml(item.state || 'Unpaid')}${item.remaining > 0 ? ` / Remaining AED ${escapeHtml(formatPaymentAED(item.remaining))}` : ' ✓'}</span>
+            <span>${item.state === 'waived' ? 'Free - Waived' : `AED ${escapeHtml(formatPaymentAED(item.amount))} - ${escapeHtml(item.state || 'Unpaid')}${item.remaining > 0 ? ` / Remaining AED ${escapeHtml(formatPaymentAED(item.remaining))}` : ' ✓'}`}</span>
           </div>
-          <small>${item.dueDate ? `Due ${escapeHtml(formatAdminDate(item.dueDate))}` : 'No due date'}</small>
+          <div class="qd-payment-schedule-actions">
+            <small>${item.dueDate ? `Due ${escapeHtml(formatAdminDate(item.dueDate))}` : 'No due date'}</small>
+            ${item.itemKey?.startsWith('care:') ? `<button class="qd-btn qd-btn-sm qd-admin-action-secondary" type="button" data-action="${item.state === 'waived' ? 'quote-unwaive-care' : 'quote-waive-care'}" data-month-key="${escapeHtml(item.key || '')}">${item.state === 'waived' ? 'Un-waive' : 'Waive'}</button>` : ''}
+          </div>
         </div>
       `).join('')}
     </div>
@@ -3056,6 +3068,10 @@ function renderQuotationDetail(quote) {
           </label>
           <button class="qd-btn qd-admin-action-secondary" type="submit">Mark go-live</button>
         </form>
+        <label class="qd-admin-field qd-admin-checkbox-field">
+          <span>First month of care free</span>
+          <input type="checkbox" data-action="quote-first-month-free" ${quote.firstMonthFree ? 'checked' : ''}>
+        </label>
         <form id="quote-milestones-form" class="qd-quotation-milestones-form">
           ${milestones.map((milestone) => `
             <label class="qd-admin-field">
@@ -3115,38 +3131,95 @@ function renderPaymentsManager() {
   `;
 }
 
-function renderCollectionBucket(title, key, bucket) {
-  const tone = key === 'overdue' ? 'danger' : key === 'dueToday' ? 'today' : 'upcoming';
-  const items = bucket?.items || [];
+function getCollectionInitials(name = '') {
+  const clean = String(name || '').trim();
+  if (!clean) return '--';
+  return clean.split(/\s+/).slice(0, 2).map((part) => part[0]?.toUpperCase() || '').join('');
+}
+
+function collectionItemsForBucket(data, bucketKey) {
+  return data?.buckets?.[bucketKey]?.items || [];
+}
+
+function allCollectionItems(data) {
+  return [
+    ...collectionItemsForBucket(data, 'overdue').map((item) => ({ ...item, bucket: 'overdue' })),
+    ...collectionItemsForBucket(data, 'dueToday').map((item) => ({ ...item, bucket: 'dueToday' })),
+    ...collectionItemsForBucket(data, 'upcoming').map((item) => ({ ...item, bucket: 'upcoming' }))
+  ];
+}
+
+function filterCollectionItems(items) {
+  const q = String(state.collections.search || '').trim().toLowerCase();
+  const filter = state.collections.filter || 'All';
+  return items.filter((item) => {
+    if (q && ![item.client, item.quoteNumber].join(' ').toLowerCase().includes(q)) return false;
+    if (filter === 'Overdue' && item.bucket !== 'overdue') return false;
+    if (filter === 'Due today' && item.bucket !== 'dueToday') return false;
+    if (filter === 'Upcoming' && item.bucket !== 'upcoming') return false;
+    if (filter === 'Care' && item.collectionType !== 'care') return false;
+    if (filter === 'Milestones' && item.collectionType !== 'milestone') return false;
+    return true;
+  });
+}
+
+function renderCollectionKpi(label, key, bucket) {
   return `
-    <article class="qd-admin-card qd-collection-bucket" data-tone="${tone}">
-      <div class="qd-collection-bucket-head">
-        <div><span class="qd-admin-kicker">${escapeHtml(title)}</span><strong>AED ${escapeHtml(formatPaymentAED(bucket?.total || 0))}</strong></div>
-        <span class="qd-admin-count-badge">${items.length}</span>
+    <div class="qd-collection-kpi" data-tone="${key}">
+      <span>${escapeHtml(label)}</span>
+      <strong>AED ${escapeHtml(formatPaymentAED(bucket?.total || 0))}</strong>
+      <small>${escapeHtml(String((bucket?.items || []).length))} item${(bucket?.items || []).length === 1 ? '' : 's'}</small>
+    </div>
+  `;
+}
+
+function renderCollectionRow(item) {
+  const client = item.client && item.client.toLowerCase() !== 'client' ? item.client : '—';
+  const status = item.bucket === 'overdue' ? 'Overdue' : item.bucket === 'dueToday' ? 'Due today' : 'Upcoming';
+  return `
+    <div class="qd-collection-row">
+      <button type="button" class="qd-collection-main" data-action="collection-open-quote" data-ref="${escapeHtml(item.quoteId)}">
+        <span class="qd-collection-avatar">${escapeHtml(getCollectionInitials(client))}</span>
+        <span class="qd-collection-client">
+          <strong>${escapeHtml(client)}</strong>
+          <small>${escapeHtml(item.quoteNumber || '')}</small>
+        </span>
+        <span class="qd-collection-item">${escapeHtml(item.label || item.type || '')}</span>
+        <span class="qd-collection-date">${escapeHtml(formatAdminDate(item.dueDate))}</span>
+      </button>
+      <div class="qd-collection-row-side">
+        <span class="qd-collection-pill" data-tone="${escapeHtml(item.bucket)}">${escapeHtml(status)}</span>
+        <strong>AED ${escapeHtml(formatPaymentAED(item.amount))}</strong>
+        <button class="qd-btn qd-btn-sm qd-admin-action-primary" type="button" data-action="collection-mark-collected" data-ref="${escapeHtml(item.quoteId)}" data-item-key="${escapeHtml(item.itemKey || '')}" data-type="${escapeHtml(item.collectionType)}" data-month-key="${escapeHtml(item.monthKey || '')}" data-milestone-key="${escapeHtml(item.milestoneKey || '')}">Mark collected</button>
       </div>
-      ${items.length ? `
-        <div class="qd-collection-list">
-          ${items.map((item) => `
-            <div class="qd-collection-row">
-              <button type="button" class="qd-admin-row-button" data-action="collection-open-quote" data-ref="${escapeHtml(item.quoteId)}">
-                <strong>${escapeHtml(item.client || 'Client')}</strong>
-                <span>${escapeHtml(item.quoteNumber || '')} · ${escapeHtml(item.label || item.type || '')} · due ${escapeHtml(item.dueDate || '')}</span>
-              </button>
-              <div class="qd-collection-row-side">
-                <strong>AED ${escapeHtml(formatPaymentAED(item.amount))}</strong>
-                <button class="qd-btn qd-btn-sm qd-admin-action-primary" type="button" data-action="collection-mark-collected" data-ref="${escapeHtml(item.quoteId)}" data-item-key="${escapeHtml(item.itemKey || '')}" data-type="${escapeHtml(item.collectionType)}" data-month-key="${escapeHtml(item.monthKey || '')}" data-milestone-key="${escapeHtml(item.milestoneKey || '')}">Mark collected</button>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      ` : `<div class="qd-admin-empty"><strong>No items</strong>Nothing in this bucket.</div>`}
-    </article>
+    </div>
+  `;
+}
+
+function renderCollectionSection(title, bucketKey, items, data) {
+  const bucket = data?.buckets?.[bucketKey] || { total: 0, items: [] };
+  if (!items.length) {
+    const empty = bucketKey === 'overdue' ? "Nothing overdue - you're caught up" : bucketKey === 'dueToday' ? 'Nothing due today' : 'Nothing coming up in the next 7 days';
+    return `<div class="qd-collection-empty-line">${escapeHtml(empty)}</div>`;
+  }
+  return `
+    <section class="qd-collection-section">
+      <div class="qd-collection-section-head"><span>${escapeHtml(title)}</span><small>${items.length} item${items.length === 1 ? '' : 's'} · AED ${escapeHtml(formatPaymentAED(items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)))}</small></div>
+      <div class="qd-collection-list">${items.map(renderCollectionRow).join('')}</div>
+    </section>
   `;
 }
 
 function renderCollectionsManager() {
   const data = state.collections.data;
   const buckets = data?.buckets || {};
+  const allItems = filterCollectionItems(allCollectionItems(data));
+  const byBucket = {
+    overdue: allItems.filter((item) => item.bucket === 'overdue'),
+    dueToday: allItems.filter((item) => item.bucket === 'dueToday'),
+    upcoming: allItems.filter((item) => item.bucket === 'upcoming')
+  };
+  const totalDue = (buckets.overdue?.total || 0) + (buckets.dueToday?.total || 0) + (buckets.upcoming?.total || 0);
   return `
     <section class="qd-admin-dashboard qd-collections-dashboard">
       <article class="qd-admin-card qd-payment-lookup-card">
@@ -3158,13 +3231,25 @@ function renderCollectionsManager() {
           </div>
           <button class="qd-btn qd-admin-action-secondary" type="button" data-action="collections-refresh">${state.collections.loading ? 'Refreshing...' : 'Refresh'}</button>
         </div>
+        <div class="qd-collection-kpis">
+          ${renderCollectionKpi('Overdue', 'overdue', buckets.overdue || { total: 0, items: [] })}
+          ${renderCollectionKpi('Due today', 'dueToday', buckets.dueToday || { total: 0, items: [] })}
+          ${renderCollectionKpi('Next 7 days', 'upcoming', buckets.upcoming || { total: 0, items: [] })}
+          <div class="qd-collection-kpi" data-tone="total"><span>Total due</span><strong>AED ${escapeHtml(formatPaymentAED(totalDue))}</strong><small>${escapeHtml(String(data?.count || 0))} item${(data?.count || 0) === 1 ? '' : 's'}</small></div>
+        </div>
+        <div class="qd-collection-tools">
+          <input class="qd-admin-input" type="search" placeholder="Search client or reference" data-collection-search value="${escapeHtml(state.collections.search || '')}">
+          <div class="qd-collection-filters">
+            ${['All', 'Overdue', 'Due today', 'Upcoming', 'Care', 'Milestones'].map((item) => `<button class="qd-btn qd-btn-sm ${state.collections.filter === item ? 'qd-admin-action-primary' : 'qd-admin-action-secondary'}" type="button" data-action="collection-filter" data-filter="${escapeHtml(item)}">${escapeHtml(item)}</button>`).join('')}
+          </div>
+        </div>
         ${state.collections.error ? `<div class="qd-admin-alert">${escapeHtml(state.collections.error)}</div>` : ''}
       </article>
-      <div class="qd-collections-grid">
-        ${renderCollectionBucket('Overdue', 'overdue', buckets.overdue || { total: 0, items: [] })}
-        ${renderCollectionBucket('Due today', 'dueToday', buckets.dueToday || { total: 0, items: [] })}
-        ${renderCollectionBucket('Upcoming', 'upcoming', buckets.upcoming || { total: 0, items: [] })}
-      </div>
+      <article class="qd-admin-card qd-collection-cockpit">
+        ${renderCollectionSection('Overdue', 'overdue', byBucket.overdue, data)}
+        ${renderCollectionSection('Due today', 'dueToday', byBucket.dueToday, data)}
+        ${renderCollectionSection('Next 7 days', 'upcoming', byBucket.upcoming, data)}
+      </article>
     </section>
   `;
 }
@@ -7019,6 +7104,28 @@ const handleDocumentClick = async (event) => {
     return;
   }
 
+  if (action === 'quote-waive-care') {
+    try {
+      await updateSelectedQuote({ waiveCare: { monthKey: actionTarget.dataset.monthKey || '' } });
+      await loadCollections();
+      showAdminToast('Care month waived.');
+    } catch (error) {
+      showAdminToast(error.message || 'Could not waive care.');
+    }
+    return;
+  }
+
+  if (action === 'quote-unwaive-care') {
+    try {
+      await updateSelectedQuote({ unwaiveCare: { monthKey: actionTarget.dataset.monthKey || '' } });
+      await loadCollections();
+      showAdminToast('Care month restored.');
+    } catch (error) {
+      showAdminToast(error.message || 'Could not restore care.');
+    }
+    return;
+  }
+
   if (action === 'quote-mark-sent') {
     try {
       await updateSelectedQuote({ markSent: true });
@@ -7044,6 +7151,12 @@ const handleDocumentClick = async (event) => {
 
   if (action === 'collections-refresh') {
     await loadCollections();
+    return;
+  }
+
+  if (action === 'collection-filter') {
+    state.collections.filter = actionTarget.dataset.filter || 'All';
+    render();
     return;
   }
 
@@ -7352,6 +7465,30 @@ const handleDocumentInput = (event) => {
 
 document.addEventListener('click', (event) => {
   handleDocumentClick(event);
+});
+
+document.addEventListener('change', async (event) => {
+  if (event.target.matches('[data-action="quote-first-month-free"]')) {
+    try {
+      await updateSelectedQuote({ firstMonthFree: event.target.checked });
+      await loadCollections();
+      showAdminToast(event.target.checked ? 'First month marked free.' : 'First month free disabled.');
+    } catch (error) {
+      showAdminToast(error.message || 'Could not update care setting.');
+    }
+    return;
+  }
+  if (event.target.matches('[data-collection-search]')) {
+    state.collections.search = event.target.value || '';
+    render();
+  }
+});
+
+document.addEventListener('input', (event) => {
+  if (event.target.matches('[data-collection-search]')) {
+    state.collections.search = event.target.value || '';
+    render();
+  }
 });
 
 document.addEventListener('input', (event) => {

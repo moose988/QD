@@ -79,4 +79,31 @@ assert.equal(milestonePatch.payment.itemKey, 'milestone:advance');
 assert.equal(milestonePatch.payment.amount, 2436);
 assert.equal(milestonePatch.payment.note, 'Advance 30%');
 
+const firstMonthFree = buildQuotePaymentView('quote-free', {
+  ...quote,
+  firstMonthFree: true
+}, { on: '2026-07-07' });
+const firstCare = firstMonthFree.schedule.find((item) => item.itemKey === 'care:2026-06');
+const secondCare = firstMonthFree.schedule.find((item) => item.itemKey === 'care:2026-07');
+assert.equal(firstCare.state, 'waived');
+assert.equal(firstCare.amount, 0);
+assert.equal(firstCare.remaining, 0);
+assert.equal(secondCare.amount, 149);
+
+const waivedQuote = {
+  ...quote,
+  careWaived: ['2026-07']
+};
+const waivedView = buildQuotePaymentView('quote-waived', waivedQuote, { on: '2026-07-07' });
+assert.equal(waivedView.schedule.find((item) => item.itemKey === 'care:2026-07').state, 'waived');
+const waivedSummary = buildCollectionsSummary([{ id: 'quote-waived', ...waivedQuote }], '2026-07-07');
+assert.equal(waivedSummary.buckets.dueToday.items.some((item) => item.itemKey === 'care:2026-07'), false);
+
+const unwaivedQuote = {
+  ...waivedQuote,
+  careWaived: []
+};
+const unwaivedSummary = buildCollectionsSummary([{ id: 'quote-unwaived', ...unwaivedQuote }], '2026-07-07');
+assert.equal(unwaivedSummary.buckets.dueToday.items.find((item) => item.itemKey === 'care:2026-07').amount, 149);
+
 console.log('COLLECTION HELPERS HOLD');

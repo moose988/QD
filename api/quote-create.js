@@ -101,6 +101,8 @@ export default async function handler(req, res) {
       payments: [],
       careMonthly: 0,
       careCollected: [],
+      careWaived: [],
+      firstMonthFree: false,
       createdAt: now,
       updatedAt: now,
       lastSentAt: null
