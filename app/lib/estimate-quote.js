@@ -46,10 +46,8 @@ function buildIncludedGroups(estimate = {}) {
 }
 
 export function estimateToQuoteLineItems(estimate = {}) {
-  const oneTime = money(estimate.discountedSubtotal ?? estimate.net ?? 0);
+  const oneTime = money(estimate.grandTotal ?? estimate.discountedSubtotal ?? estimate.net ?? 0);
   const market = money(estimate.subtotal ?? estimate.listPrice ?? 0);
-  const monthly = money(estimate.monthly?.amount ?? 0);
-  const monthlyName = cleanText(estimate.monthly?.planName) || 'Care Basic';
   return [
     {
       catalogKey: 'qd-build',
@@ -79,20 +77,6 @@ export function estimateToQuoteLineItems(estimate = {}) {
       qty: 1,
       unitPrice: 0,
       billingNote: 'At cost'
-    },
-    {
-      catalogKey: 'monthly-care',
-      name: {
-        en: 'Monthly care',
-        ar: 'العناية الشهرية'
-      },
-      description: {
-        en: monthly > 0 ? `${monthlyName}: AED ${monthly.toLocaleString('en-AE')}/mo to keep it supported, monitored, and updated.` : 'Optional monthly care can be added later.',
-        ar: monthly > 0 ? `${monthlyName}: ${monthly.toLocaleString('en-AE')} درهم/شهرياً للدعم والمتابعة والتحديث.` : 'يمكن إضافة العناية الشهرية لاحقاً عند الحاجة.'
-      },
-      qty: 1,
-      unitPrice: 0,
-      billingNote: monthly > 0 ? `AED ${monthly.toLocaleString('en-AE')}/mo` : 'Optional'
     }
   ];
 }
@@ -101,7 +85,10 @@ export function estimateToQuoteDraft(estimate = {}, { clientName = '', language 
   return {
     language: language === 'ar' ? 'ar' : 'en',
     validDays: 30,
-    vatPercent: Number.isFinite(estimate.vatPercent) ? estimate.vatPercent : 5,
+    vatInclusive: true,
+    vatPercent: 0,
+    careMonthly: money(estimate.monthly?.amount ?? 0),
+    carePlanName: cleanText(estimate.monthly?.planName) || 'Care Basic',
     customer: {
       businessName: cleanText(clientName),
       email: '',

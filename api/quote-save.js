@@ -7,13 +7,15 @@ import { buildQuoteSearchFields } from './_lib/quote-admin.js';
 import { buildDefaultMilestones } from './_lib/collections.js';
 import { getConsolidatedQuoteRoute, handleConsolidatedQuoteRoute } from './_lib/quote-consolidated-routes.js';
 import { buildQuotePaymentFields } from './_lib/quote-payments.js';
+import { logQuoteAudit } from './_lib/audit-log.js';
 
 export const config = { runtime: 'nodejs', maxDuration: 10 };
 
 // Fields the admin is allowed to update directly. Everything else is locked.
 const ALLOWED = new Set([
-  'language', 'validDays', 'vatPercent',
-  'customer', 'lineItems', 'pages', 'terms', 'notes'
+  'language', 'validDays', 'vatPercent', 'vatInclusive',
+  'customer', 'lineItems', 'pages', 'terms', 'notes',
+  'careMonthly', 'carePlanName'
 ]);
 
 export default async function handler(req, res) {
@@ -31,7 +33,7 @@ export default async function handler(req, res) {
 
   try {
     try {
-      await requireAdmin(req);
+      var adminUser = await requireAdmin(req);
     } catch (error) {
       console.warn('[quote-save] auth failed:', error.message);
       return res.status(401).json({ error: error.message });
@@ -57,6 +59,14 @@ export default async function handler(req, res) {
     for (const key of Object.keys(updates)) {
       if (ALLOWED.has(key)) safe[key] = updates[key];
     }
+    if (Array.isArray(safe.lineItems)) {
+      safe.lineItems = safe.lineItems.filter((line) => line?.catalogKey !== 'monthly-care');
+    }
+    if (safe.vatInclusive !== false) {
+      safe.vatInclusive = true;
+      safe.vatPercent = 0;
+    }
+    if (safe.careMonthly != null) safe.careMonthly = Math.max(0, Math.round(Number(safe.careMonthly) || 0));
 
     safe.updatedAt = admin.firestore.FieldValue.serverTimestamp();
     if (markSent) {
@@ -79,6 +89,13 @@ export default async function handler(req, res) {
 
     console.log('[quote-save] writing merged updates');
     await ref.set(safe, { merge: true });
+    await logQuoteAudit({
+      action: markSent ? 'marked_sent' : 'update_quote',
+      quoteId: id,
+      quoteNumber: nextQuote.quoteNumber,
+      actor: adminUser,
+      details: markSent ? `Marked ${nextQuote.quoteNumber || id} as sent` : `Updated quote ${nextQuote.quoteNumber || id}`
+    });
 
     if (markSent && existingQuote.submissionId) {
       console.log('[quote-save] marking submission as Quoted', { submissionId: existingQuote.submissionId });

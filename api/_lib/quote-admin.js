@@ -19,7 +19,6 @@ const PUBLIC_INTERNAL_FIELDS = new Set([
   'milestones',
   'careCollected',
   'careWaived',
-  'careMonthly',
   'firstMonthFree',
   'goLiveDate',
   'billingDay',
@@ -87,7 +86,9 @@ export function buildQuoteSearchFields(quote = {}) {
 }
 
 export function buildQuoteListRow(id, quote = {}) {
-  const total = roundMoney(computeTotals(quote.lineItems, quote.vatPercent, quote.pages?.price).grandTotal);
+  const oneTimeLines = (Array.isArray(quote.lineItems) ? quote.lineItems : []).filter((line) => line?.catalogKey !== 'monthly-care');
+  const vatPercent = quote.vatInclusive === false ? quote.vatPercent : 0;
+  const total = roundMoney(computeTotals(oneTimeLines, vatPercent, quote.pages?.price).grandTotal);
   const derived = buildQuotePaymentFields(id, quote);
   const paid = Number.isFinite(Number(quote.paid)) ? roundMoney(quote.paid) : derived.paid;
   const balance = Number.isFinite(Number(quote.balance)) ? roundMoney(quote.balance) : roundMoney(Math.max(0, total - paid));

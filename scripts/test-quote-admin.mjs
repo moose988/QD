@@ -15,6 +15,7 @@ const quote = {
   lineItems: [{ qty: 2, unitPrice: 1000 }],
   pages: { price: 500 },
   vatPercent: 5,
+  careMonthly: 0,
   payments: [{ amount: 750, date: '2026-06-15', method: 'Bank transfer' }],
   paid: 750,
   balance: 1875,
@@ -44,7 +45,7 @@ assert.deepEqual(buildQuoteListRow('quote-doc-id', quote), {
   quoteNumber: 'Q-2026-007',
   businessName: 'Sea Land',
   createdAt: quote.createdAt,
-  total: 2625,
+  total: 2500,
   status: 'sent',
   paid: 750,
   balance: 1875,
@@ -52,6 +53,8 @@ assert.deepEqual(buildQuoteListRow('quote-doc-id', quote), {
   lastSentAt: quote.lastSentAt,
   remarks: 'Follow up Monday'
 });
+
+assert.equal(buildQuoteListRow('quote-doc-id', { ...quote, vatInclusive: false }).total, 2625);
 
 assert.deepEqual(
   sanitizePublicQuote({
@@ -65,6 +68,7 @@ assert.deepEqual(
     lineItems: [{ qty: 2, unitPrice: 1000 }],
     pages: { price: 500 },
     vatPercent: 5,
+    careMonthly: 0,
     createdAt: quote.createdAt,
     notes: { en: 'Client-facing note' }
   }

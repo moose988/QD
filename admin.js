@@ -55,6 +55,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js';
 import { CATALOG, catalogToLineItem } from '/app/lib/quote-catalog.js';
 import { computeTotals, formatAED } from '/app/lib/quote-totals.js';
+import { normalizeQuoteForTemplate, renderQuoteTemplate } from '/app/lib/quote-template.js';
 import {
   PRICING_VERSION,
   PACKAGES,
@@ -903,6 +904,9 @@ const getQuoteLogState = (quote) => ({
   notes: quote?.notes || '',
   validDays: Number(quote?.validDays || 0),
   vatPercent: Number(quote?.vatPercent || 0),
+  vatInclusive: quote?.vatInclusive !== false,
+  careMonthly: Number(quote?.careMonthly || 0),
+  carePlanName: quote?.carePlanName || '',
   language: quote?.language || 'en'
 });
 
@@ -2826,7 +2830,8 @@ function getPaymentStatusFromAmounts(paid, balance) {
 }
 
 function getQuotePaymentSummary(quote = {}) {
-  const totals = computeTotals(quote.lineItems, quote.vatPercent, quote.pages?.price);
+  const normalized = normalizeQuoteForTemplate(quote);
+  const totals = normalized.totals;
   const total = Number(totals.grandTotal) || 0;
   const paid = Number.isFinite(Number(quote.paid))
     ? Number(quote.paid)
@@ -7202,12 +7207,72 @@ const handleDocumentClick = async (event) => {
     return;
   }
 
+  if (action === 'quote-move-line-up' || action === 'quote-move-line-down') {
+    const idx = Number(actionTarget.dataset.idx);
+    const q = state.quoteDrawer.quote;
+    if (!q) return;
+    const nextIdx = action === 'quote-move-line-up' ? idx - 1 : idx + 1;
+    if (nextIdx < 0 || nextIdx >= q.lineItems.length) return;
+    [q.lineItems[idx], q.lineItems[nextIdx]] = [q.lineItems[nextIdx], q.lineItems[idx]];
+    state.quoteDrawer.dirty = true;
+    render();
+    return;
+  }
+
+  if (action === 'quote-add-include') {
+    const idx = Number(actionTarget.dataset.idx);
+    const q = state.quoteDrawer.quote;
+    if (!q?.lineItems?.[idx]) return;
+    if (!Array.isArray(q.lineItems[idx].includes)) q.lineItems[idx].includes = [];
+    q.lineItems[idx].includes.push('New included item');
+    q.lineItems[idx].includedGroups = [];
+    state.quoteDrawer.dirty = true;
+    render();
+    return;
+  }
+
+  if (action === 'quote-remove-include') {
+    const idx = Number(actionTarget.dataset.idx);
+    const includeIdx = Number(actionTarget.dataset.includeIdx);
+    const q = state.quoteDrawer.quote;
+    if (!q?.lineItems?.[idx]) return;
+    if (!Array.isArray(q.lineItems[idx].includes)) q.lineItems[idx].includes = [];
+    q.lineItems[idx].includes.splice(includeIdx, 1);
+    q.lineItems[idx].includedGroups = [];
+    state.quoteDrawer.dirty = true;
+    render();
+    return;
+  }
+
+  if (action === 'quote-add-term') {
+    const q = state.quoteDrawer.quote;
+    if (!q) return;
+    if (!q.terms || typeof q.terms !== 'object') q.terms = { en: [], ar: [] };
+    if (!Array.isArray(q.terms.en)) q.terms.en = quoteTermsToEditable(q.terms).en;
+    q.terms.en.push('New term.');
+    state.quoteDrawer.dirty = true;
+    render();
+    return;
+  }
+
+  if (action === 'quote-remove-term') {
+    const idx = Number(actionTarget.dataset.termIdx);
+    const q = state.quoteDrawer.quote;
+    if (!q) return;
+    if (!Array.isArray(q.terms?.en)) q.terms = quoteTermsToEditable(q.terms);
+    q.terms.en.splice(idx, 1);
+    state.quoteDrawer.dirty = true;
+    render();
+    return;
+  }
+
   if (action === 'quote-add-custom-line') {
     if (!state.quoteDrawer.quote) return;
     state.quoteDrawer.quote.lineItems.push({
       catalogKey: null,
       name: { en: '', ar: '' },
       description: { en: '', ar: '' },
+      includes: [],
       qty: 1,
       unitPrice: 0
     });
@@ -7425,8 +7490,21 @@ const handleDocumentInput = (event) => {
 
   const qfield = event.target.dataset.qfield;
   const qline = event.target.dataset.qline;
-  if (qfield || qline) {
-    applyQuoteChange(qfield || qline, event.target.value);
+  const qterm = event.target.dataset.qterm;
+  if (qfield || qline || qterm) {
+    const value = event.target.type === 'checkbox'
+      ? event.target.checked
+      : (event.target.isContentEditable ? event.target.textContent : event.target.value);
+    if (qterm != null) {
+      const q = state.quoteDrawer.quote;
+      if (q) {
+        if (!Array.isArray(q.terms?.en)) q.terms = quoteTermsToEditable(q.terms);
+        q.terms.en[Number(qterm)] = String(value || '').trim();
+        state.quoteDrawer.dirty = true;
+      }
+    } else {
+      applyQuoteChange(qfield || qline, value);
+    }
     updateQuoteTotalsPreview();
     return;
   }
@@ -7833,15 +7911,47 @@ const openQuoteByQuoteId = (quoteId) => {
   openQuoteDrawer(q);
 };
 
+const quoteTermsToEditable = (terms) => {
+  const value = terms && typeof terms === 'object' ? terms.en || terms.ar : terms;
+  if (Array.isArray(value)) return { en: value.map(String), ar: Array.isArray(terms?.ar) ? terms.ar.map(String) : [] };
+  const en = String(value || '').split(/\n+/).map((item) => item.trim()).filter(Boolean);
+  const arValue = terms && typeof terms === 'object' ? terms.ar : '';
+  const ar = Array.isArray(arValue) ? arValue.map(String) : String(arValue || '').split(/\n+/).map((item) => item.trim()).filter(Boolean);
+  return { en, ar };
+};
+
+const prepareQuoteForEditing = (quote = {}) => {
+  const lineItems = deepCloneForLog(quote.lineItems || [])
+    .filter((line) => line?.catalogKey !== 'monthly-care')
+    .map((line) => ({
+      ...line,
+      name: typeof line.name === 'object' ? { ...line.name } : { en: String(line.name || ''), ar: '' },
+      includes: Array.isArray(line.includes)
+        ? line.includes.map(String)
+        : (Array.isArray(line.includedGroups)
+          ? line.includedGroups.flatMap((group) => (group.includes || []).map((item) => group.label ? `${group.label}: ${item}` : item))
+          : []),
+      includedGroups: []
+    }));
+  const legacyCare = (quote.lineItems || []).find((line) => line?.catalogKey === 'monthly-care');
+  return {
+    ...quote,
+    vatInclusive: quote.vatInclusive !== false,
+    vatPercent: quote.vatInclusive === false ? Number(quote.vatPercent) || 5 : 0,
+    careMonthly: Number(quote.careMonthly) || Number(quote.estimateSnapshot?.monthly?.amount) || 0,
+    carePlanName: quote.carePlanName || quote.estimateSnapshot?.monthly?.planName || legacyCare?.name?.en || 'Care Basic',
+    lineItems,
+    terms: quoteTermsToEditable(quote.terms),
+    pages: { ...(quote.pages || {}), price: Number(quote.pages?.price) || 0 }
+  };
+};
+
 const openQuoteDrawer = (quote) => {
   lastModalOpenedAt = Date.now();
+  const editableQuote = prepareQuoteForEditing(quote);
   state.quoteDrawer = {
     open: true,
-    quote: {
-      ...quote,
-      lineItems: [...(quote.lineItems || [])],
-      pages: { ...(quote.pages || {}), price: Number(quote.pages?.price) || 0 }
-    },
+    quote: editableQuote,
     original: deepCloneForLog(getQuoteLogState(quote)),
     dirty: false
   };
@@ -7882,7 +7992,13 @@ const applyQuoteChange = (path, value) => {
       cur = cur[parts[i]];
     }
     const last = parts[parts.length - 1];
-    cur[last] = (last === 'qty' || last === 'unitPrice') ? Number(value) || 0 : value;
+    if (parts[1] === 'includes') {
+      if (!Array.isArray(q.lineItems[idx].includes)) q.lineItems[idx].includes = [];
+      q.lineItems[idx].includes[Number(parts[2])] = String(value || '').trim();
+      q.lineItems[idx].includedGroups = [];
+    } else {
+      cur[last] = (last === 'qty' || last === 'unitPrice') ? Number(value) || 0 : value;
+    }
   } else {
     let cur = q;
     for (let i = 0; i < parts.length - 1; i++) {
@@ -7890,7 +8006,12 @@ const applyQuoteChange = (path, value) => {
       cur = cur[parts[i]];
     }
     const last = parts[parts.length - 1];
-    cur[last] = (last === 'validDays' || last === 'vatPercent' || path === 'pages.price') ? Number(value) || 0 : value;
+    if (last === 'vatInclusive') {
+      cur[last] = value === true || value === 'true' || value === 'on';
+      if (cur[last]) q.vatPercent = 0;
+    } else {
+      cur[last] = (last === 'validDays' || last === 'vatPercent' || last === 'careMonthly' || path === 'pages.price') ? Number(value) || 0 : value;
+    }
   }
   state.quoteDrawer.dirty = true;
 };
@@ -7898,16 +8019,17 @@ const applyQuoteChange = (path, value) => {
 const updateQuoteTotalsPreview = () => {
   const q = state.quoteDrawer.quote;
   if (!q) return;
-  const t = computeTotals(q.lineItems, q.vatPercent, q.pages?.price);
-  const preview = document.querySelector('#qd-quote-drawer .qd-quote-totals');
-  if (!preview) return;
-  preview.innerHTML = `
-    <div class="qd-quote-totals-row"><span>Line items</span><span>${formatAED(t.lineItemsSubtotal)}</span></div>
-    <div class="qd-quote-totals-row"><span>Pages included</span><span>${formatAED(t.pagesSubtotal)}</span></div>
-    <div class="qd-quote-totals-row"><span>Subtotal</span><span>${formatAED(t.subtotal)}</span></div>
-    <div class="qd-quote-totals-row" style="opacity:0.85"><span>VAT ${q.vatPercent}%</span><span>${formatAED(t.vat)}</span></div>
-    <div class="qd-quote-totals-row is-grand"><span>Total AED</span><span>${formatAED(t.grandTotal)}</span></div>
-  `;
+  const normalized = normalizeQuoteForTemplate(q);
+  const total = document.querySelector('#qd-quote-drawer .tot .r');
+  if (total) total.textContent = `AED ${formatAED(normalized.totals.grandTotal)}`;
+  const metaValues = document.querySelectorAll('#qd-quote-drawer .docmeta .metarow .v');
+  if (metaValues[1]) metaValues[1].textContent = normalized.validUntil;
+  const schedule = document.querySelectorAll('#qd-quote-drawer .pay td:last-child');
+  normalized.paymentSchedule.forEach((item, idx) => {
+    if (schedule[idx]) schedule[idx].textContent = `AED ${formatAED(item.amount)}`;
+  });
+  const strip = document.querySelector('#qd-quote-drawer .qd-quote-admin-strip');
+  if (strip) strip.outerHTML = renderQuoteAdminStrip(q);
   const paymentPreview = document.querySelector('#qd-quote-drawer .qd-quote-payment-panel');
   if (paymentPreview) paymentPreview.outerHTML = renderQuoteDrawerPaymentSummary(q);
 };
@@ -7915,19 +8037,30 @@ const updateQuoteTotalsPreview = () => {
 const saveQuoteDrawer = async ({ markSent = false, copy = false, silent = false } = {}) => {
   const q = state.quoteDrawer.quote;
   if (!q) return;
-  const beforeState = state.quoteDrawer.original || getQuoteLogState(q);
   try {
     const user = auth.currentUser;
     if (!user) { if (!silent) showToast('Not signed in.'); return; }
     const token = await user.getIdToken();
+    const cleanLineItems = (q.lineItems || [])
+      .filter((line) => line?.catalogKey !== 'monthly-care')
+      .map((line) => ({
+        ...line,
+        qty: Number(line.qty) || 0,
+        unitPrice: Number(line.unitPrice) || 0,
+        includes: Array.isArray(line.includes) ? line.includes.map((item) => String(item || '').trim()).filter(Boolean) : [],
+        includedGroups: []
+      }));
     const updates = {
       customer: q.customer,
-      lineItems: q.lineItems,
+      lineItems: cleanLineItems,
       pages: q.pages,
-      terms: q.terms,
+      terms: quoteTermsToEditable(q.terms),
       notes: q.notes,
       validDays: q.validDays,
-      vatPercent: q.vatPercent,
+      vatInclusive: q.vatInclusive !== false,
+      vatPercent: q.vatInclusive === false ? Number(q.vatPercent) || 0 : 0,
+      careMonthly: Number(q.careMonthly) || 0,
+      carePlanName: q.carePlanName || 'Care Basic',
       language: q.language || 'en'
     };
     console.log('[quote-save] requesting API', { id: q.id, markSent, endpoint: '/api/quote-save', updates });
@@ -7945,21 +8078,6 @@ const saveQuoteDrawer = async ({ markSent = false, copy = false, silent = false 
     }
     state.quoteDrawer.dirty = false;
     const afterState = getQuoteLogState(q);
-    const changeSet = buildChangedMetadata(beforeState, afterState);
-    if (changeSet.changedFields.length || markSent) {
-      await logAdminActivity({
-        action: 'update_quote',
-        targetType: 'quote',
-        targetId: q.submissionId || q.id,
-        targetLabel: q.quoteNumber || q.id,
-        metadata: {
-          ...changeSet,
-          quoteId: q.id,
-          submissionId: q.submissionId || '',
-          markSent
-        }
-      });
-    }
     state.quoteDrawer.original = deepCloneForLog(afterState);
     if (copy) {
       const url = `${location.origin}/q/${q.id}`;
@@ -8254,12 +8372,31 @@ const renderQuoteDrawerPaymentSummary = (quote) => {
   `;
 };
 
+const renderQuoteAdminStrip = (quote) => {
+  const normalized = normalizeQuoteForTemplate(quote);
+  return `
+    <div class="qd-quote-admin-strip">
+      <div class="qd-quote-admin-metrics">
+        <div><span>One-time</span><strong>AED ${escTxt(formatAED(normalized.totals.grandTotal))}</strong></div>
+        <div><span>Advance 30%</span><strong>AED ${escTxt(formatAED(normalized.paymentSchedule[0]?.amount || 0))}</strong></div>
+        <div><span>Final 70%</span><strong>AED ${escTxt(formatAED(normalized.paymentSchedule[1]?.amount || 0))}</strong></div>
+        <div><span>Monthly care</span><strong>AED ${escTxt(formatAED(Number(quote.careMonthly) || 0))}/mo</strong></div>
+      </div>
+      <div class="qd-quote-admin-controls">
+        <label>Valid <input class="qd-quote-input" type="number" min="1" data-qfield="validDays" value="${escAttr(quote.validDays ?? 30)}"> days</label>
+        <label class="qd-quote-check"><input type="checkbox" data-qfield="vatInclusive" ${quote.vatInclusive !== false ? 'checked' : ''}> VAT inclusive</label>
+        <label>VAT % <input class="qd-quote-input" type="number" min="0" max="100" data-qfield="vatPercent" value="${escAttr(quote.vatPercent ?? 0)}" ${quote.vatInclusive !== false ? 'disabled' : ''}></label>
+        <label>Code <span class="qd-quote-passcode">${escTxt(quote._passcodePlain || quote.passcodePlain || '(hidden)')}</span></label>
+      </div>
+    </div>
+  `;
+};
+
 const renderQuoteDrawer = () => {
   if (!state.quoteDrawer.open || !state.quoteDrawer.quote) {
     return state.quoteToast ? `<div class="qd-quote-toast">${escTxt(state.quoteToast)}</div>` : '';
   }
   const q = state.quoteDrawer.quote;
-  const t = computeTotals(q.lineItems, q.vatPercent, q.pages?.price);
   const statusLabel = q.status === 'active' ? 'View / Edit' : 'Edit';
 
   return `
@@ -8271,39 +8408,9 @@ const renderQuoteDrawer = () => {
       </header>
 
       <div class="qd-quote-body">
-
-        <div class="qd-quote-section-label">CUSTOMER</div>
-        <input class="qd-quote-input" data-qfield="customer.businessName" value="${escAttr(q.customer?.businessName || '')}" placeholder="Business name">
-        <div class="qd-quote-row" style="margin-top:6px">
-          <input class="qd-quote-input" data-qfield="customer.email" value="${escAttr(q.customer?.email || '')}" placeholder="Email">
-          <input class="qd-quote-input" data-qfield="customer.phone" value="${escAttr(q.customer?.phone || '')}" placeholder="Phone">
-        </div>
-
-        <div class="qd-quote-section-label">LINE ITEMS</div>
-        <table class="qd-quote-line-items">
-          <thead>
-            <tr>
-              <th style="text-align:left">Service (EN)</th>
-              <th style="text-align:left">Service (AR)</th>
-              <th style="width:48px">Qty</th>
-              <th style="width:80px">Unit AED</th>
-              <th style="width:30px"></th>
-            </tr>
-          </thead>
-          <tbody>
-            ${(q.lineItems || []).map((li, idx) => `
-              <tr>
-                <td><input class="qd-quote-input" data-qline="${idx}.name.en" value="${escAttr(li.name?.en || '')}"></td>
-                <td><input class="qd-quote-input" data-qline="${idx}.name.ar" value="${escAttr(li.name?.ar || '')}" dir="rtl"></td>
-                <td><input class="qd-quote-input" type="number" min="0" data-qline="${idx}.qty" value="${escAttr(li.qty ?? 1)}"></td>
-                <td><input class="qd-quote-input" type="number" min="0" data-qline="${idx}.unitPrice" value="${escAttr(li.unitPrice ?? 0)}"></td>
-                <td><button type="button" class="qd-quote-remove" data-action="quote-remove-line" data-idx="${idx}" aria-label="Remove">×</button></td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-
-        <div class="qd-quote-row" style="margin-top:8px">
+        ${renderQuoteAdminStrip(q)}
+        ${renderQuoteDrawerPaymentSummary(q)}
+        <div class="qd-quote-adders">
           <select class="qd-quote-input qd-quote-catalog" data-qaction="add-package" style="flex:1">
             <option value="">+ Add QD package…</option>
             ${PACKAGES.map((pkg) => `<option value="${escAttr(pkg.id)}">${escTxt(pkg.name.en)} — ${pkg.from ? 'from ' : ''}AED ${formatAED(pkg.oneTime)}</option>`).join('')}
@@ -8314,31 +8421,7 @@ const renderQuoteDrawer = () => {
           </select>
           <button type="button" class="qd-btn qd-btn-sm qd-admin-action-secondary" data-action="quote-add-custom-line">+ Custom</button>
         </div>
-
-        <div class="qd-quote-section-label">PAGES INCLUDED</div>
-        <input class="qd-quote-input" data-qfield="pages.en" value="${escAttr(q.pages?.en || '')}" placeholder="Home · About · Services · Contact">
-        <input class="qd-quote-input" style="margin-top:6px" data-qfield="pages.ar" value="${escAttr(q.pages?.ar || '')}" placeholder="الرئيسية · ..." dir="rtl">
-        <input class="qd-quote-input" style="margin-top:6px" type="number" min="0" data-qfield="pages.price" value="${escAttr(q.pages?.price ?? 0)}" placeholder="Pages total price (AED)">
-
-        <div class="qd-quote-totals">
-          <div class="qd-quote-totals-row"><span>Line items</span><span>${formatAED(t.lineItemsSubtotal)}</span></div>
-          <div class="qd-quote-totals-row"><span>Pages included</span><span>${formatAED(t.pagesSubtotal)}</span></div>
-          <div class="qd-quote-totals-row"><span>Subtotal</span><span>${formatAED(t.subtotal)}</span></div>
-          <div class="qd-quote-totals-row" style="opacity:0.85"><span>VAT ${q.vatPercent}%</span><span>${formatAED(t.vat)}</span></div>
-          <div class="qd-quote-totals-row is-grand"><span>Total AED</span><span>${formatAED(t.grandTotal)}</span></div>
-        </div>
-        ${renderQuoteDrawerPaymentSummary(q)}
-
-        <div class="qd-quote-meta-row">
-          <label>VALID <input class="qd-quote-input" type="number" min="1" data-qfield="validDays" value="${escAttr(q.validDays ?? 30)}" style="width:54px"> days</label>
-          <label>VAT <input class="qd-quote-input" type="number" min="0" max="100" data-qfield="vatPercent" value="${escAttr(q.vatPercent ?? 5)}" style="width:48px"> %</label>
-          <label>CODE <span class="qd-quote-passcode">${escTxt(q._passcodePlain || '(hidden)')}</span></label>
-        </div>
-
-        <div class="qd-quote-section-label">TERMS (EN)</div>
-        <textarea class="qd-quote-input qd-quote-textarea" data-qfield="terms.en">${escTxt(q.terms?.en || '')}</textarea>
-        <div class="qd-quote-section-label">TERMS (AR)</div>
-        <textarea class="qd-quote-input qd-quote-textarea" data-qfield="terms.ar" dir="rtl">${escTxt(q.terms?.ar || '')}</textarea>
+        ${renderQuoteTemplate(q, { editable: true, lang: q.language || 'en', quoteUrl: `${location.origin}/q/${q.id}` })}
 
       </div>
 

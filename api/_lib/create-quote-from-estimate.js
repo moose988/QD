@@ -30,6 +30,7 @@ export async function createQuoteFromEstimate(body, adminUser) {
     status: 'draft',
     language: draft.language,
     validDays: draft.validDays,
+    vatInclusive: draft.vatInclusive,
     vatPercent: draft.vatPercent,
     customer: draft.customer,
     estimateSnapshot: {
@@ -64,7 +65,8 @@ export async function createQuoteFromEstimate(body, adminUser) {
     passcodeHash,
     _passcodePlain: passcodePlain,
     payments: [],
-    careMonthly: Number(estimate.monthly?.amount) || 0,
+    careMonthly: Number(draft.careMonthly) || 0,
+    carePlanName: draft.carePlanName || estimate.monthly?.planName || 'Care Basic',
     careCollected: [],
     careWaived: [],
     firstMonthFree: false,

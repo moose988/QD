@@ -95,7 +95,8 @@ const quoteEstimate = buildEstimate({
 const quoteDraft = estimateToQuoteDraft(quoteEstimate, { clientName: 'Bridge Test LLC' });
 const quoteTotals = computeTotals(quoteDraft.lineItems, quoteDraft.vatPercent, quoteDraft.pages.price);
 eq('estimate quote bridge keeps customer name', quoteDraft.customer.businessName, 'Bridge Test LLC');
-eq('estimate quote bridge uses three client-safe lines', quoteDraft.lineItems.map((li) => li.catalogKey), ['qd-build', 'third-party-software', 'monthly-care']);
+eq('estimate quote bridge uses client-safe one-time lines', quoteDraft.lineItems.map((li) => li.catalogKey), ['qd-build', 'third-party-software']);
+eq('estimate quote bridge carries monthly care separately', quoteDraft.careMonthly, quoteEstimate.monthly.amount);
 eq('estimate quote bridge uses Arabic labels', quoteDraft.lineItems.some((li) => /البناء|البرامج|العناية/.test(li.name.ar)), true);
 eq('estimate quote bridge hides internal discount lines', quoteDraft.lineItems.some((li) => li.unitPrice < 0 || /discount|margin|floor|approval/i.test(li.name.en)), false);
 eq('estimate quote bridge totals match estimate', quoteTotals.grandTotal, quoteEstimate.grandTotal);

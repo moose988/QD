@@ -151,7 +151,61 @@ ol.terms li { margin-bottom: 7px; font-size: 12.5px; }
 .sig .cap { font-size: 11px; color: var(--muted); margin-top: 6px; }
 .foot { margin-top: 26px; border-top: 1px solid var(--line); padding-top: 18px; display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; gap: 16px; }
 .note { font-size: 11.5px; color: var(--muted); margin-top: 6px; }
+.care-box { display: flex; justify-content: space-between; gap: 18px; padding: 12px 0; border-bottom: 1px solid var(--line); color: #2b313b; }
+.care-box div:last-child { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
 .not-found { max-width: 480px; margin: 60px auto; background: white; border: 1px solid var(--line); padding: 28px; border-radius: 12px; text-align: center; color: var(--muted); }
+
+.quote-editable [contenteditable="true"],
+.quote-editable .q-edit,
+.quote-editable .q-edit-num {
+  min-width: 24px;
+  border-radius: 6px;
+  outline: 1px dashed rgba(14, 158, 110, .35);
+  outline-offset: 2px;
+  background: rgba(234, 250, 243, .42);
+}
+.quote-editable [contenteditable="true"]:focus,
+.quote-editable .q-edit:focus,
+.quote-editable .q-edit-num:focus {
+  outline: 2px solid var(--brand);
+  background: #fff;
+}
+.quote-editable .q-edit-title { display: inline-block; font-weight: 700; margin-right: 8px; }
+.quote-editable .q-edit-ar { color: var(--muted); font-size: 12px; }
+.quote-editable .q-edit-include,
+.quote-editable .q-edit-term,
+.quote-editable .q-edit-scope { display: inline-block; min-width: 160px; }
+.quote-editable .q-edit-num {
+  width: 74px;
+  border: 1px solid var(--line);
+  padding: 4px 6px;
+  font: inherit;
+  text-align: right;
+}
+.quote-editable .q-edit-note { display: inline-block; min-width: 72px; }
+.quote-editable .q-line-controls { display: inline-flex; gap: 8px; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
+.quote-editable .q-line-admin { display: inline-flex; gap: 4px; margin-right: 8px; vertical-align: middle; }
+.quote-editable .q-line-name { display: inline-flex; flex-direction: column; gap: 5px; vertical-align: middle; max-width: 100%; }
+.q-mini-btn,
+.q-add-inline,
+.q-add-line {
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--muted);
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 800;
+}
+.q-mini-btn { width: 24px; height: 24px; line-height: 1; }
+.q-mini-btn:hover,
+.q-add-inline:hover,
+.q-add-line:hover { border-color: var(--brand); color: var(--brand-dark); }
+.q-mini-btn.q-danger:hover { border-color: #f3b4ad; color: #b42318; }
+.q-add-inline,
+.q-add-line { padding: 6px 9px; font-size: 12px; }
+.q-add-line { margin-top: 8px; }
+.quote-editable ol.terms li { padding-right: 32px; position: relative; }
+.quote-editable ol.terms .q-mini-btn { position: absolute; right: 0; top: 0; }
 
 @media (max-width: 768px) {
   .quote-toolbar { margin-top: 12px; }
@@ -161,13 +215,15 @@ ol.terms li { margin-bottom: 7px; font-size: 12.5px; }
   .parties,
   .accept .row,
   .foot,
-  .tot { flex-direction: column; }
+  .tot,
+  .care-box { flex-direction: column; }
   .docmeta,
   .metarow .v { text-align: left; }
   .metarow { justify-content: flex-start; }
   .items .grp td.amt,
   .items .sub td.inc,
   .pay td:last-child { width: 120px; }
+  .care-box div:last-child { text-align: left; }
 }
 
 @media print {

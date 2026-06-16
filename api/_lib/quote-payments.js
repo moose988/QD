@@ -50,7 +50,9 @@ function clampBillingDay(day, year, monthIndex) {
 }
 
 export function getQuoteBuildTotal(quote = {}) {
-  return roundMoney(computeTotals(quote.lineItems, quote.vatPercent, quote.pages?.price).grandTotal);
+  const oneTimeLines = (Array.isArray(quote.lineItems) ? quote.lineItems : []).filter((line) => line?.catalogKey !== 'monthly-care');
+  const vatPercent = quote.vatInclusive === false ? quote.vatPercent : 0;
+  return roundMoney(computeTotals(oneTimeLines, vatPercent, quote.pages?.price).grandTotal);
 }
 
 export function buildDefaultMilestones(total, existing = []) {
