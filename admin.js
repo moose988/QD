@@ -7938,7 +7938,7 @@ const prepareQuoteForEditing = (quote = {}) => {
     ...quote,
     vatInclusive: quote.vatInclusive !== false,
     vatPercent: quote.vatInclusive === false ? Number(quote.vatPercent) || 5 : 0,
-    careMonthly: Number(quote.careMonthly) || Number(quote.estimateSnapshot?.monthly?.amount) || 0,
+    careMonthly: Number(quote.careMonthly) || Number(quote.estimateSnapshot?.monthly?.amount) || 149,
     carePlanName: quote.carePlanName || quote.estimateSnapshot?.monthly?.planName || legacyCare?.name?.en || 'Care Basic',
     lineItems,
     terms: quoteTermsToEditable(quote.terms),

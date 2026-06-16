@@ -95,11 +95,24 @@ const quoteEstimate = buildEstimate({
 const quoteDraft = estimateToQuoteDraft(quoteEstimate, { clientName: 'Bridge Test LLC' });
 const quoteTotals = computeTotals(quoteDraft.lineItems, quoteDraft.vatPercent, quoteDraft.pages.price);
 eq('estimate quote bridge keeps customer name', quoteDraft.customer.businessName, 'Bridge Test LLC');
-eq('estimate quote bridge uses client-safe one-time lines', quoteDraft.lineItems.map((li) => li.catalogKey), ['qd-build', 'third-party-software']);
-eq('estimate quote bridge carries monthly care separately', quoteDraft.careMonthly, quoteEstimate.monthly.amount);
+eq('estimate quote bridge uses split client-safe lines', quoteDraft.lineItems.map((li) => li.catalogKey), ['website-build', 'sharjah-expansion-discount', 'third-party-software']);
+eq('estimate quote bridge defaults monthly care separately', quoteDraft.careMonthly, 149);
 eq('estimate quote bridge uses Arabic labels', quoteDraft.lineItems.some((li) => /البناء|البرامج|العناية/.test(li.name.ar)), true);
-eq('estimate quote bridge hides internal discount lines', quoteDraft.lineItems.some((li) => li.unitPrice < 0 || /discount|margin|floor|approval/i.test(li.name.en)), false);
+eq('estimate quote bridge shows client-safe discount only', quoteDraft.lineItems.filter((li) => li.unitPrice < 0).map((li) => li.catalogKey), ['sharjah-expansion-discount']);
+eq('estimate quote bridge hides internal margin/floor/approval lines', quoteDraft.lineItems.some((li) => /margin|floor|approval|founding/i.test(li.name.en)), false);
 eq('estimate quote bridge totals match estimate', quoteTotals.grandTotal, quoteEstimate.grandTotal);
+eq('estimate quote bridge default terms are full 30/70 list', Array.isArray(quoteDraft.terms.en) && quoteDraft.terms.en.length, 8);
+
+const orderingEstimate = buildEstimate({
+  foundationId: 'web-base',
+  pagesStandard: 5,
+  industryId: 'restaurant-cafe',
+  modules: ['mod-order-status'],
+  discountPercent: 15
+});
+const orderingDraft = estimateToQuoteDraft(orderingEstimate);
+eq('ordering estimate separates website and ordering sections', orderingDraft.lineItems.map((li) => li.catalogKey).slice(0, 3), ['website-build', 'online-ordering-system', 'sharjah-expansion-discount']);
+eq('ordering estimate line totals reconcile', computeTotals(orderingDraft.lineItems, orderingDraft.vatPercent, orderingDraft.pages.price).grandTotal, orderingEstimate.grandTotal);
 
 const coveredEstimate = buildEstimate({
   foundationId: 'web-base',

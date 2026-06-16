@@ -35,6 +35,13 @@ const quote = {
       qty: 1,
       unitPrice: 0,
       billingNote: 'At cost'
+    },
+    {
+      catalogKey: 'sharjah-expansion-discount',
+      name: { en: 'Sharjah expansion discount', ar: 'خصم التوسع في الشارقة' },
+      qty: 1,
+      unitPrice: -1000,
+      includes: []
     }
   ],
   careMonthly: 149,
@@ -51,7 +58,8 @@ const normalized = normalizeQuoteForTemplate(quote);
 assert.equal(normalized.quoteNumberDisplay, 'Q-012-2026');
 assert.equal(normalized.lineItems.some((line) => line.catalogKey === 'monthly-care'), false);
 assert.equal(normalized.careMonthly, 149);
-assert.deepEqual(normalized.paymentSchedule.map((item) => item.amount), [2436, 5684]);
+assert.deepEqual(normalized.paymentSchedule.map((item) => item.amount), [2136, 4984]);
+assert.equal(normalizeQuoteForTemplate({ customer: {}, lineItems: [] }).customerName, '—');
 
 const readonlyHtml = renderQuoteTemplate(quote, { editable: false, lang: 'en', quoteUrl: 'https://qdsystems.ae/q/quote-abc' });
 assert.match(readonlyHtml, /REF Q-012-2026/);
@@ -61,7 +69,16 @@ assert.match(readonlyHtml, /Monthly care/);
 assert.match(readonlyHtml, /Care Basic/);
 assert.match(readonlyHtml, /AED 149\/mo/);
 assert.match(readonlyHtml, /WhatsApp integration[\s\S]*Third-party software at cost/);
+assert.doesNotMatch(readonlyHtml, /Third-party software at cost[\s\S]{0,180}<td class="inc">Included<\/td>/);
+assert.match(readonlyHtml, /Sharjah expansion discount[\s\S]*- AED 1,000/);
 assert.doesNotMatch(readonlyHtml, /costFloorNet|marginPercent|payments|careCollected/);
+
+const defaultTermsHtml = renderQuoteTemplate({ ...quote, terms: null }, { editable: false, lang: 'en' });
+assert.match(defaultTermsHtml, /Validity\./);
+assert.match(defaultTermsHtml, /Payment\./);
+assert.match(defaultTermsHtml, /Revisions\./);
+assert.match(defaultTermsHtml, /Promotional rate\./);
+assert.equal((defaultTermsHtml.match(/<li>/g) || []).length, 8);
 
 const editableHtml = renderQuoteTemplate(quote, { editable: true, lang: 'en', quoteUrl: 'https://qdsystems.ae/q/quote-abc' });
 assert.match(editableHtml, /data-qfield="customer\.businessName"/);

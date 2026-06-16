@@ -66,7 +66,8 @@ function editableText(text, path, options = {}) {
 }
 
 function editableMoney(value, path, options = {}) {
-  return `<input class="${options.className || 'q-edit q-edit-num'}" type="number" min="0" step="1" data-${options.kind || 'qline'}="${escapeHtml(path)}" value="${escapeHtml(value ?? 0)}">`;
+  const min = options.min == null ? '0' : String(options.min);
+  return `<input class="${options.className || 'q-edit q-edit-num'}" type="number" min="${escapeHtml(min)}" step="1" data-${options.kind || 'qline'}="${escapeHtml(path)}" value="${escapeHtml(value ?? 0)}">`;
 }
 
 function lineAmount(lineItem, idx, editable) {
@@ -76,11 +77,11 @@ function lineAmount(lineItem, idx, editable) {
       : escapeHtml(lineItem.billingNote);
   }
   const amount = (Number(lineItem?.qty) || 0) * (Number(lineItem?.unitPrice) || 0);
-  if (!editable) return `AED ${formatAED(amount)}`;
+  if (!editable) return amount < 0 ? `- AED ${formatAED(Math.abs(amount))}` : `AED ${formatAED(amount)}`;
   return `
     <span class="q-line-controls">
       <span>Qty ${editableMoney(lineItem?.qty ?? 1, `${idx}.qty`)}</span>
-      <span>AED ${editableMoney(lineItem?.unitPrice ?? 0, `${idx}.unitPrice`)}</span>
+      <span>AED ${editableMoney(lineItem?.unitPrice ?? 0, `${idx}.unitPrice`, { min: -999999 })}</span>
     </span>
   `;
 }
@@ -111,8 +112,22 @@ function renderIncludedRows(lineItem, idx, lang, editable) {
   `).join('');
 }
 
+function renderNoteRows(lineItem, idx, lang, editable) {
+  const description = pickQuoteText(lineItem.description, lang);
+  if (!description && !editable) return '';
+  return `
+    <tr class="sub note-row" data-quote-note="${idx}">
+      <td>${editable
+        ? editableText(description, `${idx}.description.${lang}`, { kind: 'qline', className: 'q-edit q-edit-include' })
+        : escapeHtml(description)}</td>
+      <td></td>
+    </tr>
+  `;
+}
+
 function renderLineItem(lineItem, idx, lang, editable) {
   const name = pickQuoteText(lineItem.name, lang) || 'Service';
+  const isNoteLine = Boolean(lineItem?.billingNote);
   return `
     <tr class="grp" data-quote-line="${idx}">
       <td>
@@ -130,8 +145,8 @@ function renderLineItem(lineItem, idx, lang, editable) {
       </td>
       <td class="amt">${lineAmount(lineItem, idx, editable)}</td>
     </tr>
-    ${renderIncludedRows(lineItem, idx, lang, editable)}
-    ${editable ? `<tr class="sub"><td><button type="button" class="q-add-inline" data-action="quote-add-include" data-idx="${idx}">+ Included item</button></td><td></td></tr>` : ''}
+    ${isNoteLine ? renderNoteRows(lineItem, idx, lang, editable) : renderIncludedRows(lineItem, idx, lang, editable)}
+    ${editable && !isNoteLine ? `<tr class="sub"><td><button type="button" class="q-add-inline" data-action="quote-add-include" data-idx="${idx}">+ Included item</button></td><td></td></tr>` : ''}
     <tr class="div"><td colspan="2"></td></tr>
   `;
 }
@@ -163,12 +178,20 @@ function normalizeTerms(terms, lang = 'en') {
 function defaultTerms(validDays) {
   return [
     `Validity. This quotation is valid for ${validDays} days from the issue date.`,
-    'Payment. 30% advance on acceptance to commence work; 70% on completion prior to go-live.',
+    'Payment. 30% advance on acceptance to commence work; 70% on completion prior to go-live. Payable by bank transfer; details provided on the invoice.',
     'Scope. Pricing covers the items listed above. Additional pages, features or systems are quoted separately.',
-    'Third-party services. Payment gateway, delivery integrations, messaging, hosting upgrades, and vendor subscriptions are billed at cost unless explicitly included.',
+    'Third-party services. Payment gateway, delivery integrations, messaging (WhatsApp/SMS) and hosting beyond the included setup are billed at cost.',
     'Timeline. Work begins on receipt of the advance payment; a delivery schedule is confirmed at kickoff.',
-    'Ownership. Full ownership and handover transfer to the client on final payment.'
+    'Revisions. Two rounds of revisions per stage are included; further changes are quoted separately.',
+    'Ownership. Full ownership and handover transfer to the client on final payment.',
+    'Promotional rate. Any launch or expansion discount is a limited-time offer applicable to this quotation only.'
   ];
+}
+
+function renderTermText(item) {
+  const match = /^([A-Za-z &]+\.)(\s*)([\s\S]*)$/.exec(String(item || '').trim());
+  if (!match) return escapeHtml(item);
+  return `<strong>${escapeHtml(match[1])}</strong>${match[2] || ' '}${escapeHtml(match[3])}`;
 }
 
 function renderTerms(data, lang, editable) {
@@ -178,7 +201,7 @@ function renderTerms(data, lang, editable) {
     <li>
       ${editable
         ? `${editableText(item, `${idx}`, { kind: 'qterm', className: 'q-edit q-edit-term' })}<button type="button" class="q-mini-btn q-danger" data-action="quote-remove-term" data-term-idx="${idx}" aria-label="Remove term">×</button>`
-        : escapeHtml(item)}
+        : renderTermText(item)}
     </li>
   `).join('');
 }
@@ -209,7 +232,7 @@ export function normalizeQuoteForTemplate(data = {}, options = {}) {
     quoteNumberDisplay: formatQuoteRef(data.quoteNumber || data.id || ''),
     issued: quoteDate(data.createdAt, lang),
     validUntil: addDays(data.createdAt, validDays, lang),
-    customerName: data.customer?.businessName || 'Client',
+    customerName: data.customer?.businessName || '—',
     scope: pickQuoteText(data.notes, lang) || pickQuoteText(data.pages, lang) || FALLBACK_SCOPE,
     careMonthly: Number(data.careMonthly) || 0,
     carePlanName: String(data.carePlanName || data.estimateSnapshot?.monthly?.planName || 'Care Basic').trim(),
@@ -222,7 +245,11 @@ export function renderQuoteTemplate(data = {}, options = {}) {
   const lang = options.lang || data.language || 'en';
   const q = normalizeQuoteForTemplate(data, { lang });
   const quoteUrl = options.quoteUrl || '';
+  const monthlyLabel = q.careMonthly > 0 ? ` · + AED ${formatAED(q.careMonthly)} / month care plan` : '';
   const monthlyText = q.careMonthly > 0 ? `${escapeHtml(q.carePlanName)} · AED ${formatAED(q.careMonthly)}/mo` : 'No recurring care selected';
+  const thirdPartyNote = q.careMonthly > 0
+    ? `Monthly care plan (AED ${formatAED(q.careMonthly)}/mo) billed from go-live. Prices are inclusive of VAT. Third-party costs (payment gateway, delivery, WhatsApp/SMS) billed at cost - no markup.`
+    : 'Prices are inclusive of VAT. Third-party costs (payment gateway, delivery, WhatsApp/SMS) billed at cost - no markup.';
   return `
     <div class="sheet ${editable ? 'quote-editable' : ''}" data-quote-template>
       <div class="topbar"></div>
@@ -254,13 +281,14 @@ export function renderQuoteTemplate(data = {}, options = {}) {
         </tbody></table>
         ${editable ? '<button type="button" class="q-add-line" data-action="quote-add-custom-line">+ Line item</button>' : ''}
 
-        <div class="tot"><span class="l">One-time total</span><span class="r">AED ${formatAED(q.totals.grandTotal)}</span></div>
+        <div class="tot"><span class="l">One-time total <span class="mo">${monthlyLabel}</span></span><span class="r">AED ${formatAED(q.totals.grandTotal)}</span></div>
         ${q.vatInclusive ? '<div class="anchor">Prices are inclusive of VAT.</div>' : `<div class="anchor">VAT ${escapeHtml(q.vatPercent)}%: AED ${formatAED(q.totals.vat)}</div>`}
 
         <h4 class="sec">Payment schedule</h4>
         <table class="pay"><tbody>
           ${q.paymentSchedule.map((item) => `<tr><td>${escapeHtml(item.label)} <span class="when">- ${escapeHtml(item.when)}</span></td><td>AED ${formatAED(item.amount)}</td></tr>`).join('')}
         </tbody></table>
+        <div class="note">${escapeHtml(thirdPartyNote)}</div>
 
         <h4 class="sec">Monthly care</h4>
         <div class="care-box">

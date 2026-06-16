@@ -8,8 +8,26 @@ import {
 } from './pricing-model.js';
 
 const DEFAULT_TERMS = {
-  en: '30% on acceptance to begin work; 70% on completion before go-live. Third-party software, payment, messaging, maps, and AI usage are billed at cost.',
-  ar: '٣٠٪ عند القبول لبدء العمل؛ ٧٠٪ عند الإنجاز قبل الإطلاق. تكاليف البرامج والمدفوعات والرسائل والخرائط واستخدام الذكاء الاصطناعي من أطراف ثالثة تُحسب بالتكلفة.'
+  en: [
+    'Validity. This quotation is valid for 30 days from the issue date.',
+    'Payment. 30% advance on acceptance to commence work; 70% on completion prior to go-live. Payable by bank transfer; details provided on the invoice.',
+    'Scope. Pricing covers the items listed above. Additional pages, features or systems are quoted separately.',
+    'Third-party services. Payment gateway, delivery integrations, messaging (WhatsApp/SMS) and hosting beyond the included setup are billed at cost.',
+    'Timeline. Work begins on receipt of the advance payment; a delivery schedule is confirmed at kickoff.',
+    'Revisions. Two rounds of revisions per stage are included; further changes are quoted separately.',
+    'Ownership. Full ownership and handover transfer to the client on final payment.',
+    'Promotional rate. Any launch or expansion discount is a limited-time offer applicable to this quotation only.'
+  ],
+  ar: [
+    'الصلاحية. هذا العرض صالح لمدة 30 يوماً من تاريخ الإصدار.',
+    'الدفع. 30% عند القبول لبدء العمل؛ 70% عند الإنجاز قبل الإطلاق. يتم الدفع عبر التحويل البنكي وتُرسل التفاصيل في الفاتورة.',
+    'النطاق. يغطي السعر البنود المذكورة أعلاه فقط. الصفحات أو المزايا أو الأنظمة الإضافية تُسعر بشكل منفصل.',
+    'خدمات الطرف الثالث. بوابات الدفع وتكاملات التوصيل والرسائل (واتساب/SMS) والاستضافة خارج الإعداد المشمول تُحسب بالتكلفة.',
+    'الجدول الزمني. يبدأ العمل بعد استلام الدفعة المقدمة ويتم تأكيد جدول التسليم عند الانطلاق.',
+    'المراجعات. تشمل كل مرحلة جولتين من المراجعات، وأي تعديلات إضافية تُسعر بشكل منفصل.',
+    'الملكية. تنتقل الملكية والتسليم الكامل للعميل بعد سداد الدفعة النهائية.',
+    'السعر الترويجي. أي خصم إطلاق أو توسع هو عرض محدود لهذا السعر فقط.'
+  ]
 };
 
 const cleanText = (value) => String(value ?? '').trim();
@@ -45,30 +63,115 @@ function buildIncludedGroups(estimate = {}) {
     .filter((group) => group.label && group.includes.length);
 }
 
+function groupAmount(groups) {
+  return groups.reduce((sum, group) => sum + money(group.amount ?? group.unitPrice), 0);
+}
+
+function distributeIncludedVat(lines, estimate) {
+  const target = money(estimate.grandTotal ?? estimate.discountedSubtotal ?? estimate.net ?? groupAmount(lines));
+  const current = groupAmount(lines);
+  let delta = target - current;
+  if (!delta) return lines;
+  const positiveIndexes = lines
+    .map((line, idx) => ({ line, idx }))
+    .filter(({ line }) => Number(line.unitPrice) > 0);
+  if (!positiveIndexes.length) return lines;
+  const positiveTotal = positiveIndexes.reduce((sum, { line }) => sum + Number(line.unitPrice), 0);
+  let allocated = 0;
+  const next = lines.map((line) => ({ ...line }));
+  positiveIndexes.forEach(({ line, idx }, order) => {
+    const amount = order === positiveIndexes.length - 1
+      ? delta - allocated
+      : Math.round(delta * (Number(line.unitPrice) / positiveTotal));
+    next[idx].unitPrice = money(Number(next[idx].unitPrice) + amount);
+    allocated += amount;
+  });
+  return next;
+}
+
+function isOrderingLine(line = {}) {
+  const text = `${line.id || ''} ${line.label || ''} ${line.name?.en || ''}`.toLowerCase();
+  return /order|ordering|pickup|delivery|restaurant/.test(text);
+}
+
+function quoteLine({ catalogKey, en, ar, includes, amount, billingNote = '', description = {} }) {
+  return {
+    catalogKey,
+    name: { en, ar },
+    description,
+    includes: unique(includes || []),
+    qty: 1,
+    unitPrice: money(amount),
+    ...(billingNote ? { billingNote } : {})
+  };
+}
+
 export function estimateToQuoteLineItems(estimate = {}) {
-  const oneTime = money(estimate.grandTotal ?? estimate.discountedSubtotal ?? estimate.net ?? 0);
-  const market = money(estimate.subtotal ?? estimate.listPrice ?? 0);
+  const groups = buildIncludedGroups(estimate);
+  const websiteLines = (estimate.lines || []).filter((line) => Number(line.amount) > 0 && ['foundation', 'package'].includes(line.kind));
+  const orderingLines = (estimate.lines || []).filter((line) => Number(line.amount) > 0 && isOrderingLine(line));
+  const otherLines = (estimate.lines || []).filter((line) => (
+    Number(line.amount) > 0
+    && !['foundation', 'package'].includes(line.kind)
+    && !isOrderingLine(line)
+    && line.kind !== 'discount'
+  ));
+  const discount = (estimate.lines || []).filter((line) => line.kind === 'discount').reduce((sum, line) => sum + money(line.amount), 0);
+
+  const visible = [];
+  if (websiteLines.length) {
+    visible.push(quoteLine({
+      catalogKey: 'website-build',
+      en: 'Website build',
+      ar: 'البناء للموقع الإلكتروني',
+      amount: groupAmount(websiteLines),
+      includes: unique(websiteLines.flatMap((line) => lineIncludes(line)))
+    }));
+  }
+  if (orderingLines.length) {
+    visible.push(quoteLine({
+      catalogKey: 'online-ordering-system',
+      en: 'Online ordering system',
+      ar: 'نظام الطلبات الإلكتروني',
+      amount: groupAmount(orderingLines),
+      includes: unique(orderingLines.flatMap((line) => lineIncludes(line)))
+    }));
+  }
+  for (const line of otherLines) {
+    visible.push(quoteLine({
+      catalogKey: line.id || line.kind || 'service',
+      en: cleanText(line.label) || cleanText(line.name?.en) || 'Service',
+      ar: cleanText(line.name?.ar) || '',
+      amount: line.amount,
+      includes: lineIncludes(line)
+    }));
+  }
+  if (!visible.length) {
+    visible.push(quoteLine({
+      catalogKey: 'website-build',
+      en: 'Website build',
+      ar: 'بناء الموقع',
+      amount: money(estimate.grandTotal ?? estimate.discountedSubtotal ?? estimate.net ?? 0),
+      includes: unique(groups.flatMap((group) => group.includes))
+    }));
+  }
+  if (discount < 0) {
+    visible.push(quoteLine({
+      catalogKey: 'sharjah-expansion-discount',
+      en: 'Sharjah expansion discount',
+      ar: 'خصم التوسع في الشارقة',
+      amount: discount,
+      includes: []
+    }));
+  }
+
   return [
-    {
-      catalogKey: 'qd-build',
-      name: {
-        en: 'One-time build',
-        ar: 'البناء لمرة واحدة'
-      },
-      description: {
-        en: `Typical Dubai AED ${market.toLocaleString('en-AE')} - Sharjah launch AED ${oneTime.toLocaleString('en-AE')}. Includes the selected website/specs and setup.`,
-        ar: `سعر دبي المعتاد ${market.toLocaleString('en-AE')} درهم · سعر إطلاق الشارقة ${oneTime.toLocaleString('en-AE')} درهم. يشمل الموقع/المواصفات المختارة والإعداد.`
-      },
-      includes: unique(buildIncludedGroups(estimate).flatMap((group) => group.includes)),
-      includedGroups: buildIncludedGroups(estimate),
-      qty: 1,
-      unitPrice: oneTime
-    },
+    ...distributeIncludedVat(visible, estimate),
     {
       catalogKey: 'third-party-software',
       name: {
         en: 'Third-party software at cost',
-        ar: 'برامج الطرف الثالث بالتكلفة'
+        ar: 'البرامج من الطرف الثالث بالتكلفة'
       },
       description: {
         en: 'Payment gateway, WhatsApp/SMS, maps, AI usage, and vendor subscriptions are billed directly or passed through at cost.',
@@ -87,8 +190,8 @@ export function estimateToQuoteDraft(estimate = {}, { clientName = '', language 
     validDays: 30,
     vatInclusive: true,
     vatPercent: 0,
-    careMonthly: money(estimate.monthly?.amount ?? 0),
-    carePlanName: cleanText(estimate.monthly?.planName) || 'Care Basic',
+    careMonthly: money(estimate.monthly?.amount) || 149,
+    carePlanName: cleanText(estimate.monthly?.planName) === 'No monthly plan' ? 'Care Basic' : (cleanText(estimate.monthly?.planName) || 'Care Basic'),
     customer: {
       businessName: cleanText(clientName),
       email: '',

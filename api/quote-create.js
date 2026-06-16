@@ -100,7 +100,7 @@ export default async function handler(req, res) {
       passcodeHash,
       _passcodePlain: passcodePlain,
       payments: [],
-      careMonthly: 0,
+      careMonthly: 149,
       carePlanName: 'Care Basic',
       careCollected: [],
       careWaived: [],
