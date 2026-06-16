@@ -8,8 +8,8 @@ import {
 } from './pricing-model.js';
 
 const DEFAULT_TERMS = {
-  en: '50% upfront, 50% on delivery. Third-party software, payment, messaging, maps, and AI usage are billed at cost.',
-  ar: '50% مقدماً، 50% عند التسليم. تكاليف البرامج والمدفوعات والرسائل والخرائط واستخدام الذكاء الاصطناعي من أطراف ثالثة تُحسب بالتكلفة.'
+  en: '30% on acceptance to begin work; 70% on completion before go-live. Third-party software, payment, messaging, maps, and AI usage are billed at cost.',
+  ar: '٣٠٪ عند القبول لبدء العمل؛ ٧٠٪ عند الإنجاز قبل الإطلاق. تكاليف البرامج والمدفوعات والرسائل والخرائط واستخدام الذكاء الاصطناعي من أطراف ثالثة تُحسب بالتكلفة.'
 };
 
 const cleanText = (value) => String(value ?? '').trim();
