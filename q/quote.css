@@ -131,7 +131,7 @@ table { width: 100%; border-collapse: collapse; }
 .items .grp td.amt { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .items .sub td { padding: 3px 0 3px 18px; color: #52596a; font-size: 12.5px; }
 .items .sub td.inc { text-align: right; color: var(--brand-dark); font-weight: 600; padding-right: 0; padding-left: 0; white-space: nowrap; }
-.items .sub td.inc::before { content: "\\2713 "; }
+.items .sub td.inc::before { content: "\2713 "; }
 .items .div td { border-bottom: 1px solid var(--line); height: 8px; }
 .tot { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 14px; border-top: 2px solid var(--accent); }
 .tot .l { font-weight: 700; }

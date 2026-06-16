@@ -6,8 +6,12 @@ const QD_BRAND = {
   email: 'contact@qdsystems.ae',
   phone: '+971 50 534 9907',
   site: 'qdsystems.ae',
-  place: 'Sharjah, United Arab Emirates'
+  place: 'Dubai, United Arab Emirates'
 };
+function formatRef(ref) {
+  const m = /^Q-(20\d{2})-(\d+)$/.exec(String(ref || ''));
+  return m ? `Q-${m[2]}-${m[1]}` : String(ref || '');
+}
 const ID = location.pathname.replace(/^\/q\//, '').trim();
 
 let currentLang = localStorage.getItem('quoteLang') || 'en';
@@ -166,13 +170,13 @@ function renderQuote(data) {
         <header class="head">
           <div class="brand">
             <div class="mono">QD</div>
-            <div><h1>${QD_BRAND.name}</h1><div class="sub">Websites & digital systems &middot; Sharjah, UAE</div></div>
+            <div><h1>${QD_BRAND.name}</h1><div class="sub">Websites & digital systems &middot; Dubai, UAE</div></div>
           </div>
           <div class="docmeta">
             <div class="title">QUOTATION</div>
             <div class="metarow"><span class="k">Issue date</span><span class="v">${escape(issued)}</span></div>
             <div class="metarow"><span class="k">Valid until</span><span class="v">${escape(validUntil)}</span></div>
-            <div class="refpill">REF ${escape(data.quoteNumber || ID)}</div>
+            <div class="refpill">REF ${escape(formatRef(data.quoteNumber || ID))}</div>
           </div>
         </header>
 
@@ -187,7 +191,7 @@ function renderQuote(data) {
         <table class="items"><tbody>${renderLineItems(data.lineItems || [])}${renderPagesLine(data.pages)}</tbody></table>
 
         <div class="tot"><span class="l">One-time total <span class="mo">${monthlyText}</span></span><span class="r">AED ${formatAED(totals.grandTotal)}</span></div>
-        ${Number(data.vatPercent) > 0 ? `<div class="anchor">Includes VAT ${escape(data.vatPercent)}%: AED ${formatAED(totals.vat)}</div>` : '<div class="anchor">VAT: 0% unless otherwise stated.</div>'}
+        ${Number(data.vatPercent) > 0 ? `<div class="anchor">Includes VAT ${escape(data.vatPercent)}%: AED ${formatAED(totals.vat)}</div>` : '<div class="anchor">Prices are inclusive of VAT.</div>'}
 
         <h4 class="sec">Payment schedule</h4>
         <table class="pay"><tbody>
@@ -209,7 +213,7 @@ function renderQuote(data) {
 
         <footer class="foot">
           <div>${QD_BRAND.name} &middot; ${QD_BRAND.place} &middot; ${QD_BRAND.email} &middot; ${QD_BRAND.site}</div>
-          <div>Ref <b>${escape(data.quoteNumber || ID)}</b> &middot; ${escape(QD_BRAND.site)}/q/${escape(ID)}</div>
+          <div>Ref <b>${escape(formatRef(data.quoteNumber || ID))}</b> &middot; ${escape(QD_BRAND.site)}/q/${escape(ID)}</div>
         </footer>
       </div>
     </div>

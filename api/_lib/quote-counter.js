@@ -1,6 +1,6 @@
 import { getDb } from './firebase.js';
 
-// Reads quotes_meta/counter inside a transaction, increments, returns "Q-YYYY-NNN".
+// Reads quotes_meta/counter inside a transaction, increments, returns "Q-NNN-YYYY".
 // Auto-resets the counter on year change.
 
 export async function getNextQuoteNumber() {
@@ -17,5 +17,5 @@ export async function getNextQuoteNumber() {
     return { year, number };
   });
 
-  return `Q-${next.year}-${String(next.number).padStart(3, '0')}`;
+  return `Q-${String(next.number).padStart(3, '0')}-${next.year}`;
 }
