@@ -24,6 +24,16 @@ const MORE_PROJECTS = {
       result: 'Portfolio-ready restaurant demo with menu highlights, cart flow, and polished branch layouts.',
       tags: ['Online ordering', 'Menu showcase', 'Multi-location', 'Portfolio demo'],
     },
+    {
+      id: 'evergreen',
+      name: 'Evergreen Construction',
+      category: 'Construction · Portfolio Demo',
+      domain: 'evergreen-construction.vercel.app',
+      url: 'https://evergreen-construction.vercel.app/home.html',
+      description: 'A clean construction brand site with service positioning, project proof, and strong quote-first calls to action.',
+      result: 'A polished contractor demo built to present credibility, capability, and conversion in one landing flow.',
+      tags: ['Construction', 'Corporate site', 'Service pages', 'Portfolio demo'],
+    },
   ],
   ar: [
     {
@@ -45,6 +55,16 @@ const MORE_PROJECTS = {
       description: 'قائمة حلال على الفحم، تدفق طلب، وعرض فروع متعددة مصمم لاكتشاف المطعم الحديث.',
       result: 'عرض مطعم جاهز للمحفظة مع أطباق مميزة، سلة طلب، وتخطيط فروع أنيق.',
       tags: ['طلب أونلاين', 'عرض القائمة', 'فروع متعددة', 'عرض أعمال'],
+    },
+    {
+      id: 'evergreen',
+      name: 'Evergreen Construction',
+      category: 'مقاولات · عرض أعمال',
+      domain: 'evergreen-construction.vercel.app',
+      url: 'https://evergreen-construction.vercel.app/home.html',
+      description: 'موقع احترافي لشركة مقاولات يعرض الخدمات والمشاريع ودعوات طلب العرض بشكل واضح.',
+      result: 'عرض تعريفي أنيق مصمم لإظهار المصداقية والخبرة وتحويل الزيارات إلى طلبات.',
+      tags: ['مقاولات', 'موقع شركة', 'عرض خدمات', 'عرض أعمال'],
     },
   ],
   zh: [
@@ -68,6 +88,16 @@ const MORE_PROJECTS = {
       result: '可直接用于作品集的的餐饮演示，含招牌菜、购物车与门店布局。',
       tags: ['在线点餐', '菜单展示', '多门店', '作品演示'],
     },
+    {
+      id: 'evergreen',
+      name: 'Evergreen Construction',
+      category: '建筑公司 · 作品演示',
+      domain: 'evergreen-construction.vercel.app',
+      url: 'https://evergreen-construction.vercel.app/home.html',
+      description: '一个干净利落的建筑品牌网站，展示服务定位、项目实力和强转化 CTA。',
+      result: '一个精致的承包商演示站点，用于同时传达专业形象、能力与转化。',
+      tags: ['建筑', '企业网站', '服务展示', '作品演示'],
+    },
   ],
   ru: [
     {
@@ -89,6 +119,16 @@ const MORE_PROJECTS = {
       description: 'Меню халяль на углях, оформление заказа и витрина нескольких локаций для современного ресторанного опыта.',
       result: 'Готовое ресторанное портфолио-демо с хитами меню, корзиной и аккуратной сеткой филиалов.',
       tags: ['Онлайн-заказ', 'Меню', 'Несколько локаций', 'Портфолио-демо'],
+    },
+    {
+      id: 'evergreen',
+      name: 'Evergreen Construction',
+      category: 'Строительство · Портфолио-демо',
+      domain: 'evergreen-construction.vercel.app',
+      url: 'https://evergreen-construction.vercel.app/home.html',
+      description: 'Чистый корпоративный сайт для строительной компании с акцентом на услугах, проектах и заявках.',
+      result: 'Презентационное демо для подрядчика, которое передает надежность, опыт и умеет конвертировать.',
+      tags: ['Строительство', 'Корпоративный сайт', 'Услуги', 'Портфолио-демо'],
     },
   ],
 };
@@ -128,7 +168,6 @@ const WORK_COPY = {
         result: 'Premium lead capture and motion-rich storytelling, live around the clock.',
         tags: ['Motion design', 'Lead capture', 'Responsive', 'Luxury UI'],
       },
-      ...MORE_PROJECTS.en,
     ],
   },
   ar: {
@@ -165,7 +204,6 @@ const WORK_COPY = {
         result: 'توليد عملاء راقٍ وسرد بصري غني بالحركة، يعمل على مدار الساعة.',
         tags: ['تصميم حركي', 'توليد عملاء', 'متجاوب', 'واجهة فاخرة'],
       },
-      ...MORE_PROJECTS.ar,
     ],
   },
   zh: {
@@ -202,7 +240,6 @@ const WORK_COPY = {
         result: '高端线索捕获与富有动效的叙事，全天候在线。',
         tags: ['动效设计', '线索捕获', '响应式', '奢华界面'],
       },
-      ...MORE_PROJECTS.zh,
     ],
   },
   ru: {
@@ -239,7 +276,6 @@ const WORK_COPY = {
         result: 'Премиальный захват заявок и насыщенный анимацией сторителлинг, доступно круглосуточно.',
         tags: ['Моушн-дизайн', 'Захват заявок', 'Адаптивность', 'Люкс-интерфейс'],
       },
-      ...MORE_PROJECTS.ru,
     ],
   },
 };
@@ -368,6 +404,7 @@ const PREVIEW_IMAGES = {
   evo: '/assets/previews/evo-preview.png',
   vellora: '/assets/previews/vellora-preview.png',
   restaurant: '/assets/previews/restaurant-preview.png',
+  evergreen: '/assets/previews/evergreen-preview.png',
 };
 
 const StaticPreview = ({ project }) => {

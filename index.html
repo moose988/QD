@@ -1430,6 +1430,10 @@ if(bForm)bForm.addEventListener('submit',async e=>{e.preventDefault();
       console.log('[book-email] success',{id:result.id,calendarEventId:result.calendarEventId,meetingLink:Boolean(result.meetingLink),clientEmailSent:Boolean(result.clientEmailSent),adminEmailSent:Boolean(result.adminEmailSent)});
     }else{
       console.warn('[book-email] failed',{status:res.status,error:result.error||'Booking request failed'});
+      if(bErr){
+        const msg=bErr.querySelector('span');
+        if(msg&&result.error)msg.textContent=result.error;
+      }
     }
   }catch(err){console.warn('[book-email] failed',err?.message||err);}
   if(submitBtn){submitBtn.disabled=false;submitBtn.textContent=bSubmitLabel;}

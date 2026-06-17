@@ -673,6 +673,9 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error('[book] error:', safeError(error));
+    if (error?.code === 'MISSING_ENV') {
+      return res.status(500).json({ error: 'The booking system is not fully configured yet. Please message us on WhatsApp so we can confirm your call manually.' });
+    }
     return res.status(500).json({ error: error?.message || 'Something went wrong. Please WhatsApp us.' });
   }
 }
