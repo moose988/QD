@@ -96,9 +96,13 @@ import { parseBrief } from '/app/lib/brief-parser.js';
 import {
   INVITATIONS_COLLECTION,
   INVITATION_RSVPS_COLLECTION,
+  buildInvitationAssetPathSuggestions,
   buildInvitationWhatsappMessage,
   createDefaultInvitationFeatures,
   deriveCoupleDisplayName,
+  isValidInvitationMediaPath,
+  normalizeInvitationGallery,
+  normalizeInvitationMediaFields,
   normalizeRsvpRecord
 } from './invite/invite-shared.js';
 
@@ -347,9 +351,7 @@ const state = {
     slugState: { status: 'idle', message: '' },
     slugTouched: false,
     isSaving: false,
-    error: '',
-    pendingCoverFile: null,
-    pendingMusicFile: null
+    error: ''
   },
   outreachEditor: {
     open: false,
@@ -651,6 +653,7 @@ const createEmptyInvitationDraft = () => ({
   coverImageStoragePath: '',
   musicUrl: '',
   musicStoragePath: '',
+  gallery: [],
   rsvpEnabled: true,
   rsvpDeadline: '',
   whatsappNumber: '',
@@ -702,11 +705,20 @@ const hydrateCard = (snapshot) => ({
   ...snapshot.data()
 });
 
-const hydrateInvitation = (snapshot) => ({
-  id: snapshot.id,
-  ...createEmptyInvitationDraft(),
-  ...snapshot.data()
-});
+const hydrateInvitation = (snapshot) => {
+  const data = snapshot.data();
+  const media = normalizeInvitationMediaFields({
+    coverImageUrl: data.coverImageUrl,
+    musicUrl: data.musicUrl
+  });
+  return {
+    id: snapshot.id,
+    ...createEmptyInvitationDraft(),
+    ...data,
+    ...media,
+    gallery: normalizeInvitationGallery(data.gallery)
+  };
+};
 
 const hydrateInvitationRsvp = (snapshot) => ({
   id: snapshot.id,
@@ -3871,6 +3883,8 @@ const renderInvitationEditor = () => {
   const filteredRsvps = getFilteredInvitationRsvps();
   const rsvpSummary = getInvitationRsvpSummary(state.invitationRsvps, draft);
   const rsvpFilters = state.invitationRsvpFilters;
+  const mediaSuggestions = buildInvitationAssetPathSuggestions(draft.slug || 'your-slug');
+  const galleryText = Array.isArray(draft.gallery) ? draft.gallery.join('\n') : '';
 
   return `
     <div class="qd-admin-modal-overlay">
@@ -3966,15 +3980,23 @@ const renderInvitationEditor = () => {
               <label for="invite-couple-display-name">Display Names <span class="qd-admin-field-optional">(optional)</span></label>
               <input id="invite-couple-display-name" class="qd-admin-input" name="coupleDisplayName" type="text" value="${escapeHtml(draft.coupleDisplayName || '')}" placeholder="${escapeHtml(deriveInvitationDisplayName(draft) || 'Aisha & Omar')}">
             </div>
-            <div class="qd-admin-field qd-admin-card-avatar-field">
-              <label for="invite-cover-image">Cover Image</label>
-              <input id="invite-cover-image" class="qd-admin-input qd-admin-file-input" name="coverImageFile" type="file" accept="image/*">
-              <div class="qd-admin-field-hint">${escapeHtml(state.invitationEditor.pendingCoverFile?.name || draft.coverImageUrl || 'Uploads to Firebase Storage at invitations/[slug]/cover.*')}</div>
+            <div class="qd-admin-field qd-admin-field-span-2">
+              <div class="qd-admin-alert is-soft" role="note">Media files must be placed manually in <code>assets/invitations/[slug]/</code> before deployment.</div>
             </div>
-            <div class="qd-admin-field qd-admin-card-avatar-field">
-              <label for="invite-music-file">Background Music</label>
-              <input id="invite-music-file" class="qd-admin-input qd-admin-file-input" name="musicFile" type="file" accept="audio/*">
-              <div class="qd-admin-field-hint">${escapeHtml(state.invitationEditor.pendingMusicFile?.name || draft.musicUrl || 'Uploads to Firebase Storage at invitations/[slug]/music.*')}</div>
+            <div class="qd-admin-field qd-admin-field-span-2">
+              <label for="invite-cover-image-url">Cover Image Path</label>
+              <input id="invite-cover-image-url" class="qd-admin-input" name="coverImageUrl" type="text" value="${escapeHtml(draft.coverImageUrl || '')}" placeholder="${escapeHtml(mediaSuggestions.coverImageUrl)}">
+              <div class="qd-admin-field-hint">Example: ${escapeHtml(mediaSuggestions.coverImageUrl)}</div>
+            </div>
+            <div class="qd-admin-field qd-admin-field-span-2">
+              <label for="invite-music-url">Background Music Path</label>
+              <input id="invite-music-url" class="qd-admin-input" name="musicUrl" type="text" value="${escapeHtml(draft.musicUrl || '')}" placeholder="${escapeHtml(mediaSuggestions.musicUrl)}">
+              <div class="qd-admin-field-hint">Example: ${escapeHtml(mediaSuggestions.musicUrl)}</div>
+            </div>
+            <div class="qd-admin-field qd-admin-field-span-2">
+              <label for="invite-gallery-paths">Gallery Image Paths <span class="qd-admin-field-optional">(one per line)</span></label>
+              <textarea id="invite-gallery-paths" class="qd-admin-textarea" name="galleryPaths" rows="4" placeholder="${escapeHtml(mediaSuggestions.gallery.join('\n'))}">${escapeHtml(galleryText)}</textarea>
+              <div class="qd-admin-field-hint">Example: ${escapeHtml(mediaSuggestions.gallery.join(', '))}</div>
             </div>
             <div class="qd-admin-field">
               <label for="invite-rsvp-deadline">RSVP Deadline</label>
@@ -4017,7 +4039,7 @@ const renderInvitationEditor = () => {
               </select>
               <button class="qd-btn qd-btn-sm qd-admin-action-secondary" type="button" data-action="export-invitation-rsvps">Export CSV</button>
             </div>
-            ${state.invitationRsvpsError ? `<div class="qd-admin-alert" role="alert">${escapeHtml(state.invitationRsvpsError)}</div>` : ''}
+            ${state.invitationRsvpsError ? `<div class="qd-admin-alert is-soft" role="status">${escapeHtml(state.invitationRsvpsError)}</div>` : ''}
             ${state.invitationRsvpsLoading && !state.invitationRsvps.length ? `
               <div class="qd-admin-empty-state">
                 <strong>Loading RSVPs</strong>
@@ -4059,7 +4081,7 @@ const renderInvitationEditor = () => {
           </section>
 
           <div class="qd-admin-save-row">
-            <span class="qd-admin-save-help">Cover media is stored in Firebase Storage, public URLs are generated automatically, and the invitation stays available at its slug.</span>
+            <span class="qd-admin-save-help">Invitation details are saved to Firestore. Place cover, music, and gallery files in <code>assets/invitations/[slug]/</code> and enter their paths above.</span>
             <button class="qd-btn qd-btn-md qd-admin-action-primary" type="submit" ${state.invitationEditor.isSaving ? 'disabled' : ''}>
               ${state.invitationEditor.isSaving ? 'Saving...' : state.invitationEditor.mode === 'edit' ? 'Save invitation' : 'Create invitation'}
             </button>
@@ -5305,7 +5327,7 @@ const subscribeToInvitations = () => {
           const fresh = state.invitations.find((item) => item.id === state.invitationEditor.id);
           if (fresh && !state.invitationEditor.isSaving) {
             state.invitationEditor.original = fresh;
-            if (!state.invitationEditor.pendingCoverFile && !state.invitationEditor.pendingMusicFile) {
+            if (!state.invitationEditor.isSaving) {
               state.invitationEditor.draft = {
                 ...createEmptyInvitationDraft(),
                 ...fresh
@@ -5710,17 +5732,23 @@ const subscribeToInvitationRsvps = (invitationId) => {
   currentInvitationRsvpsTargetId = invitationId;
 
   const rsvpRef = collection(db, INVITATION_RSVPS_COLLECTION);
-  const rsvpQuery = query(rsvpRef, where('inviteId', '==', invitationId), orderBy('createdAt', 'desc'), limit(250));
+  const rsvpQuery = query(rsvpRef, where('inviteId', '==', invitationId), limit(250));
   unsubscribeInvitationRsvpsSnapshot = onSnapshot(
     rsvpQuery,
     (snapshot) => {
-      state.invitationRsvps = snapshot.docs.map(hydrateInvitationRsvp);
+      state.invitationRsvps = snapshot.docs
+        .map(hydrateInvitationRsvp)
+        .sort((a, b) => (getTimestampMs(b.createdAt) || 0) - (getTimestampMs(a.createdAt) || 0));
       state.invitationRsvpsLoading = false;
+      state.invitationRsvpsError = '';
       if (state.invitationEditor.open && state.invitationEditor.id === invitationId) render();
     },
     (error) => {
       state.invitationRsvpsLoading = false;
-      state.invitationRsvpsError = error?.message || 'Unable to read invitation RSVPs.';
+      if (isAdminDevHost()) {
+        console.warn('[invitation-rsvps] query failed:', error);
+      }
+      state.invitationRsvpsError = 'Could not load RSVPs right now.';
       if (state.invitationEditor.open && state.invitationEditor.id === invitationId) render();
     }
   );
@@ -5748,9 +5776,7 @@ const openInvitationEditor = (mode, invitation = null) => {
     slugState: { status: 'idle', message: 'Use lowercase letters, numbers, and hyphens only.' },
     slugTouched: Boolean(invitation?.slug),
     isSaving: false,
-    error: '',
-    pendingCoverFile: null,
-    pendingMusicFile: null
+    error: ''
   };
 
   if (invitation?.id) {
@@ -5772,12 +5798,36 @@ const closeInvitationEditor = () => {
     slugState: { status: 'idle', message: '' },
     slugTouched: false,
     isSaving: false,
-    error: '',
-    pendingCoverFile: null,
-    pendingMusicFile: null
+    error: ''
   };
   stopInvitationRsvpsSubscription();
   render();
+};
+
+const parseInvitationGalleryInput = (value) => String(value || '')
+  .split(/\r?\n/)
+  .map((line) => line.trim())
+  .filter(Boolean);
+
+const validateInvitationMediaPaths = (draft) => {
+  const coverImageUrl = String(draft.coverImageUrl || '').trim();
+  const musicUrl = String(draft.musicUrl || '').trim();
+  const gallery = parseInvitationGalleryInput(
+    Array.isArray(draft.gallery) ? draft.gallery.join('\n') : draft.gallery
+  );
+
+  if (coverImageUrl && !isValidInvitationMediaPath(coverImageUrl)) {
+    return 'Media paths must start with /assets/ or https://';
+  }
+  if (musicUrl && !isValidInvitationMediaPath(musicUrl)) {
+    return 'Media paths must start with /assets/ or https://';
+  }
+  for (const path of gallery) {
+    if (!isValidInvitationMediaPath(path)) {
+      return 'Media paths must start with /assets/ or https://';
+    }
+  }
+  return '';
 };
 
 const captureInvitationDraftFromDom = () => {
@@ -5805,6 +5855,9 @@ const captureInvitationDraftFromDom = () => {
     active: normalizedStatus === 'active',
     status: normalizedStatus,
     coupleDisplayName: form.querySelector('[name="coupleDisplayName"]')?.value?.trim() || '',
+    coverImageUrl: form.querySelector('[name="coverImageUrl"]')?.value?.trim() || '',
+    musicUrl: form.querySelector('[name="musicUrl"]')?.value?.trim() || '',
+    gallery: parseInvitationGalleryInput(form.querySelector('[name="galleryPaths"]')?.value || ''),
     features: {
       ...createDefaultInvitationFeatures(),
       ...(getInvitationEditorDraftFromState().features || {})
@@ -5871,54 +5924,12 @@ const validateInvitationSlug = async (slug, { silent = false } = {}) => {
   return true;
 };
 
-const getSafeFileExtension = (file, fallback) => {
-  const fromName = String(file?.name || '').split('.').pop()?.toLowerCase();
-  if (fromName && /^[a-z0-9]{2,5}$/.test(fromName)) return fromName;
-  const fromType = String(file?.type || '').split('/').pop()?.toLowerCase();
-  if (fromType && /^[a-z0-9.+-]{2,12}$/.test(fromType)) return fromType.replace('mpeg', 'mp3').replace('jpeg', 'jpg');
-  return fallback;
-};
-
-const uploadInvitationCoverIfNeeded = async (draft) => {
-  const file = state.invitationEditor.pendingCoverFile;
-  if (!file) {
-    return {
-      coverImageUrl: draft.coverImageUrl || '',
-      coverImageStoragePath: draft.coverImageStoragePath || ''
-    };
-  }
-
-  const ext = getSafeFileExtension(file, 'jpg');
-  const path = `invitations/${draft.slug}/cover.${ext}`;
-  const ref = storageRef(storage, path);
-  await uploadBytes(ref, file);
-  const url = await getDownloadURL(ref);
-  return { coverImageUrl: url, coverImageStoragePath: path };
-};
-
-const uploadInvitationMusicIfNeeded = async (draft) => {
-  const file = state.invitationEditor.pendingMusicFile;
-  if (!file) {
-    return {
-      musicUrl: draft.musicUrl || '',
-      musicStoragePath: draft.musicStoragePath || ''
-    };
-  }
-
-  const ext = getSafeFileExtension(file, 'mp3');
-  const path = `invitations/${draft.slug}/music.${ext}`;
-  const ref = storageRef(storage, path);
-  await uploadBytes(ref, file);
-  const url = await getDownloadURL(ref);
-  return { musicUrl: url, musicStoragePath: path };
-};
-
-const deleteStoragePathIfPresent = async (path) => {
-  if (!path) return;
+const isAdminDevHost = () => {
   try {
-    await deleteObject(storageRef(storage, path));
-  } catch (error) {
-    console.warn('[invitation-media] cleanup skipped:', error?.message || error);
+    const { hostname } = window.location;
+    return hostname === 'localhost' || hostname === '127.0.0.1';
+  } catch {
+    return false;
   }
 };
 
@@ -5927,6 +5938,13 @@ const saveInvitationEditor = async () => {
 
   if (!draft.brideName || !draft.groomName || !draft.slug || !draft.eventDate || !draft.venueName) {
     state.invitationEditor.error = 'Bride name, groom name, slug, event date, and venue name are required.';
+    render();
+    return;
+  }
+
+  const mediaPathError = validateInvitationMediaPaths(draft);
+  if (mediaPathError) {
+    state.invitationEditor.error = mediaPathError;
     render();
     return;
   }
@@ -5940,8 +5958,10 @@ const saveInvitationEditor = async () => {
 
   try {
     const previous = state.invitationEditor.original || {};
-    const coverPayload = await uploadInvitationCoverIfNeeded(draft);
-    const musicPayload = await uploadInvitationMusicIfNeeded(draft);
+    const coverImageUrl = String(draft.coverImageUrl || '').trim();
+    const musicUrl = String(draft.musicUrl || '').trim();
+    const gallery = normalizeInvitationGallery(draft.gallery);
+
     const payload = {
       slug: draft.slug,
       brideName: draft.brideName,
@@ -5955,10 +5975,11 @@ const saveInvitationEditor = async () => {
       mapUrl: draft.mapUrl || '',
       languageDefault: draft.languageDefault === 'ar' ? 'ar' : 'en',
       theme: INVITE_THEME_OPTIONS.includes(draft.theme) ? draft.theme : 'royal-gold',
-      coverImageUrl: coverPayload.coverImageUrl,
-      coverImageStoragePath: coverPayload.coverImageStoragePath,
-      musicUrl: musicPayload.musicUrl,
-      musicStoragePath: musicPayload.musicStoragePath,
+      coverImageUrl,
+      coverImageStoragePath: '',
+      musicUrl,
+      musicStoragePath: '',
+      gallery,
       rsvpEnabled: draft.rsvpEnabled !== false,
       rsvpDeadline: draft.rsvpDeadline || '',
       whatsappNumber: draft.whatsappNumber || '',
@@ -5976,12 +5997,6 @@ const saveInvitationEditor = async () => {
 
     if (state.invitationEditor.mode === 'edit' && state.invitationEditor.id) {
       await updateDoc(doc(db, INVITATIONS_COLLECTION, state.invitationEditor.id), payload);
-      if (state.invitationEditor.pendingCoverFile && previous.coverImageStoragePath && previous.coverImageStoragePath !== payload.coverImageStoragePath) {
-        await deleteStoragePathIfPresent(previous.coverImageStoragePath);
-      }
-      if (state.invitationEditor.pendingMusicFile && previous.musicStoragePath && previous.musicStoragePath !== payload.musicStoragePath) {
-        await deleteStoragePathIfPresent(previous.musicStoragePath);
-      }
       showAdminToast(`Saved invitation ${payload.slug}`);
     } else {
       await addDoc(collection(db, INVITATIONS_COLLECTION), {
@@ -5994,7 +6009,10 @@ const saveInvitationEditor = async () => {
     closeInvitationEditor();
   } catch (error) {
     state.invitationEditor.isSaving = false;
-    state.invitationEditor.error = error?.message || 'Could not save the wedding invitation.';
+    state.invitationEditor.error = 'Invitation save failed.';
+    if (isAdminDevHost()) {
+      console.warn('[invitation-save] Firestore save failed:', error);
+    }
     render();
   }
 };
@@ -6019,8 +6037,6 @@ const deleteInvitationRecord = async (invitation) => {
   const confirmed = window.confirm(`Delete the wedding invitation for ${deriveInvitationDisplayName(invitation) || invitation.slug}?`);
   if (!confirmed) return;
   await deleteDoc(doc(db, INVITATIONS_COLLECTION, invitation.id));
-  await deleteStoragePathIfPresent(invitation.coverImageStoragePath);
-  await deleteStoragePathIfPresent(invitation.musicStoragePath);
   showAdminToast(`Deleted invitation ${invitation.slug}`);
 };
 
@@ -7610,24 +7626,6 @@ document.addEventListener('change', (event) => {
     return;
   }
 
-  if (event.target.id === 'invite-cover-image') {
-    state.invitationEditor.pendingCoverFile = event.target.files?.[0] || null;
-    const hint = event.target.closest('.qd-admin-field')?.querySelector('.qd-admin-field-hint');
-    if (hint) {
-      hint.textContent = state.invitationEditor.pendingCoverFile?.name || state.invitationEditor.draft?.coverImageUrl || 'Uploads to Firebase Storage at invitations/[slug]/cover.*';
-    }
-    return;
-  }
-
-  if (event.target.id === 'invite-music-file') {
-    state.invitationEditor.pendingMusicFile = event.target.files?.[0] || null;
-    const hint = event.target.closest('.qd-admin-field')?.querySelector('.qd-admin-field-hint');
-    if (hint) {
-      hint.textContent = state.invitationEditor.pendingMusicFile?.name || state.invitationEditor.draft?.musicUrl || 'Uploads to Firebase Storage at invitations/[slug]/music.*';
-    }
-    return;
-  }
-
   if (event.target.id === 'invite-slug') {
     validateInvitationSlug(event.target.value).catch((error) => {
       setInvitationSlugState('invalid', error?.message || 'Slug check failed.');
@@ -9143,9 +9141,7 @@ onAuthStateChanged(auth, async (user) => {
       slugState: { status: 'idle', message: '' },
       slugTouched: false,
       isSaving: false,
-      error: '',
-      pendingCoverFile: null,
-      pendingMusicFile: null
+      error: ''
     };
     state.outreachEditor = {
       open: false,

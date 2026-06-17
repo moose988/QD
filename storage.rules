@@ -1,0 +1,28 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isAllowedAdmin() {
+      return request.auth != null
+        && request.auth.token.email != null
+        && request.auth.token.email in [
+          'mohammedqudaih107@gmail.com',
+          'mdaya0089@gmail.com'
+        ];
+    }
+
+    match /invitations/{slug}/{fileName} {
+      allow read: if true;
+      allow write, delete: if isAllowedAdmin()
+        && (
+          fileName.matches('cover\\..+')
+          || fileName.matches('music\\..+')
+        );
+    }
+
+    match /cards/{slug}/{fileName} {
+      allow read: if true;
+      allow write, delete: if isAllowedAdmin();
+    }
+  }
+}

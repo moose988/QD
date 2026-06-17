@@ -2,13 +2,42 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
     function isAllowedAdmin() {
-      return request.auth != null
+      return isSignedIn()
         && request.auth.token.email != null
         && request.auth.token.email in [
           'mohammedqudaih107@gmail.com',
           'mdaya0089@gmail.com'
         ];
+    }
+
+    function isPublicInvitationRead() {
+      return resource.data.active == true;
+    }
+
+    function isPublicViewsIncrement() {
+      return resource.data.active == true
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views'])
+        && request.resource.data.views == resource.data.views + 1;
+    }
+
+    function isPublicRsvpCounterIncrement() {
+      return resource.data.active == true
+        && resource.data.rsvpEnabled == true
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rsvpCount'])
+        && request.resource.data.rsvpCount == resource.data.rsvpCount + 1;
+    }
+
+    function invitationIsActive(invitationPath) {
+      return get(invitationPath).data.active == true;
+    }
+
+    function invitationRsvpIsEnabled(invitationPath) {
+      return get(invitationPath).data.rsvpEnabled == true;
     }
 
     match /projectSubmissions/{document} {
@@ -60,25 +89,16 @@ service cloud.firestore {
       allow read, write: if isAllowedAdmin();
     }
 
-    // Primary wedding invitations collection (admin + public invite pages).
+    // Primary collection used by the admin invitations tab and public invite pages.
     match /invitations/{invitationId} {
-      allow read: if isAllowedAdmin() || resource.data.active == true;
+      allow read: if isAllowedAdmin() || isPublicInvitationRead();
       allow create, delete: if isAllowedAdmin();
       allow update: if isAllowedAdmin()
-        || (
-          resource.data.active == true
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views'])
-          && request.resource.data.views == resource.data.views + 1
-        )
-        || (
-          resource.data.active == true
-          && resource.data.rsvpEnabled == true
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rsvpCount'])
-          && request.resource.data.rsvpCount == resource.data.rsvpCount + 1
-        );
+        || isPublicViewsIncrement()
+        || isPublicRsvpCounterIncrement();
     }
 
-    // RSVP responses (top-level; used by admin + public invite flow).
+    // Top-level RSVP collection used by the current invitation flow.
     match /invitationRsvps/{rsvpId} {
       allow read: if isAllowedAdmin();
       allow create: if request.resource.data.inviteId is string
@@ -86,39 +106,30 @@ service cloud.firestore {
         && request.resource.data.guestName is string
         && request.resource.data.phone is string
         && request.resource.data.attending in ['yes', 'no']
-        && get(/databases/$(database)/documents/invitations/$(request.resource.data.inviteId)).data.active == true
-        && get(/databases/$(database)/documents/invitations/$(request.resource.data.inviteId)).data.rsvpEnabled == true;
+        && invitationIsActive(/databases/$(database)/documents/invitations/$(request.resource.data.inviteId))
+        && invitationRsvpIsEnabled(/databases/$(database)/documents/invitations/$(request.resource.data.inviteId));
       allow update, delete: if isAllowedAdmin();
     }
 
-    // Legacy collection (pre-migration) — keep until data is moved to /invitations.
+    // Legacy collection kept so older invitation links continue working.
     match /weddingInvitations/{invitationId} {
-      allow read: if isAllowedAdmin() || resource.data.active == true;
+      allow read: if isAllowedAdmin() || isPublicInvitationRead();
       allow create, delete: if isAllowedAdmin();
       allow update: if isAllowedAdmin()
-        || (
-          resource.data.active == true
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views'])
-          && request.resource.data.views == resource.data.views + 1
-        )
-        || (
-          resource.data.active == true
-          && resource.data.rsvpEnabled == true
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rsvpCount'])
-          && request.resource.data.rsvpCount == resource.data.rsvpCount + 1
-        );
+        || isPublicViewsIncrement()
+        || isPublicRsvpCounterIncrement();
 
       match /rsvps/{rsvpId} {
         allow read: if isAllowedAdmin();
-        allow create: if get(/databases/$(database)/documents/weddingInvitations/$(invitationId)).data.active == true
-          && get(/databases/$(database)/documents/weddingInvitations/$(invitationId)).data.rsvpEnabled == true;
+        allow create: if invitationIsActive(/databases/$(database)/documents/weddingInvitations/$(invitationId))
+          && invitationRsvpIsEnabled(/databases/$(database)/documents/weddingInvitations/$(invitationId));
         allow update, delete: if false;
       }
     }
 
     match /businessOutreachLeads/{document} {
-      allow read, update, delete: if request.auth != null;
-      allow create: if request.auth != null;
+      allow read, update, delete: if isSignedIn();
+      allow create: if isSignedIn();
     }
   }
 }

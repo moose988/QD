@@ -43,6 +43,10 @@ const MIME = {
   '.woff2':'font/woff2',
   '.ttf':  'font/ttf',
   '.mp4':  'video/mp4',
+  '.mp3':  'audio/mpeg',
+  '.m4a':  'audio/mp4',
+  '.ogg':  'audio/ogg',
+  '.wav':  'audio/wav',
 };
 
 async function readBody(req) {

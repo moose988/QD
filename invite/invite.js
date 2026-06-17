@@ -24,7 +24,10 @@ import {
   downloadIcsFile,
   formatInviteEventDate,
   isInvitationPubliclyAvailable,
-  isRsvpDeadlinePassed
+  isRsvpDeadlinePassed,
+  isValidInvitationMediaPath,
+  normalizeInvitationGallery,
+  normalizeInvitationMediaFields
 } from './invite-shared.js';
 
 const loadingEl = document.getElementById('invite-loading');
@@ -43,6 +46,8 @@ const rsvpClosedEl = document.getElementById('invite-rsvp-closed');
 const guestsFieldEl = document.getElementById('invite-guests-field');
 const openingBtnEl = document.getElementById('invite-opening-btn');
 const particlesEl = document.getElementById('invite-particles');
+const gallerySectionEl = document.getElementById('invite-gallery-section');
+const galleryGridEl = document.getElementById('invite-gallery-grid');
 
 const labels = {
   en: {
@@ -74,6 +79,8 @@ const labels = {
     message: 'Message (optional)',
     send: 'Send RSVP',
     share: 'Share on WhatsApp',
+    galleryLabel: 'Gallery',
+    galleryHeading: 'Moments to remember',
     muteMusic: 'Mute music',
     unmuteMusic: 'Unmute music',
     loadingBadge: 'Preparing invitation',
@@ -125,6 +132,8 @@ const labels = {
     message: 'رسالة (اختياري)',
     send: 'إرسال تأكيد الحضور',
     share: 'مشاركة عبر واتساب',
+    galleryLabel: 'معرض الصور',
+    galleryHeading: 'لحظات نعتز بها',
     muteMusic: 'كتم الموسيقى',
     unmuteMusic: 'تشغيل الموسيقى',
     loadingBadge: 'جاري تحضير الدعوة',
@@ -299,6 +308,10 @@ const applyLanguage = () => {
   document.getElementById('label-minutes').textContent = t.minutes;
   document.getElementById('label-seconds').textContent = t.seconds;
   document.getElementById('invite-location-label').textContent = t.location;
+  const galleryLabelEl = document.getElementById('invite-gallery-label');
+  const galleryHeadingEl = document.getElementById('invite-gallery-heading');
+  if (galleryLabelEl) galleryLabelEl.textContent = t.galleryLabel;
+  if (galleryHeadingEl) galleryHeadingEl.textContent = t.galleryHeading;
   document.getElementById('invite-rsvp-label').textContent = t.rsvp;
   document.getElementById('invite-rsvp-heading').textContent = t.rsvpHeading;
   document.getElementById('label-rsvp-name').textContent = t.name;
@@ -414,13 +427,14 @@ const bindWhatsapp = () => {
 };
 
 const bindAudio = () => {
-  const musicUrl = state.invitation?.musicUrl;
+  const musicUrl = String(state.invitation?.musicUrl || '').trim();
   const features = state.invitation?.features || {};
   const musicEnabled = features.music !== false;
 
-  if (!musicUrl || !musicEnabled) {
+  if (!isValidInvitationMediaPath(musicUrl) || !musicEnabled) {
     audioToggleEl.hidden = true;
     audioPlayerEl.removeAttribute('src');
+    audioPlayerEl.pause();
     return;
   }
 
@@ -455,7 +469,8 @@ const bindAudio = () => {
 };
 
 const startMusicAfterOpen = async () => {
-  if (!state.invitation?.musicUrl || state.invitation?.features?.music === false) return;
+  const musicUrl = String(state.invitation?.musicUrl || '').trim();
+  if (!isValidInvitationMediaPath(musicUrl) || state.invitation?.features?.music === false) return;
   try {
     audioPlayerEl.muted = false;
     state.isAudioMuted = false;
@@ -640,11 +655,31 @@ const showOpeningScreen = () => {
   setTheme(state.invitation.theme);
 
   const heroMediaEl = document.getElementById('invite-hero-media');
-  if (state.invitation.coverImageUrl) {
-    heroMediaEl.style.backgroundImage = `url("${state.invitation.coverImageUrl}")`;
+  const coverImageUrl = String(state.invitation.coverImageUrl || '').trim();
+  if (isValidInvitationMediaPath(coverImageUrl)) {
+    heroMediaEl.style.backgroundImage = `url("${coverImageUrl}")`;
+  } else {
+    heroMediaEl.style.backgroundImage = '';
   }
 
   openingBtnEl.onclick = revealInvitation;
+};
+
+const bindGallery = () => {
+  if (!gallerySectionEl || !galleryGridEl) return;
+  const gallery = normalizeInvitationGallery(state.invitation?.gallery || []);
+  if (!gallery.length) {
+    gallerySectionEl.hidden = true;
+    galleryGridEl.innerHTML = '';
+    return;
+  }
+
+  gallerySectionEl.hidden = false;
+  galleryGridEl.innerHTML = gallery.map((src) => `
+    <figure class="invite-gallery-item">
+      <img src="${esc(src)}" alt="" loading="lazy" decoding="async">
+    </figure>
+  `).join('');
 };
 
 const renderInvitationContent = () => {
@@ -653,6 +688,7 @@ const renderInvitationContent = () => {
   bindLocationActions();
   bindCalendar();
   bindWhatsapp();
+  bindGallery();
   updateCountdown();
   clearInterval(state.countdownTimer);
   state.countdownTimer = window.setInterval(updateCountdown, 1000);
@@ -712,7 +748,11 @@ const loadInvitation = async () => {
       return;
     }
 
-    state.invitation = invitation;
+    state.invitation = {
+      ...invitation,
+      ...normalizeInvitationMediaFields(invitation),
+      gallery: normalizeInvitationGallery(invitation.gallery)
+    };
     prepareInvitation();
   } catch (error) {
     console.error('[invite] load failed:', error);

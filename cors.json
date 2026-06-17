@@ -1,0 +1,13 @@
+[
+  {
+    "origin": [
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "https://qdsystems.ae",
+      "https://www.qdsystems.ae"
+    ],
+    "method": ["GET", "HEAD", "PUT", "POST", "DELETE"],
+    "responseHeader": ["Content-Type", "Authorization", "Content-Length", "X-Firebase-Storage-*"],
+    "maxAgeSeconds": 3600
+  }
+]

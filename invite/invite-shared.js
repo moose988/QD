@@ -24,6 +24,55 @@ export const createDefaultInvitationFeatures = () => ({
   password: false
 });
 
+/** True for non-empty /assets/ paths or http(s) URLs. */
+export const isValidInvitationMediaPath = (value) => {
+  const trimmed = String(value || '').trim();
+  if (!trimmed) return false;
+  if (trimmed.startsWith('/assets/')) return true;
+  try {
+    const url = new URL(trimmed);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
+
+/** @deprecated Use isValidInvitationMediaPath */
+export const isValidInvitationMediaUrl = isValidInvitationMediaPath;
+
+export const buildInvitationAssetPathSuggestions = (slug) => {
+  const clean = String(slug || '').trim() || 'your-slug';
+  const base = `/assets/invitations/${clean}`;
+  return {
+    coverImageUrl: `${base}/cover.jpg`,
+    musicUrl: `${base}/music.mp3`,
+    gallery: [`${base}/photo-1.jpg`, `${base}/photo-2.jpg`]
+  };
+};
+
+/** Trim media paths; static invitations always use empty storage path fields. */
+export const normalizeInvitationMediaFields = (fields = {}) => {
+  const coverImageUrl = String(fields.coverImageUrl || '').trim();
+  const musicUrl = String(fields.musicUrl || '').trim();
+  const coverValid = isValidInvitationMediaPath(coverImageUrl);
+  const musicValid = isValidInvitationMediaPath(musicUrl);
+  return {
+    coverImageUrl: coverValid ? coverImageUrl : '',
+    coverImageStoragePath: '',
+    musicUrl: musicValid ? musicUrl : '',
+    musicStoragePath: ''
+  };
+};
+
+export const normalizeInvitationGallery = (gallery = []) => {
+  const list = Array.isArray(gallery)
+    ? gallery
+    : String(gallery || '').split(/\r?\n/);
+  return list
+    .map((item) => String(item || '').trim())
+    .filter((item) => isValidInvitationMediaPath(item));
+};
+
 export const deriveCoupleDisplayName = (invitation, lang = 'en') => {
   const manual = String(invitation?.coupleDisplayName || '').trim();
   if (manual) return manual;
