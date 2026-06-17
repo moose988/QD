@@ -100,6 +100,8 @@ const WORK_COPY = {
     lead: 'Client builds and portfolio demos — scroll inside each preview or open the live site.',
     live: 'LIVE',
     loading: 'Loading preview…',
+    interact: 'Interactive preview',
+    interactHint: 'Tap to load the live site',
     viewLive: 'View live site',
     seeMore: 'See more',
     seeLess: 'Show less',
@@ -135,6 +137,8 @@ const WORK_COPY = {
     lead: 'مشاريع للعملاء وعروض أعمال — تصفح داخل كل معاينة أو افتح الموقع المباشر.',
     live: 'مباشر',
     loading: 'جاري تحميل المعاينة…',
+    interact: 'معاينة تفاعلية',
+    interactHint: 'اضغط لتحميل الموقع المباشر',
     viewLive: 'زيارة الموقع المباشر',
     seeMore: 'عرض المزيد',
     seeLess: 'عرض أقل',
@@ -170,6 +174,8 @@ const WORK_COPY = {
     lead: '客户项目与作品集演示——在每个预览中滚动查看，或打开线上网站。',
     live: '在线',
     loading: '正在加载预览…',
+    interact: '交互预览',
+    interactHint: '点击后加载真实网站',
     viewLive: '访问线上网站',
     seeMore: '查看更多',
     seeLess: '收起',
@@ -205,6 +211,8 @@ const WORK_COPY = {
     lead: 'Клиентские проекты и портфолио-демо — прокрутите внутри превью или откройте сайт.',
     live: 'LIVE',
     loading: 'Загрузка превью…',
+    interact: 'Интерактивное превью',
+    interactHint: 'Нажмите, чтобы загрузить сайт',
     viewLive: 'Открыть сайт',
     seeMore: 'Показать ещё',
     seeLess: 'Свернуть',
@@ -355,6 +363,27 @@ const MockPreview = ({ projectId }) => {
   return null;
 };
 
+const PREVIEW_IMAGES = {
+  taj: '/assets/previews/taj-preview.png',
+  evo: '/assets/previews/evo-preview.png',
+  vellora: '/assets/previews/vellora-preview.png',
+  restaurant: '/assets/previews/restaurant-preview.png',
+};
+
+const StaticPreview = ({ project }) => {
+  const src = PREVIEW_IMAGES[project.id];
+  if (!src) return <MockPreview projectId={project.id} />;
+  return (
+    <img
+      className="iwork-shot"
+      src={src}
+      alt={`${project.name} preview screenshot`}
+      loading="lazy"
+      decoding="async"
+    />
+  );
+};
+
 const PreviewSkeleton = ({ label }) => (
   <div className="iwork-skeleton" aria-hidden="true">
     <div className="iwork-skeleton-bar" />
@@ -366,16 +395,16 @@ const PreviewSkeleton = ({ label }) => (
   </div>
 );
 
-const BrowserPreview = ({ project, copy, useIframe }) => {
+const BrowserPreview = ({ project, copy, useIframe, onActivate }) => {
   const [loaded, setLoaded] = useState(false);
-  const [failed, setFailed] = useState(!useIframe);
+  const [failed, setFailed] = useState(false);
   const timeoutRef = useRef(null);
   const loadedRef = useRef(false);
 
   useEffect(() => {
     if (!useIframe) {
-      setFailed(true);
       setLoaded(false);
+      setFailed(false);
       return;
     }
     loadedRef.current = false;
@@ -387,13 +416,22 @@ const BrowserPreview = ({ project, copy, useIframe }) => {
     return () => window.clearTimeout(timeoutRef.current);
   }, [project.url, useIframe]);
 
-  const showMock = failed;
+  const showMock = !useIframe || failed;
   const showSkeleton = useIframe && !loaded && !failed;
 
   return (
     <div className="iwork-viewport">
       {showSkeleton && <PreviewSkeleton label={copy.loading} />}
-      {showMock && <MockPreview projectId={project.id} />}
+      {showMock && <StaticPreview project={project} />}
+      {!useIframe && (
+        <button type="button" className="iwork-activate" onClick={onActivate}>
+          <span className="iwork-activate-icon" aria-hidden="true">▶</span>
+          <span className="iwork-activate-text">
+            <span className="iwork-activate-title">{copy.interact}</span>
+            <span className="iwork-activate-copy">{copy.interactHint}</span>
+          </span>
+        </button>
+      )}
       {useIframe && !failed && (
         <iframe
           src={project.url}
@@ -429,19 +467,13 @@ const useCoarsePointer = () => {
   return coarse;
 };
 
-const InteractiveWorkPreview = ({ project, copy, index }) => {
+const InteractiveWorkPreview = ({ project, copy }) => {
   const [cardRef, visible] = useInView(0.08);
   const reduced = useReducedMotion();
   const coarse = useCoarsePointer();
   const [hovered, setHovered] = useState(false);
   const [useIframe, setUseIframe] = useState(false);
   const allowHover = !reduced && !coarse;
-
-  useEffect(() => {
-    if (!visible) return;
-    const t = window.setTimeout(() => setUseIframe(true), index * 180);
-    return () => window.clearTimeout(t);
-  }, [visible, index]);
 
   const openLive = () => window.open(project.url, '_blank', 'noopener,noreferrer');
 
@@ -463,7 +495,12 @@ const InteractiveWorkPreview = ({ project, copy, index }) => {
             <span className="iwork-domain">{project.domain}</span>
           </div>
         </div>
-        <BrowserPreview project={project} copy={copy} useIframe={useIframe} />
+        <BrowserPreview
+          project={project}
+          copy={copy}
+          useIframe={useIframe}
+          onActivate={() => setUseIframe(true)}
+        />
       </div>
 
       <div className="iwork-body">
@@ -505,7 +542,7 @@ const SelectedWorkSection = ({ language = 'en' }) => {
       </div>
       <div className="iwork-grid">
         {featuredProjects.map((project, index) => (
-          <InteractiveWorkPreview key={project.id} project={project} copy={copy} index={index} />
+          <InteractiveWorkPreview key={project.id} project={project} copy={copy} />
         ))}
       </div>
       {hasMore && !expanded && (
@@ -528,7 +565,6 @@ const SelectedWorkSection = ({ language = 'en' }) => {
                 key={project.id}
                 project={project}
                 copy={copy}
-                index={INITIAL_WORK_VISIBLE + index}
               />
             ))}
           </div>

@@ -51,11 +51,12 @@ export function validateSmtpEnv() {
 }
 
 export function getAdminRecipients() {
-  const raw = process.env.QD_ADMIN_EMAILS || '';
-  return raw
+  const values = [process.env.QD_ADMIN_EMAIL || '', process.env.QD_ADMIN_EMAILS || '']
+    .join(',')
     .split(',')
     .map((e) => e.trim())
     .filter((e) => isEmail(e));
+  return [...new Set(values)];
 }
 
 export function createTransport() {

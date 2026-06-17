@@ -1,63 +1,8 @@
-// POST /api/book  { name, email, phone, purpose, time, source } -> { ok: true, id, meetLink? }
-// Captures a "Book a free call" request from the site (booking modal) or the chatbot.
-//
-// FLOW (each later step is optional and ENV-GATED — a missing integration is skipped,
-// never fatal, so the lead is never lost):
-//   1. ALWAYS save the booking to Firestore `bookings` (must-never-lose step, runs first).
-//   2. If Google Calendar env vars exist → create a Calendar event with a Google Meet link,
-//      add the visitor as an attendee, and capture { meetLink, calendarEventId }.
-//   3. If Resend env vars exist AND we have a meetLink → email the visitor the link.
-//   4. Update the Firestore doc with { meetLink, calendarEventId, status:'scheduled', emailedAt }.
-//   5. Return { ok:true, id, meetLink? }. The calendar+email work is wrapped in its own
-//      try/catch: if it throws, we still return ok (booking is already saved) and log a warning.
-//      The booking modal shows a WhatsApp fallback, so the visitor never sees a hard error.
-//
-// ─────────────────────────────────────────────────────────────────────────────
-// ENVIRONMENT VARIABLES
-// ─────────────────────────────────────────────────────────────────────────────
-// Firebase (already required by this project — see api/_lib/firebase.js):
-//   FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY
-//
-// Google Calendar + Meet (OPTIONAL — skipped if absent):
-//   GOOGLE_CALENDAR_CREDENTIALS  Service-account JSON (the full file contents as a single
-//                                string, or base64 of it). Create at
-//                                https://console.cloud.google.com → IAM & Admin → Service
-//                                Accounts → "Keys" → Add key (JSON). Enable the
-//                                "Google Calendar API" for that project first.
-//   GOOGLE_CALENDAR_ID           The calendar to write events to. For a personal/shared
-//                                calendar use its address (e.g. "you@gmail.com" or the
-//                                long "...@group.calendar.google.com" id from the calendar's
-//                                settings). Defaults to "primary".
-//   GOOGLE_CALENDAR_IMPERSONATE  (OPTIONAL) A Workspace user email to impersonate. Only set
-//                                this if you use DOMAIN-WIDE DELEGATION (Workspace only).
-//   GOOGLE_CALENDAR_TIMEZONE     (OPTIONAL) IANA TZ for the event, e.g. "Asia/Riyadh".
-//                                Defaults to "UTC".
-//
-//   TWO WAYS TO GIVE THE SERVICE ACCOUNT ACCESS TO A CALENDAR:
-//     (a) Shared calendar (simplest, works with any Gmail): in Google Calendar →
-//         Settings → "Share with specific people" → add the service account's
-//         client_email with "Make changes to events". Set GOOGLE_CALENDAR_ID to that
-//         calendar's id. Do NOT set GOOGLE_CALENDAR_IMPERSONATE.
-//     (b) Domain-wide delegation (Google Workspace only): in the Admin console authorize
-//         the service account's client ID for scope
-//         https://www.googleapis.com/auth/calendar, then set GOOGLE_CALENDAR_IMPERSONATE
-//         to a real Workspace user. This lets the event invite the visitor and send the
-//         Google-generated calendar invite as that user.
-//
-// Resend email (OPTIONAL — skipped if absent):
-//   RESEND_API_KEY      From https://resend.com → API Keys.
-//   BOOKING_FROM_EMAIL  Verified sender, e.g. "QD Systems <hello@yourdomain.com>".
-//                       The domain must be verified in Resend.
-//
-// Zoho Mail SMTP (same as /api/contact-email — used for booking notifications):
-//   ZOHO_SMTP_HOST, ZOHO_SMTP_PORT, ZOHO_SMTP_SECURE, ZOHO_SMTP_USER, ZOHO_SMTP_PASS
-//   QD_FROM_EMAIL, QD_ADMIN_EMAILS
-//
-// SIMPLER ALTERNATIVE: instead of wiring up Google + Resend yourself, point the booking
-// modal at a Cal.com (or Calendly) scheduling link. Cal.com generates the Google Meet
-// link AND sends the confirmation email for you, so you can leave the calendar/email
-// env vars unset and just keep the Firestore record as a backup lead store.
+// POST /api/book
+// Creates a booking, schedules a Google Calendar event with a unique Google Meet link,
+// saves the meeting details to Firestore, and emails both the client and the admin.
 
+import { google } from 'googleapis';
 import { getDb, admin } from './_lib/firebase.js';
 import {
   CONTACT_REPLY,
@@ -71,32 +16,211 @@ import {
 
 export const config = { runtime: 'nodejs', maxDuration: 15 };
 
-function buildBookingClientText({ name, bookingId, purpose, time }) {
-  const greeting = name?.trim() || 'there';
-  const purposeLine = purpose ? `\nPurpose: ${purpose}` : '';
-  const timeLine = time ? `\nPreferred time: ${time}` : '';
+const DEFAULT_DURATION_MINUTES = 15;
+const DEFAULT_TIMEZONE = (process.env.QD_TIMEZONE || 'Asia/Dubai').trim() || 'Asia/Dubai';
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const TIME_RE = /^([01]\d|2[0-3]):([0-5]\d)$/;
+
+function requireEnv(...names) {
+  const missing = names.filter((name) => {
+    const value = process.env[name];
+    return typeof value !== 'string' || !value.trim();
+  });
+  if (missing.length) {
+    const error = new Error(`Missing environment variables: ${missing.join(', ')}`);
+    error.code = 'MISSING_ENV';
+    throw error;
+  }
+}
+
+function parseLegacySlot(value) {
+  if (!value || typeof value !== 'string') return {};
+  const match = value.trim().match(/(\d{4}-\d{2}-\d{2}).*?([01]\d|2[0-3]):([0-5]\d)/);
+  if (!match) return {};
+  return {
+    preferredDate: match[1],
+    preferredTime: `${match[2]}:${match[3]}`,
+  };
+}
+
+function getTimeZoneOffsetMinutes(date, timeZone) {
+  const dtf = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  });
+
+  const parts = Object.fromEntries(
+    dtf.formatToParts(date)
+      .filter((part) => part.type !== 'literal')
+      .map((part) => [part.type, part.value])
+  );
+
+  const asUtc = Date.UTC(
+    Number(parts.year),
+    Number(parts.month) - 1,
+    Number(parts.day),
+    Number(parts.hour),
+    Number(parts.minute),
+    Number(parts.second)
+  );
+
+  return (asUtc - date.getTime()) / 60000;
+}
+
+function localDateTimeToUtc(preferredDate, preferredTime, timeZone) {
+  const [year, month, day] = preferredDate.split('-').map(Number);
+  const [hour, minute] = preferredTime.split(':').map(Number);
+
+  const utcGuess = Date.UTC(year, month - 1, day, hour, minute, 0);
+  let offsetMinutes = getTimeZoneOffsetMinutes(new Date(utcGuess), timeZone);
+  let utcMillis = utcGuess - (offsetMinutes * 60 * 1000);
+  const correctedOffset = getTimeZoneOffsetMinutes(new Date(utcMillis), timeZone);
+
+  if (correctedOffset !== offsetMinutes) {
+    offsetMinutes = correctedOffset;
+    utcMillis = utcGuess - (offsetMinutes * 60 * 1000);
+  }
+
+  return {
+    startDate: new Date(utcMillis),
+    offsetMinutes,
+  };
+}
+
+function formatOffset(offsetMinutes) {
+  const sign = offsetMinutes >= 0 ? '+' : '-';
+  const absolute = Math.abs(offsetMinutes);
+  const hours = String(Math.floor(absolute / 60)).padStart(2, '0');
+  const minutes = String(absolute % 60).padStart(2, '0');
+  return `${sign}${hours}:${minutes}`;
+}
+
+function formatRfc3339Local(preferredDate, preferredTime, offsetMinutes) {
+  return `${preferredDate}T${preferredTime}:00${formatOffset(offsetMinutes)}`;
+}
+
+function getZonedParts(date, timeZone) {
+  const dtf = new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  });
+
+  return Object.fromEntries(
+    dtf.formatToParts(date)
+      .filter((part) => part.type !== 'literal')
+      .map((part) => [part.type, part.value])
+  );
+}
+
+function formatMeetingDisplay(startDate, endDate, timeZone) {
+  const dateFormatter = new Intl.DateTimeFormat('en-GB', {
+    timeZone,
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+  const timeFormatter = new Intl.DateTimeFormat('en-GB', {
+    timeZone,
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+
+  return `${dateFormatter.format(startDate)} · ${timeFormatter.format(startDate)} to ${timeFormatter.format(endDate)} (${timeZone})`;
+}
+
+function parseMeetingRequest({ preferredDate, preferredTime, time, timezone }) {
+  const fallback = parseLegacySlot(time);
+  const dateValue = (preferredDate || fallback.preferredDate || '').trim();
+  const timeValue = (preferredTime || fallback.preferredTime || '').trim();
+  const meetingTimezone = (timezone || DEFAULT_TIMEZONE).trim() || DEFAULT_TIMEZONE;
+
+  if (!DATE_RE.test(dateValue)) {
+    const error = new Error('Please choose a valid meeting date.');
+    error.code = 'INVALID_DATE';
+    throw error;
+  }
+
+  if (!TIME_RE.test(timeValue)) {
+    const error = new Error('Please choose a valid meeting time.');
+    error.code = 'INVALID_TIME';
+    throw error;
+  }
+
+  const { startDate, offsetMinutes } = localDateTimeToUtc(dateValue, timeValue, meetingTimezone);
+  const meetingEnd = new Date(startDate.getTime() + DEFAULT_DURATION_MINUTES * 60 * 1000);
+  const endParts = getZonedParts(meetingEnd, meetingTimezone);
+
+  if (Number.isNaN(startDate.getTime()) || Number.isNaN(meetingEnd.getTime())) {
+    const error = new Error('The selected meeting time is invalid.');
+    error.code = 'INVALID_DATETIME';
+    throw error;
+  }
+
+  if (startDate.getTime() <= Date.now()) {
+    const error = new Error('Please choose a future meeting time.');
+    error.code = 'PAST_DATETIME';
+    throw error;
+  }
+
+  return {
+    preferredDate: dateValue,
+    preferredTime: timeValue,
+    meetingTimezone,
+    meetingStart: startDate.toISOString(),
+    meetingEnd: meetingEnd.toISOString(),
+    meetingStartLocal: formatRfc3339Local(dateValue, timeValue, offsetMinutes),
+    meetingEndLocal: formatRfc3339Local(
+      `${endParts.year}-${endParts.month}-${endParts.day}`,
+      `${endParts.hour}:${endParts.minute}`,
+      offsetMinutes
+    ),
+    meetingDisplay: formatMeetingDisplay(startDate, meetingEnd, meetingTimezone),
+    durationMinutes: DEFAULT_DURATION_MINUTES,
+  };
+}
+
+function buildBookingClientText(details) {
+  const greeting = details.name?.trim() || 'there';
   return `Hi ${greeting},
 
 Thank you for booking a call with QD Systems.
 
-We received your request and our team will follow up shortly with the next steps.${purposeLine}${timeLine}
+Your Google Meet call is confirmed.
 
-Booking reference: ${bookingId}
+Meeting time: ${details.meetingDisplay}
+Duration: ${details.durationMinutes} minutes
+Purpose: ${details.purpose}
+
+Join Google Meet:
+${details.meetingLink}
+
+Add this to your calendar so you don't miss it.
+
+Booking reference: ${details.bookingId}
 
 QD Systems
 Websites · Brands · Digital Systems
 contact@qdsystems.ae`;
 }
 
-function buildBookingClientHtml({ name, bookingId, purpose, time }) {
-  const greeting = escapeHtml(name?.trim() || 'there');
-  const ref = escapeHtml(bookingId);
-  const purposeBlock = purpose
-    ? `<p style="margin:0 0 12px;font-size:14px;line-height:1.65;color:#c8c4be;"><strong style="color:#e8e6e3;">Purpose:</strong> ${escapeHtml(purpose)}</p>`
-    : '';
-  const timeBlock = time
-    ? `<p style="margin:0 0 12px;font-size:14px;line-height:1.65;color:#c8c4be;"><strong style="color:#e8e6e3;">Preferred time:</strong> ${escapeHtml(time)}</p>`
-    : '';
+function buildBookingClientHtml(details) {
+  const greeting = escapeHtml(details.name?.trim() || 'there');
+  const ref = escapeHtml(details.bookingId);
+  const meetLink = escapeHtml(details.meetingLink);
   return `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
@@ -106,11 +230,17 @@ function buildBookingClientHtml({ name, bookingId, purpose, time }) {
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#121214;border:1px solid #2a2a2e;border-radius:8px;">
         <tr><td style="padding:36px 32px 28px;">
           <p style="margin:0 0 8px;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#8a8680;">QD Systems</p>
-          <h1 style="margin:0 0 24px;font-size:22px;font-weight:400;color:#f5f3f0;line-height:1.4;">We received your call request</h1>
+          <h1 style="margin:0 0 24px;font-size:22px;font-weight:400;color:#f5f3f0;line-height:1.4;">Your Google Meet call is confirmed</h1>
           <p style="margin:0 0 16px;font-size:15px;line-height:1.65;color:#c8c4be;">Hi ${greeting},</p>
           <p style="margin:0 0 16px;font-size:15px;line-height:1.65;color:#c8c4be;">Thank you for booking a call with QD Systems.</p>
-          <p style="margin:0 0 20px;font-size:15px;line-height:1.65;color:#c8c4be;">We received your request and our team will follow up shortly with the next steps.</p>
-          ${purposeBlock}${timeBlock}
+          <p style="margin:0 0 12px;font-size:14px;line-height:1.65;color:#c8c4be;"><strong style="color:#e8e6e3;">Meeting time:</strong> ${escapeHtml(details.meetingDisplay)}</p>
+          <p style="margin:0 0 12px;font-size:14px;line-height:1.65;color:#c8c4be;"><strong style="color:#e8e6e3;">Duration:</strong> ${details.durationMinutes} minutes</p>
+          <p style="margin:0 0 20px;font-size:14px;line-height:1.65;color:#c8c4be;"><strong style="color:#e8e6e3;">Purpose:</strong> ${escapeHtml(details.purpose)}</p>
+          <p style="margin:0 0 18px;">
+            <a href="${meetLink}" style="display:inline-block;padding:14px 22px;background:#e8e6e3;color:#0a0a0c;text-decoration:none;border-radius:999px;font-size:14px;font-weight:700;">Join Google Meet</a>
+          </p>
+          <p style="margin:0 0 14px;font-size:13px;line-height:1.6;color:#b8b4ae;word-break:break-all;">${meetLink}</p>
+          <p style="margin:0 0 20px;font-size:13px;line-height:1.6;color:#8a8680;">Add this to your calendar so you don't miss it.</p>
           <p style="margin:0 0 28px;font-size:13px;color:#8a8680;">Booking reference: <span style="color:#d4d0ca;font-family:monospace;">${ref}</span></p>
           <hr style="border:none;border-top:1px solid #2a2a2e;margin:0 0 20px;">
           <p style="margin:0;font-size:13px;line-height:1.6;color:#8a8680;">QD Systems<br>Websites · Brands · Digital Systems<br><a href="mailto:contact@qdsystems.ae" style="color:#b8b4ae;">contact@qdsystems.ae</a></p>
@@ -122,23 +252,25 @@ function buildBookingClientHtml({ name, bookingId, purpose, time }) {
 </html>`;
 }
 
-function buildBookingAdminFields({ bookingId, submissionId, name, email, phone, purpose, time, source }) {
+function buildBookingAdminFields(details) {
   return [
-    ['Booking ID', bookingId],
-    ['Submission ID', submissionId || '—'],
-    ['Name', name],
-    ['Email', email],
-    ['Phone', phone],
-    ['Purpose', purpose],
-    ['Preferred Time', time],
-    ['Source', source],
+    ['Booking ID', details.bookingId],
+    ['Submission ID', details.submissionId || '—'],
+    ['Client name', details.name],
+    ['Client email', details.email],
+    ['Phone', details.phone],
+    ['Purpose', details.purpose],
+    ['Preferred meeting time', details.meetingDisplay],
+    ['Google Meet link', details.meetingLink],
+    ['Google Calendar event ID', details.calendarEventId],
+    ['Source', details.source],
   ];
 }
 
 function buildBookingAdminText(details) {
   const lines = buildBookingAdminFields(details).map(([label, value]) => {
-    const v = value != null && String(value).trim() !== '' ? String(value).trim() : '—';
-    return `${label}: ${v}`;
+    const safeValue = value != null && String(value).trim() !== '' ? String(value).trim() : '—';
+    return `${label}: ${safeValue}`;
   });
   lines.push('', 'This booking was automatically generated from the QD Systems “Book a free call” form.');
   return lines.join('\n');
@@ -147,11 +279,11 @@ function buildBookingAdminText(details) {
 function buildBookingAdminHtml(details) {
   const rows = buildBookingAdminFields(details)
     .map(([label, value]) => {
-      const v = value != null && String(value).trim() !== '' ? escapeHtml(String(value)) : '—';
-      return `<tr><td style="padding:8px 12px 8px 0;vertical-align:top;font-size:12px;color:#8a8680;white-space:nowrap;">${escapeHtml(label)}</td><td style="padding:8px 0;font-size:13px;color:#e8e6e3;word-break:break-word;">${v}</td></tr>`;
+      const safeValue = value != null && String(value).trim() !== '' ? escapeHtml(String(value)) : '—';
+      return `<tr><td style="padding:8px 12px 8px 0;vertical-align:top;font-size:12px;color:#8a8680;white-space:nowrap;">${escapeHtml(label)}</td><td style="padding:8px 0;font-size:13px;color:#e8e6e3;word-break:break-word;">${safeValue}</td></tr>`;
     })
     .join('');
-  const leadName = escapeHtml(details.name?.trim() || 'New Lead');
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
@@ -161,7 +293,7 @@ function buildBookingAdminHtml(details) {
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#121214;border:1px solid #2a2a2e;border-radius:8px;">
         <tr><td style="padding:32px;">
           <p style="margin:0 0 8px;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#8a8680;">QD Systems — Admin</p>
-          <h1 style="margin:0 0 24px;font-size:20px;font-weight:400;color:#f5f3f0;">New call booking — ${leadName}</h1>
+          <h1 style="margin:0 0 24px;font-size:20px;font-weight:400;color:#f5f3f0;">New call booking — ${escapeHtml(details.name?.trim() || 'New Lead')}</h1>
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">${rows}</table>
           <p style="margin:24px 0 0;font-size:12px;color:#8a8680;font-style:italic;">This booking was automatically generated from the QD Systems “Book a free call” form.</p>
         </td></tr>
@@ -175,35 +307,29 @@ function buildBookingAdminHtml(details) {
 async function sendBookingNotifications(details) {
   const smtpError = validateSmtpEnv();
   if (smtpError) {
-    console.error('[book-email] SMTP config missing:', smtpError);
-    return { attempted: true, clientEmailSent: false, adminEmailSent: false, error: true };
+    throw new Error(smtpError);
   }
 
   const adminRecipients = getAdminRecipients();
   if (!adminRecipients.length) {
-    console.error('[book-email] QD_ADMIN_EMAILS missing or invalid');
-    return { attempted: true, clientEmailSent: false, adminEmailSent: false, error: true };
+    throw new Error('Missing QD_ADMIN_EMAIL / QD_ADMIN_EMAILS');
   }
 
   let clientEmailSent = false;
   let adminEmailSent = false;
 
-  if (isEmail(details.email)) {
-    try {
-      await sendZohoMail({
-        to: details.email,
-        subject: 'We received your call request — QD Systems',
-        text: buildBookingClientText(details),
-        html: buildBookingClientHtml(details),
-        replyTo: CONTACT_REPLY,
-      });
-      clientEmailSent = true;
-      console.log('[book-email] client email sent:', details.bookingId);
-    } catch (error) {
-      console.error('[book-email] client email failed:', details.bookingId, safeError(error));
-    }
-  } else {
-    console.warn('[book-email] skipping client email — invalid email:', details.bookingId);
+  try {
+    await sendZohoMail({
+      to: details.email,
+      subject: 'Your Google Meet call is confirmed — QD Systems',
+      text: buildBookingClientText(details),
+      html: buildBookingClientHtml(details),
+      replyTo: CONTACT_REPLY,
+    });
+    clientEmailSent = true;
+    console.log('[book-email] client email sent:', details.bookingId);
+  } catch (error) {
+    console.error('[book-email] client email failed:', details.bookingId, safeError(error));
   }
 
   try {
@@ -224,154 +350,95 @@ async function sendBookingNotifications(details) {
     attempted: true,
     clientEmailSent,
     adminEmailSent,
-    error: !clientEmailSent && !adminEmailSent,
+    error: !clientEmailSent || !adminEmailSent,
   };
 }
-// True only if every named env var is present and non-empty.
-function hasEnv(...names) {
-  return names.every((n) => typeof process.env[n] === 'string' && process.env[n].trim());
-}
 
-// Parse the service-account JSON from env (accepts raw JSON or base64-encoded JSON).
-function parseServiceAccount(raw) {
-  let text = raw.trim();
-  if (!text.startsWith('{')) {
-    // Looks base64-encoded — decode it.
-    text = Buffer.from(text, 'base64').toString('utf8');
-  }
-  const sa = JSON.parse(text);
-  if (sa.private_key) sa.private_key = sa.private_key.replace(/\\n/g, '\n');
-  return sa;
-}
+async function createCalendarEvent(details) {
+  requireEnv(
+    'GOOGLE_CLIENT_ID',
+    'GOOGLE_CLIENT_SECRET',
+    'GOOGLE_REFRESH_TOKEN',
+    'GOOGLE_CALENDAR_ID',
+    'QD_ADMIN_EMAIL'
+  );
 
-// Try to parse the visitor's preferred time into a concrete start Date.
-// Returns null if it can't be parsed (caller falls back to "to be confirmed").
-function parsePreferredTime(time) {
-  if (!time) return null;
-  const d = new Date(time);
-  if (!Number.isNaN(d.getTime()) && d.getFullYear() > 1970) return d;
-  return null;
-}
+  const auth = new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET
+  );
 
-// Create a Google Calendar event with a Meet link. Returns { meetLink, calendarEventId }
-// or null if the integration isn't configured. Throws only on a real API failure
-// (caller catches and degrades gracefully).
-async function createCalendarEvent({ name, email, purpose, time }) {
-  if (!hasEnv('GOOGLE_CALENDAR_CREDENTIALS')) {
-    console.log('[book] Google Calendar not configured (GOOGLE_CALENDAR_CREDENTIALS missing) — skipping.');
-    return null;
-  }
-
-  // Lazy import so the function still runs when `googleapis` isn't installed.
-  const { google } = await import('googleapis');
-
-  const sa = parseServiceAccount(process.env.GOOGLE_CALENDAR_CREDENTIALS);
-  const calendarId = (process.env.GOOGLE_CALENDAR_ID || 'primary').trim();
-  const impersonate = (process.env.GOOGLE_CALENDAR_IMPERSONATE || '').trim() || undefined;
-  const timeZone = (process.env.GOOGLE_CALENDAR_TIMEZONE || 'UTC').trim();
-
-  const auth = new google.auth.JWT({
-    email: sa.client_email,
-    key: sa.private_key,
-    scopes: ['https://www.googleapis.com/auth/calendar'],
-    subject: impersonate // only used with domain-wide delegation
+  auth.setCredentials({
+    refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
   });
 
   const calendar = google.calendar({ version: 'v3', auth });
-
-  // Determine the event window. If we can parse the preferred time, use a 30-min slot.
-  // Otherwise, schedule a placeholder ~24h out and flag it "to be confirmed".
-  const parsed = parsePreferredTime(time);
-  const start = parsed || new Date(Date.now() + 24 * 60 * 60 * 1000);
-  const end = new Date(start.getTime() + 30 * 60 * 1000);
-  const tentative = !parsed;
-
-  const summary = purpose
-    ? `Call: ${purpose}`.slice(0, 200)
-    : `Call with ${name || 'visitor'}`;
-
   const requestId = `qd-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  const adminEmail = process.env.QD_ADMIN_EMAIL.trim();
+  const attendees = [{ email: details.email }];
+
+  if (isEmail(adminEmail) && adminEmail.toLowerCase() !== details.email.toLowerCase()) {
+    attendees.push({ email: adminEmail });
+  }
 
   const event = {
-    summary,
-    description:
-      `Booked via website${tentative ? ' (time to be confirmed)' : ''}.\n` +
-      `Name: ${name || '-'}\nEmail: ${email}\nPurpose: ${purpose || '-'}\n` +
-      `Requested time: ${time || '(not specified)'}`,
-    start: { dateTime: start.toISOString(), timeZone },
-    end: { dateTime: end.toISOString(), timeZone },
-    attendees: isEmail(email) ? [{ email }] : [],
+    summary: `QD Systems Call — ${details.name}`.slice(0, 200),
+    description: [
+      'Booked via the QD Systems website.',
+      `Client: ${details.name}`,
+      `Email: ${details.email}`,
+      `Phone: ${details.phone}`,
+      `Purpose: ${details.purpose}`,
+      `Meeting time: ${details.meetingDisplay}`,
+    ].join('\n'),
+    start: {
+      dateTime: details.meetingStartLocal,
+      timeZone: details.meetingTimezone,
+    },
+    end: {
+      dateTime: details.meetingEndLocal,
+      timeZone: details.meetingTimezone,
+    },
+    attendees,
     conferenceData: {
       createRequest: {
         requestId,
-        conferenceSolutionKey: { type: 'hangoutsMeet' }
-      }
-    }
+        conferenceSolutionKey: { type: 'hangoutsMeet' },
+      },
+    },
   };
 
   const { data } = await calendar.events.insert({
-    calendarId,
-    requestBody: event,
+    calendarId: process.env.GOOGLE_CALENDAR_ID.trim(),
     conferenceDataVersion: 1,
-    sendUpdates: 'all'
+    sendUpdates: 'all',
+    requestBody: event,
   });
 
-  // Pull the Meet link out of the created event.
-  let meetLink =
+  const meetingLink =
     data.hangoutLink ||
-    (data.conferenceData?.entryPoints || []).find((e) => e.entryPointType === 'video')?.uri ||
+    data.conferenceData?.entryPoints?.find((entry) => entry.entryPointType === 'video')?.uri ||
     null;
 
-  return { meetLink, calendarEventId: data.id || null, tentative };
-}
-
-// Email the visitor their Meet link via Resend. Returns true if sent, false if skipped.
-// Throws only on a real send failure (caller catches and degrades gracefully).
-async function emailVisitor({ name, email, meetLink, time, tentative }) {
-  if (!hasEnv('RESEND_API_KEY', 'BOOKING_FROM_EMAIL')) {
-    console.log('[book] Resend not configured (RESEND_API_KEY / BOOKING_FROM_EMAIL missing) — skipping email.');
-    return false;
+  if (!meetingLink || !data.id) {
+    const error = new Error('Google Calendar did not return a Meet link.');
+    error.code = 'MISSING_MEET_LINK';
+    throw error;
   }
-  if (!meetLink || !isEmail(email)) return false;
 
-  // Lazy import so the function still runs when `resend` isn't installed.
-  const { Resend } = await import('resend');
-  const resend = new Resend(process.env.RESEND_API_KEY);
-
-  const whenLine = tentative
-    ? 'We will confirm the exact time with you shortly.'
-    : (time ? `Requested time: ${time}.` : '');
-
-  const safeName = (name || 'there').replace(/[<>]/g, '');
-  const safeMeet = meetLink.replace(/"/g, '%22');
-
-  await resend.emails.send({
-    from: process.env.BOOKING_FROM_EMAIL,
-    to: email,
-    subject: 'Your call with QD Systems — Google Meet link',
-    html:
-      `<p>Hi ${safeName},</p>` +
-      `<p>Thanks for booking a call with QD Systems. ${whenLine}</p>` +
-      `<p>Join here when it's time:<br>` +
-      `<a href="${safeMeet}">${safeMeet}</a></p>` +
-      `<p>If you need to reschedule, just reply to this email.</p>` +
-      `<p>— QD Systems</p>`,
-    text:
-      `Hi ${safeName},\n\nThanks for booking a call with QD Systems. ${whenLine}\n\n` +
-      `Join here when it's time:\n${meetLink}\n\n` +
-      `If you need to reschedule, just reply to this email.\n\n— QD Systems`
-  });
-
-  return true;
+  return {
+    meetingLink,
+    calendarEventId: data.id,
+  };
 }
 
-function mapBookingToSubmission({ name, email, phone, purpose, time, source, bookingId }) {
+function mapBookingToSubmission({ name, email, phone, purpose, source, bookingId, schedule }) {
   const noteParts = [
     'Booked via website “Book a free call” modal.',
-    purpose ? `Purpose: ${purpose}` : '',
-    time ? `Preferred time: ${time}` : '',
+    `Purpose: ${purpose}`,
+    `Preferred time: ${schedule.meetingDisplay}`,
     `Booking ID: ${bookingId}`,
-  ].filter(Boolean);
+  ];
 
   return {
     businessName: name,
@@ -380,7 +447,7 @@ function mapBookingToSubmission({ name, email, phone, purpose, time, source, boo
     industry: '',
     businessDescription: '',
     mainPurpose: 'book_call',
-    selectedMainPurpose: purpose || 'Book a free call',
+    selectedMainPurpose: purpose,
     visitorAction: '',
     idealCustomer: '',
     requiredFeatures: [],
@@ -389,7 +456,10 @@ function mapBookingToSubmission({ name, email, phone, purpose, time, source, boo
     selectedOptionalServices: [],
     budgetRange: '',
     launchDate: '',
-    meetingDateTime: time || '',
+    meetingDateTime: schedule.meetingDisplay,
+    preferredDate: schedule.preferredDate,
+    preferredTime: schedule.preferredTime,
+    meetingTimezone: schedule.meetingTimezone,
     urgency: '',
     notes: noteParts.join('\n'),
     status: 'New',
@@ -402,9 +472,12 @@ function mapBookingToSubmission({ name, email, phone, purpose, time, source, boo
       businessName: name,
       businessEmail: email,
       businessPhone: phone,
-      mainPurpose: purpose || '',
-      preferredCallTime: time || '',
-      meetingDateTime: time || '',
+      mainPurpose: purpose,
+      preferredCallTime: schedule.preferredTime,
+      meetingDateTime: schedule.meetingDisplay,
+      preferredDate: schedule.preferredDate,
+      preferredTime: schedule.preferredTime,
+      meetingTimezone: schedule.meetingTimezone,
     },
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
     submittedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -412,17 +485,42 @@ function mapBookingToSubmission({ name, email, phone, purpose, time, source, boo
   };
 }
 
+async function mirrorMeetingDetails(db, submissionId, meetingUpdate) {
+  if (!submissionId) return;
+  await db.collection('projectSubmissions').doc(submissionId).set(
+    {
+      meetingProvider: 'google_meet',
+      meetingLink: meetingUpdate.meetingLink,
+      calendarEventId: meetingUpdate.calendarEventId,
+      meetingStart: meetingUpdate.meetingStart,
+      meetingEnd: meetingUpdate.meetingEnd,
+      meetingTimezone: meetingUpdate.meetingTimezone,
+      meetingCreatedAt: meetingUpdate.meetingCreatedAt,
+      meetingDateTime: meetingUpdate.meetingDisplay,
+      preferredDate: meetingUpdate.preferredDate,
+      preferredTime: meetingUpdate.preferredTime,
+      lastUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    },
+    { merge: true }
+  );
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
     let body = req.body;
     if (typeof body === 'string') {
-      try { body = JSON.parse(body); } catch { return res.status(400).json({ error: 'Invalid JSON' }); }
+      try {
+        body = JSON.parse(body);
+      } catch {
+        return res.status(400).json({ error: 'Invalid JSON' });
+      }
     }
     body = body || {};
 
@@ -430,107 +528,151 @@ export default async function handler(req, res) {
     const email = (body.email || '').toString().trim().slice(0, 200);
     const phone = (body.phone || '').toString().trim().slice(0, 60);
     const purpose = (body.purpose || '').toString().trim().slice(0, 300);
-    const time = (body.time || '').toString().trim().slice(0, 120);
     const source = (body.source || 'website').toString().trim().slice(0, 60);
+    const preferredDate = (body.preferredDate || '').toString().trim().slice(0, 20);
+    const preferredTime = (body.preferredTime || '').toString().trim().slice(0, 10);
+    const time = (body.time || '').toString().trim().slice(0, 120);
 
-    if (!name) return res.status(400).json({ error: 'name is required' });
-    if (!isEmail(email)) return res.status(400).json({ error: 'a valid email is required' });
-    if (!phone) return res.status(400).json({ error: 'phone is required' });
-    if (!purpose) return res.status(400).json({ error: 'purpose is required' });
-    if (!time) return res.status(400).json({ error: 'preferred date and time are required' });
+    if (!name) return res.status(400).json({ error: 'Please enter your name.' });
+    if (!isEmail(email)) return res.status(400).json({ error: 'Please enter a valid email address.' });
+    if (!phone) return res.status(400).json({ error: 'Please enter your phone number.' });
+    if (!purpose) return res.status(400).json({ error: 'Please tell us what the call is about.' });
 
-    // STEP 1 — ALWAYS save the booking first. This is the must-never-lose step.
+    let schedule;
+    try {
+      schedule = parseMeetingRequest({
+        preferredDate,
+        preferredTime,
+        time,
+        timezone: body.meetingTimezone || body.timezone || DEFAULT_TIMEZONE,
+      });
+    } catch (scheduleError) {
+      if (['INVALID_DATE', 'INVALID_TIME', 'INVALID_DATETIME', 'PAST_DATETIME'].includes(scheduleError.code)) {
+        return res.status(400).json({ error: scheduleError.message });
+      }
+      throw scheduleError;
+    }
+
     const db = getDb();
     const ref = await db.collection('bookings').add({
-      name, email, phone, purpose, time, source,
-      status: 'new',
-      createdAt: admin.firestore.FieldValue.serverTimestamp()
+      name,
+      email,
+      phone,
+      purpose,
+      time: schedule.meetingDisplay,
+      preferredDate: schedule.preferredDate,
+      preferredTime: schedule.preferredTime,
+      requestedTimeRaw: time,
+      source,
+      status: 'pending_calendar',
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
-    // Mirror into projectSubmissions so the admin live pipeline picks it up immediately.
     let submissionId = null;
     try {
       const submissionRef = await db.collection('projectSubmissions').add(
-        mapBookingToSubmission({ name, email, phone, purpose, time, source, bookingId: ref.id })
+        mapBookingToSubmission({ name, email, phone, purpose, source, bookingId: ref.id, schedule })
       );
       submissionId = submissionRef.id;
       await ref.set({ submissionId }, { merge: true });
     } catch (submissionErr) {
-      console.warn('[book] projectSubmissions mirror failed (booking still saved):', submissionErr?.message || submissionErr);
+      console.warn('[book] projectSubmissions mirror failed (booking saved):', submissionErr?.message || submissionErr);
     }
 
-    // STEP 1.5 — Zoho email notifications (best-effort, same SMTP as contact form).
-    let emailNotifications = null;
+    let calendarData;
     try {
-      emailNotifications = await sendBookingNotifications({
-        bookingId: ref.id,
-        submissionId,
+      calendarData = await createCalendarEvent({
         name,
         email,
         phone,
         purpose,
-        time,
-        source,
+        ...schedule,
       });
-      await ref.set({ emailNotifications: {
-        ...emailNotifications,
-        sentAt: emailNotifications.error ? null : new Date().toISOString(),
-        failedAt: emailNotifications.error ? new Date().toISOString() : null,
-        errorMessage: emailNotifications.error ? 'Email notification failed' : null,
-      } }, { merge: true });
-    } catch (emailErr) {
-      console.warn('[book-email] notification step failed (booking still saved):', safeError(emailErr));
-      emailNotifications = { attempted: true, error: true, clientEmailSent: false, adminEmailSent: false };
-      try {
-        await ref.set({ emailNotifications: {
-          attempted: true,
-          error: true,
-          errorMessage: 'Email notification failed',
-          failedAt: new Date().toISOString(),
-        } }, { merge: true });
-      } catch (_) {}
+    } catch (calendarError) {
+      console.error('[book] Google Calendar creation failed:', safeError(calendarError));
+      await ref.set(
+        {
+          status: 'calendar_failed',
+          calendarError: calendarError?.message || 'Google Calendar event creation failed',
+          lastUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      );
+      return res.status(500).json({ error: 'We could not create your Google Meet link. Please try again or message us on WhatsApp.' });
     }
 
-    // STEPS 2–4 — Calendar event + Resend email. Fully optional and isolated: any failure here
-    // must NOT fail the request (the lead is already saved). Logs a warning and returns ok.
-    let meetLink = null;
+    const meetingUpdate = {
+      meetingProvider: 'google_meet',
+      meetingLink: calendarData.meetingLink,
+      calendarEventId: calendarData.calendarEventId,
+      meetingStart: schedule.meetingStart,
+      meetingEnd: schedule.meetingEnd,
+      meetingTimezone: schedule.meetingTimezone,
+      meetingCreatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      meetingDisplay: schedule.meetingDisplay,
+      preferredDate: schedule.preferredDate,
+      preferredTime: schedule.preferredTime,
+      durationMinutes: schedule.durationMinutes,
+      status: 'scheduled',
+      lastUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    await ref.set(meetingUpdate, { merge: true });
     try {
-      const cal = await createCalendarEvent({ name, email, purpose, time });
-      if (cal) {
-        meetLink = cal.meetLink;
-
-        let emailedAt = null;
-        try {
-          const sent = await emailVisitor({
-            name, email, meetLink, time, tentative: cal.tentative
-          });
-          if (sent) emailedAt = admin.firestore.FieldValue.serverTimestamp();
-        } catch (emailErr) {
-          console.warn('[book] email step failed (booking still saved):', emailErr?.message || emailErr);
-        }
-
-        // STEP 4 — persist whatever we managed to produce.
-        const update = { status: 'scheduled' };
-        if (meetLink) update.meetLink = meetLink;
-        if (cal.calendarEventId) update.calendarEventId = cal.calendarEventId;
-        if (emailedAt) update.emailedAt = emailedAt;
-        await ref.set(update, { merge: true });
-      }
-    } catch (integrationErr) {
-      // Calendar/email failed — booking is safe, so we still return success.
-      console.warn('[book] calendar/email step failed (booking still saved):', integrationErr?.message || integrationErr);
+      await mirrorMeetingDetails(db, submissionId, meetingUpdate);
+    } catch (mirrorErr) {
+      console.warn('[book] meeting detail mirror failed:', mirrorErr?.message || mirrorErr);
     }
 
-    const out = { ok: true, id: ref.id };
-    if (submissionId) out.submissionId = submissionId;
-    if (meetLink) out.meetLink = meetLink;
-    if (emailNotifications) {
-      out.clientEmailSent = Boolean(emailNotifications.clientEmailSent);
-      out.adminEmailSent = Boolean(emailNotifications.adminEmailSent);
+    const emailDetails = {
+      bookingId: ref.id,
+      submissionId,
+      name,
+      email,
+      phone,
+      purpose,
+      source,
+      meetingLink: calendarData.meetingLink,
+      calendarEventId: calendarData.calendarEventId,
+      meetingDisplay: schedule.meetingDisplay,
+      durationMinutes: schedule.durationMinutes,
+    };
+
+    const emailNotifications = await sendBookingNotifications(emailDetails);
+    await ref.set(
+      {
+        emailNotifications: {
+          ...emailNotifications,
+          sentAt: emailNotifications.error ? null : new Date().toISOString(),
+          failedAt: emailNotifications.error ? new Date().toISOString() : null,
+          errorMessage: emailNotifications.error ? 'Booking email delivery failed' : null,
+        },
+      },
+      { merge: true }
+    );
+
+    if (emailNotifications.error) {
+      await ref.set(
+        {
+          status: 'email_failed',
+          lastUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      );
+      return res.status(500).json({ error: 'Your Google Meet link was created, but we could not send the confirmation email. Please message us on WhatsApp right now so we can confirm the call.' });
     }
-    return res.status(200).json(out);
+
+    return res.status(200).json({
+      ok: true,
+      id: ref.id,
+      submissionId,
+      meetingLink: calendarData.meetingLink,
+      calendarEventId: calendarData.calendarEventId,
+      clientEmailSent: Boolean(emailNotifications.clientEmailSent),
+      adminEmailSent: Boolean(emailNotifications.adminEmailSent),
+    });
   } catch (error) {
-    console.error('[book] error:', error);
-    return res.status(500).json({ error: 'Something went wrong. Please WhatsApp us.' });
+    console.error('[book] error:', safeError(error));
+    return res.status(500).json({ error: error?.message || 'Something went wrong. Please WhatsApp us.' });
   }
 }

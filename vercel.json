@@ -21,6 +21,7 @@
     { "source": "/api/quote-from-estimate", "destination": "/api/quote-create" }
   ],
   "functions": {
+    "api/book.js":         { "memory": 512,  "maxDuration": 15 },
     "api/chat.js":         { "memory": 1024, "maxDuration": 30 },
     "api/demo-deploy.js":  { "memory": 512,  "maxDuration": 10 },
     "api/demo-get.js":     { "memory": 512,  "maxDuration": 10 },
