@@ -12,6 +12,13 @@
   var SUPPORTED = ['en', 'ar', 'zh', 'ru'];
   var STORAGE_KEY = 'qd_lang';
   var FLAGS = { en: '🇬🇧', ar: '🇦🇪', zh: '🇨🇳', ru: '🇷🇺' };
+  var FLAG_ICONS = { en: 'gb', ar: 'ae', zh: 'cn', ru: 'ru' };
+  var FLAG_SVGS = {
+    gb: '<svg viewBox="0 0 60 45" focusable="false"><rect width="60" height="45" fill="#012169"/><path d="M0 0l60 45M60 0L0 45" stroke="#fff" stroke-width="9"/><path d="M0 0l60 45M60 0L0 45" stroke="#c8102e" stroke-width="5"/><path d="M30 0v45M0 22.5h60" stroke="#fff" stroke-width="15"/><path d="M30 0v45M0 22.5h60" stroke="#c8102e" stroke-width="9"/></svg>',
+    ae: '<svg viewBox="0 0 60 45" focusable="false"><rect width="60" height="45" fill="#fff"/><rect width="15" height="45" fill="#ce1126"/><rect x="15" width="45" height="15" fill="#009739"/><rect x="15" y="30" width="45" height="15" fill="#000"/></svg>',
+    cn: '<svg viewBox="0 0 60 45" focusable="false"><rect width="60" height="45" fill="#de2910"/><path d="M14 8l1.8 5.5h5.8l-4.7 3.4 1.8 5.5L14 19l-4.7 3.4 1.8-5.5-4.7-3.4h5.8z" fill="#ffde00"/></svg>',
+    ru: '<svg viewBox="0 0 60 45" focusable="false"><rect width="60" height="45" fill="#fff"/><rect y="15" width="60" height="15" fill="#0039a6"/><rect y="30" width="60" height="15" fill="#d52b1e"/></svg>'
+  };
   var CODES = { en: 'EN', ar: 'AR', zh: '中文', ru: 'RU' };
 
   /* ----------------------------------------------------------------------- */
@@ -386,12 +393,34 @@
     });
   }
 
+  function getLangCode(lang) {
+    lang = normalize(lang);
+    return CODES[lang] || CODES.en;
+  }
+
+  function getLangFlag(lang) {
+    lang = normalize(lang);
+    return FLAGS[lang] || FLAGS.en;
+  }
+
+  function getLangFlagIcon(lang) {
+    lang = normalize(lang);
+    return FLAG_ICONS[lang] || FLAG_ICONS.en;
+  }
+
+  function renderLangFlag(lang) {
+    var icon = getLangFlagIcon(lang);
+    return '<span class="lang-flag" data-flag-icon="' + icon + '" aria-hidden="true">' + (FLAG_SVGS[icon] || FLAG_SVGS.gb) + '</span>';
+  }
+
   function updateSwitcherUI(lang) {
+    lang = normalize(lang);
     var cur = document.getElementById('langCur');
-    if (cur) cur.innerHTML = '<span class="lang-flag">' + FLAGS[lang] + '</span> ' + CODES[lang];
+    if (cur) cur.innerHTML = renderLangFlag(lang) + ' ' + getLangCode(lang);
     document.querySelectorAll('#langMenu [data-lang], #navMobileLangs [data-lang]').forEach(function (b) {
-      b.classList.toggle('active', b.getAttribute('data-lang') === lang);
-      b.setAttribute('aria-selected', b.getAttribute('data-lang') === lang ? 'true' : 'false');
+      var itemLang = normalize(b.getAttribute('data-lang'));
+      b.classList.toggle('active', itemLang === lang);
+      b.setAttribute('aria-selected', itemLang === lang ? 'true' : 'false');
     });
   }
 
@@ -449,18 +478,18 @@
       '.lang-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.03);color:var(--muted);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:background .2s,border-color .2s,color .2s;-webkit-tap-highlight-color:transparent}',
       '.lang-btn:hover{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.22);color:var(--fg)}',
       '.lang-cur{letter-spacing:.04em;display:inline-flex;align-items:center;gap:6px}',
-      '.lang-flag{font-size:15px;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}',
-      '.lang-menu [data-lang] .lang-flag,.nav-mobile-langs [data-lang] .lang-flag{margin-right:8px}',
-      '[dir="rtl"] .lang-menu [data-lang] .lang-flag{margin-right:0;margin-left:8px}',
+      '.lang-flag{display:inline-flex;align-items:center;justify-content:center;width:1.35em;height:1em;min-width:1.2em;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",system-ui,sans-serif;flex-shrink:0;border-radius:2px;overflow:hidden}',
+      '.lang-flag svg{display:block;width:100%;height:100%}',
+      '.lang-menu [data-lang],.nav-mobile-langs button{display:flex;align-items:center;gap:10px;white-space:nowrap}',
       '.lang-menu{position:absolute;top:calc(100% + 8px);right:0;min-width:158px;padding:6px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,rgba(22,22,28,.99),rgba(12,12,14,.99));box-shadow:0 24px 60px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.05);opacity:0;transform:translateY(-8px) scale(.97);pointer-events:none;transition:opacity .2s var(--ease),transform .2s var(--ease);z-index:10001}',
       '[dir="rtl"] .lang-menu{right:auto;left:0}',
       '.lang-switch.open .lang-menu{opacity:1;transform:none;pointer-events:auto}',
-      '.lang-menu [data-lang]{display:block;width:100%;text-align:left;padding:10px 12px;border:0;border-radius:9px;background:none;color:var(--muted);font-family:inherit;font-size:14px;cursor:pointer;transition:background .15s,color .15s}',
+      '.lang-menu [data-lang]{width:100%;text-align:left;padding:10px 12px;border:0;border-radius:9px;background:none;color:var(--muted);font-family:inherit;font-size:14px;cursor:pointer;transition:background .15s,color .15s}',
       '[dir="rtl"] .lang-menu [data-lang]{text-align:right}',
       '.lang-menu [data-lang]:hover{background:rgba(255,255,255,.06);color:var(--fg)}',
       '.lang-menu [data-lang].active{color:var(--fg);background:rgba(255,255,255,.04)}',
-      '.lang-menu [data-lang].active::after{content:"✓";float:right;color:var(--live)}',
-      '[dir="rtl"] .lang-menu [data-lang].active::after{float:left}',
+      '.lang-menu [data-lang].active::after{content:"✓";margin-left:auto;color:var(--live)}',
+      '[dir="rtl"] .lang-menu [data-lang].active::after{margin-left:0;margin-right:auto}',
       '@media(max-width:880px){.lang-btn{height:44px;padding:0 10px;border-radius:12px;gap:5px;font-size:12px;background:rgba(255,255,255,.06)}.lang-btn svg{width:15px;height:15px}.lang-menu{min-width:148px}.nav-mobile-langs{display:none}}',
       /* mobile language buttons (inside the mobile menu — hidden; switcher sits in the header) */
       '.nav-mobile-langs{display:flex;flex-wrap:wrap;gap:8px;padding:14px 16px 6px;margin-top:6px;border-top:1px solid var(--line)}',

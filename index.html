@@ -864,13 +864,13 @@ body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:b
     <div class="lang-switch" id="langSwitch">
       <button type="button" class="lang-btn" id="langBtn" aria-haspopup="listbox" aria-expanded="false" aria-label="Choose language">
         <svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
-        <span class="lang-cur" id="langCur">EN</span>
+        <span class="lang-cur" id="langCur"><span class="lang-flag" data-flag-icon="gb" aria-hidden="true"><svg viewBox="0 0 60 45" focusable="false"><rect width="60" height="45" fill="#012169"/><path d="M0 0l60 45M60 0L0 45" stroke="#fff" stroke-width="9"/><path d="M0 0l60 45M60 0L0 45" stroke="#c8102e" stroke-width="5"/><path d="M30 0v45M0 22.5h60" stroke="#fff" stroke-width="15"/><path d="M30 0v45M0 22.5h60" stroke="#c8102e" stroke-width="9"/></svg></span> EN</span>
       </button>
       <div class="lang-menu" id="langMenu" role="listbox" aria-label="Language">
-        <button type="button" role="option" data-lang="en"><span class="lang-flag">🇬🇧</span> English</button>
-        <button type="button" role="option" data-lang="ar"><span class="lang-flag">🇦🇪</span> العربية</button>
-        <button type="button" role="option" data-lang="zh"><span class="lang-flag">🇨🇳</span> 简体中文</button>
-        <button type="button" role="option" data-lang="ru"><span class="lang-flag">🇷🇺</span> Русский</button>
+        <button type="button" role="option" data-lang="en"><span class="lang-flag" data-flag-icon="gb" aria-hidden="true"><svg viewBox="0 0 60 45" focusable="false"><rect width="60" height="45" fill="#012169"/><path d="M0 0l60 45M60 0L0 45" stroke="#fff" stroke-width="9"/><path d="M0 0l60 45M60 0L0 45" stroke="#c8102e" stroke-width="5"/><path d="M30 0v45M0 22.5h60" stroke="#fff" stroke-width="15"/><path d="M30 0v45M0 22.5h60" stroke="#c8102e" stroke-width="9"/></svg></span> English</button>
+        <button type="button" role="option" data-lang="ar"><span class="lang-flag" data-flag-icon="ae" aria-hidden="true"><svg viewBox="0 0 60 45" focusable="false"><rect width="60" height="45" fill="#fff"/><rect width="15" height="45" fill="#ce1126"/><rect x="15" width="45" height="15" fill="#009739"/><rect x="15" y="30" width="45" height="15" fill="#000"/></svg></span> العربية</button>
+        <button type="button" role="option" data-lang="zh"><span class="lang-flag" data-flag-icon="cn" aria-hidden="true"><svg viewBox="0 0 60 45" focusable="false"><rect width="60" height="45" fill="#de2910"/><path d="M14 8l1.8 5.5h5.8l-4.7 3.4 1.8 5.5L14 19l-4.7 3.4 1.8-5.5-4.7-3.4h5.8z" fill="#ffde00"/></svg></span> 简体中文</button>
+        <button type="button" role="option" data-lang="ru"><span class="lang-flag" data-flag-icon="ru" aria-hidden="true"><svg viewBox="0 0 60 45" focusable="false"><rect width="60" height="45" fill="#fff"/><rect y="15" width="60" height="15" fill="#0039a6"/><rect y="30" width="60" height="15" fill="#d52b1e"/></svg></span> Русский</button>
       </div>
     </div>
     <button type="button" class="nav-menu-btn" id="navMenuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="navMobilePanel"><span></span><span></span><span></span></button>
@@ -890,10 +890,10 @@ body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:b
       <a href="#contact" data-i18n="nav.contact">Contact</a>
     </div>
     <div class="nav-mobile-langs" id="navMobileLangs" role="group" aria-label="Language">
-      <button type="button" data-lang="en"><span class="lang-flag">🇬🇧</span> English</button>
-      <button type="button" data-lang="ar"><span class="lang-flag">🇦🇪</span> العربية</button>
-      <button type="button" data-lang="zh"><span class="lang-flag">🇨🇳</span> 简体中文</button>
-      <button type="button" data-lang="ru"><span class="lang-flag">🇷🇺</span> Русский</button>
+      <button type="button" data-lang="en"><span class="lang-flag" data-flag-icon="gb" aria-hidden="true"><svg viewBox="0 0 60 45" focusable="false"><rect width="60" height="45" fill="#012169"/><path d="M0 0l60 45M60 0L0 45" stroke="#fff" stroke-width="9"/><path d="M0 0l60 45M60 0L0 45" stroke="#c8102e" stroke-width="5"/><path d="M30 0v45M0 22.5h60" stroke="#fff" stroke-width="15"/><path d="M30 0v45M0 22.5h60" stroke="#c8102e" stroke-width="9"/></svg></span> English</button>
+      <button type="button" data-lang="ar"><span class="lang-flag" data-flag-icon="ae" aria-hidden="true"><svg viewBox="0 0 60 45" focusable="false"><rect width="60" height="45" fill="#fff"/><rect width="15" height="45" fill="#ce1126"/><rect x="15" width="45" height="15" fill="#009739"/><rect x="15" y="30" width="45" height="15" fill="#000"/></svg></span> العربية</button>
+      <button type="button" data-lang="zh"><span class="lang-flag" data-flag-icon="cn" aria-hidden="true"><svg viewBox="0 0 60 45" focusable="false"><rect width="60" height="45" fill="#de2910"/><path d="M14 8l1.8 5.5h5.8l-4.7 3.4 1.8 5.5L14 19l-4.7 3.4 1.8-5.5-4.7-3.4h5.8z" fill="#ffde00"/></svg></span> 简体中文</button>
+      <button type="button" data-lang="ru"><span class="lang-flag" data-flag-icon="ru" aria-hidden="true"><svg viewBox="0 0 60 45" focusable="false"><rect width="60" height="45" fill="#fff"/><rect y="15" width="60" height="15" fill="#0039a6"/><rect y="30" width="60" height="15" fill="#d52b1e"/></svg></span> Русский</button>
     </div>
   </nav>
 </div>
@@ -1464,7 +1464,7 @@ if(bForm)bForm.addEventListener('submit',async e=>{e.preventDefault();
 (function(){
   if(!window.THREE) return;
   const canvas=document.getElementById('gl'); if(!canvas) return;
-  if(perfLite){ canvas.style.display='none'; return; }
+  if(perfLite&&!isMobile){ canvas.style.display='none'; return; }
   const mobileGl=innerWidth<768;
   const renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:!mobileGl,powerPreference:mobileGl?'low-power':'default'});
   renderer.setPixelRatio(Math.min(devicePixelRatio,mobileGl?1.5:2));
