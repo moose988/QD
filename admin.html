@@ -932,7 +932,11 @@
       border:1px solid var(--hairline);
       background:#fff;
       color:var(--navy);
+      display:grid;
+      place-items:center;
+      cursor:pointer;
     }
+    .drawer-close svg,.modal-close svg{width:20px;height:20px}
     .drawer-head,
     .modal-head{
       display:flex;
@@ -1109,7 +1113,7 @@
           <h2 id="drawerTitle">Order details</h2>
           <p id="drawerSubtitle" class="topbar-copy"></p>
         </div>
-        <button class="drawer-close" id="drawerClose" type="button" aria-label="Close order details">Ãƒâ€”</button>
+        <button class="drawer-close" id="drawerClose" type="button" aria-label="Close order details"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </div>
       <div class="drawer-body" id="drawerBody"></div>
     </div>
@@ -1122,7 +1126,7 @@
           <h2 id="modalTitle">Edit item</h2>
           <p id="modalSubtitle"></p>
         </div>
-        <button class="modal-close" id="modalClose" type="button" aria-label="Close dialog">Ãƒâ€”</button>
+        <button class="modal-close" id="modalClose" type="button" aria-label="Close dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </div>
       <form class="modal-body" id="modalForm"></form>
     </div>
@@ -2030,7 +2034,7 @@
             </div>
             <div class="detail-list">
               ${channelPerformance.map((entry) => `
-                <div class="detail-item"><span>${entry.channel}</span><strong>${entry.orders} orders Ãƒâ€šÃ‚Â· ${formatCurrency(entry.revenue)} Ãƒâ€šÃ‚Â· ${entry.conversion}</strong></div>
+                <div class="detail-item"><span>${entry.channel}</span><strong>${entry.orders} orders &middot; ${formatCurrency(entry.revenue)} &middot; ${entry.conversion}</strong></div>
               `).join("")}
             </div>
           </article>
@@ -2043,7 +2047,7 @@
             </div>
             <div class="detail-list">
               ${daypartPerformance.map((entry) => `
-                <div class="detail-item"><span>${entry.slot} Ãƒâ€šÃ‚Â· ${entry.window}</span><strong>${entry.orders} orders Ãƒâ€šÃ‚Â· ${formatCurrency(entry.revenue)}</strong></div>
+                <div class="detail-item"><span>${entry.slot} &middot; ${entry.window}</span><strong>${entry.orders} orders &middot; ${formatCurrency(entry.revenue)}</strong></div>
               `).join("")}
             </div>
           </article>
@@ -2249,8 +2253,8 @@
             <div class="chart-box"><canvas id="revenueChart" aria-label="Revenue chart"></canvas></div>
             <div class="chart-notes">
               <div class="chart-note"><span>Total 7-day revenue</span><strong>${formatCurrency(totalWeekRevenue)}</strong></div>
-              <div class="chart-note"><span>Peak day</span><strong>${peakDay ? `${peakDay.day} Ã‚Â· ${formatCurrency(peakDay.amount)}` : "No data yet"}</strong></div>
-              <div class="chart-note"><span>Strongest branch</span><strong>${branchPerformance[0].branch} Ã‚Â· ${formatCurrency(branchPerformance[0].revenue)}</strong></div>
+              <div class="chart-note"><span>Peak day</span><strong>${peakDay ? `${peakDay.day} &middot; ${formatCurrency(peakDay.amount)}` : "No data yet"}</strong></div>
+              <div class="chart-note"><span>Strongest branch</span><strong>${branchPerformance[0].branch} &middot; ${formatCurrency(branchPerformance[0].revenue)}</strong></div>
             </div>
           </article>
           <article class="surface">
@@ -2263,7 +2267,7 @@
             <div class="chart-box"><canvas id="ordersBarChart" aria-label="Orders bar chart"></canvas></div>
             <div class="chart-notes">
               <div class="chart-note"><span>Total weekly orders</span><strong>${totalWeekOrders}</strong></div>
-              <div class="chart-note"><span>Busiest day</span><strong>${revenueSeries.slice().sort((a, b) => b.orders - a.orders)[0].day} Ã‚Â· ${revenueSeries.slice().sort((a, b) => b.orders - a.orders)[0].orders} orders</strong></div>
+              <div class="chart-note"><span>Busiest day</span><strong>${revenueSeries.slice().sort((a, b) => b.orders - a.orders)[0].day} &middot; ${revenueSeries.slice().sort((a, b) => b.orders - a.orders)[0].orders} orders</strong></div>
               <div class="chart-note"><span>Average order value</span><strong>${formatCurrency(Math.round(totalWeekRevenue / totalWeekOrders))}</strong></div>
             </div>
           </article>
@@ -2291,14 +2295,14 @@
               </div>
             </div>
             <div class="detail-list">
-              <div class="detail-item"><span>Peak day</span><strong>${peakDay ? `${peakDay.day} Ã‚Â· ${formatCurrency(peakDay.amount)}` : "No data yet"}</strong></div>
+              <div class="detail-item"><span>Peak day</span><strong>${peakDay ? `${peakDay.day} &middot; ${formatCurrency(peakDay.amount)}` : "No data yet"}</strong></div>
               <div class="detail-item"><span>Top revenue category</span><strong>${bestCategory}</strong></div>
               <div class="detail-item"><span>Fastest branch</span><strong>${branchPerformance[1].branch}</strong></div>
-              <div class="detail-item"><span>Best channel</span><strong>${strongestChannel.channel} Ãƒâ€šÃ‚Â· ${formatCurrency(strongestChannel.revenue)}</strong></div>
-              <div class="detail-item"><span>Best daypart</span><strong>${bestDaypart.slot} Ãƒâ€šÃ‚Â· ${formatCurrency(bestDaypart.revenue)}</strong></div>
-              <div class="detail-item"><span>Top menu item</span><strong>${topMenuItem.name} Ãƒâ€šÃ‚Â· ${formatCurrency(topMenuItem.revenue)}</strong></div>
-              <div class="detail-item"><span>Branch one</span><strong>${branchPerformance[0].orders} orders Ã‚Â· ${branchPerformance[0].avgPrep}</strong></div>
-              <div class="detail-item"><span>Branch two</span><strong>${branchPerformance[1].orders} orders Ã‚Â· ${branchPerformance[1].avgPrep}</strong></div>
+              <div class="detail-item"><span>Best channel</span><strong>${strongestChannel.channel} &middot; ${formatCurrency(strongestChannel.revenue)}</strong></div>
+              <div class="detail-item"><span>Best daypart</span><strong>${bestDaypart.slot} &middot; ${formatCurrency(bestDaypart.revenue)}</strong></div>
+              <div class="detail-item"><span>Top menu item</span><strong>${topMenuItem.name} &middot; ${formatCurrency(topMenuItem.revenue)}</strong></div>
+              <div class="detail-item"><span>Branch one</span><strong>${branchPerformance[0].orders} orders &middot; ${branchPerformance[0].avgPrep}</strong></div>
+              <div class="detail-item"><span>Branch two</span><strong>${branchPerformance[1].orders} orders &middot; ${branchPerformance[1].avgPrep}</strong></div>
             </div>
           </article>
         </section>
@@ -2503,8 +2507,8 @@
             </div>
             <div class="chart-notes">
               <div class="chart-note"><span>Total 7-day revenue</span><strong>${formatCurrency(totalWeekRevenue)}</strong></div>
-              <div class="chart-note"><span>Peak day</span><strong>${peakDay ? `${peakDay.day} Ãƒâ€šÃ‚Â· ${formatCurrency(peakDay.amount)}` : "No data yet"}</strong></div>
-              <div class="chart-note"><span>Strongest branch</span><strong>${branchPerformance[0].branch} Ãƒâ€šÃ‚Â· ${formatCurrency(branchPerformance[0].revenue)}</strong></div>
+              <div class="chart-note"><span>Peak day</span><strong>${peakDay ? `${peakDay.day} &middot; ${formatCurrency(peakDay.amount)}` : "No data yet"}</strong></div>
+              <div class="chart-note"><span>Strongest branch</span><strong>${branchPerformance[0].branch} &middot; ${formatCurrency(branchPerformance[0].revenue)}</strong></div>
             </div>
           </article>
           <article class="surface">
@@ -2526,7 +2530,7 @@
             </div>
             <div class="chart-notes">
               <div class="chart-note"><span>Total weekly orders</span><strong>${totalWeekOrders}</strong></div>
-              <div class="chart-note"><span>Busiest day</span><strong>${busiestDay.day} Ãƒâ€šÃ‚Â· ${busiestDay.orders} orders</strong></div>
+              <div class="chart-note"><span>Busiest day</span><strong>${busiestDay.day} &middot; ${busiestDay.orders} orders</strong></div>
               <div class="chart-note"><span>Average order value</span><strong>${formatCurrency(Math.round(totalWeekRevenue / totalWeekOrders))}</strong></div>
             </div>
           </article>
@@ -2566,14 +2570,14 @@
               </div>
             </div>
             <div class="detail-list">
-              <div class="detail-item"><span>Peak day</span><strong>${peakDay ? `${peakDay.day} Ãƒâ€šÃ‚Â· ${formatCurrency(peakDay.amount)}` : "No data yet"}</strong></div>
+              <div class="detail-item"><span>Peak day</span><strong>${peakDay ? `${peakDay.day} &middot; ${formatCurrency(peakDay.amount)}` : "No data yet"}</strong></div>
               <div class="detail-item"><span>Top revenue category</span><strong>${bestCategory}</strong></div>
               <div class="detail-item"><span>Fastest branch</span><strong>${branchPerformance[1].branch}</strong></div>
-              <div class="detail-item"><span>Best channel</span><strong>${strongestChannel.channel} Ãƒâ€šÃ‚Â· ${formatCurrency(strongestChannel.revenue)}</strong></div>
-              <div class="detail-item"><span>Best daypart</span><strong>${bestDaypart.slot} Ãƒâ€šÃ‚Â· ${formatCurrency(bestDaypart.revenue)}</strong></div>
-              <div class="detail-item"><span>Top menu item</span><strong>${topMenuItem.name} Ãƒâ€šÃ‚Â· ${formatCurrency(topMenuItem.revenue)}</strong></div>
-              <div class="detail-item"><span>Branch one</span><strong>${branchPerformance[0].orders} orders Ãƒâ€šÃ‚Â· ${branchPerformance[0].avgPrep}</strong></div>
-              <div class="detail-item"><span>Branch two</span><strong>${branchPerformance[1].orders} orders Ãƒâ€šÃ‚Â· ${branchPerformance[1].avgPrep}</strong></div>
+              <div class="detail-item"><span>Best channel</span><strong>${strongestChannel.channel} &middot; ${formatCurrency(strongestChannel.revenue)}</strong></div>
+              <div class="detail-item"><span>Best daypart</span><strong>${bestDaypart.slot} &middot; ${formatCurrency(bestDaypart.revenue)}</strong></div>
+              <div class="detail-item"><span>Top menu item</span><strong>${topMenuItem.name} &middot; ${formatCurrency(topMenuItem.revenue)}</strong></div>
+              <div class="detail-item"><span>Branch one</span><strong>${branchPerformance[0].orders} orders &middot; ${branchPerformance[0].avgPrep}</strong></div>
+              <div class="detail-item"><span>Branch two</span><strong>${branchPerformance[1].orders} orders &middot; ${branchPerformance[1].avgPrep}</strong></div>
             </div>
           </article>
         </section>
@@ -2587,7 +2591,7 @@
             </div>
             <div class="detail-list">
               ${channelPerformance.map((entry) => `
-                <div class="detail-item"><span>${entry.channel}</span><strong>${entry.orders} orders Ãƒâ€šÃ‚Â· ${formatCurrency(entry.revenue)} Ãƒâ€šÃ‚Â· ${entry.conversion}</strong></div>
+                <div class="detail-item"><span>${entry.channel}</span><strong>${entry.orders} orders &middot; ${formatCurrency(entry.revenue)} &middot; ${entry.conversion}</strong></div>
               `).join("")}
             </div>
           </article>
@@ -2600,7 +2604,7 @@
             </div>
             <div class="detail-list">
               ${daypartPerformance.map((entry) => `
-                <div class="detail-item"><span>${entry.slot} Ãƒâ€šÃ‚Â· ${entry.window}</span><strong>${entry.orders} orders Ãƒâ€šÃ‚Â· ${formatCurrency(entry.revenue)}</strong></div>
+                <div class="detail-item"><span>${entry.slot} &middot; ${entry.window}</span><strong>${entry.orders} orders &middot; ${formatCurrency(entry.revenue)}</strong></div>
               `).join("")}
             </div>
           </article>
@@ -2710,7 +2714,7 @@
               <div>
                 <span class="eyebrow">Guest profile</span>
                 <h3>${selectedCustomer.name}</h3>
-                <p style="color:var(--muted);margin:12px 0 0">${selectedCustomer.phone} Ã‚Â· ${selectedCustomer.email}</p>
+                <p style="color:var(--muted);margin:12px 0 0">${selectedCustomer.phone} &middot; ${selectedCustomer.email}</p>
               </div>
               <div class="summary-list">
                 <div class="summary-item"><span>Segment</span><strong>${selectedCustomer.segment}</strong></div>
@@ -2723,7 +2727,7 @@
                 <div class="summary-list">
                   ${history.map((order) => `
                     <div class="summary-item">
-                      <span>${order.id} Ã‚Â· ${order.status}</span>
+                      <span>${order.id} &middot; ${order.status}</span>
                       <strong>${formatCurrency(order.total)}</strong>
                     </div>
                   `).join("")}
@@ -2792,7 +2796,7 @@
           <div>
             <span class="eyebrow">Guest profile</span>
             <h3>${escapeHtml(customer.name)}</h3>
-            <p style="color:var(--muted);margin:12px 0 0">${escapeHtml(customer.phone)} Ã‚Â· ${escapeHtml(customer.email)}</p>
+            <p style="color:var(--muted);margin:12px 0 0">${escapeHtml(customer.phone)} &middot; ${escapeHtml(customer.email)}</p>
           </div>
           <div class="summary-list">
             <div class="summary-item"><span>Segment</span><strong>${escapeHtml(customer.segment)}</strong></div>
@@ -2805,7 +2809,7 @@
             <div class="summary-list">
               ${history.map((order) => `
                 <div class="summary-item">
-                  <span>${escapeHtml(order.id)} Ã‚Â· ${escapeHtml(order.status)}</span>
+                  <span>${escapeHtml(order.id)} &middot; ${escapeHtml(order.status)}</span>
                   <strong>${formatCurrency(order.total)}</strong>
                 </div>
               `).join("")}
@@ -2840,7 +2844,7 @@
                 <header>
                   <div>
                     <h4>${promo.code}</h4>
-                    <p>${promo.type} Ã‚Â· Expires ${promo.expires}</p>
+                    <p>${promo.type} &middot; Expires ${promo.expires}</p>
                   </div>
                   <span class="status-badge ${promo.active ? "ready" : "cancelled"}">${promo.active ? "Active" : "Expired"}</span>
                 </header>
@@ -3001,7 +3005,7 @@
       renderNav();
       app.innerHTML = renderPage();
       if (state.route === "analytics") {
-        app.innerHTML = app.innerHTML.replace(/(?:ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â·|Ãƒâ€šÃ‚Â·)/g, "Ã‚Â·");
+        // Customer-facing strings are stored directly as UTF-8.
       }
       renderCharts();
     }
@@ -3024,7 +3028,7 @@
       orderDrawer.classList.add("open");
       orderDrawer.setAttribute("aria-hidden", "false");
       document.body.classList.add("modal-open");
-      drawerSubtitle.textContent = `${order.customer} Ã‚Â· ${order.branch}`;
+      drawerSubtitle.textContent = `${order.customer} · ${order.branch}`;
       drawerBody.innerHTML = `
         <div class="detail-list">
           <div class="detail-item"><span>Status</span><strong><span class="status-badge ${order.status.toLowerCase()}">${order.status}</span></strong></div>

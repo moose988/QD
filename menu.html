@@ -417,6 +417,8 @@
       overflow-x:auto;
       padding:10px 2px 8px;
       scrollbar-width:none;
+      scroll-behavior:smooth;
+      -webkit-overflow-scrolling:touch;
     }
     .tabs::-webkit-scrollbar{display:none}
     .tab{
@@ -505,6 +507,8 @@
       color:var(--blue);
       font-size:1rem;
       font-weight:800;
+      flex:none;
+      white-space:nowrap;
     }
     .mini-btn{
       min-width:120px;
@@ -530,7 +534,7 @@
     .nav-cart-badge{position:absolute;top:-5px;right:-5px;min-width:19px;height:19px;padding:0 5px;border-radius:999px;background:var(--green,#4BA636);color:#fff;font:800 .7rem/19px sans-serif;text-align:center;display:none}
     .nav-cart-badge.show{display:block}
     /* toast */
-    .cart-toast{position:fixed;left:50%;bottom:30px;transform:translate(-50%,140%);background:#19204F;color:#fff;padding:14px 20px;border-radius:16px;box-shadow:0 22px 48px -22px rgba(31,42,110,.4);display:flex;align-items:center;gap:12px;font-weight:700;font-size:14px;z-index:300;transition:transform .5s cubic-bezier(.16,1,.3,1);white-space:nowrap}
+    .cart-toast{position:fixed;left:50%;bottom:30px;transform:translate(-50%,140%);width:max-content;max-width:calc(100vw - 24px);background:#19204F;color:#fff;padding:14px 20px;border-radius:16px;box-shadow:0 22px 48px -22px rgba(31,42,110,.4);display:flex;align-items:center;gap:12px;font-weight:700;font-size:14px;line-height:1.4;z-index:300;transition:transform .5s cubic-bezier(.16,1,.3,1)}
     .cart-toast.show{transform:translate(-50%,0)}
     .ct-check{width:24px;height:24px;border-radius:999px;background:var(--green,#4BA636);display:grid;place-items:center;flex:none}
     .ct-check svg{width:13px;height:13px;stroke:#fff;fill:none}
@@ -556,7 +560,7 @@
     }
     .modal.open{display:flex}
     .modal-dialog{
-      width:min(1180px, 100%);
+      width:min(900px, 100%);
       max-height:min(92vh, 960px);
       overflow:auto;
       border-radius:34px;
@@ -622,19 +626,22 @@
       color:var(--muted);
       line-height:1.85;
     }
-    .pills{
+    .ingredients-line{
       display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      margin:0 0 24px;
-    }
-    .pill{
-      padding:10px 14px;
-      border-radius:999px;
-      background:rgba(255,255,255,.03);
-      border:1px solid rgba(201,149,42,.14);
-      color:var(--cream);
+      gap:6px;
+      min-width:0;
+      margin:0 0 20px;
+      color:var(--muted);
       font-size:.92rem;
+      line-height:1.5;
+      white-space:nowrap;
+      overflow:hidden;
+    }
+    .ingredients-line strong{color:var(--navy);flex:none}
+    .ingredients-line span{
+      min-width:0;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
     .macro-card{
       border-radius:24px;
@@ -716,25 +723,90 @@
       .menu-toggle,.mobile-panel{display:none}
       .hero-grid{grid-template-columns:1.05fr .95fr}
       .modal-grid{grid-template-columns:1fr 1fr;padding:28px}
-      .modal-gallery{grid-template-columns:1fr 1fr}
-      .modal-gallery img:first-child{grid-column:1 / -1}
       .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     }
     @media (min-width:1200px){
       .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
     }
     @media (max-width:767px){
-      .hero{padding-top:28px}
-      .hero-copy h1{white-space:normal}
-      .order-controls{grid-template-columns:1fr}
-      .tabs-wrap{top:82px}
-      .macro-grid{grid-template-columns:repeat(2,1fr)}
-      .macro:nth-child(2){border-right:none}
-      .modal-copy h2{padding-right:56px}
+      .container{width:min(calc(100% - 24px),var(--max))}
+      .site-header{padding:8px 0}
+      .site-header.scrolled{padding:6px 0}
+      .nav{width:calc(100% - 16px);padding:8px 10px;gap:8px;border-radius:20px}
+      .brand{min-width:0;gap:8px}
+      .brand-copy{min-width:0}
+      .brand-copy strong{max-width:124px;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .brand-copy span{display:none}
+      .nav-cart-btn,.menu-toggle{width:44px;height:44px;flex:none;border-radius:14px}
+      .mobile-panel{inset:70px 8px auto}
+      .hero{padding:26px 0 22px}
+      .hero-copy h1{margin-top:12px;font-size:clamp(1.85rem,9vw,2.65rem);line-height:1.02;white-space:normal}
+      .hero-marquee{padding-top:18px}
+      .marquee-row{gap:10px}
+      .marquee-pill{min-height:46px;padding:0 17px;font-size:.88rem}
+      .menu-section{padding-bottom:52px}
+      .order-toolbar{margin:0 0 20px;padding:14px;border-radius:20px}
+      .order-toolbar-top{margin-bottom:12px}
+      .status-pill{min-height:38px;padding:0 13px 0 10px;font-size:.88rem}
+      .order-controls{grid-template-columns:minmax(0,1fr);gap:10px}
+      .segmented{grid-column:auto;padding:5px;border-radius:18px}
+      .segment{min-height:46px}
+      .select-card{min-height:62px;padding:10px 12px;border-radius:17px;gap:11px}
+      .select-icon{width:38px;height:38px;border-radius:12px}
+      .select-copy label{font-size:.68rem;letter-spacing:.1em}
+      .select-wrap select,.custom-time-input{font-size:.94rem}
+      .tabs-wrap{top:70px;margin:0 -12px 18px;background:linear-gradient(180deg,rgba(243,247,253,.98) 78%,rgba(243,247,253,0));padding:0 12px}
+      .tabs{gap:8px;padding:9px 0 13px;scroll-snap-type:x proximity;overscroll-behavior-inline:contain}
+      .tab{min-height:44px;padding:0 15px;scroll-snap-align:start}
+      .grid{gap:14px}
+      .card{border-radius:21px}
+      .card:hover{transform:none}
+      .card-image{aspect-ratio:16/9}
+      .card:hover .card-image img{transform:none}
+      .card-body{padding:16px}
+      .card-meta{gap:10px;margin-bottom:8px}
+      .card-meta h3{min-width:0;font-size:1.18rem;line-height:1.18;overflow-wrap:anywhere}
+      .card p{margin-bottom:14px;min-height:auto;font-size:.92rem;line-height:1.55}
+      .card-footer{gap:10px}
+      .card-footer .badge{min-width:0;max-width:48%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+      .mini-btn{min-width:0;min-height:44px;padding:0 15px;flex:none}
+      .modal{align-items:center;padding:12px;background:rgba(25,32,79,.46)}
+      .modal-dialog{width:100%;max-height:calc(100dvh - 24px);border-radius:26px;overscroll-behavior:contain}
+      .modal-grid{gap:12px;padding:10px 10px calc(12px + env(safe-area-inset-bottom))}
+      .modal-gallery img{max-height:31vh;aspect-ratio:16/9;border-radius:19px}
+      .icon-btn{top:18px;right:18px;width:44px;height:44px;background:rgba(255,255,255,.96);box-shadow:var(--shadow-sm)}
+      .modal-copy{min-width:0;padding:0 4px}
+      .badge{min-height:30px;padding:0 11px;font-size:.72rem;letter-spacing:.1em}
+      .modal-copy h2{margin:9px 0 12px;padding-right:0;font-size:clamp(1.65rem,8vw,2.25rem);line-height:1}
+      .ingredients-line{margin-bottom:13px;font-size:.82rem}
+      .macro-card{margin-bottom:13px;border-radius:17px}
+      .macro{min-width:0;padding:11px 6px;text-align:center}
+      .macro span{font-size:.62rem;letter-spacing:.04em;margin-bottom:5px}
+      .macro strong{font-size:1rem;white-space:nowrap}
+      .detail-footer{display:grid;grid-template-columns:auto minmax(150px,1fr);gap:12px;padding-top:12px;flex-wrap:nowrap}
+      .detail-price{gap:4px}
+      .detail-price span{font-size:.68rem;letter-spacing:.1em}
+      .detail-price strong{font-size:1.55rem;white-space:nowrap}
+      .detail-footer .btn{width:100%;min-height:48px}
+      .site-footer{padding:34px 0 24px}
     }
     @media (max-width:1024px){
       .order-controls{grid-template-columns:1fr 1fr}
       .segmented{grid-column:1 / -1}
+    }
+    @media (max-width:767px){
+      .order-controls{grid-template-columns:minmax(0,1fr)}
+      .segmented{grid-column:auto}
+    }
+    @media (max-width:359px){
+      .brand-copy strong{max-width:100px;font-size:.8rem}
+      .card-footer{align-items:stretch;flex-direction:column}
+      .card-footer .badge{align-self:flex-start;max-width:100%}
+      .mini-btn{width:100%}
+      .macro-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .macro:nth-child(2){border-right:none}
+      .macro:nth-child(-n+2){border-bottom:1px solid var(--line)}
+      .detail-footer{grid-template-columns:1fr}
     }
     @media (prefers-reduced-motion:reduce){
       html{scroll-behavior:auto}
@@ -817,61 +889,6 @@
 
     <section class="menu-section">
       <div class="container">
-        <div class="order-toolbar reveal" aria-label="Ordering controls">
-          <div class="order-toolbar-top">
-            <div class="status-pill" id="openStatus">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
-              <span>Open now</span>
-            </div>
-          </div>
-          <div class="order-controls">
-            <div class="segmented" role="tablist" aria-label="Order type">
-              <button class="segment" id="pickupButton" type="button" aria-pressed="false">Pickup</button>
-              <button class="segment active" id="deliveryButton" type="button" aria-pressed="true">Delivery</button>
-            </div>
-            <div class="select-card">
-              <div class="select-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7"/><path d="M5 10v9h14v-9"/><path d="M9 19v-6h6v6"/></svg>
-              </div>
-              <div class="select-copy">
-                <label for="addressSelect" id="addressLabel">Delivery address</label>
-                <div class="select-wrap">
-                  <select id="addressSelect" aria-labelledby="addressLabel">
-                    <option>Demo district one</option>
-                    <option>Demo district two</option>
-                    <option>Demo district three</option>
-                    <option>Demo district four</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div class="select-card">
-              <div class="select-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
-              </div>
-              <div class="select-copy">
-                <label for="timeSelect" id="timeLabel">Delivery time</label>
-                <div class="select-wrap">
-                  <select id="timeSelect" aria-labelledby="timeLabel">
-                    <option>ASAP - 25-35 min</option>
-                    <option>In 45 minutes</option>
-                    <option>Tonight - 8:00 PM</option>
-                    <option>Tonight - 9:00 PM</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div class="select-card custom-time-card" id="customTimeCard">
-              <div class="select-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
-              </div>
-              <div class="select-copy">
-                <label for="customTimeInput" id="customTimeLabel">Custom pickup time</label>
-                <input class="custom-time-input" id="customTimeInput" type="time" aria-labelledby="customTimeLabel" />
-              </div>
-            </div>
-          </div>
-        </div>
         <div class="tabs-wrap reveal">
           <div class="tabs" id="tabs" role="tablist" aria-label="Menu categories"></div>
         </div>
@@ -891,7 +908,7 @@
       </div>
       <p style="margin:0;color:var(--muted);line-height:1.8;max-width:640px">Browse, filter, and order from a menu experience designed to feel more like a luxury dish catalogue than a standard list of food cards.</p>
       <div class="footer-bottom">
-        <span>? 2026 Restaurant Website. All rights reserved.</span>
+        <span>&copy; 2026 Restaurant Website. All rights reserved.</span>
         <span>Demo menu experience.</span>
       </div>
     </div>
@@ -907,8 +924,7 @@
         <div class="modal-copy">
           <span class="badge" id="modalBadge"></span>
           <h2 id="modalTitle"></h2>
-          <p id="modalDescription"></p>
-          <div class="pills" id="modalIngredients"></div>
+          <p class="ingredients-line"><strong>Ingredients:</strong><span id="modalIngredients"></span></p>
           <div class="macro-card">
             <div class="macro-grid">
               <div class="macro"><span>Calories</span><strong id="macroCalories"></strong></div>
@@ -922,7 +938,7 @@
               <span id="modalWeight"></span>
               <strong id="modalPrice"></strong>
             </div>
-            <button class="btn btn-primary" id="orderButton">Add to Order</button>
+            <button class="btn btn-primary" id="orderButton">Add to Cart</button>
           </div>
         </div>
       </div>
@@ -979,7 +995,7 @@
         ingredients: ["Grilled Chicken", "Crispy Fries", "Garlic Sauce", "Smoky Paprika", "Chopped Herbs", "Pickled Onion"],
         images: [
           "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=1200&q=80",
-          "https://images.unsplash.com/photo-1604908811371-2d1bb0e3d7b7?auto=format&fit=crop&w=1200&q=80"
+          "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=80"
         ]
       },
       {
@@ -996,7 +1012,7 @@
         ingredients: ["Kofta", "Flatbread", "Tahina", "Tomato", "Onion", "Parsley"],
         images: [
           "https://images.unsplash.com/photo-1534938665420-4193effeacc4?auto=format&fit=crop&w=1200&q=80",
-          "https://images.unsplash.com/photo-1521389508051-d7ffb5dc8f70?auto=format&fit=crop&w=1200&q=80"
+          "https://images.unsplash.com/photo-1537047902294-62a40c20a6ae?auto=format&fit=crop&w=1200&q=80"
         ]
       },
       {
@@ -1064,7 +1080,7 @@
         ingredients: ["Kofta", "Basmati Rice", "Tahina", "Parsley Salad", "Pickled Onion", "Flatbread"],
         images: [
           "https://images.unsplash.com/photo-1534938665420-4193effeacc4?auto=format&fit=crop&w=1200&q=80",
-          "https://images.unsplash.com/photo-1521389508051-d7ffb5dc8f70?auto=format&fit=crop&w=1200&q=80"
+          "https://images.unsplash.com/photo-1537047902294-62a40c20a6ae?auto=format&fit=crop&w=1200&q=80"
         ]
       },
       {
@@ -1080,7 +1096,7 @@
         description: "The chicken burrito is a portability-first favorite built around rice, chopped chicken, crisp vegetables, and house sauce for a layered bite that feels hearty without becoming heavy.",
         ingredients: ["Grilled Chicken", "Tortilla", "Basmati Rice", "Lettuce", "Garlic Sauce", "Pickled Slaw"],
         images: [
-          "https://images.unsplash.com/photo-1559847844-d721426d6edc?auto=format&fit=crop&w=1200&q=80",
+          "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=80",
           "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?auto=format&fit=crop&w=1200&q=80"
         ]
       },
@@ -1097,7 +1113,7 @@
         description: "Loaded fries are the late-night crowd favorite: crunchy, salty, saucy, and easy to share until they suddenly are not. The texture contrast carries the whole dish, with every forkful pulling in sauce, herbs, and spice.",
         ingredients: ["Crispy Fries", "Chopped Chicken", "Garlic Sauce", "Chili Dust", "Parsley", "Pickled Onion"],
         images: [
-          "https://images.unsplash.com/photo-1604908811371-2d1bb0e3d7b7?auto=format&fit=crop&w=1200&q=80",
+          "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=1200&q=80",
           "https://images.unsplash.com/photo-1518013431117-eb1465fa5752?auto=format&fit=crop&w=1200&q=80"
         ]
       },
@@ -1177,7 +1193,6 @@
     const modalGallery = document.getElementById("modalGallery");
     const modalBadge = document.getElementById("modalBadge");
     const modalTitle = document.getElementById("modalTitle");
-    const modalDescription = document.getElementById("modalDescription");
     const modalIngredients = document.getElementById("modalIngredients");
     const macroCalories = document.getElementById("macroCalories");
     const macroProtein = document.getElementById("macroProtein");
@@ -1187,57 +1202,12 @@
     const modalPrice = document.getElementById("modalPrice");
     const closeModalButton = document.getElementById("closeModal");
     const orderButton = document.getElementById("orderButton");
-    const pickupButton = document.getElementById("pickupButton");
-    const deliveryButton = document.getElementById("deliveryButton");
-    const addressSelect = document.getElementById("addressSelect");
-    const timeSelect = document.getElementById("timeSelect");
-    const addressLabel = document.getElementById("addressLabel");
-    const timeLabel = document.getElementById("timeLabel");
-    const customTimeCard = document.getElementById("customTimeCard");
-    const customTimeInput = document.getElementById("customTimeInput");
-
     let activeCategory = "All";
     let activeCardButton = null;
-    let orderMode = "delivery";
-
-    const orderOptions = {
-      delivery: {
-        addressLabel: "Delivery address",
-        timeLabel: "Delivery time",
-        addresses: [
-          "Demo district one",
-          "Demo district two",
-          "Demo district three",
-          "Demo district four"
-        ],
-        times: [
-          "ASAP - 25-35 min",
-          "In 45 minutes",
-          "Tonight - 8:00 PM",
-          "Tonight - 9:00 PM"
-        ]
-      },
-      pickup: {
-        addressLabel: "Pickup branch",
-        timeLabel: "Pickup time",
-        addresses: [
-          "Demo branch one",
-          "Demo branch two"
-        ],
-        times: [
-          "ASAP - 15 min",
-          "In 30 minutes",
-          "Tonight - 7:30 PM",
-          "Tonight - 8:30 PM"
-        ]
-      }
-    };
 
     const updateHeader = () => {
       siteHeader.classList.toggle("scrolled", window.scrollY > 24);
     };
-
-    orderOptions.pickup.times = ["Now", "15 mins", "30 mins", "Custom time"];
 
     updateHeader();
     window.addEventListener("scroll", updateHeader, { passive: true });
@@ -1255,39 +1225,6 @@
         document.body.classList.remove("nav-open");
       });
     });
-
-    const populateSelect = (select, values) => {
-      select.innerHTML = values.map((value) => `<option>${value}</option>`).join("");
-    };
-
-    const syncCustomTimeVisibility = () => {
-      const showCustom = orderMode === "pickup" && timeSelect.value === "Custom time";
-      customTimeCard.classList.toggle("visible", showCustom);
-      if (showCustom && !customTimeInput.value) {
-        customTimeInput.value = "20:00";
-      }
-    };
-
-    const setOrderMode = (mode) => {
-      orderMode = mode;
-      const config = orderOptions[mode];
-      pickupButton.classList.toggle("active", mode === "pickup");
-      deliveryButton.classList.toggle("active", mode === "delivery");
-      pickupButton.setAttribute("aria-pressed", String(mode === "pickup"));
-      deliveryButton.setAttribute("aria-pressed", String(mode === "delivery"));
-      addressLabel.textContent = config.addressLabel;
-      timeLabel.textContent = config.timeLabel;
-      populateSelect(addressSelect, config.addresses);
-      populateSelect(timeSelect, config.times);
-      syncCustomTimeVisibility();
-    };
-
-    pickupButton.addEventListener("click", () => setOrderMode("pickup"));
-    deliveryButton.addEventListener("click", () => setOrderMode("delivery"));
-    timeSelect.addEventListener("change", () => {
-      syncCustomTimeVisibility();
-    });
-    setOrderMode("delivery");
 
     const renderTabs = () => {
       tabs.innerHTML = orderedCategories.map((category) => `
@@ -1309,7 +1246,7 @@
       menuGrid.innerHTML = visibleItems.map((item) => `
         <article class="card reveal" tabindex="0" data-name="${item.name}">
           <div class="card-image">
-            <img src="${item.images[0]}" alt="${item.name}" loading="lazy" />
+            <img src="${item.images[0]}" alt="${item.name}" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22640%22 height=%22360%22%3E%3Crect width=%22640%22 height=%22360%22 fill=%22%23EAF0FD%22/%3E%3C/svg%3E'" />
           </div>
           <div class="card-body">
             <div class="card-meta">
@@ -1332,20 +1269,25 @@
     const openModal = (item, trigger) => {
       currentModalItem = item;
       activeCardButton = trigger;
-      modalGallery.innerHTML = item.images.map((src, index) => `
-        <img src="${src}" alt="${item.name} image ${index + 1}" />
-      `).join("");
+      const primaryImage = document.createElement("img");
+      primaryImage.src = item.images[0];
+      primaryImage.alt = item.name;
+      primaryImage.decoding = "async";
+      primaryImage.onerror = () => {
+        primaryImage.onerror = null;
+        primaryImage.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='360'%3E%3Crect width='640' height='360' fill='%23EAF0FD'/%3E%3C/svg%3E";
+      };
+      modalGallery.replaceChildren(primaryImage);
       modalBadge.textContent = item.category;
       modalTitle.textContent = item.name;
-      modalDescription.textContent = item.description;
-      modalIngredients.innerHTML = item.ingredients.map((ingredient) => `<span class="pill">${ingredient}</span>`).join("");
+      modalIngredients.textContent = item.ingredients.join(", ");
       macroCalories.textContent = item.calories;
       macroProtein.textContent = item.protein;
       macroCarbs.textContent = item.carbs;
       macroFat.textContent = item.fat;
       modalWeight.textContent = item.weight;
       modalPrice.textContent = `AED ${item.price}`;
-      orderButton.setAttribute("aria-label", `Add ${item.name} to order`);
+      orderButton.setAttribute("aria-label", `Add ${item.name} to cart`);
       modal.classList.add("open");
       modal.setAttribute("aria-hidden", "false");
       document.body.classList.add("modal-open");
@@ -1393,7 +1335,7 @@
         cartAddItem(item.name, item.price, item.images[0]);
         showCartToast(item.name);
         miniBtn.classList.add("added");
-        miniBtn.textContent = "ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ Added";
+        miniBtn.textContent = "Added";
         setTimeout(() => { miniBtn.classList.remove("added"); miniBtn.textContent = "+ Add to cart"; }, 1400);
         return;
       }
@@ -1406,6 +1348,7 @@
     });
 
     menuGrid.addEventListener("keydown", (event) => {
+      if (event.target.closest(".mini-btn")) return;
       if (event.key !== "Enter" && event.key !== " ") return;
       const card = event.target.closest(".card");
       if (!card) return;
@@ -1461,7 +1404,7 @@
     observeReveals();
     openItemFromQuery();
 
-    // ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ Cart system ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬
+    // Cart system
     var currentModalItem = null;
     const CART_KEY = "restaurant_demo_cart";
     function getCart(){try{return JSON.parse(localStorage.getItem(CART_KEY))||[];}catch(e){return[];}}
