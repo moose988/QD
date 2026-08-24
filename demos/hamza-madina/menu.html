@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="robots" content="noindex, nofollow" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Restaurant Website</title>
+  <meta name="description" content="Restaurant Website showcases a premium menu browsing and ordering experience for a standalone restaurant demo." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root{
+      --navy:#232C6B;
+      --navy-deep:#19204F;
+      --navy-ink:#161C45;
+      --blue:#2E5BD8;
+      --blue-deep:#244BBC;
+      --blue-soft:#EAF0FD;
+      --green:#4BA636;
+      --green-deep:#3C8C2B;
+      --bg:#FFFFFF;
+      --tint:#F3F7FD;
+      --tint-2:#E9F1FC;
+      --line:#E2E9F4;
+      --muted:#5C6685;
+      --muted-2:#8590AB;
+      --shadow:0 22px 48px -22px rgba(31,42,110,.30);
+      --shadow-sm:0 10px 26px -14px rgba(31,42,110,.28);
+      --radius:26px;
+      --max:1280px;
+      --ease:cubic-bezier(.22,1,.36,1);
+      --font-display:'Space Grotesk',system-ui,sans-serif;
+      --font-body:'Plus Jakarta Sans',system-ui,sans-serif;
+      --font-ar:'Amiri',serif;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:var(--font-body);
+      color:var(--navy-ink);
+      background:
+        radial-gradient(circle at top left, rgba(46,91,216,.10), transparent 28%),
+        radial-gradient(circle at 90% 8%, rgba(75,166,54,.08), transparent 18%),
+        linear-gradient(180deg, #ffffff 0%, #f3f7fd 100%);
+      overflow-x:hidden;
+    }
+    body.nav-open,body.modal-open{overflow:hidden}
+    a{text-decoration:none;color:inherit}
+    img{display:block;max-width:100%}
+    button{font:inherit}
+    .skip-link{
+      position:absolute;
+      left:16px;
+      top:-48px;
+      background:var(--blue);
+      color:#fff;
+      padding:12px 16px;
+      border-radius:999px;
+      z-index:999;
+      transition:top .2s ease;
+    }
+    .skip-link:focus{top:16px}
+    .container{width:min(calc(100% - 32px), var(--max));margin:0 auto}
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      min-height:50px;
+      padding:0 20px;
+      border-radius:999px;
+      cursor:pointer;
+      border:1px solid transparent;
+      transition:transform .25s var(--ease), background .25s ease, border-color .25s ease, color .25s ease;
+    }
+    .btn:hover{transform:translateY(-2px)}
+    .btn:focus-visible,.tab:focus-visible,.card:focus-visible,.nav-link:focus-visible,.menu-toggle:focus-visible,.icon-btn:focus-visible{
+      outline:2px solid var(--blue);
+      outline-offset:3px;
+    }
+    .btn-primary{background:var(--blue);color:#fff;font-weight:800;box-shadow:0 14px 26px -12px rgba(46,91,216,.6)}
+    .btn-primary:hover{background:var(--blue-deep)}
+    .btn-outline{background:#fff;border-color:var(--line);color:var(--navy)}
+    .btn-outline:hover{border-color:var(--blue);color:var(--blue)}
+    .site-header{
+      position:sticky;
+      top:0;
+      z-index:60;
+      padding:16px 0;
+      transition:padding .25s ease, background .25s ease, border-color .25s ease, backdrop-filter .25s ease;
+    }
+    .site-header.scrolled{
+      background:rgba(255,255,255,.9);
+      backdrop-filter:blur(18px);
+      border-bottom:1px solid var(--line);
+      padding:10px 0;
+    }
+    .nav{
+      width:min(calc(100% - 24px), var(--max));
+      margin:0 auto;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.92);
+      padding:14px 18px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      box-shadow:var(--shadow);
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:14px;
+    }
+    .brand img{height:54px;width:auto}
+    .brand-copy strong{
+      display:block;
+      font:700 1.02rem/1.1 var(--font-display);
+      color:var(--navy);
+    }
+    .brand-copy span{
+      display:block;
+      margin-top:5px;
+      font-size:.72rem;
+      letter-spacing:.24em;
+      text-transform:uppercase;
+      color:var(--green);
+    }
+    .nav-links,.nav-cta{display:none}
+    .nav-links{
+      align-items:center;
+      gap:26px;
+    }
+    .nav-link{
+      position:relative;
+      color:var(--muted);
+      transition:color .2s ease;
+    }
+    .nav-link:hover,.nav-link.active{color:var(--navy)}
+    .nav-link.active::after,.nav-link:hover::after{
+      content:"";
+      position:absolute;
+      left:0;
+      right:0;
+      bottom:-8px;
+      height:2px;
+      background:linear-gradient(90deg, transparent, var(--blue), transparent);
+    }
+    .menu-toggle{
+      width:48px;
+      height:48px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--navy);
+      display:grid;
+      place-items:center;
+    }
+    .mobile-panel{
+      position:fixed;
+      inset:88px 16px auto;
+      z-index:55;
+      background:rgba(255,255,255,.98);
+      border:1px solid var(--line);
+      border-radius:24px;
+      padding:18px;
+      display:grid;
+      gap:10px;
+      opacity:0;
+      transform:translateY(-10px);
+      pointer-events:none;
+      transition:opacity .25s ease, transform .25s ease;
+      box-shadow:var(--shadow);
+    }
+    .mobile-panel.open{opacity:1;transform:none;pointer-events:auto}
+    .mobile-panel a{padding:12px 14px;border-radius:14px;color:var(--navy)}
+    .mobile-panel a.active,.mobile-panel a:hover{background:var(--blue-soft)}
+    .hero{
+      padding:56px 0 42px;
+      position:relative;
+      overflow:hidden;
+      background:var(--tint);
+    }
+    .hero::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(46,91,216,.12), transparent 28%),
+        radial-gradient(circle at 88% 10%, rgba(75,166,54,.10), transparent 20%),
+        repeating-linear-gradient(135deg, rgba(46,91,216,.03) 0 2px, transparent 2px 14px);
+      pointer-events:none;
+    }
+    .hero-grid{
+      position:relative;
+      z-index:1;
+      display:grid;
+      gap:24px;
+      align-items:end;
+    }
+    .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:12px;
+      color:var(--blue);
+      font-size:12px;
+      font-weight:700;
+      letter-spacing:.28em;
+      text-transform:uppercase;
+    }
+    .eyebrow::before,.eyebrow::after{
+      content:"";
+      width:28px;
+      height:1px;
+      background:linear-gradient(90deg, transparent, var(--green), transparent);
+    }
+    .hero-copy h1{
+      margin:16px 0 14px;
+      font:800 clamp(2.1rem,4.1vw,4rem)/1.02 var(--font-display);
+      letter-spacing:-.05em;
+      color:var(--navy);
+      white-space:nowrap;
+    }
+    .hero-marquee{
+      position:relative;
+      left:50%;
+      width:100vw;
+      margin-left:-50vw;
+      overflow:hidden;
+      padding:24px 0 6px;
+    }
+    .marquee-stack{
+      display:block;
+      width:100%;
+    }
+    .marquee-row{
+      display:flex;
+      width:max-content;
+      gap:18px;
+      white-space:nowrap;
+      will-change:transform;
+      animation:marqueeLeft 18s linear infinite;
+    }
+    .marquee-pill{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:64px;
+      padding:0 24px;
+      border-radius:999px;
+      border:1px solid rgba(75,166,54,.2);
+      background:rgba(75,166,54,.08);
+      color:var(--green);
+      font:700 1.15rem/1 var(--font-display);
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      box-shadow:var(--shadow-sm);
+    }
+    .order-toolbar{
+      margin:10px 0 34px;
+      padding:22px;
+      border:1px solid var(--line);
+      border-radius:28px;
+      background:rgba(255,255,255,.92);
+      box-shadow:var(--shadow);
+      position:relative;
+      z-index:2;
+    }
+    .order-toolbar-top{
+      display:flex;
+      align-items:center;
+      gap:16px;
+      margin-bottom:18px;
+    }
+    .status-pill{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      min-height:42px;
+      padding:0 16px 0 12px;
+      border-radius:999px;
+      background:rgba(75,166,54,.10);
+      border:1px solid rgba(75,166,54,.18);
+      color:var(--green-deep);
+      font-weight:700;
+    }
+    .status-pill svg{width:18px;height:18px}
+    .order-controls{
+      display:grid;
+      gap:14px;
+      grid-template-columns:220px minmax(240px,1fr) minmax(220px,280px);
+      align-items:stretch;
+    }
+    .segmented{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+      padding:8px;
+      border-radius:999px;
+      background:var(--tint);
+      border:1px solid var(--line);
+    }
+    .segment{
+      min-height:54px;
+      border:none;
+      border-radius:999px;
+      background:transparent;
+      color:var(--muted);
+      font-weight:700;
+      cursor:pointer;
+      transition:background .2s ease, color .2s ease, box-shadow .2s ease, transform .2s ease;
+    }
+    .segment:hover{transform:translateY(-1px)}
+    .segment.active{
+      background:#fff;
+      color:var(--navy);
+      box-shadow:var(--shadow-sm);
+    }
+    .select-card{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      min-height:70px;
+      padding:12px 16px;
+      border-radius:22px;
+      border:1px solid var(--line);
+      background:#fff;
+      box-shadow:var(--shadow-sm);
+    }
+    .select-icon{
+      width:42px;
+      height:42px;
+      border-radius:14px;
+      background:var(--blue-soft);
+      color:var(--blue);
+      display:grid;
+      place-items:center;
+      flex:0 0 auto;
+    }
+    .select-icon svg{width:20px;height:20px}
+    .select-copy{
+      display:grid;
+      gap:4px;
+      min-width:0;
+      flex:1;
+    }
+    .select-copy label{
+      color:var(--muted-2);
+      font-size:.78rem;
+      font-weight:700;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+    }
+    .select-wrap{
+      position:relative;
+      min-width:0;
+    }
+    .select-wrap select{
+      width:100%;
+      appearance:none;
+      border:none;
+      background:transparent;
+      color:var(--navy);
+      font:600 1.02rem/1.4 var(--font-body);
+      padding:0 30px 0 0;
+      cursor:pointer;
+      outline:none;
+      text-overflow:ellipsis;
+    }
+    .select-wrap::after{
+      content:"";
+      position:absolute;
+      top:50%;
+      right:4px;
+      width:10px;
+      height:10px;
+      border-right:2px solid var(--muted);
+      border-bottom:2px solid var(--muted);
+      transform:translateY(-60%) rotate(45deg);
+      pointer-events:none;
+    }
+    .select-card:focus-within{
+      border-color:var(--blue);
+      box-shadow:0 0 0 3px rgba(46,91,216,.12);
+    }
+    .custom-time-card{
+      display:none;
+    }
+    .custom-time-card.visible{
+      display:flex;
+    }
+    .custom-time-input{
+      width:100%;
+      border:none;
+      background:transparent;
+      color:var(--navy);
+      font:600 1.02rem/1.4 var(--font-body);
+      outline:none;
+    }
+    @keyframes marqueeLeft{
+      from{transform:translateX(0)}
+      to{transform:translateX(-50%)}
+    }
+    .tabs-wrap{
+      position:sticky;
+      top:92px;
+      z-index:40;
+      margin:10px 0 28px;
+    }
+    .tabs{
+      display:grid;
+      grid-auto-flow:column;
+      grid-auto-columns:max-content;
+      gap:12px;
+      overflow-x:auto;
+      padding:10px 2px 8px;
+      scrollbar-width:none;
+      scroll-behavior:smooth;
+      -webkit-overflow-scrolling:touch;
+    }
+    .tabs::-webkit-scrollbar{display:none}
+    .tab{
+      position:relative;
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--muted);
+      min-height:48px;
+      padding:0 18px;
+      border-radius:999px;
+      cursor:pointer;
+      transition:border-color .2s ease, color .2s ease, background .2s ease;
+      white-space:nowrap;
+    }
+    .tab.active{
+      color:var(--navy);
+      border-color:var(--blue);
+      background:var(--blue-soft);
+    }
+    .tab.active::after{
+      content:"";
+      position:absolute;
+      left:18px;
+      right:18px;
+      bottom:8px;
+      height:2px;
+      background:linear-gradient(90deg, transparent, var(--blue), transparent);
+    }
+    .menu-section{padding-bottom:80px}
+    .grid{
+      display:grid;
+      gap:20px;
+    }
+    .card{
+      border:1px solid var(--line);
+      border-radius:28px;
+      overflow:hidden;
+      background:#fff;
+      box-shadow:var(--shadow);
+      cursor:pointer;
+      transition:transform .28s var(--ease), border-color .28s ease, box-shadow .28s ease;
+    }
+    .card:hover{
+      transform:translateY(-6px);
+      border-color:var(--blue);
+      box-shadow:0 20px 44px -22px rgba(31,42,110,.38);
+    }
+    .card-image{
+      position:relative;
+      aspect-ratio:16/9;
+      overflow:hidden;
+    }
+    .card-image img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      transition:transform .5s var(--ease);
+    }
+    .card:hover .card-image img{transform:scale(1.08)}
+    .card-body{padding:20px 20px 18px}
+    .card-meta{
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      align-items:flex-start;
+      margin-bottom:10px;
+    }
+    .card-meta h3{
+      margin:0;
+      font:700 1.4rem/1.1 var(--font-display);
+      color:var(--navy);
+    }
+    .card p{
+      margin:0 0 18px;
+      color:var(--muted);
+      line-height:1.7;
+      min-height:3.4em;
+    }
+    .card-footer{
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      align-items:center;
+    }
+    .price{
+      color:var(--blue);
+      font-size:1rem;
+      font-weight:800;
+      flex:none;
+      white-space:nowrap;
+    }
+    .mini-btn{
+      min-width:120px;
+      min-height:42px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--navy);
+      cursor:pointer;
+      font-weight:700;
+      transition:background .2s ease, color .2s ease, border-color .2s ease;
+    }
+    .card:hover .mini-btn{
+      background:var(--blue);
+      color:#fff;
+      border-color:var(--blue);
+    }
+    .mini-btn.added{background:var(--green,#4BA636);color:#fff;border-color:var(--green,#4BA636)}
+    /* nav cart */
+    .nav-cart-btn{position:relative;display:inline-flex;align-items:center;justify-content:center;width:46px;height:46px;border-radius:999px;border:1.5px solid var(--line);color:var(--navy);background:#fff;transition:border-color .2s,color .2s,background .2s}
+    .nav-cart-btn:hover{border-color:var(--blue);color:var(--blue)}
+    .nav-cart-btn svg{width:20px;height:20px}
+    .nav-cart-badge{position:absolute;top:-5px;right:-5px;min-width:19px;height:19px;padding:0 5px;border-radius:999px;background:var(--green,#4BA636);color:#fff;font:800 .7rem/19px sans-serif;text-align:center;display:none}
+    .nav-cart-badge.show{display:block}
+    /* toast */
+    .cart-toast{position:fixed;left:50%;bottom:30px;transform:translate(-50%,140%);width:max-content;max-width:calc(100vw - 24px);background:#19204F;color:#fff;padding:14px 20px;border-radius:16px;box-shadow:0 22px 48px -22px rgba(31,42,110,.4);display:flex;align-items:center;gap:12px;font-weight:700;font-size:14px;line-height:1.4;z-index:300;transition:transform .5s cubic-bezier(.16,1,.3,1)}
+    .cart-toast.show{transform:translate(-50%,0)}
+    .ct-check{width:24px;height:24px;border-radius:999px;background:var(--green,#4BA636);display:grid;place-items:center;flex:none}
+    .ct-check svg{width:13px;height:13px;stroke:#fff;fill:none}
+    .empty{
+      display:none;
+      padding:28px;
+      border-radius:24px;
+      border:1px dashed var(--line);
+      color:var(--muted);
+      text-align:center;
+      background:#fff;
+    }
+    .modal{
+      position:fixed;
+      inset:0;
+      z-index:80;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      background:rgba(35,44,107,.2);
+      backdrop-filter:blur(10px);
+    }
+    .modal.open{display:flex}
+    .modal-dialog{
+      width:min(900px, 100%);
+      max-height:min(92vh, 960px);
+      overflow:auto;
+      border-radius:34px;
+      border:1px solid var(--line);
+      background:
+        radial-gradient(circle at top right, rgba(46,91,216,.08), transparent 28%),
+        linear-gradient(180deg, #ffffff 0%, #f3f7fd 100%);
+      box-shadow:var(--shadow);
+      position:relative;
+    }
+    .icon-btn{
+      position:absolute;
+      top:18px;
+      right:18px;
+      width:48px;
+      height:48px;
+      border-radius:50%;
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--navy);
+      display:grid;
+      place-items:center;
+      cursor:pointer;
+      z-index:2;
+    }
+    .modal-grid{
+      display:grid;
+      gap:26px;
+      padding:22px;
+    }
+    .modal-gallery{
+      display:grid;
+      gap:16px;
+    }
+    .modal-gallery img{
+      width:100%;
+      aspect-ratio:16/11;
+      object-fit:cover;
+      border-radius:24px;
+      border:1px solid var(--line);
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      min-height:34px;
+      padding:0 14px;
+      border-radius:999px;
+      background:var(--blue-soft);
+      border:1px solid #cfe0fb;
+      color:var(--blue);
+      font-size:.82rem;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+    }
+    .modal-copy h2{
+      margin:14px 0 12px;
+      font:800 clamp(2.4rem,5vw,4.2rem)/.94 var(--font-display);
+      letter-spacing:-.05em;
+      color:var(--navy);
+    }
+    .modal-copy p{
+      margin:0 0 20px;
+      color:var(--muted);
+      line-height:1.85;
+    }
+    .ingredients-line{
+      display:flex;
+      gap:6px;
+      min-width:0;
+      margin:0 0 20px;
+      color:var(--muted);
+      font-size:.92rem;
+      line-height:1.5;
+      white-space:nowrap;
+      overflow:hidden;
+    }
+    .ingredients-line strong{color:var(--navy);flex:none}
+    .ingredients-line span{
+      min-width:0;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .macro-card{
+      border-radius:24px;
+      border:1px solid var(--line);
+      overflow:hidden;
+      background:#fff;
+      margin-bottom:22px;
+    }
+    .macro-grid{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+    }
+    .macro{
+      padding:18px 16px;
+      border-right:1px solid var(--line);
+    }
+    .macro:last-child{border-right:none}
+    .macro span{
+      display:block;
+      color:var(--muted);
+      font-size:.8rem;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      margin-bottom:8px;
+    }
+    .macro strong{
+      display:block;
+      color:var(--blue);
+      font:700 1.35rem/1.1 var(--font-display);
+    }
+    .detail-footer{
+      display:flex;
+      gap:16px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      padding-top:8px;
+      border-top:1px solid var(--line);
+    }
+    .detail-price{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .detail-price span{
+      color:var(--muted);
+      font-size:.85rem;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
+    .detail-price strong{
+      font:800 2rem/1 var(--font-display);
+      color:var(--blue);
+    }
+    .site-footer{
+      padding:48px 0 28px;
+      border-top:1px solid var(--line);
+      background:#fff;
+    }
+    .footer-bottom{
+      padding-top:22px;
+      margin-top:22px;
+      border-top:1px solid var(--line);
+      color:var(--muted-2);
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      flex-wrap:wrap;
+      font-size:.92rem;
+    }
+    .reveal{
+      opacity:0;
+      transform:translateY(26px);
+      transition:opacity .7s var(--ease), transform .7s var(--ease);
+    }
+    .reveal.is-visible{opacity:1;transform:none}
+    @media (min-width:768px){
+      .nav-links,.nav-cta{display:flex}
+      .menu-toggle,.mobile-panel{display:none}
+      .hero-grid{grid-template-columns:1.05fr .95fr}
+      .modal-grid{grid-template-columns:1fr 1fr;padding:28px}
+      .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+    @media (min-width:1200px){
+      .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+    }
+    @media (max-width:767px){
+      .container{width:min(calc(100% - 24px),var(--max))}
+      .site-header{padding:8px 0}
+      .site-header.scrolled{padding:6px 0}
+      .nav{width:calc(100% - 16px);padding:8px 10px;gap:8px;border-radius:20px}
+      .brand{min-width:0;gap:8px}
+      .brand-copy{min-width:0}
+      .brand-copy strong{max-width:124px;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .brand-copy span{display:none}
+      .nav-cart-btn,.menu-toggle{width:44px;height:44px;flex:none;border-radius:14px}
+      .mobile-panel{inset:70px 8px auto}
+      .hero{padding:26px 0 22px}
+      .hero-copy h1{margin-top:12px;font-size:clamp(1.85rem,9vw,2.65rem);line-height:1.02;white-space:normal}
+      .hero-marquee{padding-top:18px}
+      .marquee-row{gap:10px}
+      .marquee-pill{min-height:46px;padding:0 17px;font-size:.88rem}
+      .menu-section{padding-bottom:52px}
+      .order-toolbar{margin:0 0 20px;padding:14px;border-radius:20px}
+      .order-toolbar-top{margin-bottom:12px}
+      .status-pill{min-height:38px;padding:0 13px 0 10px;font-size:.88rem}
+      .order-controls{grid-template-columns:minmax(0,1fr);gap:10px}
+      .segmented{grid-column:auto;padding:5px;border-radius:18px}
+      .segment{min-height:46px}
+      .select-card{min-height:62px;padding:10px 12px;border-radius:17px;gap:11px}
+      .select-icon{width:38px;height:38px;border-radius:12px}
+      .select-copy label{font-size:.68rem;letter-spacing:.1em}
+      .select-wrap select,.custom-time-input{font-size:.94rem}
+      .tabs-wrap{top:70px;margin:0 -12px 18px;background:linear-gradient(180deg,rgba(243,247,253,.98) 78%,rgba(243,247,253,0));padding:0 12px}
+      .tabs{gap:8px;padding:9px 0 13px;scroll-snap-type:x proximity;overscroll-behavior-inline:contain}
+      .tab{min-height:44px;padding:0 15px;scroll-snap-align:start}
+      .grid{gap:14px}
+      .card{border-radius:21px}
+      .card:hover{transform:none}
+      .card-image{aspect-ratio:16/9}
+      .card:hover .card-image img{transform:none}
+      .card-body{padding:16px}
+      .card-meta{gap:10px;margin-bottom:8px}
+      .card-meta h3{min-width:0;font-size:1.18rem;line-height:1.18;overflow-wrap:anywhere}
+      .card p{margin-bottom:14px;min-height:auto;font-size:.92rem;line-height:1.55}
+      .card-footer{gap:10px}
+      .card-footer .badge{min-width:0;max-width:48%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+      .mini-btn{min-width:0;min-height:44px;padding:0 15px;flex:none}
+      .modal{align-items:center;padding:12px;background:rgba(25,32,79,.46)}
+      .modal-dialog{width:100%;max-height:calc(100dvh - 24px);border-radius:26px;overscroll-behavior:contain}
+      .modal-grid{gap:12px;padding:10px 10px calc(12px + env(safe-area-inset-bottom))}
+      .modal-gallery img{max-height:31vh;aspect-ratio:16/9;border-radius:19px}
+      .icon-btn{top:18px;right:18px;width:44px;height:44px;background:rgba(255,255,255,.96);box-shadow:var(--shadow-sm)}
+      .modal-copy{min-width:0;padding:0 4px}
+      .badge{min-height:30px;padding:0 11px;font-size:.72rem;letter-spacing:.1em}
+      .modal-copy h2{margin:9px 0 12px;padding-right:0;font-size:clamp(1.65rem,8vw,2.25rem);line-height:1}
+      .ingredients-line{margin-bottom:13px;font-size:.82rem}
+      .macro-card{margin-bottom:13px;border-radius:17px}
+      .macro{min-width:0;padding:11px 6px;text-align:center}
+      .macro span{font-size:.62rem;letter-spacing:.04em;margin-bottom:5px}
+      .macro strong{font-size:1rem;white-space:nowrap}
+      .detail-footer{display:grid;grid-template-columns:auto minmax(150px,1fr);gap:12px;padding-top:12px;flex-wrap:nowrap}
+      .detail-price{gap:4px}
+      .detail-price span{font-size:.68rem;letter-spacing:.1em}
+      .detail-price strong{font-size:1.55rem;white-space:nowrap}
+      .detail-footer .btn{width:100%;min-height:48px}
+      .site-footer{padding:34px 0 24px}
+    }
+    @media (max-width:1024px){
+      .order-controls{grid-template-columns:1fr 1fr}
+      .segmented{grid-column:1 / -1}
+    }
+    @media (max-width:767px){
+      .order-controls{grid-template-columns:minmax(0,1fr)}
+      .segmented{grid-column:auto}
+    }
+    @media (max-width:359px){
+      .brand-copy strong{max-width:100px;font-size:.8rem}
+      .card-footer{align-items:stretch;flex-direction:column}
+      .card-footer .badge{align-self:flex-start;max-width:100%}
+      .mini-btn{width:100%}
+      .macro-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .macro:nth-child(2){border-right:none}
+      .macro:nth-child(-n+2){border-bottom:1px solid var(--line)}
+      .detail-footer{grid-template-columns:1fr}
+    }
+    @media (prefers-reduced-motion:reduce){
+      html{scroll-behavior:auto}
+      *,*::before,*::after{
+        animation:none !important;
+        transition:none !important;
+      }
+      .reveal{opacity:1;transform:none}
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header" id="siteHeader">
+    <nav class="nav" aria-label="Primary">
+      <a class="brand" href="index.html" aria-label="Restaurant Website home">
+        <span class="brand-copy">
+          <strong>Restaurant Website</strong>
+          <span>Restaurant - Menu - Ordering</span>
+        </span>
+      </a>
+      <div class="nav-links">
+        <a class="nav-link" href="index.html">Home</a>
+        <a class="nav-link active" href="menu.html" aria-current="page">Menu</a>
+        <a class="nav-link" href="index.html#about">About</a>
+        <a class="nav-link" href="#contact">Contact</a>
+      </div>
+      <a class="nav-cart-btn" href="cart.html" aria-label="View cart">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        <span class="nav-cart-badge" id="navCartBadge">0</span>
+      </a>
+      <button class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="mobilePanel" aria-label="Open navigation">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </nav>
+    <div class="mobile-panel" id="mobilePanel">
+      <a href="index.html">Home</a>
+      <a class="active" href="menu.html">Menu</a>
+      <a href="index.html#about">About</a>
+      <a href="#contact">Contact</a>
+      <a class="btn btn-primary" href="#menuGrid">Order Now</a>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy reveal">
+          <span class="eyebrow">Our Menu</span>
+          <h1>Premium dish profiles, built for serious cravings.</h1>
+        </div>
+      </div>
+      <div class="hero-marquee reveal" aria-hidden="true">
+        <div class="marquee-stack">
+          <div class="marquee-row">
+            <span class="marquee-pill">Halal</span>
+            <span class="marquee-pill">Fresh Daily</span>
+            <span class="marquee-pill">Loaded Fries</span>
+            <span class="marquee-pill">Chapli Kebab</span>
+            <span class="marquee-pill">Bold Sauces</span>
+            <span class="marquee-pill">Wraps</span>
+            <span class="marquee-pill">Platters</span>
+            <span class="marquee-pill">Halal</span>
+            <span class="marquee-pill">Fresh Daily</span>
+            <span class="marquee-pill">Loaded Fries</span>
+            <span class="marquee-pill">Chapli Kebab</span>
+            <span class="marquee-pill">Bold Sauces</span>
+            <span class="marquee-pill">Wraps</span>
+            <span class="marquee-pill">Platters</span>
+            <span class="marquee-pill">Chicken Over Rice</span>
+            <span class="marquee-pill">Gyros</span>
+            <span class="marquee-pill">Crispy Wings</span>
+            <span class="marquee-pill">Burritos</span>
+            <span class="marquee-pill">Grilled Flavor</span>
+            <span class="marquee-pill">Big Cravings</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="menu-section">
+      <div class="container">
+        <div class="tabs-wrap reveal">
+          <div class="tabs" id="tabs" role="tablist" aria-label="Menu categories"></div>
+        </div>
+        <div class="grid" id="menuGrid" aria-live="polite"></div>
+        <div class="empty" id="emptyState">No items found in this category yet.</div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer" id="contact">
+    <div class="container">
+      <div class="brand" style="margin-bottom:14px">
+        <span class="brand-copy">
+          <strong>Restaurant Website</strong>
+          <span>Restaurant - Menu - Ordering</span>
+        </span>
+      </div>
+      <p style="margin:0;color:var(--muted);line-height:1.8;max-width:640px">Browse, filter, and order from a menu experience designed to feel more like a luxury dish catalogue than a standard list of food cards.</p>
+      <div class="footer-bottom">
+        <span>&copy; 2026 Restaurant Website. All rights reserved.</span>
+        <span>Demo menu experience.</span>
+      </div>
+    </div>
+  </footer>
+
+  <div class="modal" id="modal" aria-hidden="true">
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button class="icon-btn" id="closeModal" aria-label="Close item details">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+      <div class="modal-grid">
+        <div class="modal-gallery" id="modalGallery"></div>
+        <div class="modal-copy">
+          <span class="badge" id="modalBadge"></span>
+          <h2 id="modalTitle"></h2>
+          <p class="ingredients-line"><strong>Ingredients:</strong><span id="modalIngredients"></span></p>
+          <div class="macro-card">
+            <div class="macro-grid">
+              <div class="macro"><span>Calories</span><strong id="macroCalories"></strong></div>
+              <div class="macro"><span>Protein</span><strong id="macroProtein"></strong></div>
+              <div class="macro"><span>Carbs</span><strong id="macroCarbs"></strong></div>
+              <div class="macro"><span>Fat</span><strong id="macroFat"></strong></div>
+            </div>
+          </div>
+          <div class="detail-footer">
+            <div class="detail-price">
+              <span id="modalWeight"></span>
+              <strong id="modalPrice"></strong>
+            </div>
+            <button class="btn btn-primary" id="orderButton">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const menuData = [
+      {
+        name: "Chicken Over Rice",
+        category: "Chicken Over Rice",
+        price: 38,
+        calories: "680",
+        protein: "52g",
+        carbs: "74g",
+        fat: "18g",
+        weight: "~480g per serving",
+        short: "Char-grilled chicken, fragrant basmati, white sauce, and hot-sauce finish.",
+        description: "A signature rice plate with tender chicken shaved over steaming basmati rice. Garlic sauce softens the spice, while pickled turnip and salad add brightness that keeps the whole plate balanced and addictive.",
+        ingredients: ["Grilled Chicken", "Basmati Rice", "Garlic Sauce", "Hot Sauce", "Pickled Turnip", "Cucumber Salad"],
+        images: [
+          "https://images.unsplash.com/photo-1511690743698-d9d85f2fbf38?auto=format&fit=crop&w=1200&q=80",
+          "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=80"
+        ]
+      },
+      {
+        name: "Lamb Over Rice",
+        category: "Chicken Over Rice",
+        price: 45,
+        calories: "720",
+        protein: "48g",
+        carbs: "72g",
+        fat: "24g",
+        weight: "~500g per serving",
+        short: "Savoury lamb strips over rice with white sauce and deep spice.",
+        description: "Richly seasoned lamb with caramelized edges lands over hot rice and soaks in every drop of sauce. It is fuller, darker, and more indulgent than the chicken version, built for guests who want more depth in every bite.",
+        ingredients: ["Seasoned Lamb", "Basmati Rice", "Garlic Sauce", "Harissa Drizzle", "Pickled Turnip", "Parsley"],
+        images: [
+          "https://images.unsplash.com/photo-1529006557810-274b9b2fc783?auto=format&fit=crop&w=1200&q=80",
+          "https://images.unsplash.com/photo-1537047902294-62a40c20a6ae?auto=format&fit=crop&w=1200&q=80"
+        ]
+      },
+      {
+        name: "Chicken Over Fries",
+        category: "Chicken Over Fries",
+        price: 42,
+        calories: "760",
+        protein: "48g",
+        carbs: "82g",
+        fat: "26g",
+        weight: "~460g per serving",
+        short: "Loaded fries topped with smoky chicken, garlic sauce, and herbs.",
+        description: "For guests who want maximum indulgence, this tray trades rice for crisp golden fries. The result is crunchier, richer, and built to catch every ribbon of white sauce and spice-laced chicken drippings.",
+        ingredients: ["Grilled Chicken", "Crispy Fries", "Garlic Sauce", "Smoky Paprika", "Chopped Herbs", "Pickled Onion"],
+        images: [
+          "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=1200&q=80",
+          "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=80"
+        ]
+      },
+      {
+        name: "Kofta Gyro",
+        category: "Gyros",
+        price: 32,
+        calories: "520",
+        protein: "38g",
+        carbs: "46g",
+        fat: "18g",
+        weight: "~320g per serving",
+        short: "Soft flatbread wrapped around juicy kofta, herbs, and tahina.",
+        description: "The kofta gyro leans aromatic and juicy, with warm spices running through every bite. Wrapped in pillowy bread with tahina, tomato, and herbs, it delivers the comfort of street food with a cleaner, more refined finish.",
+        ingredients: ["Kofta", "Flatbread", "Tahina", "Tomato", "Onion", "Parsley"],
+        images: [
+          "https://images.unsplash.com/photo-1534938665420-4193effeacc4?auto=format&fit=crop&w=1200&q=80",
+          "https://images.unsplash.com/photo-1537047902294-62a40c20a6ae?auto=format&fit=crop&w=1200&q=80"
+        ]
+      },
+      {
+        name: "Falafel Gyro",
+        category: "Gyros",
+        price: 28,
+        calories: "480",
+        protein: "18g",
+        carbs: "58g",
+        fat: "16g",
+        weight: "~300g per serving",
+        short: "Crisp falafel, pickles, tahina, and fresh herbs in warm bread.",
+        description: "Crisp on the outside and soft in the middle, the falafel gyro brings a brighter, herb-driven profile. Tahina, cucumber, and pickles keep it lively, making it the most refreshing wrap on the menu.",
+        ingredients: ["Falafel", "Flatbread", "Tahina", "Cucumber", "Pickles", "Parsley"],
+        images: [
+          "https://images.unsplash.com/photo-1543339308-43e59d6b73a6?auto=format&fit=crop&w=1200&q=80",
+          "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1200&q=80"
+        ]
+      },
+      {
+        name: "Chicken Platter",
+        category: "Platters",
+        price: 55,
+        calories: "880",
+        protein: "68g",
+        carbs: "80g",
+        fat: "22g",
+        weight: "~620g per serving",
+        short: "A larger-format chicken feast with rice, salad, and double sauce.",
+        description: "This platter stretches the signature chicken experience into a fuller meal with bigger portions, broader garnish, and a stronger sense of occasion. It is ideal for guests who want the core favorite with more room to build each bite their own way.",
+        ingredients: ["Grilled Chicken", "Basmati Rice", "House Salad", "Garlic Sauce", "Hot Sauce", "Flatbread"],
+        images: [
+          "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=80",
+          "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=80"
+        ]
+      },
+      {
+        name: "Lamb Platter",
+        category: "Platters",
+        price: 62,
+        calories: "940",
+        protein: "62g",
+        carbs: "78g",
+        fat: "32g",
+        weight: "~650g per serving",
+        short: "Premium lamb platter with rice, herbs, salad, and warm bread.",
+        description: "The lamb platter is generous and assertive, built around succulent slices with a little char and a lot of spice complexity. A broad bed of rice and cooling salad keeps the richness in check while still feeling properly celebratory.",
+        ingredients: ["Seasoned Lamb", "Basmati Rice", "House Salad", "Garlic Sauce", "Pickled Turnip", "Flatbread"],
+        images: [
+          "https://images.unsplash.com/photo-1529006557810-274b9b2fc783?auto=format&fit=crop&w=1200&q=80",
+          "https://images.unsplash.com/photo-1537047902294-62a40c20a6ae?auto=format&fit=crop&w=1200&q=80"
+        ]
+      },
+      {
+        name: "Kofta Platter",
+        category: "Platters",
+        price: 58,
+        calories: "900",
+        protein: "58g",
+        carbs: "76g",
+        fat: "30g",
+        weight: "~600g per serving",
+        short: "Spiced kofta with rice, tahina, herb salad, and warm bread.",
+        description: "The kofta platter lands somewhere between comfort and ceremony, with aromatic minced meat, creamy tahina, and a fuller tray format that lets the spices linger. It is earthy, deeply savoury, and built to feel substantial.",
+        ingredients: ["Kofta", "Basmati Rice", "Tahina", "Parsley Salad", "Pickled Onion", "Flatbread"],
+        images: [
+          "https://images.unsplash.com/photo-1534938665420-4193effeacc4?auto=format&fit=crop&w=1200&q=80",
+          "https://images.unsplash.com/photo-1537047902294-62a40c20a6ae?auto=format&fit=crop&w=1200&q=80"
+        ]
+      },
+      {
+        name: "Chicken Burrito",
+        category: "Burritos & Wraps",
+        price: 36,
+        calories: "640",
+        protein: "44g",
+        carbs: "72g",
+        fat: "18g",
+        weight: "~400g per serving",
+        short: "A tight wrap of chicken, rice, sauce, and fresh crunch.",
+        description: "The chicken burrito is a portability-first favorite built around rice, chopped chicken, crisp vegetables, and house sauce for a layered bite that feels hearty without becoming heavy.",
+        ingredients: ["Grilled Chicken", "Tortilla", "Basmati Rice", "Lettuce", "Garlic Sauce", "Pickled Slaw"],
+        images: [
+          "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=80",
+          "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?auto=format&fit=crop&w=1200&q=80"
+        ]
+      },
+      {
+        name: "Loaded Fries",
+        category: "Loaded Fries",
+        price: 28,
+        calories: "580",
+        protein: "22g",
+        carbs: "76g",
+        fat: "22g",
+        weight: "~380g per serving",
+        short: "Crisp fries finished with chicken bits, sauce, and spice dust.",
+        description: "Loaded fries are the late-night crowd favorite: crunchy, salty, saucy, and easy to share until they suddenly are not. The texture contrast carries the whole dish, with every forkful pulling in sauce, herbs, and spice.",
+        ingredients: ["Crispy Fries", "Chopped Chicken", "Garlic Sauce", "Chili Dust", "Parsley", "Pickled Onion"],
+        images: [
+          "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=1200&q=80",
+          "https://images.unsplash.com/photo-1518013431117-eb1465fa5752?auto=format&fit=crop&w=1200&q=80"
+        ]
+      },
+      {
+        name: "Classic Chicken Sandwich",
+        category: "Sandwiches & Starters",
+        price: 30,
+        calories: "540",
+        protein: "34g",
+        carbs: "48g",
+        fat: "20g",
+        weight: "~310g per serving",
+        short: "Toasted bread, seasoned chicken, crisp salad, and creamy sauce.",
+        description: "This sandwich is simple in structure but not in flavor, balancing juicy chicken with crunch and a generous spread of signature sauce. It is familiar enough to comfort and bold enough to stay memorable.",
+        ingredients: ["Chicken", "Toasted Bread", "Lettuce", "Tomato", "Garlic Mayo", "Pickles"],
+        images: [
+          "https://images.unsplash.com/photo-1553979459-d2229ba7433b?auto=format&fit=crop&w=1200&q=80",
+          "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?auto=format&fit=crop&w=1200&q=80"
+        ]
+      },
+      {
+        name: "Crispy Wings",
+        category: "Wings",
+        price: 34,
+        calories: "610",
+        protein: "42g",
+        carbs: "22g",
+        fat: "38g",
+        weight: "~360g per serving",
+        short: "Golden wings with smoky spice lacquer and cooling dip.",
+        description: "Our wings are all about crisp skin, juicy interiors, and a spice glaze that leans warm rather than sweet. Served with a cooling dip, they are designed to snack hard and disappear fast.",
+        ingredients: ["Chicken Wings", "Smoky Spice Rub", "Garlic Dip", "Lemon", "Parsley"],
+        images: [
+          "https://images.unsplash.com/photo-1567620832903-9fc6debc209f?auto=format&fit=crop&w=1200&q=80",
+          "https://images.unsplash.com/photo-1527477396000-e27163b481c2?auto=format&fit=crop&w=1200&q=80"
+        ]
+      },
+      {
+        name: "Saffron Lemonade",
+        category: "Drinks & Desserts",
+        price: 16,
+        calories: "140",
+        protein: "0g",
+        carbs: "34g",
+        fat: "0g",
+        weight: "~320ml serving",
+        short: "Citrus-bright lemonade with saffron aroma and mint lift.",
+        description: "A fragrant, cooling drink that cuts through grilled meats and rich sauces with ease. The saffron note makes it feel unmistakably premium and a little more regionally rooted than a standard soft drink.",
+        ingredients: ["Lemon", "Saffron", "Mint", "Cane Sugar", "Sparkling Water"],
+        images: [
+          "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=1200&q=80",
+          "https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=1200&q=80"
+        ]
+      }
+    ];
+
+    const orderedCategories = [
+      "All",
+      "Chicken Over Rice",
+      "Chicken Over Fries",
+      "Gyros",
+      "Platters",
+      "Burritos & Wraps",
+      "Sandwiches & Starters",
+      "Wings",
+      "Loaded Fries",
+      "Drinks & Desserts"
+    ];
+
+    const tabs = document.getElementById("tabs");
+    const menuGrid = document.getElementById("menuGrid");
+    const emptyState = document.getElementById("emptyState");
+    const siteHeader = document.getElementById("siteHeader");
+    const menuToggle = document.getElementById("menuToggle");
+    const mobilePanel = document.getElementById("mobilePanel");
+    const modal = document.getElementById("modal");
+    const modalGallery = document.getElementById("modalGallery");
+    const modalBadge = document.getElementById("modalBadge");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalIngredients = document.getElementById("modalIngredients");
+    const macroCalories = document.getElementById("macroCalories");
+    const macroProtein = document.getElementById("macroProtein");
+    const macroCarbs = document.getElementById("macroCarbs");
+    const macroFat = document.getElementById("macroFat");
+    const modalWeight = document.getElementById("modalWeight");
+    const modalPrice = document.getElementById("modalPrice");
+    const closeModalButton = document.getElementById("closeModal");
+    const orderButton = document.getElementById("orderButton");
+    let activeCategory = "All";
+    let activeCardButton = null;
+
+    const updateHeader = () => {
+      siteHeader.classList.toggle("scrolled", window.scrollY > 24);
+    };
+
+    updateHeader();
+    window.addEventListener("scroll", updateHeader, { passive: true });
+
+    menuToggle.addEventListener("click", () => {
+      const open = mobilePanel.classList.toggle("open");
+      menuToggle.setAttribute("aria-expanded", String(open));
+      document.body.classList.toggle("nav-open", open);
+    });
+
+    mobilePanel.querySelectorAll("a").forEach((link) => {
+      link.addEventListener("click", () => {
+        mobilePanel.classList.remove("open");
+        menuToggle.setAttribute("aria-expanded", "false");
+        document.body.classList.remove("nav-open");
+      });
+    });
+
+    const renderTabs = () => {
+      tabs.innerHTML = orderedCategories.map((category) => `
+        <button
+          class="tab ${category === activeCategory ? "active" : ""}"
+          type="button"
+          role="tab"
+          aria-selected="${category === activeCategory}"
+          data-category="${category}"
+        >${category}</button>
+      `).join("");
+    };
+
+    const renderGrid = () => {
+      const visibleItems = activeCategory === "All"
+        ? menuData
+        : menuData.filter((item) => item.category === activeCategory);
+
+      menuGrid.innerHTML = visibleItems.map((item) => `
+        <article class="card reveal" tabindex="0" data-name="${item.name}">
+          <div class="card-image">
+            <img src="${item.images[0]}" alt="${item.name}" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22640%22 height=%22360%22%3E%3Crect width=%22640%22 height=%22360%22 fill=%22%23EAF0FD%22/%3E%3C/svg%3E'" />
+          </div>
+          <div class="card-body">
+            <div class="card-meta">
+              <h3>${item.name}</h3>
+              <span class="price">AED ${item.price}</span>
+            </div>
+            <p>${item.short}</p>
+            <div class="card-footer">
+              <span class="badge">${item.category}</span>
+              <button class="mini-btn" type="button">+ Add to cart</button>
+            </div>
+          </div>
+        </article>
+      `).join("");
+
+      emptyState.style.display = visibleItems.length ? "none" : "block";
+      observeReveals();
+    };
+
+    const openModal = (item, trigger) => {
+      currentModalItem = item;
+      activeCardButton = trigger;
+      const primaryImage = document.createElement("img");
+      primaryImage.src = item.images[0];
+      primaryImage.alt = item.name;
+      primaryImage.decoding = "async";
+      primaryImage.onerror = () => {
+        primaryImage.onerror = null;
+        primaryImage.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='360'%3E%3Crect width='640' height='360' fill='%23EAF0FD'/%3E%3C/svg%3E";
+      };
+      modalGallery.replaceChildren(primaryImage);
+      modalBadge.textContent = item.category;
+      modalTitle.textContent = item.name;
+      modalIngredients.textContent = item.ingredients.join(", ");
+      macroCalories.textContent = item.calories;
+      macroProtein.textContent = item.protein;
+      macroCarbs.textContent = item.carbs;
+      macroFat.textContent = item.fat;
+      modalWeight.textContent = item.weight;
+      modalPrice.textContent = `AED ${item.price}`;
+      orderButton.setAttribute("aria-label", `Add ${item.name} to cart`);
+      modal.classList.add("open");
+      modal.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+      closeModalButton.focus();
+    };
+
+    const closeModal = () => {
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("modal-open");
+      if (activeCardButton) {
+        activeCardButton.focus();
+      }
+    };
+
+    const openItemFromQuery = () => {
+      const requestedName = new URLSearchParams(window.location.search).get("item");
+      if (!requestedName) return;
+      const matchedItem = menuData.find((entry) => entry.name === requestedName);
+      if (!matchedItem) return;
+      const matchedCard = menuGrid.querySelector(`[data-name="${CSS.escape(requestedName)}"]`);
+      if (matchedCard) {
+        matchedCard.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      requestAnimationFrame(() => openModal(matchedItem, matchedCard || null));
+    };
+
+    tabs.addEventListener("click", (event) => {
+      const button = event.target.closest(".tab");
+      if (!button) return;
+      activeCategory = button.dataset.category;
+      renderTabs();
+      renderGrid();
+    });
+
+    menuGrid.addEventListener("click", (event) => {
+      // mini-btn: add to cart without opening modal
+      const miniBtn = event.target.closest(".mini-btn");
+      if (miniBtn) {
+        event.stopPropagation();
+        const card = miniBtn.closest(".card");
+        if (!card) return;
+        const item = menuData.find((e) => e.name === card.dataset.name);
+        if (!item) return;
+        cartAddItem(item.name, item.price, item.images[0]);
+        showCartToast(item.name);
+        miniBtn.classList.add("added");
+        miniBtn.textContent = "Added";
+        setTimeout(() => { miniBtn.classList.remove("added"); miniBtn.textContent = "+ Add to cart"; }, 1400);
+        return;
+      }
+      const card = event.target.closest(".card");
+      if (!card) return;
+      const item = menuData.find((entry) => entry.name === card.dataset.name);
+      if (item) {
+        openModal(item, card);
+      }
+    });
+
+    menuGrid.addEventListener("keydown", (event) => {
+      if (event.target.closest(".mini-btn")) return;
+      if (event.key !== "Enter" && event.key !== " ") return;
+      const card = event.target.closest(".card");
+      if (!card) return;
+      event.preventDefault();
+      const item = menuData.find((entry) => entry.name === card.dataset.name);
+      if (item) {
+        openModal(item, card);
+      }
+    });
+
+    closeModalButton.addEventListener("click", closeModal);
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal) {
+        closeModal();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && modal.classList.contains("open")) {
+        closeModal();
+      }
+    });
+
+    orderButton.addEventListener("click", () => {
+      if (currentModalItem) {
+        cartAddItem(currentModalItem.name, currentModalItem.price, currentModalItem.images[0]);
+        showCartToast(currentModalItem.name);
+      }
+      closeModal();
+    });
+
+    let revealObserver;
+    const observeReveals = () => {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        document.querySelectorAll(".reveal").forEach((node) => node.classList.add("is-visible"));
+        return;
+      }
+      if (!revealObserver) {
+        revealObserver = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("is-visible");
+              revealObserver.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.12 });
+      }
+      document.querySelectorAll(".reveal").forEach((node) => revealObserver.observe(node));
+    };
+
+    renderTabs();
+    renderGrid();
+    observeReveals();
+    openItemFromQuery();
+
+    // Cart system
+    var currentModalItem = null;
+    const CART_KEY = "restaurant_demo_cart";
+    function getCart(){try{return JSON.parse(localStorage.getItem(CART_KEY))||[];}catch(e){return[];}}
+    function saveCart(c){localStorage.setItem(CART_KEY,JSON.stringify(c));}
+    function cartAddItem(name,price,image){
+      const cart=getCart();
+      const existing=cart.find(x=>x.name===name);
+      if(existing){existing.qty++;}else{cart.push({name,price,image,qty:1});}
+      saveCart(cart);
+      updateNavBadge();
+    }
+    function updateNavBadge(){
+      const badge=document.getElementById('navCartBadge');
+      if(!badge)return;
+      const count=getCart().reduce((n,i)=>n+i.qty,0);
+      badge.textContent=count;
+      badge.classList.toggle('show',count>0);
+    }
+    let toastTimer;
+    function showCartToast(name){
+      const toast=document.getElementById('cartToast');
+      const msg=document.getElementById('cartToastMsg');
+      if(!toast)return;
+      msg.textContent=name+' added to cart';
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer=setTimeout(()=>toast.classList.remove('show'),2800);
+    }
+    updateNavBadge();
+  </script>
+
+  <div class="cart-toast" id="cartToast" role="status" aria-live="polite">
+    <span class="ct-check"><svg viewBox="0 0 24 24" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+    <span id="cartToastMsg">Added to cart</span>
+  </div>
+</body>
+</html>
