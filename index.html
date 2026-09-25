@@ -902,7 +902,7 @@ body>#nfc{background:radial-gradient(ellipse 780px 440px at 76% 29%,rgba(255,255
 
 <nav>
   <a class="brand" href="/" aria-label="QD Systems home"><img src="assets/qd-logo.jpeg" alt="" width="38" height="38" decoding="async"><b>QD&nbsp;SYSTEMS</b></a>
-  <div class="nav-links"><a href="#demo" data-i18n="nav.demo">Live demo</a><a href="#work" data-i18n="nav.work">Work</a><a href="#build" data-i18n="nav.build">What we build</a><a href="#nfc" data-i18n="nav.nfc">NFC</a><a href="#contact" data-i18n="nav.contact">Contact</a></div>
+  <div class="nav-links"><a href="#work" data-i18n="nav.work">Work</a><a href="#build" data-i18n="nav.build">What we build</a><a href="#nfc" data-i18n="nav.nfc">NFC</a><a href="#demo" data-i18n="nav.demo">Live demo</a><a href="#contact" data-i18n="nav.contact">Contact</a></div>
   <div class="nav-actions">
     <div class="lang-switch" id="langSwitch">
       <button type="button" class="lang-btn" id="langBtn" aria-haspopup="listbox" aria-expanded="false" aria-label="Choose language">
@@ -927,10 +927,10 @@ body>#nfc{background:radial-gradient(ellipse 780px 440px at 76% 29%,rgba(255,255
       <button type="button" class="nav-mobile-close" id="navMobileClose" aria-label="Close menu">✕</button>
     </div>
     <div class="nav-mobile-links">
-      <a href="#demo" data-i18n="nav.demo">Live demo</a>
       <a href="#work" data-i18n="nav.work">Work</a>
       <a href="#build" data-i18n="nav.build">What we build</a>
       <a href="#nfc" data-i18n="nav.nfc">NFC</a>
+      <a href="#demo" data-i18n="nav.demo">Live demo</a>
       <a href="#contact" data-i18n="nav.contact">Contact</a>
     </div>
     <div class="nav-mobile-langs" id="navMobileLangs" role="group" aria-label="Language">
@@ -980,21 +980,6 @@ body>#nfc{background:radial-gradient(ellipse 780px 440px at 76% 29%,rgba(255,255
     <b>Websites</b><b class="fill">Booking systems</b><b>Order tracking</b><b class="fill">Automation</b><b>AI chat</b><b class="fill">Dashboards</b>
   </div>
 </div>
-
-<section id="demo">
-  <div class="wrap reveal" style="text-align:center">
-    <span class="tag" data-i18n="demo.tag">See it work</span><h2 class="h2" data-i18n="demo.h2">An assistant that books while you sleep.</h2>
-    <p class="lead" style="margin:0 auto 36px" data-i18n="demo.lead">Not a screenshot — a live example of the assistant handling a customer request.</p>
-  </div>
-  <div class="reveal">
-    <div class="demo">
-      <div class="demo-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="title" data-i18n="demo.bartitle">QD Booking Assistant</span><span class="live"><i></i><span data-i18n="demo.live">LIVE</span></span></div>
-      <div class="chat" id="chat"></div>
-      <div class="chips-bar" id="chips"></div>
-    </div>
-    <p class="lead" style="text-align:center;max-width:540px;margin:20px auto 0;font-size:13px" data-i18n-html="demo.footnote">Tap a question above to try it. On the live site, this same assistant — bilingual EN/AR, capturing every lead — answers <i>your</i> customers 24/7.</p>
-  </div>
-</section>
 
 <section id="work">
   <div class="wrap">
@@ -1065,6 +1050,21 @@ body>#nfc{background:radial-gradient(ellipse 780px 440px at 76% 29%,rgba(255,255
         <article class="nfc-card"><div class="nfc-card-heading"><span class="nfc-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="7" cy="18" r="2"/></svg></span><h4 data-i18n="nfc.custom.title">Custom actions</h4></div><p data-i18n="nfc.custom.copy">Connect the tag to whatever your business needs.</p></article>
       </div>
     </div>
+  </div>
+</section>
+
+<section id="demo">
+  <div class="wrap reveal" style="text-align:center">
+    <span class="tag" data-i18n="demo.tag">See it work</span><h2 class="h2" data-i18n="demo.h2">An assistant that books while you sleep.</h2>
+    <p class="lead" style="margin:0 auto 36px" data-i18n="demo.lead">Not a screenshot — a live example of the assistant handling a customer request.</p>
+  </div>
+  <div class="reveal">
+    <div class="demo">
+      <div class="demo-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="title" data-i18n="demo.bartitle">QD Booking Assistant</span><span class="live"><i></i><span data-i18n="demo.live">LIVE</span></span></div>
+      <div class="chat" id="chat"></div>
+      <div class="chips-bar" id="chips"></div>
+    </div>
+    <p class="lead" style="text-align:center;max-width:540px;margin:20px auto 0;font-size:13px" data-i18n-html="demo.footnote">Tap a question above to try it. On the live site, this same assistant — bilingual EN/AR, capturing every lead — answers <i>your</i> customers 24/7.</p>
   </div>
 </section>
 
@@ -1249,7 +1249,7 @@ const allNavLinks=[...document.querySelectorAll('.nav-links a, .nav-mobile-panel
 const navBySection={};
 allNavLinks.forEach(a=>{const id=a.getAttribute('href').slice(1);(navBySection[id]=navBySection[id]||[]).push(a);});
 const secObs=new IntersectionObserver(es=>es.forEach(en=>{if(!en.isIntersecting)return;allNavLinks.forEach(a=>a.classList.remove('active'));const links=navBySection[en.target.id];if(links)links.forEach(a=>a.classList.add('active'));}),{rootMargin:'-35% 0px -55% 0px'});
-['work','demo','build','nfc','contact'].forEach(id=>{const el=document.getElementById(id);if(el)secObs.observe(el);});
+['work','build','nfc','demo','contact'].forEach(id=>{const el=document.getElementById(id);if(el)secObs.observe(el);});
 const heroEl=document.querySelector('.qd-hero');
 if(heroEl&&navEl){const heroNavObs=new IntersectionObserver(es=>es.forEach(en=>navEl.classList.toggle('nav-in-hero',en.isIntersecting)),{threshold:0,rootMargin:'-72px 0px 0px 0px'});heroNavObs.observe(heroEl);}
 

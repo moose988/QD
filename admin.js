@@ -233,6 +233,8 @@ const state = {
   adminToast: '',
   activeTab: adminTabs.has(initialAdminTab) ? initialAdminTab : 'dashboard',
   dashboardSection: dashboardSections.has(initialDashboardSection) ? initialDashboardSection : 'overview',
+  pipelineAttentionOnly: false,
+  pipelineAnalyticsOpen: false,
   submissions: [],
   cards: [],
   demos: [],
@@ -1668,6 +1670,15 @@ const getFilteredSubmissions = () => {
 };
 
 const getSubmissionActivityMs = (submission) => submission.lastUpdatedAtMs || submission.createdAtMs || submission.submittedAtMs || 0;
+const openPipelineStatuses = new Set(['New', 'Reviewed', 'Contacted', 'Meeting', 'Quoted', 'Under Construction']);
+const getSubmissionAgeBucket = (submission, now = Date.now()) => {
+  if (!openPipelineStatuses.has(submission.status)) return null;
+  const activityMs = getSubmissionActivityMs(submission);
+  const ageDays = activityMs ? Math.floor((now - activityMs) / 86400000) : 0;
+  if (ageDays <= 2) return 'fresh';
+  if (ageDays <= 7) return 'warm';
+  return 'stale';
+};
 
 const scrollToPipelineSection = () => {
   requestAnimationFrame(() => {
@@ -1727,7 +1738,6 @@ const getAnalytics = (items) => {
     warm: 0,
     stale: 0
   };
-  const openStatuses = new Set(['New', 'Reviewed', 'Contacted', 'Meeting', 'Quoted', 'Under Construction']);
   const now = Date.now();
 
   items.forEach((submission) => {
@@ -1784,13 +1794,8 @@ const getAnalytics = (items) => {
       responseBuckets.notContacted += 1;
     }
 
-    if (openStatuses.has(submission.status)) {
-      const activityMs = getSubmissionActivityMs(submission);
-      const ageDays = activityMs ? Math.floor((now - activityMs) / 86400000) : 0;
-      if (ageDays <= 2) agingBuckets.fresh += 1;
-      else if (ageDays <= 7) agingBuckets.warm += 1;
-      else agingBuckets.stale += 1;
-    }
+    const ageBucket = getSubmissionAgeBucket(submission, now);
+    if (ageBucket) agingBuckets[ageBucket] += 1;
   });
 
   const averageBudget = budgetNumbers.length
@@ -1825,7 +1830,7 @@ const getAnalytics = (items) => {
     agingBuckets: [
       ['0-2 days', agingBuckets.fresh],
       ['3-7 days', agingBuckets.warm],
-      ['7+ days', agingBuckets.stale]
+      ['8+ days', agingBuckets.stale]
     ],
     missingInfo: [
       ['Missing email', missingEmailCount],
@@ -1837,19 +1842,24 @@ const getAnalytics = (items) => {
 };
 
 const renderBreakdown = (items, emptyText) => {
-  if (!items.length) {
-    return `<div class="qd-admin-empty"><strong>No data yet</strong>${escapeHtml(emptyText)}</div>`;
-  }
+  const populatedItems = items.filter(([, count]) => count > 0);
+  const emptyItems = items.filter(([, count]) => count === 0).map(([label]) => label);
 
   return `
-    <div class="qd-admin-list">
-      ${items.map(([label, count]) => `
+    ${populatedItems.length ? `<div class="qd-admin-list">
+      ${populatedItems.map(([label, count]) => `
         <div class="qd-admin-list-item">
           <span>${escapeHtml(label)}</span>
           <strong class="qd-admin-count-badge">${count}</strong>
         </div>
       `).join('')}
-    </div>
+    </div>` : `<p class="qd-pipeline-quiet">${escapeHtml(emptyText)}</p>`}
+    ${emptyItems.length ? `
+      <details class="qd-pipeline-empty-stages">
+        <summary>Empty aging buckets <span>${emptyItems.length}</span></summary>
+        <p>${emptyItems.map(escapeHtml).join(' · ')}</p>
+      </details>
+    ` : ''}
   `;
 };
 
@@ -1859,14 +1869,15 @@ const renderStageBars = (items) => {
     const entry = items.find(([label]) => label === status);
     return [status, entry ? entry[1] : 0];
   });
+  const activeStages = orderedStages.filter(([, count]) => count > 0);
+  const emptyStages = orderedStages.filter(([, count]) => count === 0).map(([label]) => label);
 
   return `
     <div class="qd-admin-stage-bars">
-      ${orderedStages.map(([label, count]) => {
+      ${activeStages.map(([label, count]) => {
         const percent = total ? Math.round((count / total) * 100) : 0;
-        const active = count > 0;
         return `
-          <div class="qd-admin-stage-row ${active ? 'is-active' : ''}">
+          <div class="qd-admin-stage-row is-active">
             <div class="qd-admin-stage-meta">
               <span>${escapeHtml(label)}</span>
               <div class="qd-admin-stage-stats">
@@ -1880,7 +1891,14 @@ const renderStageBars = (items) => {
           </div>
         `;
       }).join('')}
+      ${!activeStages.length ? '<p class="qd-pipeline-quiet">No stage data yet.</p>' : ''}
     </div>
+    ${emptyStages.length ? `
+      <details class="qd-pipeline-empty-stages">
+        <summary>Stages with no leads <span>${emptyStages.length}</span></summary>
+        <p>${emptyStages.map(escapeHtml).join(' · ')}</p>
+      </details>
+    ` : ''}
   `;
 };
 
@@ -1917,96 +1935,55 @@ const renderBudgetStats = (analytics) => {
   `;
 };
 
-const renderOverviewCards = (analytics) => {
-  const activeSnapshotStatus = state.filters.status === 'All' ? 'Total' : state.filters.status;
-  const cardMeta = [
-    ['Total', 'All', analytics.counts.total, 'All live submissions'],
-    ['New', 'New', analytics.counts.New || 0, 'Awaiting review'],
-    ['Reviewed', 'Reviewed', analytics.counts.Reviewed || 0, 'Assessed'],
-    ['Contacted', 'Contacted', analytics.counts.Contacted || 0, 'Initial outreach completed'],
-    ['Meeting', 'Meeting', analytics.counts.Meeting || 0, 'Intro or follow-up meeting planned'],
-    ['Quoted', 'Quoted', analytics.counts.Quoted || 0, 'Proposal stage'],
-    ['Accepted', 'Accepted', analytics.counts.Accepted || 0, 'Approved'],
-    ['Under Construction', 'Under Construction', analytics.counts['Under Construction'] || 0, 'Build in progress'],
-    ['Completed', 'Completed', analytics.counts.Completed || 0, 'Delivered and closed'],
-    ['Archived', 'Archived', analytics.counts.Archived || 0, 'Closed or parked']
-  ];
-
+const renderDashboardSectionNav = () => {
+  const archiveView = state.dashboardSection === 'archive';
   return `
-    <section class="qd-admin-section">
-      <div class="qd-admin-section-head">
-        <div>
-          <div class="qd-eyebrow qd-admin-kicker">Overview</div>
-          <h2>Pipeline snapshot</h2>
-        </div>
+    <header class="qd-pipeline-heading">
+      <div>
+        <div class="qd-eyebrow qd-admin-kicker">Admin workspace</div>
+        <h1>Pipeline</h1>
       </div>
-      <div class="qd-admin-kpi-grid">
-      ${cardMeta.map(([label, status, value, meta]) => {
-        const isActive = activeSnapshotStatus === label;
-        const ariaLabel = label === 'Total'
-          ? 'Show all submissions'
-          : `Filter pipeline to ${label} submissions`;
-
-        return `
-        <button
-          class="qd-admin-card qd-admin-kpi-card ${isActive ? 'is-active' : ''}"
-          type="button"
-          role="button"
-          data-action="set-pipeline-status"
-          data-status="${escapeHtml(status)}"
-          aria-label="${escapeHtml(ariaLabel)}"
-          aria-pressed="${isActive ? 'true' : 'false'}"
-        >
-          <span class="qd-admin-card-label">${escapeHtml(label)}</span>
-          <strong class="qd-admin-kpi-value">${value}</strong>
-          <p>${escapeHtml(meta)}</p>
-        </button>
-      `;
-      }).join('')}
+      <div class="qd-pipeline-view-switch" role="group" aria-label="Lead view">
+        <button class="${archiveView ? '' : 'is-active'}" type="button" data-action="set-dashboard-section" data-section="pipeline" aria-pressed="${archiveView ? 'false' : 'true'}">Active leads</button>
+        <button class="${archiveView ? 'is-active' : ''}" type="button" data-action="set-dashboard-section" data-section="archive" aria-pressed="${archiveView ? 'true' : 'false'}">Archived</button>
       </div>
-    </section>
+    </header>
   `;
 };
 
-const renderDashboardSectionNav = ({ activeCount, archivedCount, analytics }) => {
-  const totalCount = analytics.counts.total || 0;
-  const sectionMeta = [
-    ['overview', 'Overview', `${totalCount} total`, 'Snapshot, demand signals, and quick routing across the workspace.'],
-    ['pipeline', 'Live Pipeline', `${activeCount} active`, 'Review current submissions without the archive crowding the same page.'],
-    ['archive', 'Archive', `${archivedCount} closed`, 'Review parked or finished work in a dedicated lane.']
+const renderPipelineSummary = (analytics) => {
+  const archivedCount = analytics.counts.Archived || 0;
+  const activeCount = Math.max(0, analytics.counts.total - archivedCount);
+  const followUpCount = analytics.agingBuckets.find(([label]) => label === '8+ days')?.[1] || 0;
+  const selected = {
+    active: state.dashboardSection !== 'archive' && state.filters.status === 'All' && !state.pipelineAttentionOnly,
+    new: state.dashboardSection !== 'archive' && state.filters.status === 'New' && !state.pipelineAttentionOnly,
+    followup: state.dashboardSection !== 'archive' && state.pipelineAttentionOnly,
+    archived: state.dashboardSection === 'archive'
+  };
+  const metrics = [
+    ['active', 'Active', activeCount, 'Every record except Archived'],
+    ['new', 'New', analytics.counts.New || 0, 'Awaiting review'],
+    ['followup', 'Needs follow-up', followUpCount, 'Open · no movement for 8+ days'],
+    ['archived', 'Archived', archivedCount, 'Archived status records']
   ];
 
   return `
-    <section class="qd-admin-section qd-admin-section-nav-shell">
-      <article class="qd-admin-card qd-admin-dashboard-hero">
-        <div class="qd-admin-dashboard-hero-copy">
-          <h1>Admin workspace</h1>
-        </div>
-      </article>
-
-      <div class="qd-admin-dashboard-section-nav" role="tablist" aria-label="Dashboard sections">
-        ${sectionMeta.map(([key, label, countLabel, description]) => `
-          <button
-            class="qd-admin-card qd-admin-dashboard-section-card ${state.dashboardSection === key ? 'is-active' : ''}"
-            type="button"
-            role="tab"
-            aria-selected="${state.dashboardSection === key ? 'true' : 'false'}"
-            data-action="set-dashboard-section"
-            data-section="${escapeHtml(key)}"
-          >
-            <span class="qd-admin-card-label">${escapeHtml(label)}</span>
-            <strong>${escapeHtml(countLabel)}</strong>
-            <p>${escapeHtml(description)}</p>
-          </button>
-        `).join('')}
-      </div>
+    <section class="qd-pipeline-summary" aria-label="Pipeline summary">
+      ${metrics.map(([key, label, count, note]) => `
+        <button class="qd-pipeline-summary-item qd-pipeline-summary-${key} ${selected[key] ? 'is-active' : ''}" type="button" data-action="set-pipeline-summary" data-summary="${key}" aria-pressed="${selected[key] ? 'true' : 'false'}">
+          <span>${escapeHtml(label)}</span>
+          <strong>${count}</strong>
+          <small>${escapeHtml(note)}</small>
+        </button>
+      `).join('')}
     </section>
   `;
 };
 
 const renderBudgetProjectList = (items) => {
   if (!items.length) {
-    return `<div class="qd-admin-empty"><strong>No budgets yet</strong>Only submissions with usable numeric budgets will appear here.</div>`;
+    return '';
   }
 
   const sortedItems = state.budgetSortDirection === 'asc'
@@ -2044,65 +2021,59 @@ const renderBudgetProjectList = (items) => {
 };
 
 const renderAnalyticsCards = (analytics) => {
-  const topStage = analytics.stage[0]?.[0] || 'No signal yet';
-  const staleLeadCount = analytics.agingBuckets.find(([label]) => label === '7+ days')?.[1] || 0;
+  const topStage = analytics.stage.find(([, count]) => count > 0)?.[0] || 'No stage data';
+  const staleLeadCount = analytics.agingBuckets.find(([label]) => label === '8+ days')?.[1] || 0;
   const highestBudgetProject = analytics.budgetProjects[0];
   const responseTimeHeadline = analytics.averageResponseHours !== null ? `${analytics.averageResponseHours} hrs` : '—';
   const responseTimeSubtitle = analytics.averageResponseHours !== null
     ? 'Avg. time before first contact'
     : 'No contacts logged yet';
+  const responseBucketItems = [
+    ['< 1 hour', analytics.responseBuckets.underHour],
+    ['1–24 hours', analytics.responseBuckets.withinDay],
+    ['24+ hours', analytics.responseBuckets.overDay],
+    ['Not contacted', analytics.responseBuckets.notContacted]
+  ];
+  const populatedResponseBuckets = responseBucketItems.filter(([, count]) => count > 0);
+  const emptyResponseBuckets = responseBucketItems.filter(([, count]) => count === 0).map(([label]) => label);
   return `
-    <section class="qd-admin-section">
-      <div class="qd-admin-section-head">
-        <div>
-          <div class="qd-eyebrow qd-admin-kicker">Analytics</div>
-          <h2>Demand patterns</h2>
-        </div>
-      </div>
-      <div class="qd-admin-analytics-grid">
-      <article class="qd-admin-card qd-admin-analytics-card">
+    <details class="qd-pipeline-insights" data-pipeline-insights ${state.pipelineAnalyticsOpen ? 'open' : ''}>
+      <summary><span><span class="qd-eyebrow qd-admin-kicker">Analytics</span><strong>Demand patterns</strong></span><small>All submissions, including archived records</small></summary>
+      <div class="qd-admin-analytics-grid qd-pipeline-insights-grid">
+      <article class="qd-admin-card qd-admin-analytics-card qd-pipeline-analytics-card">
         <div class="qd-admin-card-label">Lead Stage</div>
         <h3>${escapeHtml(topStage)}</h3>
-        <p>Most common pipeline status across current submissions.</p>
+        <p>Most common stage across all submissions, including Archived.</p>
         ${renderStageBars(analytics.stage)}
       </article>
 
-      <article class="qd-admin-card qd-admin-analytics-card">
+      <article class="qd-admin-card qd-admin-analytics-card qd-pipeline-analytics-card">
         <div class="qd-admin-card-label">Project Budgets</div>
-        <h3>${escapeHtml(highestBudgetProject ? formatCurrencyNumber(highestBudgetProject.budget) : 'No budgets')}</h3>
-        <p>Submissions with captured budgets, sorted from highest to lowest. Click any project to open its details.</p>
+        ${highestBudgetProject ? `<h3>${escapeHtml(formatCurrencyNumber(highestBudgetProject.budget))}</h3>` : '<p class="qd-pipeline-quiet">No budgets yet. Numeric budget values will appear here when captured.</p>'}
+        ${highestBudgetProject ? '<p>Submissions with captured budgets, sorted from highest to lowest. Click a project to open its details.</p>' : ''}
         ${renderBudgetProjectList(analytics.budgetProjects)}
       </article>
 
-      <article class="qd-admin-card qd-admin-analytics-card">
+      <article class="qd-admin-card qd-admin-analytics-card qd-pipeline-analytics-card">
         <div class="qd-admin-card-label">Aging Leads</div>
-        <h3>${escapeHtml(staleLeadCount ? `${staleLeadCount} stale` : 'Fresh queue')}</h3>
-        <p>Open leads grouped by how long they have been sitting without recent movement.</p>
+        <h3>${escapeHtml(staleLeadCount ? `${staleLeadCount} stale` : analytics.counts.total ? 'No stale leads' : 'No leads yet')}</h3>
+        <p>Open leads grouped by time since their last recorded movement. “Needs follow-up” uses the 8+ day bucket.</p>
         ${renderBreakdown(analytics.agingBuckets, 'Lead aging will appear here once submissions arrive.')}
       </article>
 
-      <article class="qd-admin-card qd-admin-analytics-card">
+      <article class="qd-admin-card qd-admin-analytics-card qd-pipeline-analytics-card">
         <div class="qd-admin-card-label">Response Time</div>
         <h3>${escapeHtml(responseTimeHeadline)}</h3>
-        <p>${escapeHtml(responseTimeSubtitle)}</p>
-        <div class="qd-admin-list">
-          <div class="qd-admin-list-item">
-            <span>&lt; 1 hour</span>
-            <strong class="qd-admin-count-badge">${analytics.responseBuckets.underHour}</strong>
-          </div>
-          <div class="qd-admin-list-item">
-            <span>1–24 hours</span>
-            <strong class="qd-admin-count-badge qd-admin-count-badge-amber">${analytics.responseBuckets.withinDay}</strong>
-          </div>
-          <div class="qd-admin-list-item">
-            <span>24+ hours</span>
-            <strong class="qd-admin-count-badge qd-admin-count-badge-red">${analytics.responseBuckets.overDay}</strong>
-          </div>
-        </div>
-        <div class="qd-admin-subline">${analytics.responseBuckets.notContacted} not yet contacted</div>
+        <p>${escapeHtml(responseTimeSubtitle)} · all submissions, including archived.</p>
+        ${populatedResponseBuckets.length ? `<div class="qd-admin-list qd-pipeline-response-list">
+          ${populatedResponseBuckets.map(([label, count]) => `
+            <div class="qd-admin-list-item"><span>${escapeHtml(label)}</span><strong class="qd-admin-count-badge">${count}</strong></div>
+          `).join('')}
+        </div>` : '<p class="qd-pipeline-quiet">No response buckets have values yet.</p>'}
+        ${emptyResponseBuckets.length ? `<details class="qd-pipeline-empty-stages"><summary>Empty response buckets <span>${emptyResponseBuckets.length}</span></summary><p>${emptyResponseBuckets.map(escapeHtml).join(' · ')}</p></details>` : ''}
       </article>
       </div>
-    </section>
+    </details>
   `;
 };
 
@@ -2110,7 +2081,7 @@ const renderSubmissionRows = (items, emptyTitle = 'No submissions match this vie
   if (!items.length) {
     return `
       <tr>
-        <td colspan="6">
+      <td colspan="7">
           <div class="qd-admin-empty">
             <strong>${escapeHtml(emptyTitle)}</strong>
             ${escapeHtml(emptyText)}
@@ -2141,6 +2112,7 @@ const renderSubmissionRows = (items, emptyTitle = 'No submissions match this vie
         ${escapeHtml(formatDate(submission.createdAt || submission.submittedAt))}
         <div class="qd-admin-subline"><span class="qd-language-badge" data-language="${escapeHtml(submission.language || 'en')}">${escapeHtml(formatLanguage(submission.language || 'en'))}</span></div>
       </td>
+      <td><button class="qd-pipeline-next-action" type="button" data-action="open-submission" data-id="${escapeHtml(submission.id)}">View actions <span aria-hidden="true">→</span></button></td>
     </tr>
   `).join('');
 };
@@ -2186,6 +2158,7 @@ const renderSubmissionCards = (items, emptyTitle = 'No submissions match this vi
           <span>${escapeHtml(formatLanguage(submission.language || 'en'))}</span>
         </div>
       </div>
+      <span class="qd-pipeline-mobile-next-action">Open lead details &amp; actions <span aria-hidden="true">→</span></span>
     </button>
   `).join('');
 };
@@ -2206,35 +2179,59 @@ const renderPipelinePagination = (totalItems) => {
   `;
 };
 
-const renderPipelineWorkspace = (items, totalItems) => `
-  <article class="qd-admin-card qd-admin-table-card" id="qd-submission-pipeline">
+const renderPipelineFilters = () => `
+  <div class="qd-admin-table-toolbar qd-admin-table-toolbar-spacious qd-pipeline-filters">
+    <label class="qd-pipeline-filter qd-pipeline-search-filter">
+      <span>Search leads</span>
+      <input class="qd-admin-search" type="search" aria-label="Search leads by business, contact, meeting date, or service" placeholder="Business, email, phone, meeting date, service…" value="${escapeHtml(state.filters.search)}" data-field="search">
+    </label>
+    <label class="qd-pipeline-filter">
+      <span>Stage</span>
+      <select class="qd-admin-select" aria-label="Filter leads by stage" data-field="status">
+        ${['All', ...statusOptions].map((option) => `
+          <option value="${escapeHtml(option)}" ${state.filters.status === option ? 'selected' : ''}>${escapeHtml(option === 'All' ? 'All stages' : option)}</option>
+        `).join('')}
+      </select>
+    </label>
+    <label class="qd-pipeline-filter">
+      <span>Priority</span>
+      <select class="qd-admin-select" aria-label="Filter leads by priority" data-field="priority">
+        ${['All', ...priorityOptions].map((option) => `
+          <option value="${escapeHtml(option)}" ${state.filters.priority === option ? 'selected' : ''}>${escapeHtml(option === 'All' ? 'All priorities' : option)}</option>
+        `).join('')}
+      </select>
+    </label>
+  </div>
+`;
+
+const renderPipelineWorkspace = (items, totalItems, { archived = false } = {}) => {
+  const viewTitle = archived ? 'Archived leads' : state.pipelineAttentionOnly ? 'Needs follow-up' : state.filters.status === 'New' ? 'New leads' : 'Active leads';
+  const emptyTitle = state.pipelineAttentionOnly
+    ? 'No leads need follow-up'
+    : archived ? 'No archived leads' : 'No active leads';
+  const emptyText = state.pipelineAttentionOnly
+    ? 'No open leads currently meet the existing 8+ day aging rule.'
+    : archived ? 'Records with Archived status will appear here.' : 'New submissions will appear here.';
+  const hasNarrowFilters = Boolean(state.filters.search.trim())
+    || state.filters.priority !== 'All'
+    || (state.filters.status !== 'All' && state.filters.status !== 'Archived');
+  const actualEmptyTitle = !items.length && (hasNarrowFilters || archived && state.filters.search.trim())
+    ? 'No submissions match these filters'
+    : emptyTitle;
+  const actualEmptyText = actualEmptyTitle === 'No submissions match these filters'
+    ? 'Try a broader search or reset the stage and priority filters.'
+    : emptyText;
+  return `
+  <article class="qd-admin-card qd-admin-table-card qd-pipeline-list-card" id="${archived ? 'qd-archived-submissions' : 'qd-submission-pipeline'}">
     <div class="qd-admin-section-head">
       <div>
-        <div class="qd-eyebrow qd-admin-kicker">Submission Pipeline</div>
-        <h2>Live pipeline</h2>
-        <p>Only active work stays here. Open, filter, and move through current submissions without archive noise.</p>
+        <div class="qd-eyebrow qd-admin-kicker">${archived ? 'Archive' : 'Submission Pipeline'}</div>
+        <h2>${viewTitle}</h2>
+        <p>${archived ? 'Only records with Archived status appear here. Open one to review details or change its status to return it to the active queue.' : 'Open any lead to see its contact, quote, edit, archive, and status actions.'}</p>
       </div>
     </div>
 
-    <div class="qd-admin-table-toolbar qd-admin-table-toolbar-spacious">
-      <input
-        class="qd-admin-search"
-        type="search"
-        placeholder="Search business, email, phone, meeting date, service..."
-        value="${escapeHtml(state.filters.search)}"
-        data-field="search"
-      >
-      <select class="qd-admin-select" data-field="status">
-        ${['All', ...statusOptions].map((option) => `
-          <option value="${escapeHtml(option)}" ${state.filters.status === option ? 'selected' : ''}>${escapeHtml(option)}</option>
-        `).join('')}
-      </select>
-      <select class="qd-admin-select" data-field="priority">
-        ${['All', ...priorityOptions].map((option) => `
-          <option value="${escapeHtml(option)}" ${state.filters.priority === option ? 'selected' : ''}>${escapeHtml(option)}</option>
-        `).join('')}
-      </select>
-    </div>
+    ${renderPipelineFilters()}
 
     <div class="qd-admin-table-wrap">
       <table class="qd-admin-table">
@@ -2246,89 +2243,46 @@ const renderPipelineWorkspace = (items, totalItems) => `
             <th>Status</th>
             <th>Priority</th>
             <th>Date</th>
+            <th>Next action</th>
           </tr>
         </thead>
-        <tbody>${renderSubmissionRows(items)}</tbody>
+        <tbody>${renderSubmissionRows(items, actualEmptyTitle, actualEmptyText)}</tbody>
       </table>
     </div>
     <div class="qd-admin-mobile-list">
-      ${renderSubmissionCards(items)}
+      ${renderSubmissionCards(items, actualEmptyTitle, actualEmptyText)}
     </div>
     ${renderPipelinePagination(totalItems)}
   </article>
 `;
-
-const renderArchiveWorkspace = (items) => `
-  <article class="qd-admin-card qd-admin-table-card" id="qd-archived-submissions">
-    <div class="qd-admin-section-head">
-      <div>
-        <div class="qd-eyebrow qd-admin-kicker">Archive</div>
-        <h2>Archived submissions</h2>
-        <p>Closed, rejected, or parked projects live here so active operations stay focused.</p>
-      </div>
-    </div>
-
-    <div class="qd-admin-table-wrap">
-      <table class="qd-admin-table">
-        <thead>
-          <tr>
-            <th>Business</th>
-            <th>Contact</th>
-            <th>Meeting Date</th>
-            <th>Status</th>
-            <th>Priority</th>
-            <th>Date</th>
-          </tr>
-        </thead>
-        <tbody>${renderSubmissionRows(
-          items,
-          'No archived submissions in this view',
-          'Archived projects will appear here when they match the current search and filters.'
-        )}</tbody>
-      </table>
-    </div>
-    <div class="qd-admin-mobile-list">
-      ${renderSubmissionCards(
-        items,
-        'No archived submissions in this view',
-        'Archived projects will appear here when they match the current search and filters.'
-      )}
-    </div>
-  </article>
-`;
+};
 
 const renderDashboard = () => {
   const filteredSubmissions = getFilteredSubmissions();
   const activeSubmissions = filteredSubmissions.filter((submission) => submission.status !== 'Archived');
   const archivedSubmissions = filteredSubmissions.filter((submission) => submission.status === 'Archived');
+  const archivedView = state.dashboardSection === 'archive';
+  const visibleSubmissions = archivedView
+    ? archivedSubmissions
+    : state.pipelineAttentionOnly
+      ? activeSubmissions.filter((submission) => getSubmissionAgeBucket(submission) === 'stale')
+      : activeSubmissions;
   const pipelinePageSize = 5;
-  const pipelinePageCount = Math.ceil(activeSubmissions.length / pipelinePageSize);
+  const pipelinePageCount = Math.ceil(visibleSubmissions.length / pipelinePageSize);
   const activePipelinePage = Math.min(state.pipelinePage, Math.max(pipelinePageCount - 1, 0));
-  const paginatedActiveSubmissions = activeSubmissions.slice(
+  const paginatedSubmissions = visibleSubmissions.slice(
     activePipelinePage * pipelinePageSize,
     (activePipelinePage + 1) * pipelinePageSize
   );
   const analytics = getAnalytics(state.submissions);
-  const dashboardBody = state.dashboardSection === 'pipeline'
-    ? renderPipelineWorkspace(paginatedActiveSubmissions, activeSubmissions.length)
-    : state.dashboardSection === 'archive'
-      ? renderArchiveWorkspace(archivedSubmissions)
-      : `
-        <section class="qd-admin-dashboard-overview-stack">
-          ${renderOverviewCards(analytics)}
-          ${renderAnalyticsCards(analytics)}
-        </section>
-      `;
 
   return `
-    <section class="qd-admin-dashboard">
+    <section class="qd-admin-dashboard qd-admin-pipeline-root">
       ${state.dataError ? `<div class="qd-admin-alert" role="alert">${escapeHtml(state.dataError)}</div>` : ''}
-      ${renderDashboardSectionNav({
-        activeCount: activeSubmissions.length,
-        archivedCount: archivedSubmissions.length,
-        analytics
-      })}
-      ${dashboardBody}
+      ${renderDashboardSectionNav()}
+      ${renderPipelineSummary(analytics)}
+      ${renderPipelineWorkspace(paginatedSubmissions, visibleSubmissions.length, { archived: archivedView })}
+      ${renderAnalyticsCards(analytics)}
     </section>
   `;
 };
@@ -4524,7 +4478,9 @@ const renderDrawer = () => {
           ${renderQuoteButton(submission)}
           <button class="qd-btn qd-btn-sm qd-admin-action-secondary" type="button" data-action="${draft.editMode ? 'cancel-edit-submission' : 'edit-submission'}">${draft.editMode ? 'Cancel Edit' : 'Edit Submission'}</button>
           <button class="qd-btn qd-btn-sm qd-admin-action-secondary qd-admin-action-accent-outline" type="button" data-action="copy-summary">Copy Summary</button>
-          <button class="qd-btn qd-btn-sm qd-admin-action-danger" type="button" data-action="archive-submission">Archive</button>
+          ${submission.status === 'Archived'
+            ? '<span class="qd-admin-save-help qd-pipeline-restore-note">To restore this record, choose an active status and save changes.</span>'
+            : '<button class="qd-btn qd-btn-sm qd-admin-action-danger" type="button" data-action="archive-submission">Archive</button>'}
           <button class="qd-btn qd-btn-sm qd-admin-action-danger" type="button" data-action="delete-submission">Delete</button>
         </section>
 
@@ -4682,6 +4638,8 @@ const renderAccessDenied = () => renderAppShell(`
 `);
 
 const render = () => {
+  const openPipelineInsights = root.querySelector('[data-pipeline-insights]');
+  if (openPipelineInsights) state.pipelineAnalyticsOpen = openPipelineInsights.open;
   const nextModalOpen = Boolean(state.selectedId || state.cardEditor.open || state.demoEditor.open || state.invitationEditor.open || state.outreachEditor.open || state.quoteDrawer.open);
   if (nextModalOpen !== isModalOpen) {
     document.body.classList.toggle('qd-modal-open', nextModalOpen);
@@ -6684,7 +6642,21 @@ const handleDocumentClick = async (event) => {
 
   if (action === 'set-dashboard-section') {
     const nextSection = actionTarget.dataset.section || 'overview';
-    state.dashboardSection = dashboardSections.has(nextSection) ? nextSection : 'overview';
+    state.dashboardSection = nextSection === 'archive' ? 'archive' : 'pipeline';
+    state.pipelineAttentionOnly = false;
+    state.filters.status = state.dashboardSection === 'archive' ? 'Archived' : 'All';
+    state.pipelinePage = 0;
+    syncAdminTabUrl();
+    render();
+    return;
+  }
+
+  if (action === 'set-pipeline-summary') {
+    const summary = actionTarget.dataset.summary;
+    state.pipelineAttentionOnly = summary === 'followup';
+    state.dashboardSection = summary === 'archived' ? 'archive' : 'pipeline';
+    state.filters.status = summary === 'new' ? 'New' : summary === 'archived' ? 'Archived' : 'All';
+    state.pipelinePage = 0;
     syncAdminTabUrl();
     render();
     return;
@@ -6706,6 +6678,7 @@ const handleDocumentClick = async (event) => {
       ? 'All'
       : clickedStatus;
     state.dashboardSection = clickedStatus === 'Archived' ? 'archive' : 'pipeline';
+    state.pipelineAttentionOnly = false;
     syncAdminTabUrl();
     applyPipelineStatusFilter(nextStatus, { scroll: true });
     return;
@@ -7429,6 +7402,9 @@ const handleDocumentInput = (event) => {
   if (filterField) {
     if (filterField === 'status') {
       state.pipelinePage = 0;
+      state.pipelineAttentionOnly = false;
+      state.dashboardSection = event.target.value === 'Archived' ? 'archive' : 'pipeline';
+      syncAdminTabUrl();
       applyPipelineStatusFilter(event.target.value);
       return;
     }
