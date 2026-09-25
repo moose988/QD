@@ -156,7 +156,11 @@ const server = http.createServer(async (req, res) => {
   }
   if (!stat?.isFile()) {
     console.log(`[${new Date().toISOString()}] 404 ${pathname}`);
-    res.statusCode = 404; res.end('Not Found'); return;
+    const notFoundPage = path.join(ROOT, '404.html');
+    res.statusCode = 404;
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    fs.createReadStream(notFoundPage).pipe(res);
+    return;
   }
   const ext = path.extname(filePath).toLowerCase();
   res.setHeader('Content-Type', MIME[ext] || 'application/octet-stream');

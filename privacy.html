@@ -108,7 +108,7 @@ header{animation:pgFadeIn .7s cubic-bezier(.22,1,.36,1) .04s both}
 
 </div></main>
 
-<footer><div class="wrap">© 2026 QD Systems · <a href="/" style="color:var(--muted)">qdsystems.ae</a> · <a href="/terms" style="color:var(--muted)" class="en">Terms of Service</a><a href="/terms" style="color:var(--muted)" class="ar">شروط الخدمة</a></div></footer>
+<footer><div class="wrap">© <span data-current-year></span> QD Systems · <a href="/" style="color:var(--muted)">qdsystems.ae</a> · <a href="/terms" style="color:var(--muted)" class="en">Terms &amp; Conditions</a><a href="/terms" style="color:var(--muted)" class="ar">الشروط والأحكام</a></div></footer>
 
 <script>
 (function(){
@@ -122,6 +122,7 @@ header{animation:pgFadeIn .7s cubic-bezier(.22,1,.36,1) .04s both}
   try{if((localStorage.getItem('qd_lang')||'en')==='ar')set('ar');}catch(e){}
 })();
 </script>
+<script src="/assets/current-year.js" defer></script>
 <script>
 (function(){
   var prog=document.createElement('div');

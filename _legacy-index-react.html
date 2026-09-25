@@ -498,7 +498,7 @@ const Footer = () => {
         </div>
 
         <div className="qd-footer-bottom">
-          <div className="qd-footer-meta">{'\u00A9 2026 QD Systems'}</div>
+          <div className="qd-footer-meta">{'\u00A9 ' + new Date().getFullYear() + ' QD Systems'}</div>
           <div className="qd-footer-meta">Built in UAE</div>
           <div className="qd-footer-meta">V2.0</div>
         </div>
@@ -792,7 +792,7 @@ window.__QD.HomepageFooter = ({ language }) => {
           </div>
         </div>
         <div className="qd-footer-bottom">
-          <div className="qd-footer-meta" dir="ltr">{'\u00A9 2026 QD Systems'}</div>
+          <div className="qd-footer-meta" dir="ltr">{'\u00A9 ' + new Date().getFullYear() + ' QD Systems'}</div>
           <div className="qd-footer-meta">{footerCopy.builtIn}</div>
           <div className="qd-footer-meta">V2.0</div>
         </div>

@@ -29,6 +29,7 @@
     'nav.work':       { en: 'Work', ar: 'الأعمال', zh: '作品', ru: 'Работы' },
     'nav.demo':       { en: 'Live demo', ar: 'تجربة مباشرة', zh: '在线演示', ru: 'Демо' },
     'nav.build':      { en: 'What we build', ar: 'ماذا نبني', zh: '我们的服务', ru: 'Что мы создаём' },
+    'nav.nfc':        { en: 'NFC', ar: 'NFC', zh: 'NFC', ru: 'NFC' },
     'nav.contact':    { en: 'Contact', ar: 'تواصل', zh: '联系我们', ru: 'Контакты' },
     'nav.navigate':   { en: 'Navigate', ar: 'التنقل', zh: '导航', ru: 'Меню' },
 
@@ -259,6 +260,13 @@
                         ar: 'مكالمة مجانية واحدة مدتها ١٥ دقيقة. تخرج منها بخطة واضحة وجدول زمني وسعر — ومعظم العروض تصدر في نفس اليوم.',
                         zh: '一次免费的 15 分钟通话。你将获得清晰的方案、时间表和价格——多数报价当天即可发出。',
                         ru: 'Один бесплатный 15-минутный звонок. Вы уходите с понятным планом, сроками и ценой — большинство смет отправляем в тот же день.' },
+    'contact.call.title':   { en: 'What happens on the call', ar: 'ماذا سيحدث في المكالمة', zh: '通话时会聊些什么', ru: 'О чём поговорим на звонке' },
+    'contact.call.step1':   { en: 'Tell us what you need', ar: 'أخبرنا بما تحتاج إليه', zh: '告诉我们你的需求', ru: 'Расскажите, что вам нужно' },
+    'contact.call.detail1': { en: 'Share the problem you want to solve.', ar: 'شاركنا المشكلة التي تريد حلها.', zh: '说说你想解决的问题。', ru: 'Расскажите, какую задачу хотите решить.' },
+    'contact.call.step2':   { en: 'Discuss a plan and timeline', ar: 'ناقش الخطة والجدول الزمني', zh: '讨论方案和时间安排', ru: 'Обсудим план и сроки' },
+    'contact.call.detail2': { en: 'Leave with a clear plan and agreed timing.', ar: 'تخرج بخطة واضحة وجدول زمني متفق عليه.', zh: '明确方案并商定时间安排。', ru: 'Сформулируем понятный план и согласуем сроки.' },
+    'contact.call.step3':   { en: 'Understand the proposed price', ar: 'تعرّف على السعر المقترح', zh: '了解拟议价格', ru: 'Узнайте предлагаемую стоимость' },
+    'contact.call.detail3': { en: 'Review the price for the agreed scope.', ar: 'راجع السعر المقترح للنطاق المتفق عليه.', zh: '了解约定范围对应的报价。', ru: 'Обсудим стоимость согласованного объёма работ.' },
     'contact.step1':  { en: 'Book', ar: 'احجز', zh: '预约', ru: 'Запись' },
     'contact.step2':  { en: '15-min call', ar: 'مكالمة ١٥ دقيقة', zh: '15 分钟通话', ru: '15-мин звонок' },
     'contact.step3':  { en: 'Your plan & fixed price', ar: 'خطتك وسعر ثابت', zh: '你的方案与固定价格', ru: 'Ваш план и фикс-цена' },
@@ -281,9 +289,14 @@
     'contact.reply':  { en: 'Reply time', ar: 'وقت الرد', zh: '回复时间', ru: 'Время ответа' },
 
     /* footer */
-    'footer.copy':    { en: '© 2026 QD Systems · Built in the UAE', ar: '© ٢٠٢٦ QD Systems · صُنع في الإمارات', zh: '© 2026 QD Systems · 在阿联酋打造', ru: '© 2026 QD Systems · Сделано в ОАЭ' },
+    'footer.copy':    { en: '© {year} QD Systems · Built in the UAE', ar: '© {year} QD Systems · صُنع في الإمارات', zh: '© {year} QD Systems · 在阿联酋打造', ru: '© {year} QD Systems · Сделано в ОАЭ' },
+    '404.eyebrow':   { en: 'ERROR 404', ar: 'خطأ 404', zh: '错误 404', ru: 'ОШИБКА 404' },
+    '404.title':     { en: 'This page took a wrong turn.', ar: 'يبدو أن هذه الصفحة ضلّت طريقها.', zh: '这个页面走错了方向。', ru: 'Эта страница свернула не туда.' },
+    '404.copy':      { en: 'The address may be incorrect, or the page may have moved. Let’s get you back on track.', ar: 'قد يكون العنوان غير صحيح أو ربما انتقلت الصفحة. لنعد بك إلى الصفحة الرئيسية.', zh: '网址可能有误，或者页面已移动。让我们带你回到首页。', ru: 'Возможно, адрес неверен или страница перемещена. Вернёмся на главную.' },
+    '404.home':      { en: 'Back to homepage', ar: 'العودة إلى الصفحة الرئيسية', zh: '返回首页', ru: 'На главную' },
+    '404.homeAria':  { en: 'Go to the QD Systems homepage', ar: 'الانتقال إلى الصفحة الرئيسية لكيودي سيستمز', zh: '前往 QD Systems 首页', ru: 'Перейти на главную страницу QD Systems' },
     'footer.privacy': { en: 'Privacy Policy', ar: 'سياسة الخصوصية', zh: '隐私政策', ru: 'Конфиденциальность' },
-    'footer.terms':   { en: 'Terms of Service', ar: 'شروط الخدمة', zh: '服务条款', ru: 'Условия' },
+    'footer.terms':   { en: 'Terms & Conditions', ar: 'الشروط والأحكام', zh: '条款与条件', ru: 'Условия использования' },
 
     /* booking modal */
     'book.title':     { en: 'Book your free call', ar: 'احجز مكالمتك المجانية', zh: '预约你的免费通话', ru: 'Запишитесь на бесплатный звонок' },
@@ -298,7 +311,8 @@
     'book.purpose':   { en: 'What\'s it about?', ar: 'ما الموضوع؟', zh: '关于什么？', ru: 'О чём речь?' },
     'book.opt1':      { en: 'A new website', ar: 'موقع جديد', zh: '一个新网站', ru: 'Новый сайт' },
     'book.opt2':      { en: 'A full system (booking / automation / dashboard)', ar: 'نظام كامل (حجز / أتمتة / لوحة تحكم)', zh: '完整系统（预订 / 自动化 / 看板）', ru: 'Полная система (бронь / автоматизация / дашборд)' },
-    'book.opt3':      { en: 'Not sure yet — I\'d like advice', ar: 'لست متأكداً بعد — أريد استشارة', zh: '还不确定——想听听建议', ru: 'Пока не уверен — нужен совет' },
+    'book.opt3':      { en: 'NFC solutions', ar: 'حلول NFC', zh: 'NFC 解决方案', ru: 'Решения NFC' },
+    'book.opt4':      { en: 'Not sure yet — I\'d like advice', ar: 'لست متأكداً بعد — أريد استشارة', zh: '还不确定——想听听建议', ru: 'Пока не уверен — нужен совет' },
     'book.date':      { en: 'Preferred date', ar: 'التاريخ المفضل', zh: '期望日期', ru: 'Желаемая дата' },
     'book.time':      { en: 'Preferred time', ar: 'الوقت المفضل', zh: '期望时间', ru: 'Желаемое время' },
     'book.submit':    { en: 'Confirm — send my Meet link →', ar: 'تأكيد — أرسل لي رابط الاجتماع ←', zh: '确认——发送我的会议链接 →', ru: 'Подтвердить — прислать ссылку →' },
@@ -383,7 +397,7 @@
   // Public string getter for inline scripts (e.g. booking confirmation).
   window.qdT = function (key) {
     var entry = DICT[key];
-    return entry ? (entry[currentLang()] || entry.en) : '';
+    return entry ? (entry[currentLang()] || entry.en).replace(/\{year\}/g, String(new Date().getFullYear())) : '';
   };
 
   function applyTranslations(lang) {
@@ -391,14 +405,14 @@
       var key = el.getAttribute('data-i18n');
       var e = DICT[key];
       if (!e) return;
-      var val = e[lang] || e.en;
+      var val = (e[lang] || e.en).replace(/\{year\}/g, String(new Date().getFullYear()));
       if (val != null && el.textContent !== val) el.textContent = val;
     });
     document.querySelectorAll('[data-i18n-html]').forEach(function (el) {
       var key = el.getAttribute('data-i18n-html');
       var e = DICT[key];
       if (!e) return;
-      var val = e[lang] || e.en;
+      var val = (e[lang] || e.en).replace(/\{year\}/g, String(new Date().getFullYear()));
       var stamp = lang + ':' + key;
       if (val != null && el.getAttribute('data-i18n-applied') !== stamp) {
         el.innerHTML = val;
@@ -411,6 +425,13 @@
       if (!e) return;
       var val = e[lang] || e.en;
       if (val != null && el.getAttribute('placeholder') !== val) el.setAttribute('placeholder', val);
+    });
+    document.querySelectorAll('[data-i18n-aria]').forEach(function (el) {
+      var key = el.getAttribute('data-i18n-aria');
+      var e = DICT[key];
+      if (!e) return;
+      var val = (e[lang] || e.en).replace(/\{year\}/g, String(new Date().getFullYear()));
+      if (val != null && el.getAttribute('aria-label') !== val) el.setAttribute('aria-label', val);
     });
   }
 
@@ -455,7 +476,13 @@
     en: 'QD Systems · Websites & systems for UAE businesses',
     ar: 'QD Systems · مواقع وأنظمة لأعمال الإمارات',
     zh: 'QD Systems · 为阿联酋企业打造的网站与系统',
-    ru: 'QD Systems · Сайты и системы для бизнеса в ОАЭ'
+    ru: 'QD Systems · Сайты и системы для бизнеса в ОАЭ',
+    '404': {
+      en: 'Page not found · QD Systems',
+      ar: 'الصفحة غير موجودة · QD Systems',
+      zh: '页面未找到 · QD Systems',
+      ru: 'Страница не найдена · QD Systems'
+    }
   };
 
   function setLang(lang, persist) {
@@ -464,7 +491,9 @@
     var d = document.documentElement;
     d.lang = lang;
     d.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
-    if (PAGE_TITLES[lang]) document.title = PAGE_TITLES[lang];
+    var pageTitles = PAGE_TITLES[document.documentElement.getAttribute('data-page')];
+    if (pageTitles && pageTitles[lang]) document.title = pageTitles[lang];
+    else if (PAGE_TITLES[lang]) document.title = PAGE_TITLES[lang];
     if (persist) { try { localStorage.setItem(STORAGE_KEY, lang); } catch (e) {} }
     applyTranslations(lang);
     restaggerWords();
