@@ -116,10 +116,10 @@ body.ready .word{opacity:1;transform:none;filter:none;transition:opacity .7s var
 .statement .muted{color:var(--dim);-webkit-text-fill-color:var(--dim)}
 
 /* 3D canvas — wider bounds extend left (no clip); view offset keeps object on the right */
-#gl{position:absolute;top:0;left:34vw;right:auto;width:66vw;height:100%;z-index:2;pointer-events:none}
+#gl{position:absolute;top:0;left:34vw;right:auto;width:66vw;height:100%;z-index:2;pointer-events:none;opacity:.44;filter:brightness(.54) saturate(.78) contrast(1.1)}
 @media(max-width:1280px){#gl{left:52vw;width:48vw}}
 @media(max-width:1100px){#gl{left:46vw;width:54vw;opacity:.85}.qd-hero::before{background:linear-gradient(90deg,rgba(7,7,8,.95) 36%,rgba(7,7,8,.6) 60%,transparent 82%)}}
-@media(max-width:980px){#gl{left:0;right:auto;width:100%;max-width:100%;height:50%;top:46px;opacity:.3}.qd-hero::before{background:linear-gradient(180deg,rgba(7,7,8,.5),rgba(7,7,8,.92) 46%)}.qd-hero .wrap{grid-template-columns:1fr;padding:0 28px;max-width:720px}}
+@media(max-width:980px){#gl{left:0;right:auto;width:100%;max-width:100%;height:50%;top:46px;opacity:.3;filter:brightness(1) saturate(.82) contrast(1.04)}.qd-hero::before{background:linear-gradient(180deg,rgba(7,7,8,.5),rgba(7,7,8,.92) 46%)}.qd-hero .wrap{grid-template-columns:1fr;padding:0 28px;max-width:720px}}
 @media(max-width:768px){
   #gl{
     display:block;
@@ -178,6 +178,8 @@ body>nav{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items
 .nav-links{display:flex;gap:30px;font-family:"Space Grotesk",sans-serif;font-size:14px;font-weight:700}
 .nav-links a{color:#ececf0;transition:color .25s}.nav-links a:hover,.nav-links a.active{color:#fff}
 .nav-actions{display:flex;align-items:center;gap:10px;flex-shrink:0}
+body>nav .lang-btn,body>nav .nav-cta-btn{box-sizing:border-box;height:44px;min-height:44px;align-items:center;justify-content:center}
+body>nav .nav-cta-btn{padding:0 22px;line-height:1;white-space:nowrap}
 .nav-menu-btn{display:none;width:44px;height:44px;padding:0;border:1px solid rgba(255,255,255,.14);border-radius:12px;background:rgba(255,255,255,.06);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:var(--fg);cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px;flex-shrink:0;-webkit-tap-highlight-color:transparent;transition:background .25s,border-color .25s,box-shadow .25s,transform .2s var(--ease)}
 .nav-menu-btn:hover,.nav-menu-btn:focus-visible{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.22);outline:none}
 .nav-menu-btn[aria-expanded="true"]{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.28);box-shadow:0 0 0 1px rgba(255,255,255,.08),0 8px 24px rgba(0,0,0,.35)}
@@ -385,11 +387,8 @@ body>section{position:relative;z-index:5;padding:100px 0}
 .qd-cta-eyebrow span{letter-spacing:.22em;text-transform:uppercase;color:var(--live);-webkit-text-stroke:0 transparent;text-shadow:none;background:transparent;border:0;outline:0;box-shadow:none;padding:0;border-radius:0}
 .qd-cta-h2{font-size:clamp(2.2rem,3.8vw,3.8rem);font-weight:700;line-height:1.06;letter-spacing:-.03em;margin-bottom:22px;background:linear-gradient(120deg,#fff 0%,#f0f0f4 38%,#c8c8d0 64%,#fff 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;background-size:220% 100%;animation:ctaH2Sheen 8s ease-in-out 1s infinite}
 @keyframes ctaH2Sheen{0%,100%{background-position:180% 0}55%{background-position:-60% 0}}
-.qd-cta-sub{color:var(--muted);font-size:1.05rem;line-height:1.62;margin-bottom:32px;max-width:440px}
 .qd-cta-btns{display:flex;flex-direction:column;align-items:flex-start;gap:12px}
 .qd-cta-btns .btn-silver{padding:16px 34px;font-size:15.5px}
-.qd-cta-trust{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
-.qd-cta-trust i{width:6px;height:6px;border-radius:50%;background:var(--live);box-shadow:0 0 8px var(--live);flex-shrink:0}
 .qd-cta-wa{font-size:13.5px;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:2px;transition:color .25s,border-color .25s}
 .qd-cta-wa:hover{color:var(--fg);border-color:rgba(255,255,255,.3)}
 .qd-cta-panel{min-width:0;padding-block:4px;padding-inline-start:26px;border-inline-start:1px solid var(--line);position:relative}
@@ -402,8 +401,9 @@ body>section{position:relative;z-index:5;padding:100px 0}
 .qd-cta-step-body{min-width:0;padding-top:1px}
 .qd-cta-step-body strong{display:block;font-size:14px;font-weight:600;color:var(--fg);line-height:1.4;margin-bottom:2px}
 .qd-cta-step-body small{display:block;font-size:12.5px;color:var(--dim);line-height:1.5}
-.qd-cta-guarantees{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:34px}
-#contact .guard{justify-content:flex-start;min-width:0;min-height:46px;padding:10px 14px;line-height:1.4}
+.qd-cta-guarantees{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:1fr;align-items:stretch;gap:10px;margin-top:34px}
+#contact .guard{box-sizing:border-box;width:100%;justify-content:flex-start;min-width:0;min-height:56px;padding:12px 16px;line-height:1.4}
+#contact .guard>span:last-child{min-width:0}
 @media(max-width:920px){
   .qd-cta{grid-template-columns:1fr;gap:30px;align-items:start}
   .qd-cta-left,.qd-cta-right{max-width:720px;width:100%}
@@ -412,19 +412,17 @@ body>section{position:relative;z-index:5;padding:100px 0}
   #contact .qd-cta-guarantees .guard:last-child{grid-column:1/-1;justify-self:start}
   .qd-cta-btns{width:100%}
   .qd-cta-btns .btn-silver{align-self:stretch;justify-content:center}
-  .qd-cta-sub{max-width:100%}
 }
 @media(max-width:560px){
-  #contact{padding:58px 0 56px}
+  #contact{padding:58px 0 calc(96px + env(safe-area-inset-bottom,0px))}
   .qd-cta{gap:28px}
   .qd-cta-eyebrow{margin-bottom:16px}
   .qd-cta-h2{font-size:clamp(2rem,9vw,2.65rem);margin-bottom:16px;line-height:1.08}
-  .qd-cta-sub{font-size:1rem;line-height:1.58;margin-bottom:22px}
   .qd-cta-btns{gap:13px}
   .qd-cta-btns .btn-silver{min-height:50px;padding:14px 20px}
   .qd-cta-guarantees{grid-template-columns:1fr;gap:8px;margin-top:26px}
   #contact .qd-cta-guarantees .guard:last-child{grid-column:auto;justify-self:stretch}
-  #contact .guard{min-height:42px;padding:9px 13px}
+  #contact .guard{min-height:48px;padding:10px 14px}
   .qd-cta-panel{padding-inline-start:16px}
   .qd-cta-panel-label{font-size:17px;margin-bottom:10px}
   .qd-cta-step{gap:12px;padding:13px 0}
@@ -1124,11 +1122,9 @@ body>#nfc{background:radial-gradient(ellipse 780px 440px at 76% 29%,rgba(255,255
       <div class="qd-cta-left">
         <div class="qd-cta-eyebrow"><i></i><span data-i18n="contact.eyebrow">QD SYSTEMS · START A BUILD</span></div>
         <h2 class="qd-cta-h2" data-i18n-html="contact.h2">Tell us the problem.<br>We'll build the system.</h2>
-        <p class="qd-cta-sub" data-i18n="contact.sub">One free 15-minute call. You leave with a clear plan, timeline, and price — most quotes go out the same day.</p>
         <div class="qd-cta-btns">
           <a class="btn btn-silver" href="#" data-book data-magnetic data-i18n="cta.book">Book a Free Call →</a>
           <a id="contactCta" class="qd-cta-wa" href="https://wa.me/971505349907?text=Hi%20QD%20%E2%80%94%20I%27d%20like%20to%20discuss%20a%20project%20with%20you." target="_blank" rel="noopener noreferrer" data-i18n="contact.wa">Prefer WhatsApp? Message us →</a>
-          <div class="qd-cta-trust"><i></i> <span data-i18n="contact.note">Free · no obligation · we reply within the hour</span></div>
         </div>
       </div>
       <aside class="qd-cta-right qd-cta-panel" aria-labelledby="contact-call-title">
@@ -1575,13 +1571,13 @@ if(bForm)bForm.addEventListener('submit',async e=>{e.preventDefault();
   renderer.setPixelRatio(Math.min(devicePixelRatio,mobileGl?1.5:2));
   const scene=new THREE.Scene();
   const camera=new THREE.PerspectiveCamera(45,1,0.1,100); camera.position.z=mobileGl?5.2:4.6;
-  const mat=new THREE.MeshStandardMaterial({color:0xe2e5ec,metalness:0.5,roughness:0.24});
+  const mat=new THREE.MeshStandardMaterial({color:0x9ca3ad,metalness:0.48,roughness:0.46});
   const knot=new THREE.Mesh(new THREE.TorusKnotGeometry(1.05,0.34,mobileGl?72:220,mobileGl?10:32,2,3),mat); scene.add(knot);
-  scene.add(new THREE.AmbientLight(0xffffff,mobileGl?0.75:0.95));
-  const d1=new THREE.DirectionalLight(0xffffff,mobileGl?2.6:3.0); d1.position.set(4,5,5); scene.add(d1);
-  const d2=new THREE.DirectionalLight(0xd8e4ff,mobileGl?1.6:2.5); d2.position.set(-4,3,5); scene.add(d2);
-  const p1=new THREE.PointLight(0xffffff,mobileGl?0.8:1.2); p1.position.set(1,-2,4); scene.add(p1);
-  if(!mobileGl){const d3=new THREE.DirectionalLight(0xffffff,1.4); d3.position.set(0,1,6); scene.add(d3);}
+  scene.add(new THREE.AmbientLight(0xffffff,mobileGl?0.32:0.34));
+  const d1=new THREE.DirectionalLight(0xffffff,mobileGl?1.8:2.0); d1.position.set(4,5,5); scene.add(d1);
+  const d2=new THREE.DirectionalLight(0xcbd5e4,mobileGl?0.8:0.9); d2.position.set(-4,3,5); scene.add(d2);
+  const p1=new THREE.PointLight(0xffffff,mobileGl?0.25:0.3); p1.position.set(1,-2,4); scene.add(p1);
+  if(!mobileGl){const d3=new THREE.DirectionalLight(0xffffff,0.35); d3.position.set(0,1,6); scene.add(d3);}
   function glLayout(){
     if(innerWidth<981) return null;
     if(innerWidth<=1100) return{oldWidth:.50};
@@ -1606,6 +1602,7 @@ if(bForm)bForm.addEventListener('submit',async e=>{e.preventDefault();
   }
   resize(); addEventListener('resize',qdOnResize(resize),{passive:true});
   addEventListener('qd:langchange',()=>setTimeout(resize,60));
+  const glBaseOpacity=innerWidth<769?0.62:innerWidth<=980?0.3:innerWidth<=1100?0.85:0.44;
   let t=0,tx=0,ty=0,sp=0,glVisible=!document.hidden;
   document.addEventListener('visibilitychange',()=>{glVisible=!document.hidden;},{passive:true});
   (function loop(){ requestAnimationFrame(loop); if(!heroFxActive||!glVisible) return; t+=0.016;
@@ -1617,7 +1614,7 @@ if(bForm)bForm.addEventListener('submit',async e=>{e.preventDefault();
     knot.position.y=Math.sin(t*0.8)*0.15 - sp*1.1;      /* dives down… */
     knot.position.x=sp*(document.documentElement.getAttribute('dir')==='rtl'?-0.9:0.9); /* …and sweeps aside */
     const k=1-sp*0.35; knot.scale.set(k,k,k);            /* shrinking as it goes */
-    canvas.style.opacity=String(1-sp*0.85);              /* hands the stage to the content */
+    canvas.style.opacity=String(glBaseOpacity*(1-sp*0.85)); /* hands the stage to the content */
     tx+=(((typeof mx!=="undefined"?mx:0.5)-0.5)*0.6 - tx)*0.05;
     ty+=(((typeof my!=="undefined"?my:0.5)-0.5)*0.5 - ty)*0.05;
     camera.position.x=tx*1.2; camera.position.y=-ty*1.0; camera.lookAt(0,0,0);
