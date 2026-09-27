@@ -1,0 +1,29 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /chat-admin
+Disallow: /api/
+Disallow: /q/
+Disallow: /card/
+Disallow: /invite/
+Disallow: /demo/
+Disallow: /demos/
+Disallow: /contact
+Disallow: /docs/
+Disallow: /_legacy-index-react
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /admin
+Disallow: /chat-admin
+Disallow: /api/
+Disallow: /q/
+Disallow: /card/
+Disallow: /invite/
+Disallow: /demo/
+Disallow: /demos/
+Disallow: /contact
+Disallow: /docs/
+Disallow: /_legacy-index-react
+
+Sitemap: https://www.qdsystems.ae/sitemap.xml
