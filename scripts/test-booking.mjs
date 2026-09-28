@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { buildBookingConfirmation, createBookingHandler } from '../api/book.js';
+import { buildBookingConfirmation, buildBookingNotification, createBookingHandler } from '../api/book.js';
 
 function response() {
   return {
@@ -38,21 +38,27 @@ const handler = createBookingHandler({
 const success = response();
 await handler(request(), success);
 assert.equal(success.statusCode, 200);
-assert.deepEqual(success.body, { ok: true, emailAccepted: true });
-assert.equal(acceptedSenderCalls.length, 1);
-assert.equal(acceptedSenderCalls[0].to, 'test@example.com');
-assert.equal(acceptedSenderCalls[0].subject, 'We received your call request — QD Systems');
+assert.deepEqual(success.body, { ok: true, emailAccepted: true, requestEmailAccepted: true });
+assert.equal(acceptedSenderCalls.length, 2);
+assert.equal(acceptedSenderCalls[0].to, 'contact@qdsystems.ae');
+assert.equal(acceptedSenderCalls[0].subject, 'New free call request — Test Customer');
+assert.match(acceptedSenderCalls[0].text, /Phone: \+971 50 123 4567/);
+assert.match(acceptedSenderCalls[0].text, /Email: test@example.com/);
 assert.match(acceptedSenderCalls[0].text, /Preferred date: 10 February 2027/);
-assert.match(acceptedSenderCalls[0].text, /Preferred time: 03:00 AM \(Asia\/Dubai\)/);
 assert.match(acceptedSenderCalls[0].text, /preferences only, not a confirmed appointment/i);
-assert.doesNotMatch(acceptedSenderCalls[0].text + acceptedSenderCalls[0].html, /Google Meet|meet\.google/i);
+assert.equal(acceptedSenderCalls[1].to, 'test@example.com');
+assert.equal(acceptedSenderCalls[1].subject, 'We received your call request — QD Systems');
+assert.match(acceptedSenderCalls[1].text, /Preferred date: 10 February 2027/);
+assert.match(acceptedSenderCalls[1].text, /Preferred time: 03:00 AM \(Asia\/Dubai\)/);
+assert.match(acceptedSenderCalls[1].text, /preferences only, not a confirmed appointment/i);
+assert.doesNotMatch(acceptedSenderCalls[1].text + acceptedSenderCalls[1].html, /Google Meet|meet\.google/i);
 
 // Repeated submission with the same key returns the confirmed result without
 // sending a second message.
 const duplicate = response();
 await handler(request(), duplicate);
 assert.equal(duplicate.statusCode, 200);
-assert.equal(acceptedSenderCalls.length, 1);
+assert.equal(acceptedSenderCalls.length, 2);
 
 for (const invalid of [
   { name: '' },
@@ -66,7 +72,7 @@ for (const invalid of [
   await handler(request({ ...invalid, idempotencyKey: `invalid-key-${Math.random().toString(36).slice(2)}` }), bad);
   assert.equal(bad.statusCode, 400, JSON.stringify(invalid));
 }
-assert.equal(acceptedSenderCalls.length, 1);
+assert.equal(acceptedSenderCalls.length, 2);
 
 // Don't report success if SMTP resolves without accepting the customer.
 const rejectedHandler = createBookingHandler({ sendMail: async () => ({ accepted: [], rejected: ['test@example.com'] }) });
@@ -75,6 +81,29 @@ await rejectedHandler(request({ idempotencyKey: 'provider-reject-001' }), reject
 assert.equal(rejected.statusCode, 502);
 assert.equal(rejected.body.code, 'EMAIL_RECIPIENT_REJECTED');
 assert.equal(rejected.body.ok, undefined);
+
+// If the internal notification succeeds but customer mail fails, a retry sends
+// only the customer confirmation and does not duplicate the QD request email.
+let customerShouldFail = true;
+const partialCalls = [];
+const partialHandler = createBookingHandler({
+  sendMail: async (message) => {
+    partialCalls.push(message);
+    if (message.to === 'test@example.com' && customerShouldFail) return { accepted: [], rejected: [message.to] };
+    return { accepted: [message.to] };
+  },
+});
+const partialFailure = response();
+await partialHandler(request({ idempotencyKey: 'partial-retry-001' }), partialFailure);
+assert.equal(partialFailure.statusCode, 502);
+assert.equal(partialCalls.length, 2);
+assert.equal(partialCalls[0].to, 'contact@qdsystems.ae');
+customerShouldFail = false;
+const partialRetry = response();
+await partialHandler(request({ idempotencyKey: 'partial-retry-001' }), partialRetry);
+assert.equal(partialRetry.statusCode, 200);
+assert.equal(partialCalls.length, 3);
+assert.equal(partialCalls[2].to, 'test@example.com');
 
 // A missing Zoho credential set fails safely without attempting delivery.
 const smtpNames = ['ZOHO_SMTP_USER', 'ZOHO_SMTP_PASS'];
@@ -138,5 +167,11 @@ const html = buildBookingConfirmation({
 }).html;
 assert.doesNotMatch(html, /<script>/);
 assert.match(html, /&lt;script&gt;/);
+const notificationHtml = buildBookingNotification({
+  name: '<Customer>', phone: '12345678', email: 'test@example.com', purpose: '<script>',
+  preferredDate: '2027-02-10', preferredTime: '15:30',
+}).html;
+assert.doesNotMatch(notificationHtml, /<script>/);
+assert.match(notificationHtml, /&lt;script&gt;/);
 
-console.log('Booking checks passed: validation, Dubai preference formatting, accepted-only success, failure retry, safe errors, and duplicate suppression.');
+console.log('Booking checks passed: validation, Dubai formatting, internal and customer email acceptance, safe retries, escaping, and duplicate suppression.');

@@ -1,4 +1,4 @@
-// POST /api/book — validate a call request and email the customer a receipt.
+// POST /api/book — validate a call request, notify QD Systems, and email the customer a receipt.
 // Calendar and video-call provisioning are intentionally outside this flow.
 
 import { createHash, randomUUID } from 'node:crypto';
@@ -13,6 +13,7 @@ import {
 export const config = { runtime: 'nodejs', maxDuration: 15 };
 
 const TIME_ZONE = 'Asia/Dubai';
+const BOOKING_NOTIFICATION_EMAIL = 'contact@qdsystems.ae';
 const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
 const TIME_RE = /^([01]\d|2[0-3]):([0-5]\d)$/;
 const completedRequests = new Map();
@@ -86,6 +87,14 @@ contact@qdsystems.ae`;
   return { subject: 'We received your call request — QD Systems', text, html };
 }
 
+export function buildBookingNotification(details) {
+  const preferredDate = formatPreferredDate(details.preferredDate);
+  const preferredTime = formatPreferredTime(details.preferredTime);
+  const text = `A new free call request was submitted on qdsystems.ae.\n\nName: ${details.name}\nPhone: ${details.phone}\nEmail: ${details.email}\nTopic: ${details.purpose}\nPreferred date: ${preferredDate}\nPreferred time: ${preferredTime} (${TIME_ZONE})\n\nThe date and time are preferences only, not a confirmed appointment. Reply to this email to contact the customer.`;
+  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"></head><body style="font:15px/1.65 Arial,sans-serif;padding:24px;color:#222"><h1 style="font-size:21px">New free call request</h1><p>A new request was submitted on qdsystems.ae.</p><table style="border-collapse:collapse"><tr><th align="left" style="padding:5px 14px 5px 0">Name</th><td>${escapeHtml(details.name)}</td></tr><tr><th align="left" style="padding:5px 14px 5px 0">Phone</th><td>${escapeHtml(details.phone)}</td></tr><tr><th align="left" style="padding:5px 14px 5px 0">Email</th><td><a href="mailto:${escapeHtml(details.email)}">${escapeHtml(details.email)}</a></td></tr><tr><th align="left" style="padding:5px 14px 5px 0">Topic</th><td>${escapeHtml(details.purpose)}</td></tr><tr><th align="left" style="padding:5px 14px 5px 0">Preferred date</th><td>${escapeHtml(preferredDate)}</td></tr><tr><th align="left" style="padding:5px 14px 5px 0">Preferred time</th><td>${escapeHtml(preferredTime)} (${TIME_ZONE})</td></tr></table><p>The date and time are preferences only, not a confirmed appointment.</p></body></html>`;
+  return { subject: `New free call request — ${details.name}`, text, html };
+}
+
 function providerDiagnostics(error) {
   const providerMessage = String(error?.response || error?.message || 'Email provider request failed')
     .replace(/[A-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Z0-9-]+(?:\.[A-Z0-9-]+)+/gi, '[address]')
@@ -103,6 +112,13 @@ function providerDiagnostics(error) {
 function wasAccepted(info, email) {
   const accepted = Array.isArray(info?.accepted) ? info.accepted : [];
   return accepted.some((address) => String(address).toLowerCase() === email.toLowerCase());
+}
+
+function assertAccepted(info, email, stage) {
+  if (wasAccepted(info, email)) return;
+  const error = new Error(`SMTP provider did not accept the ${stage} recipient.`);
+  error.code = 'RECIPIENT_NOT_ACCEPTED';
+  throw error;
 }
 
 function cleanupIdempotencyCache(now = Date.now()) {
@@ -144,7 +160,7 @@ export function createBookingHandler(dependencies = {}) {
       if (completed.fingerprint !== requestFingerprint) {
         return res.status(409).json({ code: 'REQUEST_KEY_REUSED', error: 'This request was already used. Please refresh and try again.' });
       }
-      return res.status(200).json(completed.response);
+      if (completed.response) return res.status(200).json(completed.response);
     }
     if (activeRequests.has(idempotencyKey)) {
       if (activeRequests.get(idempotencyKey) !== requestFingerprint) {
@@ -161,19 +177,34 @@ export function createBookingHandler(dependencies = {}) {
 
     activeRequests.set(idempotencyKey, requestFingerprint);
     try {
-      const message = buildBookingConfirmation(details);
-      const info = await mailSender({
-        to: details.email,
-        ...message,
-        replyTo: CONTACT_REPLY,
-      });
-      if (!wasAccepted(info, details.email)) {
-        const error = new Error('SMTP provider did not accept the customer recipient.');
-        error.code = 'RECIPIENT_NOT_ACCEPTED';
-        throw error;
+      const state = completed || {
+        fingerprint: requestFingerprint,
+        requestEmailAccepted: false,
+        customerEmailAccepted: false,
+        expiresAt: now() + 30 * 60 * 1000,
+      };
+      if (!state.requestEmailAccepted) {
+        const info = await mailSender({
+          to: BOOKING_NOTIFICATION_EMAIL,
+          ...buildBookingNotification(details),
+          replyTo: details.email,
+        });
+        assertAccepted(info, BOOKING_NOTIFICATION_EMAIL, 'QD Systems notification');
+        state.requestEmailAccepted = true;
+        completedRequests.set(idempotencyKey, state);
+        console.log('[book-email] internal request notification accepted', { code: 'REQUEST_EMAIL_ACCEPTED' });
+      }
+      if (!state.customerEmailAccepted) {
+        const info = await mailSender({
+          to: details.email,
+          ...buildBookingConfirmation(details),
+          replyTo: CONTACT_REPLY,
+        });
+        assertAccepted(info, details.email, 'customer confirmation');
+        state.customerEmailAccepted = true;
       }
 
-      const response = { ok: true, emailAccepted: true };
+      const response = { ok: true, emailAccepted: true, requestEmailAccepted: true };
       completedRequests.set(idempotencyKey, {
         fingerprint: requestFingerprint,
         response,
