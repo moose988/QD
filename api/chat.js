@@ -486,11 +486,11 @@ export default async function handler(req, res) {
     send({
       type: 'error',
       message: {
-        ar: 'حدث خطأ. جرّب مرة أخرى أو راسلنا واتساب +971 50 534 9907.',
-        zh: '出了点问题。请重试，或通过 WhatsApp 联系我们 +971 50 534 9907。',
-        ru: 'Что-то пошло не так. Попробуйте ещё раз или напишите в WhatsApp +971 50 534 9907.',
-        en: 'Something went wrong. Try again, or WhatsApp us at +971 50 534 9907.',
-      }[lang] || 'Something went wrong. Try again, or WhatsApp us at +971 50 534 9907.',
+        ar: 'حدث خطأ. جرّب مرة أخرى أو راسلنا واتساب +971 50 461 1123.',
+        zh: '出了点问题。请重试，或通过 WhatsApp 联系我们 +971 50 461 1123。',
+        ru: 'Что-то пошло не так. Попробуйте ещё раз или напишите в WhatsApp +971 50 461 1123.',
+        en: 'Something went wrong. Try again, or WhatsApp us at +971 50 461 1123.',
+      }[lang] || 'Something went wrong. Try again, or WhatsApp us at +971 50 461 1123.',
       details: errorDetails.message,
       code: errorDetails.code,
       statusCode: errorDetails.statusCode,

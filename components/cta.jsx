@@ -7,8 +7,8 @@ const ctaCopy = {
     modalTitle: 'Contact QD Systems',
     modalSubtitle: 'Choose how you want to reach us.',
     contactOptions: [
-      { id: 'call', label: 'Call us', description: 'Speak directly with QD Systems', href: 'tel:+971505349907', accent: 'default', status: 'CALL', disabled: false },
-      { id: 'whatsapp', label: 'WhatsApp', description: 'Fastest response', href: 'https://wa.me/971505349907?text=Hi%20QD%20Systems,%20I%E2%80%99m%20interested%20in%20starting%20a%20build.', accent: 'primary', status: 'OPEN', disabled: false },
+      { id: 'call', label: 'Call us', description: 'Speak directly with QD Systems', href: 'tel:+971504611123', accent: 'default', status: 'CALL', disabled: false },
+      { id: 'whatsapp', label: 'WhatsApp', description: 'Fastest response', href: 'https://wa.me/971504611123?text=Hi%20QD%20Systems,%20I%E2%80%99m%20interested%20in%20starting%20a%20build.', accent: 'primary', status: 'OPEN', disabled: false },
       { id: 'email', label: 'Email', description: 'Coming soon', href: '#', accent: 'muted', status: 'SOON', disabled: true }
     ],
     eyebrow: '// 07 · BUILD MODE',
@@ -26,8 +26,8 @@ const ctaCopy = {
     modalTitle: 'تواصل مع QD Systems',
     modalSubtitle: 'اختر طريقة التواصل المناسبة.',
     contactOptions: [
-      { id: 'call', label: 'اتصل بنا', description: 'تحدث مباشرة مع QD Systems', href: 'tel:+971505349907', accent: 'default', status: 'اتصال', disabled: false },
-      { id: 'whatsapp', label: 'واتساب', description: 'أسرع طريقة للرد', href: 'https://wa.me/971505349907?text=Hi%20QD%20Systems,%20I%E2%80%99m%20interested%20in%20starting%20a%20build.', accent: 'primary', status: 'فتح', disabled: false },
+      { id: 'call', label: 'اتصل بنا', description: 'تحدث مباشرة مع QD Systems', href: 'tel:+971504611123', accent: 'default', status: 'اتصال', disabled: false },
+      { id: 'whatsapp', label: 'واتساب', description: 'أسرع طريقة للرد', href: 'https://wa.me/971504611123?text=Hi%20QD%20Systems,%20I%E2%80%99m%20interested%20in%20starting%20a%20build.', accent: 'primary', status: 'فتح', disabled: false },
       { id: 'email', label: 'البريد الإلكتروني', description: 'قريباً', href: '#', accent: 'muted', status: 'قريباً', disabled: true }
     ],
     eyebrow: '// 07 · وضع البناء',

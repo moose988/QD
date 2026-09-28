@@ -3,7 +3,7 @@ import { computeTotals, formatAED } from './quote-totals.js';
 export const QD_BRAND = {
   name: 'QD Systems',
   email: 'contact@qdsystems.ae',
-  phone: '+971 50 534 9907',
+  phone: '+971 50 461 1123',
   site: 'qdsystems.ae',
   place: 'Dubai, United Arab Emirates'
 };

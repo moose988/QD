@@ -6,7 +6,7 @@
 It depends on scope — and we give you the real number up front. Typically: a working demo in 1–3 hours, a full website in under 24 hours, and a complete custom system in about 3 days (usually 1–3). Larger, more complex builds can take longer; we commit to your exact timeline in writing before we start.
 
 ### How much does a website cost?
-We don't list fixed prices because every build is custom. Pricing depends on scope, integrations, and timeline. After the intake form we send a clear, itemized quote with no surprises. For a fast ballpark, WhatsApp +971 50 534 9907.
+We don't list fixed prices because every build is custom. Pricing depends on scope, integrations, and timeline. After the intake form we send a clear, itemized quote with no surprises. For a fast ballpark, WhatsApp +971 50 461 1123.
 
 ### Do you work with businesses outside the UAE?
 Yes. Most of our current clients are UAE-based, but we work with any business that needs a premium digital system. We deliver everything remotely.
@@ -35,7 +35,7 @@ Every site we build is technically SEO-ready (clean markup, fast performance, pr
 3. We send a quote and timeline.
 4. Once approved, we build and ship.
 
-Or message us directly on WhatsApp at +971 50 534 9907 — fastest path.
+Or message us directly on WhatsApp at +971 50 461 1123 — fastest path.
 
 ### What if I'm not sure exactly what I need?
 That's fine — bring the problem, not the spec. The intake form has space for "I'm not sure yet." We'll figure out the right system on the call.
@@ -51,7 +51,7 @@ Yes, on request. Most of our work is public, but we're happy to sign an NDA befo
 يعتمد على النطاق — ونعطيك الرقم الحقيقي مقدماً. عادةً: نموذج عملي خلال ١–٣ ساعات، موقع كامل خلال أقل من ٢٤ ساعة، ونظام مخصص متكامل خلال نحو ٣ أيام (غالباً ١–٣). المشاريع الأكبر والأكثر تعقيداً قد تأخذ وقتاً أطول؛ نلتزم بجدولك الزمني بدقة وكتابياً قبل أن نبدأ.
 
 ### كم تكلفة الموقع؟
-لا ننشر أسعاراً ثابتة لأن كل مشروع مخصص. السعر يعتمد على النطاق والتكاملات والمدة. بعد نموذج البداية نرسل عرض سعر واضح ومفصّل، بدون مفاجآت. لتقدير سريع راسلنا على واتساب +971 50 534 9907.
+لا ننشر أسعاراً ثابتة لأن كل مشروع مخصص. السعر يعتمد على النطاق والتكاملات والمدة. بعد نموذج البداية نرسل عرض سعر واضح ومفصّل، بدون مفاجآت. لتقدير سريع راسلنا على واتساب +971 50 461 1123.
 
 ### هل تعملون مع أنشطة خارج الإمارات؟
 نعم. معظم عملائنا الحاليين في الإمارات، لكننا نعمل مع أي نشاط يحتاج نظاماً رقمياً فاخراً. نسلّم كل شيء عن بُعد.
@@ -80,7 +80,7 @@ Yes, on request. Most of our work is public, but we're happy to sign an NDA befo
 3. نرسل عرض سعر وجدول زمني.
 4. عند الموافقة، نبني ونطلق.
 
-أو راسلنا مباشرة على واتساب +971 50 534 9907 — الطريقة الأسرع.
+أو راسلنا مباشرة على واتساب +971 50 461 1123 — الطريقة الأسرع.
 
 ### ماذا لو لم أكن متأكداً مما أحتاج؟
 لا مشكلة — أحضر المشكلة، ليس المواصفات. النموذج فيه خانة لـ "لست متأكداً بعد". سنحدد النظام المناسب في المكالمة.
@@ -96,7 +96,7 @@ Yes, on request. Most of our work is public, but we're happy to sign an NDA befo
 取决于范围——我们会预先给你真实的数字。通常：1–3 小时出可用演示，24 小时内出完整网站，约 3 天（一般 1–3 天）出完整定制系统。更大、更复杂的项目可能需要更长时间；开工前我们会以书面形式承诺你的确切时间表。
 
 ### 一个网站要多少钱？
-我们不列固定价格，因为每个项目都是定制的。价格取决于范围、集成和时间表。填写咨询表单后，我们会发送清晰、逐项列明、没有意外的报价。想要快速估算，请 WhatsApp +971 50 534 9907。
+我们不列固定价格，因为每个项目都是定制的。价格取决于范围、集成和时间表。填写咨询表单后，我们会发送清晰、逐项列明、没有意外的报价。想要快速估算，请 WhatsApp +971 50 461 1123。
 
 ### 你们与阿联酋以外的企业合作吗？
 合作。我们目前大多数客户位于阿联酋，但我们与任何需要高端数字系统的企业合作。我们全程远程交付。
@@ -125,7 +125,7 @@ Yes, on request. Most of our work is public, but we're happy to sign an NDA befo
 3. 我们发送报价和时间表。
 4. 确认后，我们开发并交付。
 
-或直接通过 WhatsApp 联系我们 +971 50 534 9907——最快的方式。
+或直接通过 WhatsApp 联系我们 +971 50 461 1123——最快的方式。
 
 ### 如果我不确定自己到底需要什么怎么办？
 没关系——带着问题来，而不是带着规格说明。咨询表单里有“我还不确定”的选项。我们会在通话中确定合适的系统。
@@ -141,7 +141,7 @@ Yes, on request. Most of our work is public, but we're happy to sign an NDA befo
 Зависит от объёма — реальную цифру называем сразу. Обычно: рабочее демо за 1–3 часа, полный сайт менее чем за 24 часа, и готовая кастомная система примерно за 3 дня (как правило 1–3). Более крупные и сложные проекты могут занять дольше; перед стартом письменно фиксируем точные сроки.
 
 ### Сколько стоит сайт?
-Мы не публикуем фиксированные цены, потому что каждый проект индивидуален. Цена зависит от объёма, интеграций и сроков. После формы заявки присылаем понятную детализированную смету без сюрпризов. Для быстрой оценки — WhatsApp +971 50 534 9907.
+Мы не публикуем фиксированные цены, потому что каждый проект индивидуален. Цена зависит от объёма, интеграций и сроков. После формы заявки присылаем понятную детализированную смету без сюрпризов. Для быстрой оценки — WhatsApp +971 50 461 1123.
 
 ### Вы работаете с бизнесом за пределами ОАЭ?
 Да. Большинство наших текущих клиентов в ОАЭ, но мы работаем с любым бизнесом, которому нужна премиальная цифровая система. Всё сдаём удалённо.
@@ -170,7 +170,7 @@ Yes, on request. Most of our work is public, but we're happy to sign an NDA befo
 3. Присылаем смету и сроки.
 4. После одобрения — создаём и выпускаем.
 
-Или напишите нам напрямую в WhatsApp +971 50 534 9907 — самый быстрый путь.
+Или напишите нам напрямую в WhatsApp +971 50 461 1123 — самый быстрый путь.
 
 ### А если я не уверен, что именно мне нужно?
 Это нормально — приходите с проблемой, а не со спецификацией. В форме есть вариант «Пока не уверен». Подходящую систему определим на звонке.

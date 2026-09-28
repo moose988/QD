@@ -226,7 +226,7 @@ What the client receives — note what's NOT in here:
   customer, lineItems, pages, terms, notes,
   createdAt, lastSentAt,
   brandName: "QD Systems",           // for the heading
-  brandPhone: "+971 50 534 9907",    // for the footer
+  brandPhone: "+971 50 461 1123",    // for the footer
 }
 ```
 
@@ -247,7 +247,7 @@ What the client receives — note what's NOT in here:
 
 | State | UI |
 |---|---|
-| Quote ID not found (404 from API) | Centered card: "Quote not found. Double-check the link you received, or WhatsApp +971 50 534 9907." |
+| Quote ID not found (404 from API) | Centered card: "Quote not found. Double-check the link you received, or WhatsApp +971 50 461 1123." |
 | Wrong passcode (401) | Input shakes (CSS animation), toast: "Incorrect passcode" |
 | Network error | Toast: "Connection problem — try again" with retry button |
 | Passcode entered, server returns OK but JSON malformed | Generic error toast + reload prompt (defensive only — not expected) |

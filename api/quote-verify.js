@@ -9,7 +9,7 @@ export const config = { runtime: 'nodejs', maxDuration: 10 };
 
 const BRAND = {
   name: 'QD Systems',
-  phone: '+971 50 534 9907',
+  phone: '+971 50 461 1123',
   site: 'qdsystems.ae'
 };
 

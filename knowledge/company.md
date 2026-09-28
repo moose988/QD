@@ -10,7 +10,7 @@ We work in both English and Arabic, and most of our clients run in the UAE marke
 
 ### Contact
 
-- **WhatsApp / Phone:** +971 50 534 9907 (fastest response)
+- **WhatsApp / Phone:** +971 50 461 1123 (fastest response)
 - **Instagram:** @qdsystems
 - **TikTok:** @qdsystems
 - **Email:** Coming soon — use WhatsApp for now
@@ -37,7 +37,7 @@ QD Systems وكالة أنظمة رقمية فاخرة مقرها الإمارا
 
 ### التواصل
 
-- **واتساب / هاتف:** +971 50 534 9907 (أسرع طريقة للرد)
+- **واتساب / هاتف:** +971 50 461 1123 (أسرع طريقة للرد)
 - **إنستغرام:** @qdsystems
 - **تيك توك:** @qdsystems
 - **البريد الإلكتروني:** قريباً — استخدم واتساب الآن
@@ -64,7 +64,7 @@ QD Systems 是一家位于阿联酋的高端数字系统机构。我们打造网
 
 ### 联系方式
 
-- **WhatsApp / 电话：** +971 50 534 9907（回复最快）
+- **WhatsApp / 电话：** +971 50 461 1123（回复最快）
 - **Instagram：** @qdsystems
 - **TikTok：** @qdsystems
 - **邮箱：** 即将开放——目前请用 WhatsApp
@@ -91,7 +91,7 @@ QD Systems — премиальное агентство цифровых сис
 
 ### Контакты
 
-- **WhatsApp / телефон:** +971 50 534 9907 (быстрее всего)
+- **WhatsApp / телефон:** +971 50 461 1123 (быстрее всего)
 - **Instagram:** @qdsystems
 - **TikTok:** @qdsystems
 - **Email:** скоро — пока пишите в WhatsApp

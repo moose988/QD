@@ -24,10 +24,10 @@ export const LABELS = {
     unlock: 'Unlock',
     passcodePrompt: 'Enter the passcode shared with you',
     incorrectPasscode: 'Incorrect passcode',
-    quoteNotFound: 'Quote not found. Double-check the link, or WhatsApp +971 50 534 9907.',
+    quoteNotFound: 'Quote not found. Double-check the link, or WhatsApp +971 50 461 1123.',
     expired: 'This quote has expired. Contact us for an updated offer.',
     print: 'Print',
-    questions: 'Questions? WhatsApp +971 50 534 9907',
+    questions: 'Questions? WhatsApp +971 50 461 1123',
   },
   ar: {
     quotation: 'عرض سعر',
@@ -51,10 +51,10 @@ export const LABELS = {
     unlock: 'فتح',
     passcodePrompt: 'أدخل الرمز المرسل إليك',
     incorrectPasscode: 'الرمز غير صحيح',
-    quoteNotFound: 'العرض غير موجود. تأكد من الرابط أو راسلنا على واتساب +971 50 534 9907.',
+    quoteNotFound: 'العرض غير موجود. تأكد من الرابط أو راسلنا على واتساب +971 50 461 1123.',
     expired: 'انتهت صلاحية هذا العرض. تواصل معنا للحصول على عرض محدّث.',
     print: 'طباعة',
-    questions: 'استفسار؟ واتساب +971 50 534 9907',
+    questions: 'استفسار؟ واتساب +971 50 461 1123',
   },
 };
 

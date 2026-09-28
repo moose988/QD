@@ -24,7 +24,7 @@ We don't sell templates. We don't do quick logo gigs. We don't take on projects 
 
 ### Pricing
 
-We don't list fixed prices because every build is custom. Pricing depends on scope, complexity, integrations, and timeline. After the intake form we send a clear, itemized quote — no surprises. For a fast ballpark, message us on WhatsApp at +971 50 534 9907.
+We don't list fixed prices because every build is custom. Pricing depends on scope, complexity, integrations, and timeline. After the intake form we send a clear, itemized quote — no surprises. For a fast ballpark, message us on WhatsApp at +971 50 461 1123.
 
 ---
 
@@ -52,7 +52,7 @@ We don't list fixed prices because every build is custom. Pricing depends on sco
 
 ### الأسعار
 
-لا ننشر أسعاراً ثابتة لأن كل مشروع مخصص. السعر يعتمد على النطاق والتعقيد والتكاملات والمدة الزمنية. بعد نموذج البداية نرسل عرض سعر واضح ومفصّل، بدون مفاجآت. لتقدير سريع، راسلنا على واتساب +971 50 534 9907.
+لا ننشر أسعاراً ثابتة لأن كل مشروع مخصص. السعر يعتمد على النطاق والتعقيد والتكاملات والمدة الزمنية. بعد نموذج البداية نرسل عرض سعر واضح ومفصّل، بدون مفاجآت. لتقدير سريع، راسلنا على واتساب +971 50 461 1123.
 
 ---
 
@@ -80,7 +80,7 @@ AI 聊天、WhatsApp 自动流程、线索捕获、常见问题自动化和自�
 
 ### 价格
 
-我们不列固定价格，因为每个项目都是定制的。价格取决于范围、复杂度、集成和时间表。填写咨询表单后，我们会发送清晰、逐项列明的报价——没有意外。想要快速估算，请通过 WhatsApp 联系我们：+971 50 534 9907。
+我们不列固定价格，因为每个项目都是定制的。价格取决于范围、复杂度、集成和时间表。填写咨询表单后，我们会发送清晰、逐项列明的报价——没有意外。想要快速估算，请通过 WhatsApp 联系我们：+971 50 461 1123。
 
 ---
 
@@ -108,4 +108,4 @@ AI-чат, WhatsApp-сценарии, захват заявок, автомат�
 
 ### Цены
 
-Мы не публикуем фиксированные цены, потому что каждый проект индивидуален. Цена зависит от объёма, сложности, интеграций и сроков. После формы заявки мы присылаем понятную детализированную смету — без сюрпризов. Для быстрой ориентировочной оценки напишите нам в WhatsApp +971 50 534 9907.
+Мы не публикуем фиксированные цены, потому что каждый проект индивидуален. Цена зависит от объёма, сложности, интеграций и сроков. После формы заявки мы присылаем понятную детализированную смету — без сюрпризов. Для быстрой ориентировочной оценки напишите нам в WhatsApp +971 50 461 1123.
