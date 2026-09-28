@@ -80,7 +80,7 @@ export async function sendZohoMail({ to, subject, text, html, replyTo = CONTACT_
   }
 
   const transport = createTransport();
-  await transport.sendMail({
+  return transport.sendMail({
     from: getFromAddress(),
     to,
     replyTo,

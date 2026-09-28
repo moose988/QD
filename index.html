@@ -1180,7 +1180,7 @@ if (SHOW_LIVE_DEMO) {
     <button class="mx" id="bookClose" aria-label="Close">✕</button>
     <div id="bookForm">
       <h3 data-i18n="book.title">Book your free call</h3>
-      <p class="msub" data-i18n="book.sub">15 minutes, no obligation. Drop your details and we'll email you a Google Meet link — usually within the hour.</p>
+      <p class="msub" data-i18n="book.sub">15 minutes, no obligation. Send your details and we'll email to confirm we received your request. Our team will contact you to arrange the call.</p>
       <form id="bForm">
         <div class="mrow">
           <div><label for="bName" data-i18n="book.name">Name</label><input id="bName" required placeholder="e.g. Ahmed" data-i18n-ph="book.name.ph"></div>
@@ -1193,15 +1193,15 @@ if (SHOW_LIVE_DEMO) {
           <div><label for="bDate" data-i18n="book.date">Preferred date</label><input id="bDate" type="date" required></div>
           <div><label for="bTime" data-i18n="book.time">Preferred time</label><input id="bTime" type="time" required></div>
         </div>
-        <button type="submit" class="btn btn-silver full" data-i18n="book.submit">Confirm — send my Meet link →</button>
+        <button type="submit" class="btn btn-silver full" data-i18n="book.submit">Send my request →</button>
         <div id="bErr" role="alert" style="display:none;margin-top:13px;padding:12px 14px;border:1px solid rgba(255,107,107,.35);border-radius:11px;background:rgba(255,107,107,.07);color:#ffb4b4;font-size:13.5px;line-height:1.5"><span data-i18n="book.error">Something went wrong sending your booking. Please try again — or message us on WhatsApp and we'll confirm your call there:</span> <a href="https://wa.me/971504611123" target="_blank" rel="noopener noreferrer" style="color:#fff;border-bottom:1px solid rgba(255,255,255,.4)">WhatsApp →</a></div>
-        <div class="qhint" style="margin-top:13px"><span class="g"></span> <span data-i18n="book.hint">Free · no obligation · your link arrives by email</span></div>
+        <div class="qhint" style="margin-top:13px"><span class="g"></span> <span data-i18n="book.hint">Free · no obligation · we'll contact you to arrange the call</span></div>
       </form>
     </div>
     <div id="bookDone" class="msuccess" style="display:none">
       <div class="ic">✓</div>
-      <h3><span data-i18n="book.done.title">You're booked</span><span id="bDoneName"></span>!</h3>
-      <p class="msub" id="bDoneMsg">Check your inbox — your Google Meet link is on its way.</p>
+      <h3><span data-i18n="book.done.title">Request received</span>!</h3>
+      <p class="msub" id="bDoneMsg">We've emailed a confirmation and will contact you to arrange the call.</p>
       <a class="btn btn-ghost full" id="bWa" href="https://wa.me/971504611123" target="_blank" data-i18n="contact.wa">Prefer WhatsApp? Message us →</a>
     </div>
   </div>
@@ -1482,7 +1482,7 @@ window.qdDemoChat.play();
 addEventListener('qd:langchange',()=>{demoChatElement.innerHTML='';window.qdDemoChat=createChat(demoChatElement,demoChipsElement);window.qdDemoChat.play();});
 }
 
-/* booking modal — Book a Free Call (and chatbot) → collect details → backend emails a Google Meet link */
+/* booking modal — collect a call request and email the customer a receipt */
 const bookModal=document.getElementById('bookModal');let bookLast=null;
 const bPhoneEl=document.getElementById('bPhone');
 const bDateEl=document.getElementById('bDate');
@@ -1491,7 +1491,7 @@ function qdDigitsOnly(el,max){if(!el)return;el.addEventListener('input',()=>{el.
 qdDigitsOnly(bPhoneEl,15);
 qdSetBookDateMin();
 function qdFormatBookSlot(date,time){const parts=[];if(date)parts.push(date);if(time)parts.push(time);return parts.join(' at ');}
-function qdSetBookDateMin(){if(bDateEl)bDateEl.min=new Date().toISOString().slice(0,10);}
+function qdSetBookDateMin(){if(!bDateEl)return;const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Dubai',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const values=Object.fromEntries(parts.filter(x=>x.type!=='literal').map(x=>[x.type,x.value]));bDateEl.min=values.year+'-'+values.month+'-'+values.day;}
 function qdIsMobileOverlay(){return innerWidth<=768;}
 function qdSyncMobileOverlayLayout(){
   const vv=window.visualViewport;if(!bookModal)return;
@@ -1510,7 +1510,7 @@ function qdSyncMobileOverlayLayout(){
     const modal=bookModal.querySelector('.modal');if(modal)modal.style.maxHeight='';
   }
 }
-function openBooking(){if(!bookModal)return;const bf=document.getElementById('bookForm');const bd=document.getElementById('bookDone');if(bf)bf.style.display='';if(bd)bd.style.display='none';const be=document.getElementById('bErr');if(be)be.style.display='none';qdSetBookDateMin();bookModal.classList.add('open');document.body.classList.add('modal-open');bookLast=document.activeElement;qdSyncMobileOverlayLayout();if(matchMedia('(pointer:fine)').matches)setTimeout(()=>{const n=document.getElementById('bName');if(n)n.focus();},120);}
+function openBooking(){if(!bookModal)return;const bf=document.getElementById('bookForm');const bd=document.getElementById('bookDone');if(bf)bf.style.display='';if(bd)bd.style.display='none';if(typeof qdSetBookSubmit==='function')qdSetBookSubmit(Boolean(bSubmitInFlight));const be=document.getElementById('bErr');if(be)be.style.display='none';qdSetBookDateMin();bookModal.classList.add('open');document.body.classList.add('modal-open');bookLast=document.activeElement;qdSyncMobileOverlayLayout();if(matchMedia('(pointer:fine)').matches)setTimeout(()=>{const n=document.getElementById('bName');if(n)n.focus();},120);}
 function closeBooking(){if(!bookModal)return;bookModal.classList.remove('open');bookModal.style.top=bookModal.style.height=bookModal.style.bottom=bookModal.style.left=bookModal.style.right=bookModal.style.width=bookModal.style.inset='';const modal=bookModal.querySelector('.modal');if(modal)modal.style.maxHeight='';if(!navMobileOverlay||!navMobileOverlay.classList.contains('open'))document.body.classList.remove('modal-open');if(bookLast)bookLast.focus();}
 if(window.visualViewport){visualViewport.addEventListener('resize',qdSyncMobileOverlayLayout);visualViewport.addEventListener('scroll',qdSyncMobileOverlayLayout);}
 addEventListener('resize',qdSyncMobileOverlayLayout);
@@ -1520,7 +1520,9 @@ const bookClose=document.getElementById('bookClose');if(bookClose)bookClose.addE
 if(bookModal){bookModal.addEventListener('click',e=>{if(e.target===bookModal)closeBooking();});}
 addEventListener('keydown',e=>{if(e.key==='Escape'&&bookModal&&bookModal.classList.contains('open'))closeBooking();});
 const bForm=document.getElementById('bForm');
-const bSubmitLabel='Confirm — send my Meet link →';
+let bSubmitInFlight=false;
+function qdBookText(key,fallback){return(window.qdT&&window.qdT('book.'+key))||fallback;}
+function qdSetBookSubmit(sending){const btn=bForm&&bForm.querySelector('button[type="submit"]');if(!btn)return;btn.disabled=Boolean(sending);btn.textContent=qdBookText(sending?'sending':'submit',sending?'Sending…':'Send my request →');}
 function qdBookIdempotencyKey(data){
   const signature=JSON.stringify([data.name,data.email.toLowerCase(),data.phone,data.purpose,data.preferredDate,data.preferredTime]);
   const storageKey='qd-booking-retry-v1';
@@ -1533,34 +1535,32 @@ function qdBookIdempotencyKey(data){
   }catch(_){return (crypto.randomUUID?crypto.randomUUID():('qd'+Date.now().toString(36)+Math.random().toString(36).slice(2)));}
 }
 if(bForm)bForm.addEventListener('submit',async e=>{e.preventDefault();
+  if(bSubmitInFlight)return;
   if(!bForm.reportValidity())return;
-  const submitBtn=bForm.querySelector('button[type="submit"]');
+  bSubmitInFlight=true;
   const preferredDate=bDateEl?bDateEl.value:'';
   const preferredTime=bTimeEl?bTimeEl.value:'';
   const slot=qdFormatBookSlot(preferredDate,preferredTime);
-  const data={name:(document.getElementById('bName').value||'there').trim(),email:document.getElementById('bEmail').value.trim(),phone:(bPhoneEl&&bPhoneEl.value)||'',purpose:document.getElementById('bPurpose').value,preferredDate,preferredTime,time:slot,meetingTimezone:'Asia/Dubai',source:'website'};
+  const data={name:(document.getElementById('bName').value||'').trim(),email:document.getElementById('bEmail').value.trim(),phone:(bPhoneEl&&bPhoneEl.value)||'',purpose:document.getElementById('bPurpose').value,preferredDate,preferredTime,timezone:'Asia/Dubai',source:'website'};
   data.idempotencyKey=qdBookIdempotencyKey(data);
-  if(submitBtn){submitBtn.disabled=true;submitBtn.textContent='Sending…';}
+  qdSetBookSubmit(true);
   console.log('[book-email] request started');
   const bErr=document.getElementById('bErr');if(bErr)bErr.style.display='none';
   let bookedOk=false;
   try{
     const res=await fetch('/api/book',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
     const result=await res.json().catch(()=>({}));
-    if(res.ok&&result.ok){
+    if(res.ok&&result.ok&&result.emailAccepted===true){
       bookedOk=true;
-      console.log('[book-email] success',{id:result.id,calendarEventId:result.calendarEventId,meetingLink:Boolean(result.meetingLink),clientEmailSent:Boolean(result.clientEmailSent),adminEmailSent:Boolean(result.adminEmailSent)});
+      console.log('[book-email] success',{emailAccepted:true});
     }else{
-      console.warn('[book-email] failed',{status:res.status,error:result.error||'Booking request failed'});
-      if(bErr){
-        const msg=bErr.querySelector('span');
-        if(msg&&result.error)msg.textContent=result.error;
-      }
+      console.warn('[book-email] failed',{status:res.status,code:result.code||'BOOKING_FAILED'});
     }
-  }catch(err){console.warn('[book-email] failed',err?.message||err);}
-  if(submitBtn){submitBtn.disabled=false;submitBtn.textContent=bSubmitLabel;}
+  }catch(err){console.warn('[book-email] failed',{code:'NETWORK_ERROR'});}
+  qdSetBookSubmit(false);
   if(!bookedOk){
-    /* never tell the customer they're booked when the request failed — show the error + WhatsApp rescue instead */
+    bSubmitInFlight=false;
+    /* Only provider-accepted mail reaches the success state. */
     if(bErr){
       const wa=bErr.querySelector('a');
       if(wa)wa.href='https://wa.me/971504611123?text='+encodeURIComponent('Hi QD — I’m '+data.name+', I tried to book a call ('+data.purpose+') but the form failed.'+(data.phone?(' Phone: '+data.phone+'.'):'')+(slot?(' Preferred: '+slot+'.'):''));
@@ -1568,18 +1568,19 @@ if(bForm)bForm.addEventListener('submit',async e=>{e.preventDefault();
     }
     return;
   }
-  document.getElementById('bDoneName').textContent=', '+data.name;
-  var doneTpl=(window.qdT&&window.qdT('book.done.msg'))||'Check <b>{email}</b> — your Google Meet link is on its way, usually within the hour.';
-  document.getElementById('bDoneMsg').innerHTML=doneTpl.replace('{email}','<b>'+data.email.replace(/[<>]/g,'')+'</b>');
-  document.getElementById('bWa').href='https://wa.me/971504611123?text='+encodeURIComponent('Hi QD — I’m '+data.name+', I just booked a call ('+data.purpose+').'+(data.phone?(' Phone: '+data.phone+'.'):'')+(slot?(' Preferred: '+slot+'.'):''));
+  var doneTpl=(window.qdT&&window.qdT('book.done.msg'))||'We sent a confirmation to {email}. Our team will contact you to arrange the call. Your preferred date and time are preferences only, not a confirmed appointment.';
+  const safeEmail=data.email.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  document.getElementById('bDoneMsg').innerHTML=doneTpl.replace('{email}','<b>'+safeEmail+'</b>');
+  document.getElementById('bWa').href='https://wa.me/971504611123?text='+encodeURIComponent('Hi QD — I’m '+data.name+', I sent a request for a call ('+data.purpose+') and would like to arrange it.'+(data.phone?(' Phone: '+data.phone+'.'):'')+(slot?(' Preferred: '+slot+'.'):''));
   document.getElementById('bookForm').style.display='none';
   document.getElementById('bookDone').style.display='block';
+  bSubmitInFlight=false;
   try{sessionStorage.removeItem('qd-booking-retry-v1');}catch(_){}
   bForm.reset();
   qdSetBookDateMin();
   if(window.qdDemoChat){
     window.qdDemoChat.msg({who:'them',t:'Book a free call — '+data.purpose+(slot?(' ('+slot+')'):'')});
-    window.qdDemoChat.booked('You\'re booked, '+data.name+'! Your Google Meet link is on its way — usually within the hour.');
+    window.qdDemoChat.booked('Thanks, '+data.name+'. We received your call request and will contact you to arrange it.');
   }
 });
 

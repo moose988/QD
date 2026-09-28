@@ -895,24 +895,26 @@ body.qd-lang-ar .qdbk-x{right:auto;left:16px}
     <button class="qdbk-x" id="qdbkX" aria-label="Close">&#10005;</button>
     <div id="qdbkForm">
       <h3 data-en="Book your free call" data-ar="احجز مكالمتك المجانية">Book your free call</h3>
-      <p class="qdbk-sub" data-en="15 minutes, no obligation. Drop your details and we'll email you a Google Meet link — usually within the hour." data-ar="١٥ دقيقة، دون التزام. اترك بياناتك وسنرسل لك رابط Google Meet — عادةً خلال ساعة.">15 minutes, no obligation. Drop your details and we'll email you a Google Meet link &mdash; usually within the hour.</p>
+      <p class="qdbk-sub" data-en="15 minutes, no obligation. Send your details and we'll confirm we received your request. Our team will contact you to arrange the call." data-ar="١٥ دقيقة، دون التزام. أرسل بياناتك وسنؤكد استلام طلبك. سيتواصل معك فريقنا لترتيب المكالمة.">15 minutes, no obligation. Send your details and we'll confirm we received your request. Our team will contact you to arrange the call.</p>
       <form id="qdbkF">
         <div class="qdbk-row">
           <div><label data-en="Name" data-ar="الاسم">Name</label><input id="qdbkName" required placeholder="e.g. Ahmed"></div>
-          <div><label data-en="WhatsApp" data-ar="واتساب">WhatsApp</label><input id="qdbkPhone" inputmode="tel" placeholder="+971 ..."></div>
+          <div><label data-en="WhatsApp" data-ar="واتساب">WhatsApp</label><input id="qdbkPhone" type="tel" inputmode="tel" placeholder="+971 ..." required></div>
         </div>
         <label data-en="Email" data-ar="البريد الإلكتروني">Email</label><input id="qdbkEmail" type="email" required placeholder="you@business.com">
         <label data-en="What's it about?" data-ar="ما الموضوع؟">What's it about?</label>
-        <select id="qdbkPurpose"><option>A new website</option><option>A full system (booking / automation / dashboard)</option><option>Not sure yet &mdash; I'd like advice</option></select>
-        <label data-en="Preferred time (optional)" data-ar="الوقت المفضل (اختياري)">Preferred time (optional)</label><input id="qdbkTime" placeholder="e.g. Tomorrow afternoon">
-        <button type="submit" class="qdbk-btn" data-en="Confirm &mdash; send my Meet link &rarr;" data-ar="تأكيد — أرسل رابط الاجتماع">Confirm &mdash; send my Meet link &rarr;</button>
-        <div class="qdbk-hint">Free &middot; no obligation &middot; your link arrives by email</div>
+        <select id="qdbkPurpose" required><option>A new website</option><option>A full system (booking / automation / dashboard)</option><option>Not sure yet &mdash; I'd like advice</option></select>
+        <label for="qdbkDate" data-en="Preferred date" data-ar="التاريخ المفضل">Preferred date</label><input id="qdbkDate" type="date" required>
+        <label for="qdbkTime" data-en="Preferred time" data-ar="الوقت المفضل">Preferred time</label><input id="qdbkTime" type="time" required>
+        <button type="submit" class="qdbk-btn" data-en="Send my request &rarr;" data-ar="إرسال طلبي ←">Send my request &rarr;</button>
+        <div class="qdbk-hint" data-en="Free · no obligation · we'll contact you to arrange the call" data-ar="مجاناً · دون التزام · سنتواصل معك لترتيب المكالمة">Free &middot; no obligation &middot; we'll contact you to arrange the call</div>
+        <div class="qdbk-error" id="qdbkErr" role="alert" style="display:none"><span data-en="We couldn't send your request. Please try again shortly, or contact us on WhatsApp:" data-ar="تعذر إرسال طلبك. يرجى المحاولة مجدداً بعد قليل أو التواصل معنا عبر واتساب:">We couldn't send your request. Please try again shortly, or contact us on WhatsApp:</span> <a href="https://wa.me/971504611123" target="_blank" rel="noopener noreferrer">WhatsApp →</a></div>
       </form>
     </div>
     <div id="qdbkDone" class="qdbk-ok" style="display:none">
       <div class="ic">&#10003;</div>
-      <h3>You're booked<span id="qdbkDoneName"></span>!</h3>
-      <p class="qdbk-sub" id="qdbkDoneMsg">Check your inbox &mdash; your Google Meet link is on its way.</p>
+      <h3 data-en="Request received" data-ar="تم استلام طلبك">Request received</h3>
+      <p class="qdbk-sub" id="qdbkDoneMsg">We sent a confirmation. Our team will contact you to arrange the call. Your preferred date and time are preferences only, not a confirmed appointment.</p>
       <a class="qdbk-btn" id="qdbkWa" href="#" target="_blank" style="text-decoration:none">Prefer WhatsApp? Message us &rarr;</a>
     </div>
   </div>
@@ -930,19 +932,25 @@ body.qd-lang-ar .qdbk-x{right:auto;left:16px}
   ov.addEventListener('click',function(e){if(e.target===ov)close();});
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&ov.classList.contains('open'))close();});
   var wa=(window.__QD.getWhatsAppHref&&window.__QD.getWhatsAppHref())||'https://wa.me/971504611123';
-  document.getElementById('qdbkF').addEventListener('submit',function(e){e.preventDefault();
-    var name=(document.getElementById('qdbkName').value||'there').trim();
+  var qdbkForm=document.getElementById('qdbkF');
+  var qdbkSubmit=qdbkForm.querySelector('button[type="submit"]');
+  var qdbkBusy=false;
+  qdbkForm.addEventListener('submit',async function(e){e.preventDefault();if(qdbkBusy||!qdbkForm.reportValidity())return;qdbkBusy=true;
+    var name=(document.getElementById('qdbkName').value||'').trim();
     var email=document.getElementById('qdbkEmail').value.trim();
     var phone=document.getElementById('qdbkPhone').value.trim();
     var purpose=document.getElementById('qdbkPurpose').value;
-    var time=document.getElementById('qdbkTime').value.trim();
-    var payload={name:name,email:email,phone:phone,purpose:purpose,time:time,source:'booking-modal'};
-    try{ fetch('/api/book',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}).catch(function(){}); }catch(_){}
-    document.getElementById('qdbkDoneName').textContent=', '+name;
-    document.getElementById('qdbkDoneMsg').innerHTML='Check <b>'+email.replace(/[<>]/g,'')+'</b> &mdash; your Google Meet link is on its way, usually within the hour.';
-    document.getElementById('qdbkWa').href=wa+'?text='+encodeURIComponent("Hi QD - I'm "+name+", I just booked a call ("+purpose+")."+(time?(' Preferred: '+time+'.'):''));
-    document.getElementById('qdbkForm').style.display='none';
-    document.getElementById('qdbkDone').style.display='block';
+    var preferredDate=document.getElementById('qdbkDate').value;
+    var preferredTime=document.getElementById('qdbkTime').value;
+    var key='legacy-book-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);
+    var err=document.getElementById('qdbkErr');err.style.display='none';qdbkSubmit.disabled=true;qdbkSubmit.textContent=isAr?'جارٍ الإرسال…':'Sending…';
+    var success=false;
+    try{var res=await fetch('/api/book',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:name,email:email,phone:phone,purpose:purpose,preferredDate:preferredDate,preferredTime:preferredTime,timezone:'Asia/Dubai',source:'booking-modal',idempotencyKey:key})});var result=await res.json().catch(function(){return {};});success=Boolean(res.ok&&result.ok&&result.emailAccepted===true);}catch(_){}
+    qdbkSubmit.disabled=false;qdbkSubmit.textContent=isAr?'إرسال طلبي ←':'Send my request →';
+    if(!success){qdbkBusy=false;err.style.display='block';return;}
+    document.getElementById('qdbkDoneMsg').textContent=isAr?'أرسلنا تأكيداً إلى '+email+'، وسيتواصل معك فريقنا لترتيب المكالمة. التاريخ والوقت المفضلان ليسا موعداً مؤكداً.':'We sent a confirmation to '+email+'. Our team will contact you to arrange the call. Your preferred date and time are preferences only, not a confirmed appointment.';
+    document.getElementById('qdbkWa').href=wa+'?text='+encodeURIComponent("Hi QD - I'm "+name+", I sent a request for a call ("+purpose+") and would like to arrange it."+(preferredDate?' Preferred date: '+preferredDate+'.':'')+(preferredTime?' Preferred time: '+preferredTime+'.':''));
+    document.getElementById('qdbkForm').style.display='none';document.getElementById('qdbkDone').style.display='block';
   });
 })();
 </script>

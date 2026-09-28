@@ -1,46 +1,11 @@
 import assert from 'node:assert/strict';
-import { createBookingHandler, parseMeetingRequest } from '../api/book.js';
-
-class MemoryFirestore {
-  constructor() { this.collections = new Map(); }
-  collection(name) {
-    if (!this.collections.has(name)) this.collections.set(name, new Map());
-    const docs = this.collections.get(name);
-    return {
-      doc: (id) => {
-        const key = id || `auto-${docs.size + 1}`;
-        return {
-          id: key,
-          get: async () => ({ exists: docs.has(key), data: () => structuredClone(docs.get(key)) }),
-          set: async (value, options = {}) => {
-            const previous = docs.get(key) || {};
-            docs.set(key, options.merge ? deepMerge(previous, value) : structuredClone(value));
-          },
-        };
-      },
-      add: async (value) => {
-        const key = `auto-${docs.size + 1}`;
-        docs.set(key, structuredClone(value));
-        return { id: key };
-      },
-    };
-  }
-}
-
-function deepMerge(left, right) {
-  const result = structuredClone(left);
-  for (const [key, value] of Object.entries(right)) {
-    result[key] = value && typeof value === 'object' && !Array.isArray(value)
-      ? deepMerge(result[key] || {}, value)
-      : value;
-  }
-  return result;
-}
+import { buildBookingConfirmation, createBookingHandler } from '../api/book.js';
 
 function response() {
   return {
-    headers: {}, statusCode: 200, body: null,
-    setHeader(key, value) { this.headers[key] = value; },
+    statusCode: 200,
+    body: null,
+    setHeader() {},
     status(code) { this.statusCode = code; return this; },
     json(value) { this.body = value; return this; },
     end() { return this; },
@@ -51,118 +16,127 @@ function request(overrides = {}) {
   return {
     method: 'POST',
     body: {
-      name: 'Booking Test',
+      name: 'Test Customer',
+      phone: '+971 50 123 4567',
       email: 'test@example.com',
-      phone: '+971500000000',
-      purpose: 'Booking flow test',
-      preferredDate: '2026-09-29',
+      purpose: 'A new website',
+      preferredDate: '2027-02-10',
       preferredTime: '03:00',
-      meetingTimezone: 'America/Los_Angeles',
       idempotencyKey: 'booking-test-key-001',
       ...overrides,
     },
   };
 }
 
-const fieldValue = { serverTimestamp: () => 'TEST_TIMESTAMP' };
-const fakeAdmin = { firestore: { FieldValue: fieldValue } };
-
-// Dubai wall time remains 23:00 UTC on the previous day, regardless of the
-// browser/server timezone, and invalid calendar dates are rejected.
-const dubaiSlot = parseMeetingRequest({
-  preferredDate: '2026-09-29', preferredTime: '03:00', timezone: 'Asia/Dubai',
-});
-assert.equal(dubaiSlot.meetingStart, '2026-09-28T23:00:00.000Z');
-assert.equal(dubaiSlot.meetingTimezone, 'Asia/Dubai');
-assert.throws(() => parseMeetingRequest({ preferredDate: '2026-02-30', preferredTime: '03:00', timezone: 'Asia/Dubai' }), { code: 'INVALID_DATE' });
-
-// Reproduce today's local configuration failure through the real endpoint and
-// real Google configuration check, with Firestore isolated in memory.
-const names = ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'GOOGLE_REFRESH_TOKEN', 'GOOGLE_CALENDAR_ID'];
-const savedEnv = Object.fromEntries(names.map((name) => [name, process.env[name]]));
-for (const name of names) delete process.env[name];
-const failedDb = new MemoryFirestore();
-const failingHandler = createBookingHandler({ getDb: () => failedDb, admin: fakeAdmin });
-const failedResponse = response();
-await failingHandler(request(), failedResponse);
-assert.equal(failedResponse.statusCode, 503);
-assert.equal(failedResponse.body.code, 'BOOKING_CALENDAR_NOT_CONFIGURED');
-assert.match(failedResponse.body.error, /temporarily unavailable/i);
-assert.equal([...failedDb.collections.get('bookings').values()][0].status, 'calendar_failed');
-for (const name of names) if (savedEnv[name] !== undefined) process.env[name] = savedEnv[name];
-
-const permissionDb = new MemoryFirestore();
-const permissionHandler = createBookingHandler({
-  getDb: () => permissionDb,
-  admin: fakeAdmin,
-  createCalendarEvent: async () => {
-    const error = new Error('private provider detail must not reach the client');
-    error.code = 403;
-    error.response = { status: 403, data: { error: { status: 'PERMISSION_DENIED', errors: [{ reason: 'forbidden' }] } } };
-    throw error;
+const acceptedSenderCalls = [];
+const handler = createBookingHandler({
+  sendMail: async (message) => {
+    acceptedSenderCalls.push(message);
+    return { accepted: [message.to] };
   },
 });
-const permissionResponse = response();
-await permissionHandler(request({ idempotencyKey: 'calendar-permission-test' }), permissionResponse);
-assert.equal(permissionResponse.statusCode, 503);
-assert.equal(permissionResponse.body.code, 'BOOKING_CALENDAR_AUTH_FAILED');
-assert.doesNotMatch(permissionResponse.body.error, /private provider detail/i);
+const success = response();
+await handler(request(), success);
+assert.equal(success.statusCode, 200);
+assert.deepEqual(success.body, { ok: true, emailAccepted: true });
+assert.equal(acceptedSenderCalls.length, 1);
+assert.equal(acceptedSenderCalls[0].to, 'test@example.com');
+assert.equal(acceptedSenderCalls[0].subject, 'We received your call request — QD Systems');
+assert.match(acceptedSenderCalls[0].text, /Preferred date: 10 February 2027/);
+assert.match(acceptedSenderCalls[0].text, /Preferred time: 03:00 AM \(Asia\/Dubai\)/);
+assert.match(acceptedSenderCalls[0].text, /preferences only, not a confirmed appointment/i);
+assert.doesNotMatch(acceptedSenderCalls[0].text + acceptedSenderCalls[0].html, /Google Meet|meet\.google/i);
 
-// Successful mock booking and a retry after partial email delivery reuse one
-// booking/event, skip the already delivered client email, and deliver admin mail.
-const retryDb = new MemoryFirestore();
-let calendarCreates = 0;
-let clientSends = 0;
-let adminSends = 0;
-let firstEmailAttempt = true;
-let calendarTimezone = null;
+// Repeated submission with the same key returns the confirmed result without
+// sending a second message.
+const duplicate = response();
+await handler(request(), duplicate);
+assert.equal(duplicate.statusCode, 200);
+assert.equal(acceptedSenderCalls.length, 1);
+
+for (const invalid of [
+  { name: '' },
+  { email: 'nope' },
+  { phone: '12' },
+  { purpose: '' },
+  { preferredDate: '2027-02-30' },
+  { preferredTime: '25:00' },
+]) {
+  const bad = response();
+  await handler(request({ ...invalid, idempotencyKey: `invalid-key-${Math.random().toString(36).slice(2)}` }), bad);
+  assert.equal(bad.statusCode, 400, JSON.stringify(invalid));
+}
+assert.equal(acceptedSenderCalls.length, 1);
+
+// Don't report success if SMTP resolves without accepting the customer.
+const rejectedHandler = createBookingHandler({ sendMail: async () => ({ accepted: [], rejected: ['test@example.com'] }) });
+const rejected = response();
+await rejectedHandler(request({ idempotencyKey: 'provider-reject-001' }), rejected);
+assert.equal(rejected.statusCode, 502);
+assert.equal(rejected.body.code, 'EMAIL_RECIPIENT_REJECTED');
+assert.equal(rejected.body.ok, undefined);
+
+// A missing Zoho credential set fails safely without attempting delivery.
+const smtpNames = ['ZOHO_SMTP_USER', 'ZOHO_SMTP_PASS'];
+const previousSmtpEnv = Object.fromEntries(smtpNames.map((name) => [name, process.env[name]]));
+for (const name of smtpNames) delete process.env[name];
+const unconfigured = response();
+await createBookingHandler()(request({ idempotencyKey: 'email-config-001' }), unconfigured);
+assert.equal(unconfigured.statusCode, 503);
+assert.equal(unconfigured.body.code, 'EMAIL_NOT_CONFIGURED');
+for (const name of smtpNames) {
+  if (previousSmtpEnv[name] !== undefined) process.env[name] = previousSmtpEnv[name];
+}
+
+// Provider errors produce a safe retry response and a subsequent retry can
+// succeed with the same idempotency key.
+let shouldFail = true;
 const retryHandler = createBookingHandler({
-  getDb: () => retryDb,
-  admin: fakeAdmin,
-  createCalendarEvent: async (details) => {
-    calendarCreates++;
-    calendarTimezone = details.meetingTimezone;
-    return { meetingLink: 'https://meet.google.com/test-meet', calendarEventId: `event-${details.bookingId}` };
-  },
-  sendBookingNotifications: async (details) => {
-    let clientEmailSent = Boolean(details.alreadySent.clientEmailSent);
-    let adminEmailSent = Boolean(details.alreadySent.adminEmailSent);
-    if (!clientEmailSent) { clientSends++; await details.onEmailSent('clientEmailSent'); clientEmailSent = true; }
-    if (!adminEmailSent) {
-      adminSends++;
-      if (firstEmailAttempt) firstEmailAttempt = false;
-      else { await details.onEmailSent('adminEmailSent'); adminEmailSent = true; }
+  sendMail: async (message) => {
+    if (shouldFail) {
+      const error = new Error('This detail must not be returned to the browser.');
+      error.code = 'ECONNECTION';
+      error.responseCode = 554;
+      error.command = 'DATA';
+      throw error;
     }
-    return { attempted: true, clientEmailSent, adminEmailSent, error: !clientEmailSent || !adminEmailSent };
+    return { accepted: [message.to] };
   },
 });
+const failed = response();
+await retryHandler(request({ idempotencyKey: 'provider-retry-001' }), failed);
+assert.equal(failed.statusCode, 502);
+assert.match(failed.body.error, /try again/i);
+assert.doesNotMatch(JSON.stringify(failed.body), /This detail|test@example.com/);
+shouldFail = false;
+const retried = response();
+await retryHandler(request({ idempotencyKey: 'provider-retry-001' }), retried);
+assert.equal(retried.statusCode, 200);
 
-const firstResponse = response();
-await retryHandler(request(), firstResponse);
-assert.equal(firstResponse.statusCode, 502);
-assert.equal(firstResponse.body.code, 'BOOKING_EMAIL_FAILED');
-const secondResponse = response();
-await retryHandler(request(), secondResponse);
-assert.equal(secondResponse.statusCode, 200);
-assert.equal(secondResponse.body.ok, true);
-assert.equal(secondResponse.body.clientEmailSent, true);
-assert.equal(secondResponse.body.adminEmailSent, true);
-assert.equal(calendarTimezone, 'Asia/Dubai');
-assert.equal(calendarCreates, 1);
-assert.equal(clientSends, 1);
-assert.equal(adminSends, 2);
-assert.equal(retryDb.collections.get('bookings').size, 1);
-assert.equal(retryDb.collections.get('projectSubmissions').size, 1);
-const mismatchedRetry = response();
-await retryHandler(request({ email: 'different@example.com' }), mismatchedRetry);
-assert.equal(mismatchedRetry.statusCode, 409);
-assert.equal(calendarCreates, 1);
+// Concurrent requests with the same idempotency key are only sent once.
+let resolveSend;
+let concurrentSendCount = 0;
+const concurrentHandler = createBookingHandler({ sendMail: (message) => {
+  concurrentSendCount++;
+  return new Promise((resolve) => { resolveSend = () => resolve({ accepted: [message.to] }); });
+} });
+const first = response();
+const pending = concurrentHandler(request({ idempotencyKey: 'concurrent-key-001' }), first);
+await new Promise((resolve) => setImmediate(resolve));
+const second = response();
+await concurrentHandler(request({ idempotencyKey: 'concurrent-key-001' }), second);
+assert.equal(second.statusCode, 409);
+assert.equal(second.body.code, 'REQUEST_IN_PROGRESS');
+assert.equal(concurrentSendCount, 1);
+resolveSend();
+await pending;
+assert.equal(first.statusCode, 200);
 
-const invalidDb = new MemoryFirestore();
-const invalidHandler = createBookingHandler({ getDb: () => invalidDb, admin: fakeAdmin });
-const invalidResponse = response();
-await invalidHandler(request({ preferredDate: '2026-02-30' }), invalidResponse);
-assert.equal(invalidResponse.statusCode, 400);
-assert.equal(invalidDb.collections.size, 0);
+// Template helper also safely escapes user supplied content.
+const html = buildBookingConfirmation({
+  name: '<Customer>', purpose: '<script>', preferredDate: '2027-02-10', preferredTime: '15:30',
+}).html;
+assert.doesNotMatch(html, /<script>/);
+assert.match(html, /&lt;script&gt;/);
 
-console.log('Booking checks passed: Dubai timezone, invalid date, missing calendar config, successful mocked flow, and retry deduplication.');
+console.log('Booking checks passed: validation, Dubai preference formatting, accepted-only success, failure retry, safe errors, and duplicate suppression.');
