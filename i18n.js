@@ -168,6 +168,10 @@
     'build.more.systems': { en: 'Dashboards & systems', ar: 'لوحات التحكم والأنظمة', zh: '仪表板与系统', ru: 'Дашборды и системы' },
     'build.more.nfc': { en: 'Restaurant NFC', ar: 'NFC للمطاعم', zh: '餐厅 NFC', ru: 'NFC для ресторанов' },
     'build.more.ai': { en: 'AI chat & automation', ar: 'المحادثة الذكية والأتمتة', zh: 'AI 对话与自动化', ru: 'AI-чат и автоматизация' },
+    'build.events.tag': { en: 'QD EVENTS · DIGITAL INVITATIONS', ar: 'QD EVENTS · دعوات رقمية', zh: 'QD EVENTS · 数字请柬', ru: 'QD EVENTS · ЦИФРОВЫЕ ПРИГЛАШЕНИЯ' },
+    'build.events.h': { en: 'A beautiful invitation, backed by event management.', ar: 'دعوة جميلة تدعمها إدارة متكاملة للمناسبة.', zh: '精美请柬，配合活动管理。', ru: 'Красивое приглашение и управление мероприятием.' },
+    'build.events.p': { en: 'Create a personalized digital invitation, follow guest replies, plan seating and prepare for arrivals in one connected event workspace.', ar: 'أنشئ دعوة رقمية مخصصة، وتابع ردود الضيوف، وخطط للمقاعد واستعد للاستقبال ضمن مساحة واحدة لإدارة المناسبة.', zh: '创建个性化电子请柬，跟进宾客回复、安排座位，并在一个活动工作区内做好接待准备。', ru: 'Создайте персональное цифровое приглашение, следите за ответами гостей, планируйте рассадку и готовьтесь к прибытию в едином пространстве.' },
+    'build.events.link': { en: 'Explore QD Events', ar: 'اكتشف QD Events', zh: '了解 QD Events', ru: 'О QD Events' },
 
     /* why / compare */
     'why.tag':        { en: 'Why QD', ar: 'لماذا QD', zh: '为什么选择 QD', ru: 'Почему QD' },

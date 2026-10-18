@@ -367,6 +367,14 @@ body>section{position:relative;z-index:5;padding:100px 0}
 .offer p{font-size:13px;color:var(--muted);line-height:1.5;margin:0}
 .offer-more{display:inline-flex;align-items:center;gap:6px;margin-top:auto;padding-top:14px;color:#e4e4e9;font-size:12px;font-weight:600}
 .offer-more:hover{color:#fff}
+.build-events{display:grid;grid-template-columns:minmax(180px,.62fr) minmax(0,1.38fr);align-items:center;gap:clamp(22px,5vw,62px);margin-top:28px;padding:clamp(20px,3.5vw,38px);border:1px solid rgba(255,255,255,.12);border-radius:22px;background:radial-gradient(ellipse at 16% 50%,rgba(182,152,190,.16),transparent 38%),linear-gradient(115deg,rgba(255,255,255,.045),rgba(255,255,255,.015));overflow:hidden}
+.build-events__art{display:grid;min-height:190px;place-items:center;border-radius:16px;background:radial-gradient(circle,#d9c9d8 0,#99849e 48%,#29222d 73%,transparent 74%)}
+.build-events__art img{display:block;width:min(100%,220px);height:auto;aspect-ratio:1;object-fit:contain;filter:drop-shadow(0 18px 24px rgba(0,0,0,.34))}
+.build-events__copy .tag{display:inline-block;margin-bottom:12px}
+.build-events__copy h3{max-width:660px;font-size:clamp(1.45rem,3vw,2.2rem);margin:0 0 10px}
+.build-events__copy p{max-width:650px;color:var(--muted);font-size:14px;line-height:1.7;margin:0}
+.build-events__copy .offer-more{margin-top:8px;padding-top:12px;font-size:13px}
+@media(max-width:560px){.build-events{grid-template-columns:minmax(0,1fr);gap:14px;margin-top:18px;padding:18px}.build-events__art{min-height:150px}.build-events__art img{width:170px}}
 .build-head .lead{margin-bottom:22px}
 
 /* ── Contact section redesign ───────────────────────────── */
@@ -1000,6 +1008,10 @@ body>#nfc{background:radial-gradient(ellipse 780px 440px at 76% 29%,rgba(255,255
       <article class="offer"><div class="ic" aria-hidden="true">⌁</div><h3 data-i18n="build.o3.h">Restaurant &amp; café NFC</h3><p data-i18n="build.o3.p">Let a tap open a menu, ordering, a staff call or loyalty experience for your guests.</p><a class="offer-more" href="/restaurant-nfc"><span data-i18n="build.more.nfc">Restaurant NFC</span><span aria-hidden="true">→</span></a></article>
       <article class="offer"><div class="ic" aria-hidden="true">✦</div><h3 data-i18n="build.o4.h">Automation &amp; AI chat</h3><p data-i18n="build.o4.p">Connect lead capture, WhatsApp flows and AI chat to practical customer and team workflows.</p><a class="offer-more" href="/ai-automation"><span data-i18n="build.more.ai">AI chat &amp; automation</span><span aria-hidden="true">→</span></a></article>
     </div>
+    <article class="build-events reveal">
+      <div class="build-events__art"><img src="/assets/events/layla-zaid-wax-seal.webp" alt="" width="1254" height="1254" loading="lazy" decoding="async"></div>
+      <div class="build-events__copy"><span class="tag" data-i18n="build.events.tag">QD EVENTS · DIGITAL INVITATIONS</span><h3 data-i18n="build.events.h">A beautiful invitation, backed by event management.</h3><p data-i18n="build.events.p">Create a personalized digital invitation, follow guest replies, plan seating and prepare for arrivals in one connected event workspace.</p><a class="offer-more" href="/event-management"><span data-i18n="build.events.link">Explore QD Events</span><span aria-hidden="true">→</span></a></div>
+    </article>
   </div>
 </section>
 
@@ -1516,6 +1528,7 @@ if(window.visualViewport){visualViewport.addEventListener('resize',qdSyncMobileO
 addEventListener('resize',qdSyncMobileOverlayLayout);
 window.qdOpenBooking=openBooking;
 document.querySelectorAll('[data-book]').forEach(el=>el.addEventListener('click',e=>{e.preventDefault();openBooking();}));
+const bookingRouteParams=new URLSearchParams(location.search);if(bookingRouteParams.get('book')==='1'){bookingRouteParams.delete('book');history.replaceState(null,'',location.pathname+(bookingRouteParams.size?'?'+bookingRouteParams.toString():'')+location.hash);setTimeout(openBooking,0);}
 const bookClose=document.getElementById('bookClose');if(bookClose)bookClose.addEventListener('click',closeBooking);
 if(bookModal){bookModal.addEventListener('click',e=>{if(e.target===bookModal)closeBooking();});}
 addEventListener('keydown',e=>{if(e.key==='Escape'&&bookModal&&bookModal.classList.contains('open'))closeBooking();});

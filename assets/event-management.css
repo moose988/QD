@@ -1,0 +1,336 @@
+/* QD Events product page. Every rule is scoped to the new service page. */
+body[data-service-page="events"] {
+  --event-ivory: #fbf7f1;
+  --event-paper: #fffdf9;
+  --event-plum: #321c36;
+  --event-plum-soft: #5d4260;
+  --event-copy: #584e59;
+  --event-line: #e8dedf;
+  --event-lilac: #eee7f2;
+  --event-blush: #f6e7e3;
+  --event-peach: #f1d6c6;
+  --event-champagne: #b7945f;
+  background: var(--event-ivory);
+  color: var(--event-plum);
+  background-image: none;
+  text-align: start;
+}
+
+body[data-service-page="events"] .event-main { overflow: clip; }
+body[data-service-page="events"] .qd-site-nav .qd-brand { color: #f4f4f6; }
+body[data-service-page="events"] .event-main h1,
+body[data-service-page="events"] .event-main h2,
+body[data-service-page="events"] .event-main h3 { color: var(--event-plum); }
+body[data-service-page="events"] .event-main p { color: var(--event-copy); }
+body[data-service-page="events"] .event-main a:focus-visible,
+body[data-service-page="events"] .event-footer a:focus-visible,
+body[data-service-page="events"] .qd-site-nav a:focus-visible,
+body[data-service-page="events"] .qd-site-nav button:focus-visible {
+  outline: 3px solid #b07c39;
+  outline-offset: 4px;
+}
+body[data-service-page="events"] .wrap { width: min(1160px, calc(100% - 56px)); }
+
+body[data-service-page="events"] .event-hero {
+  position: relative;
+  min-height: 600px;
+  padding: clamp(68px, 9vw, 112px) 0 88px;
+  border-bottom: 1px solid var(--event-line);
+  background: linear-gradient(118deg, var(--event-ivory) 0 62%, #f4edf3 62% 100%);
+}
+body[data-service-page="events"] .event-hero__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(300px, .92fr);
+  align-items: center;
+  gap: clamp(42px, 8vw, 108px);
+}
+body[data-service-page="events"] .event-hero__copy { position: relative; z-index: 1; max-width: 665px; }
+body[data-service-page="events"] .event-eyebrow {
+  margin: 0 0 17px;
+  color: #715979;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .17em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+body[data-service-page="events"] .event-brandline {
+  margin: 0 0 16px;
+  color: var(--event-plum);
+  font: 600 14px/1 "Space Grotesk", Inter, sans-serif;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+body[data-service-page="events"] .event-brandline span { color: #9a739d; }
+body[data-service-page="events"] .event-hero h1 {
+  max-width: 680px;
+  margin: 0;
+  font: 600 clamp(2.7rem, 5.2vw, 5.2rem)/.99 "Cormorant Garamond", Georgia, serif;
+  letter-spacing: -.035em;
+  text-wrap: balance;
+}
+body[data-service-page="events"] .event-lede {
+  max-width: 600px;
+  margin: 25px 0 28px;
+  color: var(--event-copy);
+  font-size: clamp(1.02rem, 1.4vw, 1.14rem);
+  line-height: 1.8;
+}
+body[data-service-page="events"] .event-hero__actions,
+body[data-service-page="events"] .event-cta__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+body[data-service-page="events"] .event-button {
+  display: inline-flex;
+  min-height: 50px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 20px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  font: 650 13px/1.3 Inter, sans-serif;
+  text-align: center;
+  transition: background-color .2s ease, color .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+body[data-service-page="events"] .event-button--primary { background: var(--event-plum); color: #fffaf5; box-shadow: 0 8px 18px #321c3620; }
+body[data-service-page="events"] .event-button--primary:hover { background: #4b2b50; box-shadow: 0 10px 24px #321c362c; }
+body[data-service-page="events"] .event-button--text { min-height: 44px; padding-inline: 8px; color: var(--event-plum); }
+body[data-service-page="events"] .event-button--text:hover { color: #8d658f; }
+body[data-service-page="events"] .event-login {
+  display: inline-flex;
+  margin-top: 20px;
+  padding: 5px 0;
+  border-bottom: 1px solid #a98daa;
+  color: #58465d;
+  font-size: 13px;
+  text-underline-offset: 4px;
+}
+body[data-service-page="events"] .event-login:hover { color: var(--event-plum); border-color: var(--event-plum); }
+
+/* Abstract paper-and-arch artwork: decorative illustration, not a product screen. */
+body[data-service-page="events"] .event-hero__art {
+  position: relative;
+  width: min(100%, 430px);
+  min-height: 408px;
+  justify-self: center;
+  isolation: isolate;
+}
+body[data-service-page="events"] .event-hero__art::before,
+body[data-service-page="events"] .event-hero__art::after {
+  position: absolute;
+  z-index: -1;
+  content: "";
+  border: 1px solid #d7c5d8;
+  border-radius: 50%;
+}
+body[data-service-page="events"] .event-hero__art::before { width: 350px; height: 350px; inset: 20px 0 auto 18px; }
+body[data-service-page="events"] .event-hero__art::after { width: 280px; height: 280px; inset: 55px 0 auto 53px; border-color: #ddc6bb; }
+body[data-service-page="events"] .event-hero__arch {
+  position: absolute;
+  top: 50px;
+  left: 85px;
+  width: 224px;
+  height: 300px;
+  overflow: hidden;
+  border: 1px solid #d6c5d4;
+  border-radius: 115px 115px 18px 18px;
+  background: linear-gradient(155deg, #fffaf5 0%, #f4e9ef 54%, #f4dcd3 100%);
+  box-shadow: 0 28px 45px #60436416;
+}
+body[data-service-page="events"] .event-hero__arch::before,
+body[data-service-page="events"] .event-hero__arch::after {
+  position: absolute;
+  content: "";
+  border: 1px solid #bfabc0;
+  border-radius: 50%;
+}
+body[data-service-page="events"] .event-hero__arch::before { width: 170px; height: 170px; inset: 66px auto auto 25px; }
+body[data-service-page="events"] .event-hero__arch::after { width: 120px; height: 120px; inset: 91px auto auto 50px; border-color: #d8b8a9; }
+body[data-service-page="events"] .event-hero__arch span {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 14px;
+  height: 14px;
+  border: 1px solid #b7945f;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+body[data-service-page="events"] .event-hero__orb { position: absolute; border-radius: 50%; }
+body[data-service-page="events"] .event-hero__orb--large { top: 60px; right: 14px; width: 64px; height: 64px; background: #e9dceb; }
+body[data-service-page="events"] .event-hero__orb--small { bottom: 65px; left: 28px; width: 30px; height: 30px; border: 1px solid #c99c8f; background: #f3ddd5; }
+body[data-service-page="events"] .event-hero__ribbon { position: absolute; right: 21px; bottom: 88px; width: 72px; height: 1px; background: #b7945f; transform: rotate(-37deg); }
+body[data-service-page="events"] .event-hero__caption { position: absolute; right: 2px; bottom: 31px; display: flex; align-items: center; gap: 9px; color: #694e6c; font: 600 10px/1 "Space Grotesk", sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+body[data-service-page="events"] .event-hero__caption i { width: 22px; height: 1px; background: #b7945f; }
+
+body[data-service-page="events"] .event-occasions { padding: 76px 0; background: var(--event-lilac); }
+body[data-service-page="events"] .event-occasions__layout { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: clamp(40px, 8vw, 110px); align-items: start; }
+body[data-service-page="events"] .event-occasions h2,
+body[data-service-page="events"] .event-section__head h2,
+body[data-service-page="events"] .event-cta h2 {
+  margin: 0;
+  font: 600 clamp(2rem, 3.6vw, 3.45rem)/1.05 "Cormorant Garamond", Georgia, serif;
+  letter-spacing: -.025em;
+  text-wrap: balance;
+}
+body[data-service-page="events"] .event-occasions__copy > p:first-child { margin: 3px 0 25px; font-size: 15px; line-height: 1.8; }
+body[data-service-page="events"] .occasion-list { display: flex; flex-wrap: wrap; gap: 9px; margin: 0; padding: 0; list-style: none; }
+body[data-service-page="events"] .occasion-list li { padding: 9px 13px; border: 1px solid #d3c4d7; border-radius: 999px; background: #fbf8fc; color: #493a4f; font-size: 12px; font-weight: 600; line-height: 1.4; }
+body[data-service-page="events"] .event-note { margin: 19px 0 0; color: #625762; font-size: 12px; line-height: 1.65; }
+
+body[data-service-page="events"] .event-section { padding: clamp(70px, 9vw, 112px) 0; }
+body[data-service-page="events"] .event-section__head { max-width: 680px; margin-bottom: 42px; }
+body[data-service-page="events"] .event-section__head p:not(.event-eyebrow) { max-width: 630px; margin: 17px 0 0; font-size: 15px; line-height: 1.8; }
+body[data-service-page="events"] .journey-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--event-line); border-left: 1px solid var(--event-line); }
+body[data-service-page="events"] .journey-item { position: relative; min-height: 235px; padding: 25px 25px 28px; border-right: 1px solid var(--event-line); border-bottom: 1px solid var(--event-line); background: #fffdf9; }
+body[data-service-page="events"] .journey-item:nth-child(3n + 2) { background: #f8f2f8; }
+body[data-service-page="events"] .journey-item:nth-child(3n) { background: #fbf0ec; }
+body[data-service-page="events"] .journey-item__number { color: #8a718e; font: 600 11px/1 "Space Grotesk", sans-serif; letter-spacing: .13em; }
+body[data-service-page="events"] .journey-item__mark { position: absolute; top: 20px; inset-inline-end: 24px; display: grid; width: 31px; height: 31px; place-items: center; border: 1px solid #d5c4d6; border-radius: 50%; color: #694e6c; font-size: 16px; }
+body[data-service-page="events"] .journey-item h3 { max-width: 250px; margin: 32px 0 10px; font: 600 1.35rem/1.1 "Cormorant Garamond", Georgia, serif; letter-spacing: -.01em; }
+body[data-service-page="events"] .journey-item p { margin: 0; font-size: 13px; line-height: 1.75; }
+
+body[data-service-page="events"] .event-preview { padding: clamp(70px, 9vw, 106px) 0; background: #f0e8f0; }
+body[data-service-page="events"] .event-section__head--wide { max-width: 760px; }
+body[data-service-page="events"] .product-preview-grid { display: grid; grid-template-columns: minmax(290px, .8fr) minmax(0, 1.2fr); align-items: start; gap: 26px; }
+body[data-service-page="events"] .invitation-demo,
+body[data-service-page="events"] .dashboard-showcase { min-width: 0; padding: clamp(20px, 3vw, 30px); border: 1px solid #ddd0df; border-radius: 24px; background: #fbf8fb; box-shadow: 0 18px 50px #4e31500c; }
+body[data-service-page="events"] .preview-card__heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+body[data-service-page="events"] .preview-card__heading .event-eyebrow { margin-bottom: 8px; }
+body[data-service-page="events"] .preview-card__heading h3,
+body[data-service-page="events"] .seal-showcase__copy h3 { margin: 0; color: #362b39; font: 600 1.65rem/1.12 "Cormorant Garamond", Georgia, serif; letter-spacing: -.01em; }
+body[data-service-page="events"] .preview-card__spark { display: grid; flex: 0 0 auto; width: 38px; height: 38px; place-items: center; border: 1px solid #dccbdd; border-radius: 50%; color: #795c7d; }
+body[data-service-page="events"] .preview-card__copy { max-width: 650px; min-height: 48px; margin: 13px 0 18px; color: #716773; font-size: 13px; line-height: 1.7; }
+body[data-service-page="events"] .demo-safety-note { margin: 0 auto 13px; padding: 8px 12px; border: 1px solid #ded0bc; border-radius: 12px; color: #6a583d; background: #f7f0e6; font-size: 11px; line-height: 1.5; text-align: center; }
+body[data-service-page="events"] .phone-stage { display: grid; min-height: 600px; place-items: start center; overflow: hidden; padding: 10px 0 0; border-radius: 18px; background: radial-gradient(ellipse at 50% 4%, #ded1e3 0, #f1ebf1 48%, #f8f4f8 100%); }
+body[data-service-page="events"] .phone-frame { position: relative; width: min(100%, 340px); aspect-ratio: 9 / 19.2; padding: 11px; overflow: hidden; border: 2px solid #242128; border-radius: 42px; background: #1d1a20; box-shadow: 0 24px 54px #32253a35, inset 0 0 0 1px #ffffff35; }
+body[data-service-page="events"] .phone-frame__island { position: absolute; z-index: 2; top: 15px; left: 50%; width: 74px; height: 18px; transform: translateX(-50%); border-radius: 99px; background: #1d1a20; pointer-events: none; }
+body[data-service-page="events"] .phone-frame iframe { display: block; width: 100%; height: 100%; border: 0; border-radius: 31px; background: #f7f2e8; }
+body[data-service-page="events"] .demo-actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 16px; }
+body[data-service-page="events"] .demo-actions .event-button { min-height: 42px; padding: 10px 14px; font-size: 12px; }
+body[data-service-page="events"] .demo-actions .event-button--outline { color: #5f4a63; }
+body[data-service-page="events"] .demo-actions .event-button--outline:hover { color: #35263a; background: #efe5f0; }
+body[data-service-page="events"] .demo-actions button:disabled { cursor: not-allowed; opacity: .48; }
+body[data-service-page="events"] .demo-url { overflow-wrap: anywhere; margin: 12px 0 0; color: #716773; font-size: 10px; line-height: 1.5; }
+body[data-service-page="events"] .demo-url code { color: #5f4a63; font-size: 10px; }
+body[data-service-page="events"] .dashboard-showcase { grid-column: 2; grid-row: 1; }
+body[data-service-page="events"] .dashboard-tabs { display: flex; flex-wrap: wrap; gap: 7px; margin: 15px 0 12px; }
+body[data-service-page="events"] .dashboard-tabs [role="tab"] { min-height: 38px; padding: 8px 11px; border: 1px solid #d8cadb; border-radius: 999px; color: #66566a; background: transparent; font: 600 11px/1.2 Inter, system-ui, sans-serif; cursor: pointer; }
+body[data-service-page="events"] .dashboard-tabs [role="tab"][aria-selected="true"] { border-color: #725a78; color: #fff; background: #725a78; }
+body[data-service-page="events"] .dashboard-tabs [role="tab"]:focus-visible,
+body[data-service-page="events"] .dashboard-shot:focus-visible { outline: 3px solid #a784ad; outline-offset: 3px; }
+body[data-service-page="events"] .dashboard-shot { overflow: hidden; border: 1px solid #ddd6df; border-radius: 14px; background: #fff; box-shadow: 0 12px 30px #3b2b3c14; }
+body[data-service-page="events"] .dashboard-shot img { display: block; width: 100%; height: auto; aspect-ratio: 8 / 5; object-fit: contain; background: #f8f7f4; }
+body[data-service-page="events"] .dashboard-shot[data-shot="mobile"] img { max-height: 720px; aspect-ratio: 390 / 844; object-fit: contain; }
+body[data-service-page="events"] .seal-showcase { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(220px, .7fr) minmax(0, 1.3fr); align-items: center; gap: clamp(20px, 5vw, 66px); overflow: hidden; padding: clamp(22px, 4vw, 42px); border: 1px solid #d8c8d9; border-radius: 24px; background: linear-gradient(112deg, #f7f2f3 0%, #e9dfeb 100%); }
+body[data-service-page="events"] .seal-showcase__image { display: grid; min-height: 230px; place-items: center; }
+body[data-service-page="events"] .seal-showcase__image img { display: block; width: min(100%, 300px); height: auto; aspect-ratio: 1; object-fit: contain; filter: drop-shadow(0 18px 22px #5943552e); }
+body[data-service-page="events"] .seal-showcase__copy .event-eyebrow { margin-bottom: 11px; }
+body[data-service-page="events"] .seal-showcase__copy h3 { max-width: 600px; font-size: clamp(1.8rem, 3vw, 2.5rem); }
+body[data-service-page="events"] .seal-showcase__copy p:last-child { max-width: 570px; margin: 14px 0 0; color: #716773; font-size: 14px; line-height: 1.75; }
+
+body[data-service-page="events"] .event-process { background: #fffdf9; }
+body[data-service-page="events"] .event-process__layout { display: grid; grid-template-columns: minmax(220px, .72fr) minmax(0, 1.28fr); gap: clamp(48px, 8vw, 110px); }
+body[data-service-page="events"] .process-list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--event-line); }
+body[data-service-page="events"] .process-list li { display: grid; grid-template-columns: 46px minmax(0, 1fr); gap: 16px; padding: 21px 0; border-bottom: 1px solid var(--event-line); }
+body[data-service-page="events"] .process-list li > span { padding-top: 3px; color: #977b99; font: 600 12px/1.4 "Space Grotesk", sans-serif; letter-spacing: .08em; }
+body[data-service-page="events"] .process-list h3 { margin: 0 0 6px; font: 600 1.3rem/1.15 "Cormorant Garamond", Georgia, serif; }
+body[data-service-page="events"] .process-list p { margin: 0; font-size: 13px; line-height: 1.7; }
+
+body[data-service-page="events"] .event-faq { background: #f7efec; }
+body[data-service-page="events"] .event-faq__layout { display: grid; grid-template-columns: minmax(220px, .72fr) minmax(0, 1.28fr); gap: clamp(48px, 8vw, 110px); }
+body[data-service-page="events"] .event-faq__layout .event-section__head { position: sticky; top: 108px; align-self: start; }
+body[data-service-page="events"] .faq-list { border-top: 1px solid #dfd0d0; }
+body[data-service-page="events"] .faq-list details { border-bottom: 1px solid #dfd0d0; padding: 18px 0; }
+body[data-service-page="events"] .faq-list summary { position: relative; padding-inline-end: 34px; color: var(--event-plum); cursor: pointer; font-size: 14px; font-weight: 650; line-height: 1.55; list-style: none; }
+body[data-service-page="events"] .faq-list summary::-webkit-details-marker { display: none; }
+body[data-service-page="events"] .faq-list summary::after { position: absolute; inset-inline-end: 4px; top: 0; content: "+"; color: #785b7b; font-size: 21px; font-weight: 400; line-height: 1; }
+body[data-service-page="events"] .faq-list details[open] summary::after { content: "−"; }
+body[data-service-page="events"] .faq-list details p { max-width: 690px; margin: 12px 34px 0 0; font-size: 13px; line-height: 1.75; }
+html[dir="rtl"] body[data-service-page="events"] .faq-list details p { margin-right: 0; margin-left: 34px; }
+
+body[data-service-page="events"] .event-cta { padding: 70px 0 80px; background: var(--event-ivory); }
+body[data-service-page="events"] .event-cta__box { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(240px, .9fr); align-items: end; gap: 36px; padding: clamp(30px, 5vw, 56px); border-radius: 18px; background: var(--event-plum); color: #fffaf5; }
+body[data-service-page="events"] .event-cta .event-eyebrow { color: #dbc6da; }
+body[data-service-page="events"] .event-cta h2 { color: #fffaf5; }
+body[data-service-page="events"] .event-cta p:not(.event-eyebrow) { max-width: 620px; margin: 17px 0 0; color: #e7dce7; font-size: 14px; line-height: 1.8; }
+body[data-service-page="events"] .event-cta__actions { align-items: stretch; justify-content: flex-end; }
+body[data-service-page="events"] .event-button--light { background: #fffaf5; color: var(--event-plum); }
+body[data-service-page="events"] .event-button--light:hover { background: #f1e6ed; }
+body[data-service-page="events"] .event-button--outline { border-color: #9f879f; background: transparent; color: #fffaf5; }
+body[data-service-page="events"] .event-button--outline:hover { background: #ffffff14; border-color: #d8c2d8; }
+body[data-service-page="events"] .event-footer { border-color: var(--event-line); color: #665d68; }
+body[data-service-page="events"] .event-footer .footer-links { flex-wrap: wrap; }
+body[data-service-page="events"] .event-footer a { color: #584e59; }
+body[data-service-page="events"] .event-footer a:hover { color: var(--event-plum); text-decoration: underline; text-underline-offset: 3px; }
+
+html[lang="ar"] body[data-service-page="events"] .event-hero h1,
+html[lang="ar"] body[data-service-page="events"] .event-main h2,
+html[lang="ar"] body[data-service-page="events"] .event-main h3 { font-family: Inter, "Noto Naskh Arabic", sans-serif; letter-spacing: 0; line-height: 1.45; }
+html[lang="zh"] body[data-service-page="events"] .event-main h1,
+html[lang="zh"] body[data-service-page="events"] .event-main h2,
+html[lang="zh"] body[data-service-page="events"] .event-main h3 { font-family: Inter, "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; letter-spacing: -.02em; }
+html[lang="ru"] body[data-service-page="events"] .event-main h1,
+html[lang="ru"] body[data-service-page="events"] .event-main h2,
+html[lang="ru"] body[data-service-page="events"] .event-main h3 { font-family: Inter, system-ui, sans-serif; letter-spacing: -.035em; }
+
+@media (max-width: 900px) {
+  body[data-service-page="events"] .event-hero { min-height: 0; padding: 72px 0 68px; background: linear-gradient(145deg, var(--event-ivory) 0 61%, #f4edf3 61% 100%); }
+  body[data-service-page="events"] .event-hero__layout { grid-template-columns: minmax(0, 1.1fr) minmax(250px, .9fr); gap: 25px; }
+  body[data-service-page="events"] .event-hero__art { transform: scale(.84); transform-origin: center; margin: -28px -25px; }
+  body[data-service-page="events"] .journey-item { padding-inline: 20px; }
+  body[data-service-page="events"] .event-process__layout,
+  body[data-service-page="events"] .event-faq__layout { gap: 48px; }
+}
+@media (max-width: 680px) {
+  body[data-service-page="events"] .wrap { width: min(100% - 36px, 560px); }
+  body[data-service-page="events"] .event-hero { padding: 54px 0 48px; background: linear-gradient(155deg, var(--event-ivory) 0 73%, #f4edf3 73% 100%); }
+  body[data-service-page="events"] .event-hero__layout { grid-template-columns: minmax(0, 1fr); gap: 15px; }
+  body[data-service-page="events"] .event-hero h1 { max-width: 560px; font-size: clamp(2.7rem, 12vw, 4.2rem); }
+  body[data-service-page="events"] .event-lede { margin: 19px 0 22px; font-size: 1rem; }
+  body[data-service-page="events"] .event-hero__art { width: 340px; min-height: 300px; transform: scale(.72); transform-origin: top center; margin: -7px auto -70px; }
+  body[data-service-page="events"] .event-hero__art::before { left: 18px; }
+  body[data-service-page="events"] .event-hero__art::after { left: 53px; }
+  body[data-service-page="events"] .event-hero__arch { left: 85px; }
+  body[data-service-page="events"] .event-occasions { padding: 58px 0; }
+  body[data-service-page="events"] .event-occasions__layout,
+  body[data-service-page="events"] .event-process__layout,
+  body[data-service-page="events"] .event-faq__layout { grid-template-columns: minmax(0, 1fr); gap: 26px; }
+  body[data-service-page="events"] .event-occasions h2,
+  body[data-service-page="events"] .event-section__head h2,
+  body[data-service-page="events"] .event-cta h2 { font-size: clamp(2.15rem, 9vw, 3rem); }
+  body[data-service-page="events"] .event-section { padding: 62px 0; }
+  body[data-service-page="events"] .event-section__head { margin-bottom: 28px; }
+  body[data-service-page="events"] .journey-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body[data-service-page="events"] .journey-item { min-height: 240px; padding: 20px 16px 22px; }
+  body[data-service-page="events"] .journey-item__mark { inset-inline-end: 15px; top: 16px; }
+  body[data-service-page="events"] .journey-item h3 { margin-top: 28px; font-size: 1.2rem; }
+  body[data-service-page="events"] .journey-item p { font-size: 12px; }
+  body[data-service-page="events"] .product-preview-grid { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  body[data-service-page="events"] .dashboard-showcase { grid-column: 1; grid-row: auto; }
+  body[data-service-page="events"] .phone-stage { min-height: 0; }
+  body[data-service-page="events"] .phone-frame { width: min(100%, 326px); }
+  body[data-service-page="events"] .seal-showcase { grid-column: 1; grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 20px; }
+  body[data-service-page="events"] .seal-showcase__image { min-height: 170px; }
+  body[data-service-page="events"] .seal-showcase__image img { width: min(58vw, 210px); }
+  body[data-service-page="events"] .demo-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body[data-service-page="events"] .demo-actions .event-button { justify-content: center; text-align: center; }
+  body[data-service-page="events"] .demo-actions .event-button:last-child { grid-column: 1 / -1; order: -1; }
+  body[data-service-page="events"] .event-faq__layout .event-section__head { position: static; }
+  body[data-service-page="events"] .faq-list details p { margin-top: 10px; }
+  body[data-service-page="events"] .event-cta { padding: 52px 0 60px; }
+  body[data-service-page="events"] .event-cta__box { grid-template-columns: minmax(0, 1fr); gap: 26px; padding: 28px 22px; }
+  body[data-service-page="events"] .event-cta__actions { justify-content: flex-start; }
+  body[data-service-page="events"] .event-button { min-height: 48px; padding: 0 16px; }
+  body[data-service-page="events"] .event-footer { padding-bottom: 30px; }
+}
+@media (max-width: 390px) {
+  body[data-service-page="events"] .wrap { width: calc(100% - 32px); }
+  body[data-service-page="events"] .event-hero h1 { font-size: clamp(2.45rem, 11.5vw, 3.3rem); }
+  body[data-service-page="events"] .journey-item { min-height: 260px; padding-inline: 13px; }
+  body[data-service-page="events"] .event-hero__actions { align-items: stretch; }
+  body[data-service-page="events"] .event-hero__actions .event-button--primary { flex: 1 1 auto; }
+  body[data-service-page="events"] .event-hero__actions .event-button--text { flex: 0 1 auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body[data-service-page="events"] *, body[data-service-page="events"] *::before, body[data-service-page="events"] *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+}

@@ -9,7 +9,7 @@
     ru: { brand: 'Главная QD Systems', work: 'Работы', build: 'Наши услуги', nfc: 'NFC', contact: 'Контакты', book: 'Бесплатный звонок →', choose: 'Выбрать язык', navigate: 'Навигация', close: 'Закрыть меню', open: 'Открыть меню', mobileNav: 'Разделы сайта', langLabel: 'Язык', built: 'QD Systems · Создано в ОАЭ', privacy: 'Конфиденциальность', terms: 'Условия', home: 'Главная' }
   };
 
-  var PAGES = {
+  var PAGES = Object.assign({}, window.QD_SERVICE_PAGE_CONTENT || {}, {
     website: {
       en: {
         title: 'Website development for UAE businesses | QD Systems', description: 'Custom business websites, planned around your customers and the next action you want them to take.', breadcrumb: 'Website development', eyebrow: 'Custom websites · United Arab Emirates', h1: 'Website development for UAE businesses', intro: 'A business website should explain what you do, help the right customer trust the offer and make the next step simple. QD Systems builds custom websites around your services and customer journey, rather than fitting your business into a generic template.', primary: 'Talk about a website', secondary: 'See the work section', section1: 'A website shaped around your actual business', section1Intro: 'QD Systems works with businesses in the UAE that need a clear, credible online presence and a useful way for visitors to enquire, book or explore an offer. A business website development project starts with understanding the audience, the service and the job the website needs to do.', c1h: 'Service and company websites', c1p: 'Present your offer, explain how it works and answer the questions a prospective customer needs resolved before contacting you.', c2h: 'Lead and booking journeys', c2p: 'Make the next action visible, whether that is sending an enquiry, requesting a call or using a booking flow included in the agreed scope.', c3h: 'Mobile-first page layouts', c3p: 'Organize content for phone screens as well as desktop so visitors can read key information and use contact actions without fighting the layout.', c4h: 'English and Arabic support', c4p: 'QD Systems offers bilingual EN/AR builds and right-to-left support. The language coverage and content needed for each page are set during project scoping.', section2: 'From brief to launch', section2Intro: 'The work begins with the goal of the site, the information customers need and the actions that should be easy to take. QD Systems then agrees the scope and timeline in writing, builds the custom experience, and tests the key pages and enquiry path before launch.', s1h: 'Share the goal', s1p: 'Describe your business, audience, current website if you have one, and what you want visitors to do.', s2h: 'Agree scope', s2p: 'Discuss required pages, content, language support, integrations and a written quote and schedule.', s3h: 'Build and review', s3p: 'Review the direction and working pages, then resolve content or layout questions against the agreed brief.', s4h: 'Test and launch', s4p: 'Check the agreed pages, mobile presentation and contact route, then coordinate the launch.', faq: 'Website development questions', q1: 'What does QD Systems include in a business website?', a1: 'The scope is agreed around the business. It can cover a custom-designed website, responsive page layouts, service information, enquiry actions and, where useful, booking or other connected business workflows.', q2: 'Can you build a bilingual English and Arabic website?', a2: 'QD Systems supports English and Arabic, including right-to-left layouts. Language requirements and which pages need each language are confirmed during scoping.', q3: 'How do I start a website project in the UAE?', a3: 'Contact QD Systems by WhatsApp or book a call. Explain what the business offers, who the site should serve and the actions visitors should be able to take; QD Systems can then discuss scope, timing and a quote.', cta: 'Planning a business website?', ctaText: 'Share what the site needs to explain and the outcome you want from it. QD Systems can discuss a custom website scope for your business in the UAE.', ctaButton: 'Message QD Systems on WhatsApp'
@@ -42,7 +42,7 @@
       zh: { title: '餐厅 NFC 与数字菜单 | QD Systems', description: '通过 NFC 标签连接餐厅顾客与菜单、点单、会员、评价和服务。', breadcrumb: '餐厅 NFC', eyebrow: 'NFC 体验 · 餐厅与咖啡馆 · 阿联酋', h1: '餐厅和咖啡馆的 NFC 标签与数字菜单', intro: '让顾客从餐桌或柜台轻松进入所需信息或操作。QD Systems 为餐饮场所搭建 NFC 体验，让一次轻触即可打开数字菜单、点单、会员计划、桌边服务、评价或其他约定页面。', primary: '讨论场所 NFC 方案', secondary: '查看 NFC 介绍', section1: '轻触一下，连接有用的下一步', section1Intro: '餐厅、咖啡馆和其他接待场所可在餐桌、柜台或入口放置 NFC 标签，让顾客更容易访问数字服务。QD Systems 帮助确定标签打开的内容，并连接到场所选择的页面或流程。', c1h: '咖啡馆数字菜单', c1p: '顾客轻触即可从餐桌、柜台或外带区打开场所的在线菜单。', c2h: '点单与服务', c2p: '在约定方案范围内，将顾客连接到点单流程或桌边服务请求。', c3h: '会员与回访', c3p: '轻触打开会员体验或回头客奖励信息。', c4h: '评价与自定义操作', c4p: '链接到场所评价页面或其他相关入口，让操作实用、标识清楚且易于测试。', section2: '餐厅 NFC 方案如何落地', section2Intro: '目标是让顾客轻触后能获得明确体验，同时方便场所管理。入口和标签位置应符合顾客实际使用空间的方式。', s1h: '选择顾客操作', s1p: '确定轻触后打开菜单、点单、服务请求、会员入口、评价页面或其他网页操作。', s2h: '规划标签位置', s2p: '确定标签放在每张餐桌、柜台，还是顾客旅程中的其他位置。', s3h: '连接目标页面', s3p: 'QD Systems 将标签连接到约定的数字入口，并考虑顾客轻触后需要看到的信息。', s4h: '测试体验', s4p: '用兼容手机测试标签和目标页面，确认顾客在现场能轻松理解操作路径。', faq: '餐厅 NFC 常见问题', q1: 'NFC 标签能为餐厅或咖啡馆做什么？', a1: '轻触可打开数字菜单、点单或会员体验、桌边服务请求、评价页面或其他约定的网页操作。入口应符合场所的顾客旅程。', q2: '顾客需要安装应用才能使用 NFC 菜单吗？', a2: 'QD Systems 的 NFC 标签无需顾客安装应用即可打开数字体验。支持 NFC 且已开启功能的手机可以访问链接页面。', q3: '不同餐桌可以链接到不同操作吗？', a3: 'QD Systems 支持自定义标签和操作。规划时可讨论各桌使用不同入口还是共用一个入口。', cta: '让下一次轻触发挥作用', ctaText: '告诉我们你的餐厅或咖啡馆，以及你希望顾客在餐桌或柜台完成什么。QD Systems 可以围绕顾客旅程讨论 NFC 方案。', ctaButton: '通过 WhatsApp 联系 QD Systems' },
       ru: { title: 'NFC и цифровые меню для ресторанов | QD Systems', description: 'NFC-метки связывают гостей с меню, заказом, программой лояльности, отзывами и обслуживанием.', breadcrumb: 'NFC для ресторанов', eyebrow: 'NFC-решения · Рестораны и кафе · ОАЭ', h1: 'NFC-метки и цифровые меню для ресторанов и кафе', intro: 'Помогите гостю перейти от стола или стойки к нужной информации или действию. QD Systems настраивает NFC-сценарии для ресторанов: одно касание открывает цифровое меню, заказ, программу лояльности, вызов персонала, отзывы или другую согласованную страницу.', primary: 'Обсудить NFC для заведения', secondary: 'Обзор NFC-решений', section1: 'Одно касание — полезный следующий шаг', section1Intro: 'Рестораны, кафе и другие заведения могут разместить NFC-метки на столах, стойке или входе, чтобы гостям было проще открыть цифровой сервис. QD Systems помогает выбрать действие метки и связать её со страницей или сценарием заведения.', c1h: 'Цифровое меню кафе', c1p: 'Гость может открыть онлайн-меню касанием со стола, стойки или зоны выдачи.', c2h: 'Заказ и обслуживание', c2p: 'Свяжите гостей с оформлением заказа или запросом обслуживания стола, если это входит в согласованный проект.', c3h: 'Лояльность и повторные визиты', c3p: 'Одно касание может открыть программу лояльности или сведения о бонусах для постоянных клиентов.', c4h: 'Отзывы и другие действия', c4p: 'Добавьте ссылку на отзывы или другую полезную страницу. Действие должно быть понятным и простым для проверки.', section2: 'Как создаётся NFC-сценарий ресторана', section2Intro: 'Гостю должно быть понятно, что произойдёт после касания, а заведению — удобно управлять метками. Размещение и целевая страница должны соответствовать использованию пространства.', s1h: 'Выбрать действие гостя', s1p: 'Решите, что откроет метка: меню, заказ, обслуживание, лояльность, отзывы или другую веб-страницу.', s2h: 'Определить размещение', s2p: 'Решите, нужны ли метки на каждом столе, на стойке или в другой точке пути клиента.', s3h: 'Подключить страницу', s3p: 'QD Systems связывает метку с согласованной страницей и продумывает информацию, которую увидит гость.', s4h: 'Проверить сценарий', s4p: 'Проверьте метку и страницу на совместимых телефонах и убедитесь, что действия понятны в заведении.', faq: 'Вопросы о NFC для ресторанов', q1: 'Что NFC-метка может сделать для ресторана или кафе?', a1: 'Касание может открыть цифровое меню, заказ, программу лояльности, запрос обслуживания стола, страницу отзывов или другую согласованную веб-функцию. Сценарий выбирают под путь гостя.', q2: 'Нужно ли устанавливать приложение для NFC-меню?', a2: 'Метки QD Systems открывают цифровой сервис без приложения. Совместимый телефон с включённым NFC сможет перейти по связанной ссылке.', q3: 'Можно ли связать разные столы с разными действиями?', a3: 'QD Systems поддерживает настройку меток и действий. При планировании можно определить, нужны ли отдельные ссылки для столов или одна общая.', cta: 'Пусть следующее касание будет полезным', ctaText: 'Расскажите о вашем ресторане или кафе и о том, что гости должны делать за столом или у стойки. QD Systems обсудит NFC-сценарий под путь клиента.', ctaButton: 'Написать QD Systems в WhatsApp' }
     }
-  };
+  });
 
   var serviceKey = document.body && document.body.getAttribute('data-service-page');
   if (!serviceKey || !PAGES[serviceKey]) return;
@@ -63,7 +63,7 @@
   Object.keys(CONTENT_KEYS).forEach(function (selector) {
     document.querySelectorAll(selector).forEach(function (el, index) {
       var key = CONTENT_KEYS[selector][index];
-      if (key) el.setAttribute('data-service-copy', key);
+      if (key && !el.hasAttribute('data-service-copy')) el.setAttribute('data-service-copy', key);
     });
   });
 
@@ -86,8 +86,19 @@
     });
     document.querySelectorAll('[data-service-aria]').forEach(function (el) {
       var key = el.getAttribute('data-service-aria');
-      var value = common[key];
+      var value = Object.prototype.hasOwnProperty.call(page, key) ? page[key] : common[key];
       if (value != null) el.setAttribute('aria-label', value);
+    });
+    document.querySelectorAll('[data-service-copy-alt], [data-service-copy-title]').forEach(function (el) {
+      var attr = el.hasAttribute('data-service-copy-alt') ? 'alt' : 'title';
+      var key = el.getAttribute(attr === 'alt' ? 'data-service-copy-alt' : 'data-service-copy-title');
+      var value = Object.prototype.hasOwnProperty.call(page, key) ? page[key] : common[key];
+      if (value != null) el.setAttribute(attr, value);
+    });
+    document.querySelectorAll('[data-service-href]').forEach(function (el) {
+      var key = el.getAttribute('data-service-href');
+      var value = page[key];
+      if (value != null) el.setAttribute('href', value);
     });
     /* Translate existing page text by matching the page's English copy. This
        keeps the static content and the locale catalog in one source of truth. */
@@ -120,6 +131,18 @@
     document.title = page.title;
     var description = document.querySelector('meta[name="description"]');
     if (description) description.setAttribute('content', page.description);
+    var socialTitle = document.querySelector('meta[property="og:title"]');
+    var twitterTitle = document.querySelector('meta[name="twitter:title"]');
+    var socialDescription = document.querySelector('meta[property="og:description"]');
+    var twitterDescription = document.querySelector('meta[name="twitter:description"]');
+    if (page.ogTitle) {
+      if (socialTitle) socialTitle.setAttribute('content', page.ogTitle);
+      if (twitterTitle) twitterTitle.setAttribute('content', page.ogTitle);
+    }
+    if (page.ogDescription) {
+      if (socialDescription) socialDescription.setAttribute('content', page.ogDescription);
+      if (twitterDescription) twitterDescription.setAttribute('content', page.ogDescription);
+    }
     document.documentElement.lang = lang;
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
   }
