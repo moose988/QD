@@ -29,11 +29,13 @@
     "api/book.js":         { "memory": 512,  "maxDuration": 15 },
     "api/chat.js":         { "memory": 1024, "maxDuration": 30 },
     "api/demo.js":         { "memory": 512,  "maxDuration": 10 },
+    "api/health.js":       { "memory": 512,  "maxDuration": 15 },
     "api/maps-extract.js": { "memory": 512,  "maxDuration": 15 },
     "api/quote-save.js":   { "memory": 512,  "maxDuration": 15 }
   },
   "crons": [
-    { "path": "/api/collections-digest", "schedule": "0 4 * * *" }
+    { "path": "/api/collections-digest", "schedule": "0 4 * * *" },
+    { "path": "/api/health?alert=1", "schedule": "0 5 * * *" }
   ],
   "headers": [
     {

@@ -14,7 +14,7 @@
     "pretest:pricing": "npm run build:pricing",
     "prepricing": "npm run build:pricing",
     "test:pricing": "node scripts/test-pricing.mjs && node scripts/test-pricing-property.mjs && node scripts/test-pricing-golden.mjs",
-    "test:chatbot": "node --test tests/chatbot-safety.test.mjs",
+    "test:chatbot": "node --test tests/*.test.mjs",
     "eval:chatbot": "node scripts/chatbot-eval.mjs"
   },
   "dependencies": {
