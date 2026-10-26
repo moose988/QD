@@ -319,7 +319,7 @@ export default async function handler(req, res) {
       const queryEmbedding = await withTimeout(embedQuery(retrievalQuery), EMBEDDING_TIMEOUT_MS, 'Embedding');
       stage.mark('embedding_completed', { dimensions: queryEmbedding?.length || 0 });
       stage.mark('retrieval_started', { mode: retrievalMode });
-      retrieved = await retrieve(queryEmbedding, { topK: 5, lang });
+      retrieved = await retrieve(queryEmbedding, { topK: 4, lang });
       stage.mark('retrieval_completed', { retrievedCount: retrieved.length, mode: retrievalMode });
     } catch (embedErr) {
       retrievalMode = 'fallback';
