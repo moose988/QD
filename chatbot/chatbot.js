@@ -722,8 +722,11 @@
     try { storage.setItem(key, JSON.stringify(value)); } catch (e) {}
   }
 
+  const NUDGE_FORCED = /[?&]nudge=1\b/.test(location.search);
+
   function nudgeAllowed() {
     if (state.open || state.sending) return false;
+    if (NUDGE_FORCED) return Date.now() - nudgeState.lastShown >= 15000;
     if (state.lead || (state.history && state.history.length)) return false;
     if (sessionStorage.getItem(NUDGE_ENGAGED_KEY)) return false;
     if (document.visibilityState !== 'visible') return false;
@@ -813,6 +816,8 @@
         if (node) { node.setAttribute('data-nudge-key', key); io.observe(node); }
       });
     }
+
+    if (NUDGE_FORCED) setTimeout(() => showNudge('def'), 2000);
 
     setInterval(() => {
       if (!nudgeAllowed()) return;
