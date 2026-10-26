@@ -1,7 +1,6 @@
 import crypto from 'node:crypto';
-import { getDb, admin } from './_lib/firebase.js';
+import { getDb, admin } from '../firebase.js';
 
-export const config = { runtime: 'nodejs', maxDuration: 10 };
 
 const MAX_FAILED_ATTEMPTS = 5;
 const ATTEMPT_WINDOW_MS = 10 * 60 * 1000;

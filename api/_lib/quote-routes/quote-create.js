@@ -3,17 +3,16 @@
 // POST /api/quote-from-estimate rewrites here on Vercel (same body as estimate flow).
 // Admin-only. Pre-fills from submission or estimate, generates passcode + quote number, persists.
 
-import { getDb, admin } from './_lib/firebase.js';
-import { requireAdmin } from './_lib/admin-auth.js';
-import { generateQuoteId, generatePasscode, hashPasscode } from './_lib/quote-id.js';
-import { getNextQuoteNumber } from './_lib/quote-counter.js';
-import { buildQuoteSearchFields } from './_lib/quote-admin.js';
-import { buildDefaultMilestones } from './_lib/collections.js';
-import { buildQuotePaymentFields } from './_lib/quote-payments.js';
-import { prefillFromSubmission } from '../app/lib/quote-prefill.js';
-import { createQuoteFromEstimate } from './_lib/create-quote-from-estimate.js';
+import { getDb, admin } from '../firebase.js';
+import { requireAdmin } from '../admin-auth.js';
+import { generateQuoteId, generatePasscode, hashPasscode } from '../quote-id.js';
+import { getNextQuoteNumber } from '../quote-counter.js';
+import { buildQuoteSearchFields } from '../quote-admin.js';
+import { buildDefaultMilestones } from '../collections.js';
+import { buildQuotePaymentFields } from '../quote-payments.js';
+import { prefillFromSubmission } from '../../../app/lib/quote-prefill.js';
+import { createQuoteFromEstimate } from '../create-quote-from-estimate.js';
 
-export const config = { runtime: 'nodejs', maxDuration: 10 };
 
 export default async function handler(req, res) {
   console.log('[quote-create] hit', { method: req.method, url: req.url });

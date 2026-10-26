@@ -18,18 +18,19 @@
     { "source": "/api/collections", "destination": "/api/quote-save?__quoteRoute=collections" },
     { "source": "/api/collections-collect", "destination": "/api/quote-save?__quoteRoute=collections-collect" },
     { "source": "/api/collections-digest", "destination": "/api/quote-save?__quoteRoute=collections-digest" },
-    { "source": "/api/quote-from-estimate", "destination": "/api/quote-create" }
+    { "source": "/api/quote-from-estimate", "destination": "/api/quote-save?__quoteRoute=quote-create" },
+    { "source": "/api/quote-create", "destination": "/api/quote-save?__quoteRoute=quote-create" },
+    { "source": "/api/quote-verify", "destination": "/api/quote-save?__quoteRoute=quote-verify" },
+    { "source": "/api/demo-deploy", "destination": "/api/demo?__demoRoute=deploy" },
+    { "source": "/api/demo-get", "destination": "/api/demo?__demoRoute=get" },
+    { "source": "/api/demo-verify", "destination": "/api/demo?__demoRoute=verify" }
   ],
   "functions": {
     "api/book.js":         { "memory": 512,  "maxDuration": 15 },
     "api/chat.js":         { "memory": 1024, "maxDuration": 30 },
-    "api/demo-deploy.js":  { "memory": 512,  "maxDuration": 10 },
-    "api/demo-get.js":     { "memory": 512,  "maxDuration": 10 },
-    "api/demo-verify.js":  { "memory": 512,  "maxDuration": 10 },
+    "api/demo.js":         { "memory": 512,  "maxDuration": 10 },
     "api/maps-extract.js": { "memory": 512,  "maxDuration": 15 },
-    "api/quote-create.js": { "memory": 512,  "maxDuration": 10 },
-    "api/quote-save.js":   { "memory": 512,  "maxDuration": 15 },
-    "api/quote-verify.js": { "memory": 512,  "maxDuration": 10 }
+    "api/quote-save.js":   { "memory": 512,  "maxDuration": 15 }
   },
   "crons": [
     { "path": "/api/collections-digest", "schedule": "0 4 * * *" }

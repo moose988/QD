@@ -1,7 +1,6 @@
-import { getDb } from './_lib/firebase.js';
-import { requireAdmin } from './_lib/admin-auth.js';
+import { getDb } from '../firebase.js';
+import { requireAdmin } from '../admin-auth.js';
 
-export const config = { runtime: 'nodejs', maxDuration: 10 };
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');

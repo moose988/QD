@@ -82,6 +82,16 @@ const API_REWRITES = new Map([
   ['collections', 'collections'],
   ['collections-collect', 'collections-collect'],
   ['collections-digest', 'collections-digest'],
+  ['quote-create', 'quote-create'],
+  ['quote-from-estimate', 'quote-create'],
+  ['quote-verify', 'quote-verify'],
+]);
+
+// Client-demo endpoints share one function (api/demo.js), like vercel.json's rewrites.
+const DEMO_REWRITES = new Map([
+  ['demo-deploy', 'deploy'],
+  ['demo-get', 'get'],
+  ['demo-verify', 'verify'],
 ]);
 
 const server = http.createServer(async (req, res) => {
@@ -95,6 +105,12 @@ const server = http.createServer(async (req, res) => {
       url.searchParams.set('__quoteRoute', consolidatedRoute);
       req.url = `/api/quote-save?${url.searchParams.toString()}`;
       name = 'quote-save';
+    }
+    const demoRoute = DEMO_REWRITES.get(name);
+    if (demoRoute) {
+      url.searchParams.set('__demoRoute', demoRoute);
+      req.url = `/api/demo?${url.searchParams.toString()}`;
+      name = 'demo';
     }
     const file = path.join(ROOT, 'api', name + '.js');
     if (!fs.existsSync(file)) {
