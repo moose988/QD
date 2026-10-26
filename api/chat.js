@@ -434,8 +434,10 @@ export default async function handler(req, res) {
             continue;
           }
 
-          const existingLead = await db.collection('chatLeads').where('sessionId', '==', sessionId).limit(1).get();
-          if (!existingLead.empty) {
+          // The start form already writes a 'chatbot-prechat' doc for this session; only a
+          // previously captured chat lead counts as a duplicate.
+          const existingLeads = await db.collection('chatLeads').where('sessionId', '==', sessionId).limit(10).get();
+          if (existingLeads.docs.some((d) => d.data()?.source !== 'chatbot-prechat')) {
             leadSaved = true;
             stage.mark('lead_already_saved');
             continue;
@@ -472,7 +474,7 @@ export default async function handler(req, res) {
             messages: [
               ...messages,
               { role: 'assistant', content: null, tool_calls: [{ id: callId, type: 'function', function: { name: 'capture_lead', arguments: leadCall.args || '{}' } }] },
-              { role: 'tool', tool_call_id: callId, content: leadSaved ? 'Saved. The team will message the visitor soon. Now reply to the visitor in the same language: answer their last question first (stay brief, no figures), then say the team will message them soon.' : 'Not saved: no usable contact yet. Reply naturally and ask how the team should reach them.' },
+              { role: 'tool', tool_call_id: callId, content: leadSaved ? 'Saved. The team will message the visitor soon. Now reply to the visitor in the same language: answer their last question first (stay brief, no figures), then say the team will message them soon.' : (leadIncomplete ? 'Not saved: no usable contact yet. Reply naturally and ask how the team should reach them.' : 'Noted. Reply to the visitor in the same language: answer their last question first (stay brief, no figures), then say the team will follow up. Do NOT ask for contact details.') },
             ],
             temperature: 0.3,
             max_tokens: 200,

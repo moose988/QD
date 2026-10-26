@@ -67,15 +67,15 @@
       newChat: 'محادثة جديدة',
       send: 'إرسال',
       gateTitle: 'قبل أن نبدأ',
-      gateSub: 'اترك بياناتك حتى يتواصل معك الفريق, حتى لو انقطعت المحادثة.',
+      gateSub: 'اترك بياناتك حتى يتواصل معك الفريق، حتى لو انقطعت المحادثة.',
       gName: 'الاسم',
       gEmail: 'البريد الإلكتروني',
       gPhone: 'واتساب / رقم الهاتف (اختياري)',
       gStart: 'ابدأ المحادثة ←',
       greeting:
-        'أهلاً، أنا مساعد QD. عندك أي سؤال عن المواقع أو بطاقات NFC أو دعوات المناسبات أو أي شيء نقدمه؟ اسأل براحتك, يسعدني أساعدك.',
+        'أهلاً، أنا مساعد QD. عندك أي سؤال عن المواقع أو بطاقات NFC أو دعوات المناسبات أو أي شيء نقدمه؟ اسأل براحتك، يسعدني أساعدك.',
       chips: ['ماذا تبنون؟', 'كم تستغرق مدة المشروع؟', 'اعرض أعمالكم', 'أحتاج موقعاً'],
-      leadSaved: 'تم, بياناتك وصلت لفريق QD. سنتواصل معك قريباً.',
+      leadSaved: 'تم، بياناتك وصلت لفريق QD. سنتواصل معك قريباً.',
       errorNetwork: 'انقطاع بسيط في الاتصال. جرّب مرة أخرى، أو راسلنا واتساب +971 50 461 1123.',
     },
     zh: {
@@ -748,7 +748,7 @@
 
   const NUDGES = {
     en: { dismiss: 'Dismiss', name: 'QD Assistant', msgs: { def: ["Hi, got any questions? I'm happy to help.", ''], nfc: ["Curious what one tap could do for your business? Happy to show you.", 'What could an NFC tag do for my business?'], events: ["Planning an event? I can walk you through how QD Events works.", "I'm planning an event, how does QD Events work?"], contact: ["Rather ask than fill a form? Go ahead, I'm here.", ''] } },
-    ar: { dismiss: 'إغلاق', name: 'مساعد QD', msgs: { def: ['أهلاً، عندك أي سؤال؟ يسعدني أساعدك.', ''], nfc: ['تتساءل ماذا تفعل لمسة واحدة لنشاطك؟ يسعدني أوضّح لك.', 'ماذا يمكن لبطاقة NFC أن تفعل لنشاطي؟'], events: ['تخطط لمناسبة؟ أشرح لك كيف يعمل QD Events.', 'أخطط لمناسبة, كيف يعمل QD Events؟'], contact: ['تفضّل تسأل بدل ملء النموذج؟ تفضّل، أنا هنا.', ''] } },
+    ar: { dismiss: 'إغلاق', name: 'مساعد QD', msgs: { def: ['أهلاً، عندك أي سؤال؟ يسعدني أساعدك.', ''], nfc: ['تتساءل ماذا تفعل لمسة واحدة لنشاطك؟ يسعدني أوضّح لك.', 'ماذا يمكن لبطاقة NFC أن تفعل لنشاطي؟'], events: ['تخطط لمناسبة؟ أشرح لك كيف يعمل QD Events.', 'أخطط لمناسبة، كيف يعمل QD Events؟'], contact: ['تفضّل تسأل بدل ملء النموذج؟ تفضّل، أنا هنا.', ''] } },
     zh: { dismiss: '关闭', name: 'QD 助手', msgs: { def: ['你好，有什么想问的吗？我很乐意帮忙。', ''], nfc: ['想知道轻轻一碰能为你的业务做什么吗？我来给你讲讲。', '一个 NFC 标签能为我的业务做什么？'], events: ['在筹备活动？我可以给你介绍 QD Events 怎么用。', '我在筹备活动，QD Events 怎么用？'], contact: ['比起填表，直接问我更快，我在这儿。', ''] } },
     ru: { dismiss: 'Закрыть', name: 'Ассистент QD', msgs: { def: ['Здравствуйте, есть вопросы? С радостью помогу.', ''], nfc: ['Интересно, что может одно касание для вашего бизнеса? Расскажу.', 'Что может NFC-метка для моего бизнеса?'], events: ['Планируете событие? Расскажу, как работает QD Events.', 'Я планирую событие, как работает QD Events?'], contact: ['Проще спросить, чем заполнять форму? Спрашивайте, я здесь.', ''] } },
   };
@@ -768,7 +768,7 @@
     if (state.open || state.sending) return false;
     if (NUDGE_FORCED) return Date.now() - nudgeState.lastShown >= 15000;
     if (state.lead || (state.history && state.history.length)) return false;
-    if (sessionStorage.getItem(NUDGE_ENGAGED_KEY)) return false;
+    try { if (sessionStorage.getItem(NUDGE_ENGAGED_KEY)) return false; } catch (e) { return false; }
     if (document.visibilityState !== 'visible') return false;
     const now = Date.now();
     if (now < nudgeRead(localStorage, NUDGE_OFF_KEY, 0)) return false;
