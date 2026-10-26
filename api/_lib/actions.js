@@ -48,3 +48,15 @@ export function describeActions(actions) {
   );
   return `BUTTONS (the site will show these under your reply automatically):\n${lines.join('\n')}\nIntroduce it in one short, natural sentence that fits the button (for login: "Here's the customer login for your event."; for demos: "Here are some of our demos and past work." — adapt to the visitor's words) and keep the reply to exactly that one sentence. For the login button NEVER ask a question and never assume they are planning a new event: they are an existing customer who just needs the way in. Do NOT paste any URL.`;
 }
+
+export function getAction(kind, lang = 'en') {
+  const L = ['ar', 'zh', 'ru'].includes(lang) ? lang : 'en';
+  return { kind, url: URLS[kind], external: kind === 'login', ...LABELS[kind][L] };
+}
+
+export const MEANWHILE_LINE = {
+  en: 'In the meantime, you can take a look at our work.',
+  ar: 'وفي هذه الأثناء، يمكنك الاطلاع على أعمالنا.',
+  zh: '在此期间，你可以先看看我们的作品。',
+  ru: 'А пока можете посмотреть наши работы.',
+};

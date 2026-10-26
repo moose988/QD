@@ -20,7 +20,7 @@ import Groq from 'groq-sdk';
 import { embedQuery, warmup } from './_lib/embed.js';
 import { retrieve, loadChunks } from './_lib/retrieval.js';
 import { buildSystemPrompt, detectLang, LEAD_TOOL } from './_lib/prompt.js';
-import { detectActions, describeActions } from './_lib/actions.js';
+import { detectActions, describeActions, getAction, MEANWHILE_LINE } from './_lib/actions.js';
 import { getDb, admin } from './_lib/firebase.js';
 
 // Start downloading the embedding model in the background as soon as the module loads.
@@ -392,6 +392,7 @@ export default async function handler(req, res) {
       idleAfterLastChunkMs: Date.now() - lastChunkAt,
     });
     let leadSaved = false;
+    let leadNewlySaved = false;
     let leadCaptured = false;     // model tried to capture
     let leadIncomplete = false;   // ...but with no usable contact
     let leadBusiness = '';        // business type, if it told us one
@@ -452,6 +453,7 @@ export default async function handler(req, res) {
             status: 'new',
           });
           leadSaved = true;
+          leadNewlySaved = true;
           stage.mark('lead_save_completed');
           send({ type: 'lead', saved: true });
         } catch (err) {
@@ -514,6 +516,15 @@ export default async function handler(req, res) {
         en: `Sounds good${biz ? `, ${biz} is something we know well` : ''}. How would you like the team to reach you: WhatsApp, phone or email?`,
       }[lang] || 'Sounds good. How would you like the team to reach you: WhatsApp, phone or email?';
       send({ type: 'text', delta: fullText });
+    }
+
+    // After a hand-off to the team, point the visitor at our work while they wait.
+    if (leadNewlySaved && fullText.trim()) {
+      const tail = ` ${MEANWHILE_LINE[lang] || MEANWHILE_LINE.en}`;
+      fullText += tail;
+      hasStreamedText = true;
+      send({ type: 'text', delta: tail });
+      send({ type: 'actions', items: [getAction('demos', lang)] });
     }
 
     // ─── 5. Log conversation turn ───────────────────────────────────────────

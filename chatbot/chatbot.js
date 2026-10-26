@@ -577,7 +577,8 @@
             botEl.innerHTML = md(botText);
             els.messages.scrollTop = els.messages.scrollHeight;
           } else if (obj.type === 'actions') {
-            pendingActions = Array.isArray(obj.items) ? obj.items.slice(0, 2) : [];
+            const incoming = Array.isArray(obj.items) ? obj.items : [];
+            pendingActions = pendingActions.concat(incoming.filter((n) => !pendingActions.some((p) => p.kind === n.kind))).slice(0, 2);
           } else if (obj.type === 'debug') {
             recordDebugStage(obj.stage, obj.meta || {});
           } else if (obj.type === 'lead' && obj.saved) {
