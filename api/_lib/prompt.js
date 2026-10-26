@@ -309,7 +309,7 @@ function buildVisitorBlock(visitor) {
 /**
  * Build the full system prompt: base persona + retrieved context.
  */
-export function buildSystemPrompt({ lang, contextChunks, visitor = null, recentUserText = '' }) {
+export function buildSystemPrompt({ lang, contextChunks, visitor = null, recentUserText = '', actionsNote = '' }) {
   const L = ['ar', 'zh', 'ru'].includes(lang) ? lang : 'en';
   const topic = String(recentUserText || '');
   const sources = contextChunks.map((c) => String(c.source || ''));
@@ -325,6 +325,7 @@ export function buildSystemPrompt({ lang, contextChunks, visitor = null, recentU
     nfcBlock,
     eventsBlock,
     buildVisitorBlock(visitor),
+    actionsNote,
     style,
   ].filter(Boolean).join('\n\n');
 

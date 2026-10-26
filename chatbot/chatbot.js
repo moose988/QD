@@ -376,12 +376,42 @@
       .join('\n\n');
   }
 
+  // Action cards: a button under a reply that links somewhere useful.
+  function safeActionUrl(url) {
+    return typeof url === 'string' && (url.startsWith('https://events.qdsystems.ae/') || /^\/(#[\w-]*)?$/.test(url));
+  }
+
+  function renderActions(afterEl, actions) {
+    const list = (actions || []).filter((a) => a && safeActionUrl(a.url));
+    if (!list.length) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'qd-chat-actions';
+    list.forEach((a) => {
+      const link = document.createElement('a');
+      link.className = 'qd-chat-action';
+      link.href = a.url;
+      if (a.external) { link.target = '_blank'; link.rel = 'noopener noreferrer'; }
+      else link.addEventListener('click', () => { if (typeof closePanel === 'function') closePanel(); });
+      const title = document.createElement('span');
+      title.className = 'qd-chat-action-title';
+      title.textContent = a.title || '';
+      const label = document.createElement('span');
+      label.className = 'qd-chat-action-label';
+      label.textContent = a.label || '';
+      link.append(title, label);
+      wrap.appendChild(link);
+    });
+    afterEl.insertAdjacentElement('afterend', wrap);
+    requestAnimationFrame(() => els.messages.scrollTop = els.messages.scrollHeight);
+  }
+
   function renderHistory() {
     els.messages.innerHTML = '';
     // Greeting first
     addMessage('assistant', STRINGS[state.lang].greeting);
     for (const m of state.history) {
-      addMessage(m.role === 'user' ? 'user' : 'assistant', m.content);
+      const el = addMessage(m.role === 'user' ? 'user' : 'assistant', m.content);
+      if (m.role !== 'user' && m.actions) renderActions(el, m.actions);
     }
     renderChips();
   }
@@ -459,6 +489,7 @@
     const typing = addTyping();
     let botEl = null;
     let botText = '';
+    let pendingActions = [];
     const abortController = new AbortController();
     let timeoutId = null;
     let stallTimer = null;
@@ -545,6 +576,8 @@
             botText += obj.delta;
             botEl.innerHTML = md(botText);
             els.messages.scrollTop = els.messages.scrollHeight;
+          } else if (obj.type === 'actions') {
+            pendingActions = Array.isArray(obj.items) ? obj.items.slice(0, 2) : [];
           } else if (obj.type === 'debug') {
             recordDebugStage(obj.stage, obj.meta || {});
           } else if (obj.type === 'lead' && obj.saved) {
@@ -581,7 +614,10 @@
       }
 
       if (botText) {
-        state.history.push({ role: 'assistant', content: botText });
+        const recentKinds = new Set(state.history.filter((m) => m.role === 'assistant').slice(-3).flatMap((m) => (m.actions || []).map((a) => a.kind)));
+        const shownActions = pendingActions.filter((a) => !recentKinds.has(a.kind));
+        if (shownActions.length && botEl) renderActions(botEl, shownActions);
+        state.history.push({ role: 'assistant', content: botText, actions: shownActions });
         // Trim history
         if (state.history.length > MAX_HISTORY * 2) {
           state.history = state.history.slice(-MAX_HISTORY * 2);

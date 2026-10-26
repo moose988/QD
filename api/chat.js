@@ -20,6 +20,7 @@ import Groq from 'groq-sdk';
 import { embedQuery, warmup } from './_lib/embed.js';
 import { retrieve, loadChunks } from './_lib/retrieval.js';
 import { buildSystemPrompt, detectLang, LEAD_TOOL } from './_lib/prompt.js';
+import { detectActions, describeActions } from './_lib/actions.js';
 import { getDb, admin } from './_lib/firebase.js';
 
 // Start downloading the embedding model in the background as soon as the module loads.
@@ -319,7 +320,8 @@ export default async function handler(req, res) {
 
     // ─── 2. Build prompt ────────────────────────────────────────────────────
     stage.mark('prompt_build_started');
-    const systemPrompt = buildSystemPrompt({ lang, contextChunks: retrieved, visitor, recentUserText });
+    const actions = detectActions(message, lang);
+    const systemPrompt = buildSystemPrompt({ lang, contextChunks: retrieved, visitor, recentUserText, actionsNote: describeActions(actions) });
     stage.mark('prompt_build_completed', { promptLength: systemPrompt.length });
 
     const messages = [
@@ -347,6 +349,7 @@ export default async function handler(req, res) {
       stream: true,
     });
     stage.mark('groq_stream_create_completed');
+    if (actions.length) send({ type: 'actions', items: actions });
 
     let fullText = '';
     const toolCallParts = {}; // index -> { name, args }

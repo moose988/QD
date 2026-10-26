@@ -638,3 +638,48 @@
   .qd-chat-launcher-pulse { animation: none; }
   .qd-chat-nudge { transition: opacity 120ms ease; transform: none; }
 }
+
+
+/* ─── Action cards (button under a reply) ──────────────────────────────── */
+
+.qd-chat-actions {
+  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 86%;
+  margin: -2px 0 6px;
+}
+
+.qd-chat-root[data-dir="rtl"] .qd-chat-actions { align-self: flex-start; }
+
+.qd-chat-action {
+  display: block;
+  padding: 11px 14px;
+  border: 1px solid var(--qd-border);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--qd-fg-1);
+  text-decoration: none;
+  transition: background 160ms ease, border-color 160ms ease;
+}
+
+.qd-chat-action:hover { background: rgba(255, 255, 255, 0.09); border-color: rgba(244, 241, 234, 0.3); }
+
+.qd-chat-action-title {
+  display: block;
+  margin-bottom: 3px;
+  font: 600 10.5px/1.2 var(--qd-font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--qd-fg-3);
+}
+
+.qd-chat-action-label {
+  display: block;
+  font: 500 14px/1.35 var(--qd-font-body);
+  color: var(--qd-bone);
+}
+
+.qd-chat-action-label::after { content: " \2192"; }
+.qd-chat-root[data-dir="rtl"] .qd-chat-action-label::after { content: " \2190"; }
