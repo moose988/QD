@@ -43,9 +43,25 @@ function createFirebaseEnvError(missing) {
   );
 }
 
+// Local convenience: .env.local often holds one FIREBASE_SERVICE_ACCOUNT JSON
+// (used by scripts/build-kb.mjs) instead of the three split variables.
+function getServiceAccountFallback() {
+  const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
+  if (!raw) return null;
+  try {
+    const sa = JSON.parse(raw);
+    if (!sa.project_id || !sa.client_email || !sa.private_key) return null;
+    return { projectId: sa.project_id, clientEmail: sa.client_email, privateKey: sa.private_key };
+  } catch {
+    return null;
+  }
+}
+
 function getCredentials() {
   const missing = getMissingFirebaseEnv();
   if (missing.length) {
+    const fallback = getServiceAccountFallback();
+    if (fallback) return fallback;
     throw createFirebaseEnvError(missing);
   }
 
