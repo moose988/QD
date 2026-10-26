@@ -374,7 +374,8 @@ export default async function handler(req, res) {
       if (delta.tool_calls) {
         for (const tc of delta.tool_calls) {
           const idx = tc.index ?? 0;
-          if (!toolCallParts[idx]) toolCallParts[idx] = { name: '', args: '' };
+          if (!toolCallParts[idx]) toolCallParts[idx] = { id: '', name: '', args: '' };
+          if (tc.id) toolCallParts[idx].id = tc.id;
           if (tc.function?.name) toolCallParts[idx].name = tc.function.name;
           if (tc.function?.arguments) toolCallParts[idx].args += tc.function.arguments;
         }
@@ -406,6 +407,15 @@ export default async function handler(req, res) {
         try {
           leadCaptured = true;
           const leadData = normalizeLeadData(JSON.parse(tc.args), lang);
+          // Visitors already gave name + contact in the start form; use it when the model leaves it blank.
+          if (!isUsableContact(leadData.contact) && visitor) {
+            const known = isUsableContact(visitor.phone) ? visitor.phone : (isUsableContact(visitor.email) ? visitor.email : '');
+            if (known) {
+              leadData.contact = known;
+              leadData.contact_type = normalizeContactType('', known);
+            }
+          }
+          if (!leadData.name && visitor?.name) leadData.name = visitor.name;
           leadBusiness = leadData.business_type || '';
 
           // Hard guard: only persist + confirm when there's a real contact.
@@ -421,6 +431,12 @@ export default async function handler(req, res) {
             continue;
           }
 
+          const existingLead = await db.collection('chatLeads').where('sessionId', '==', sessionId).limit(1).get();
+          if (!existingLead.empty) {
+            leadSaved = true;
+            stage.mark('lead_already_saved');
+            continue;
+          }
           stage.mark('lead_save_started');
           await db.collection('chatLeads').add({
             ...leadData,
@@ -440,24 +456,58 @@ export default async function handler(req, res) {
       }
     }
 
+    // If the model only called the lead tool and wrote nothing, finish the tool
+    // round-trip so it writes a real reply (answering the question) instead of a canned line.
+    if (!fullText.trim() && (leadSaved || leadCaptured)) {
+      const leadCall = Object.values(toolCallParts).find((t) => t.name === 'capture_lead');
+      if (leadCall) {
+        try {
+          stage.mark('tool_followup_started');
+          const callId = leadCall.id || 'call_capture_lead';
+          const followUp = await groq.chat.completions.create({
+            model: groqModel,
+            messages: [
+              ...messages,
+              { role: 'assistant', content: null, tool_calls: [{ id: callId, type: 'function', function: { name: 'capture_lead', arguments: leadCall.args || '{}' } }] },
+              { role: 'tool', tool_call_id: callId, content: leadSaved ? 'Saved. The team will message the visitor soon. Now reply to the visitor in the same language: answer their last question first (stay brief, no figures), then say the team will message them soon.' : 'Not saved: no usable contact yet. Reply naturally and ask how the team should reach them.' },
+            ],
+            temperature: 0.3,
+            max_tokens: 200,
+            stream: true,
+          });
+          for await (const chunk of followUp) {
+            const delta = chunk.choices?.[0]?.delta?.content;
+            if (delta) {
+              fullText += delta;
+              hasStreamedText = true;
+              send({ type: 'text', delta });
+            }
+          }
+          stage.mark('tool_followup_completed', { responseLength: fullText.length });
+        } catch (followErr) {
+          stage.mark('tool_followup_failed', { message: followErr?.message || 'follow-up failed' });
+        }
+      }
+    }
+
     // Only show the "we got your details" confirmation when a REAL lead saved.
     if (!fullText.trim() && leadSaved) {
       fullText = {
-        ar: 'تم استلام بياناتك. سيتواصل معك فريق QD قريباً عبر وسيلة التواصل التي شاركتها.',
-        zh: '已收到你的信息。QD 团队会很快通过你提供的联系方式与你联系。',
-        ru: 'Мы получили ваши данные. Команда QD скоро свяжется с вами по указанному контакту.',
-        en: 'Thanks — we received your details. The QD team will reach out shortly using the contact method you shared.',
-      }[lang] || 'Thanks — we received your details. The QD team will reach out shortly using the contact method you shared.';
+        ar: 'حوّلت طلبك للفريق، وسيراسلونك قريباً.',
+        zh: '我已经把这个转给团队了，他们很快会联系你。',
+        ru: 'Передал это команде, они скоро свяжутся с вами.',
+        en: "I've passed this to the team, and they'll message you soon.",
+      }[lang] || "I've passed this to the team, and they'll message you soon.";
       send({ type: 'text', delta: fullText });
     } else if (!fullText.trim() && (leadIncomplete || leadCaptured)) {
       // Model tried to capture before we had a contact — ask naturally and keep going.
       const biz = leadBusiness.trim();
       fullText = {
-        ar: `تمام${biz ? ` — مشروع ${biz} في محله` : ''}. لنبدأ: ما أفضل طريقة للتواصل معك (واتساب، هاتف، أو إيميل)، وما اسمك؟`,
-        zh: `很好${biz ? `——${biz}正是我们擅长的` : ''}。为了给你方案，最方便联系你的方式是什么（WhatsApp、电话或邮箱），怎么称呼你？`,
-        ru: `Отлично${biz ? ` — ${biz} как раз наш профиль` : ''}. Чтобы подготовить план: как с вами лучше связаться (WhatsApp, телефон или email) и как вас зовут?`,
-        en: `Great${biz ? ` — a ${biz} is right in our wheelhouse` : ''}. To get you a plan, what's the best way to reach you (WhatsApp, phone, or email), and your name?`,
-      }[lang] || `Great. To get you a plan, what's the best way to reach you (WhatsApp, phone, or email), and your name?`;
+        ar: `تمام${biz ? `، ${biz} مجال نعرفه جيداً` : ''}. كيف أفضل أن يتواصل معك الفريق، واتساب أو هاتف أو بريد؟`,
+        zh: `好的${biz ? `，${biz}是我们熟悉的领域` : ''}。你更希望团队通过 WhatsApp、电话还是邮箱联系你？`,
+        ru: `Хорошо${biz ? `, ${biz} нам хорошо знаком` : ''}. Как вам удобнее, чтобы команда связалась: WhatsApp, телефон или почта?`,
+        en: `Sounds good${biz ? `, ${biz} is something we know well` : ''}. How would you like the team to reach you: WhatsApp, phone or email?`,
+      }[lang] || 'Sounds good. How would you like the team to reach you: WhatsApp, phone or email?';
       send({ type: 'text', delta: fullText });
     }
 
