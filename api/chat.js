@@ -604,7 +604,7 @@ export default async function handler(req, res) {
     // After a hand-off to the team, point the visitor at our work while they wait.
     if (leadNewlySaved && fullText.trim()) {
       fullText += ` ${MEANWHILE_LINE[lang] || MEANWHILE_LINE.en}`;
-      send({ type: 'actions', items: [getAction('demos', lang)] });
+      send({ type: 'actions', items: [{ ...getAction('demos', lang), auto: true }] });
     }
 
     // Send the settled reply.

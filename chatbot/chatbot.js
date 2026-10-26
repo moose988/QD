@@ -629,7 +629,8 @@
 
       if (botText) {
         const recentKinds = new Set(state.history.filter((m) => m.role === 'assistant').slice(-3).flatMap((m) => (m.actions || []).map((a) => a.kind)));
-        const shownActions = pendingActions.filter((a) => !recentKinds.has(a.kind));
+        // Cards the visitor asked for always show; only the automatic follow-up card is de-duplicated.
+        const shownActions = pendingActions.filter((a) => !a.auto || !recentKinds.has(a.kind));
         if (shownActions.length && botEl) renderActions(botEl, shownActions);
         state.history.push({ role: 'assistant', content: botText, actions: shownActions });
         // Trim history
