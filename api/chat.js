@@ -21,7 +21,8 @@ import { embedQuery, warmup } from './_lib/embed.js';
 import { retrieve, loadChunks } from './_lib/retrieval.js';
 import { buildSystemPrompt, detectLang, LEAD_TOOL } from './_lib/prompt.js';
 import { detectActions, describeActions, getAction, MEANWHILE_LINE, ACTION_INTRO } from './_lib/actions.js';
-import { sanitizeReply, hasHandoffIntent } from './_lib/sanitize.js';
+import { sanitizeReply, hasHandoffIntent, claimsHandoff, stripHandoffClaims } from './_lib/sanitize.js';
+import { extractErrorDetails, classifyGroqError, retryAfterMs } from './_lib/groq-errors.js';
 import { getDb, admin } from './_lib/firebase.js';
 
 // Start downloading the embedding model in the background as soon as the module loads.
@@ -63,19 +64,6 @@ function getRequiredChatConfig() {
   return { groqApiKey, groqModel };
 }
 
-function extractErrorDetails(err) {
-  const details =
-    err?.error?.message ||
-    err?.response?.error?.message ||
-    err?.message ||
-    'Unknown error';
-
-  return {
-    message: details,
-    code: err?.code || err?.error?.type || null,
-    statusCode: err?.status || err?.statusCode || err?.response?.status || 500,
-  };
-}
 
 const FALLBACK_MODELS = (process.env.GROQ_FALLBACK_MODELS || 'openai/gpt-oss-20b,qwen/qwen3.8-27b')
   .split(',')
@@ -84,24 +72,7 @@ const FALLBACK_MODELS = (process.env.GROQ_FALLBACK_MODELS || 'openai/gpt-oss-20b
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-function classifyGroqError(err) {
-  const status = err?.status || err?.statusCode || err?.response?.status || 0;
-  const { message, code } = extractErrorDetails(err);
-  if (code === 'tool_use_failed' || err?.error?.error?.code === 'tool_use_failed' || /tool call|tool_use_failed|parse tool/i.test(message)) return 'tool';
-  if (status === 429) return 'rate';
-  if (status >= 500) return 'server';
-  if (status === 404 || /model/i.test(message)) return 'model';
-  if (!status) return 'server'; // network-level failure
-  return 'other';
-}
 
-function retryAfterMs(err) {
-  const header = Number(err?.headers?.['retry-after']);
-  if (Number.isFinite(header) && header > 0) return header * 1000;
-  const m = /try again in ([\d.]+)\s*(ms|s)/i.exec(extractErrorDetails(err).message || '');
-  if (m) return Number(m[1]) * (m[2].toLowerCase() === 's' ? 1000 : 1);
-  return 1500;
-}
 
 function withTimeout(promise, ms, label) {
   let timeoutId = null;
@@ -600,8 +571,7 @@ export default async function handler(req, res) {
     // Never promise a hand-off that did not happen. If the reply says the team will follow up but
     // no lead was saved (the model skipped the tool), do it here when it is legitimate; otherwise
     // remove the promise.
-    const CLAIM_RE = /(pass(ed|ing)?|forward(ed|ing)?)\s+(this|it|that)\s+(on\s+)?to\s+the\s+team|(the\s+)?team\s+(will|'ll|is going to)\s+(message|contact|reach out|follow up|get back|be in touch)|they'?ll\s+(message|contact|reach|get back)|سيراسل|سيتواصل|سيتواصلون|حوّلت|团队.{0,10}(会联系|联系你|联系您)|转交|команда.{0,25}(напишет|свяжется)|(передам|передал).{0,10}команде/i;
-    if (fullText && !leadSaved && CLAIM_RE.test(fullText)) {
+    if (fullText && !leadSaved && claimsHandoff(fullText)) {
       const contact = isUsableContact(visitor?.phone) ? visitor.phone : (isUsableContact(visitor?.email) ? visitor.email : '');
       const userWordCount = [...cleanedHistory.filter((m) => m.role === 'user').map((m) => m.content), message].join(' ').split(/\s+/).filter(Boolean).length;
       if (contact && db && hasHandoffIntent(recentUserText) && userWordCount >= 8) {
@@ -626,13 +596,7 @@ export default async function handler(req, res) {
         }
       }
       if (!leadSaved) {
-        const sentences = fullText.split(/(?<=[.?؟。？])\s+/).filter((s) => !CLAIM_RE.test(s));
-        fullText = sentences.join(' ').trim() || ({
-          en: 'What are you looking to build?',
-          ar: 'ماذا تريد أن تبني؟',
-          zh: '你想做什么？',
-          ru: 'Что вы хотите сделать?',
-        }[lang] || 'What are you looking to build?');
+        fullText = stripHandoffClaims(fullText, lang);
         stage.mark('handoff_claim_removed');
       }
     }

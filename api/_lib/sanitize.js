@@ -87,3 +87,25 @@ const HANDOFF_INTENT_RE = /\b(cost|costs|price|prices|pricing|how much|quote|quo
 export function hasHandoffIntent(text) {
   return HANDOFF_INTENT_RE.test(String(text || ''));
 }
+
+// A reply that promises a hand-off ("I'll pass this to the team", "they'll message you soon").
+const CLAIM_RE = /(pass(ed|ing)?|forward(ed|ing)?)\s+(this|it|that)\s+(on\s+)?to\s+the\s+team|(the\s+)?team\s+(will|'ll|is going to)\s+(message|contact|reach out|follow up|get back|be in touch)|they'?ll\s+(message|contact|reach|get back)|سيراسل|سيتواصل|سيتواصلون|حوّلت|团队.{0,10}(会联系|联系你|联系您)|转交|команда.{0,25}(напишет|свяжется)|(передам|передал).{0,10}команде/i;
+
+export function claimsHandoff(text) {
+  return CLAIM_RE.test(String(text || ''));
+}
+
+const ASK_WHAT = {
+  en: 'What are you looking to build?',
+  ar: 'ماذا تريد أن تبني؟',
+  zh: '你想做什么？',
+  ru: 'Что вы хотите сделать?',
+};
+
+// Removes hand-off promises that did not happen; if nothing is left, asks what they want built.
+export function stripHandoffClaims(text, lang = 'en') {
+  const kept = String(text || '')
+    .split(/(?<=[.?؟。？])\s+/)
+    .filter((sentence) => !CLAIM_RE.test(sentence));
+  return kept.join(' ').trim() || ASK_WHAT[lang] || ASK_WHAT.en;
+}
