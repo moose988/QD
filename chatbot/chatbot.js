@@ -41,20 +41,20 @@
       newChat: 'New chat',
       send: 'Send',
       gateTitle: 'Before we start',
-      gateSub: 'Leave your details so the team can follow up — even if the chat gets cut off.',
+      gateSub: 'Leave your details so the team can follow up, even if the chat gets cut off.',
       gName: 'Your name',
       gEmail: 'Email',
       gPhone: 'WhatsApp / phone (optional)',
       gStart: 'Start chat →',
       greeting:
-        "Hi, I'm QD's assistant. Got any questions about websites, NFC tags, event invitations or anything else we do? Ask away — I'm happy to help.",
+        "Hi, I'm QD's assistant. Got any questions about websites, NFC tags, event invitations or anything else we do? Ask away, I'm happy to help.",
       chips: [
         'What do you build?',
         'How long does a project take?',
         'Show me your work',
         'I need a website',
       ],
-      leadSaved: 'Got it — your details are with the QD team. We\'ll follow up shortly.',
+      leadSaved: 'Got it, your details are with the QD team. We\'ll follow up shortly.',
       errorNetwork: 'Connection hiccup. Try once more, or WhatsApp +971 50 461 1123.',
     },
     ar: {
@@ -67,15 +67,15 @@
       newChat: 'محادثة جديدة',
       send: 'إرسال',
       gateTitle: 'قبل أن نبدأ',
-      gateSub: 'اترك بياناتك حتى يتواصل معك الفريق — حتى لو انقطعت المحادثة.',
+      gateSub: 'اترك بياناتك حتى يتواصل معك الفريق, حتى لو انقطعت المحادثة.',
       gName: 'الاسم',
       gEmail: 'البريد الإلكتروني',
       gPhone: 'واتساب / رقم الهاتف (اختياري)',
       gStart: 'ابدأ المحادثة ←',
       greeting:
-        'أهلاً، أنا مساعد QD. عندك أي سؤال عن المواقع أو بطاقات NFC أو دعوات المناسبات أو أي شيء نقدمه؟ اسأل براحتك — يسعدني أساعدك.',
+        'أهلاً، أنا مساعد QD. عندك أي سؤال عن المواقع أو بطاقات NFC أو دعوات المناسبات أو أي شيء نقدمه؟ اسأل براحتك, يسعدني أساعدك.',
       chips: ['ماذا تبنون؟', 'كم تستغرق مدة المشروع؟', 'اعرض أعمالكم', 'أحتاج موقعاً'],
-      leadSaved: 'تم — بياناتك وصلت لفريق QD. سنتواصل معك قريباً.',
+      leadSaved: 'تم, بياناتك وصلت لفريق QD. سنتواصل معك قريباً.',
       errorNetwork: 'انقطاع بسيط في الاتصال. جرّب مرة أخرى، أو راسلنا واتساب +971 50 461 1123.',
     },
     zh: {
@@ -88,7 +88,7 @@
       newChat: '新对话',
       send: '发送',
       gateTitle: '开始之前',
-      gateSub: '留下你的联系方式，方便团队跟进——即使对话中断也不怕。',
+      gateSub: '留下你的联系方式，方便团队跟进，即使对话中断也不怕。',
       gName: '你的姓名',
       gEmail: '邮箱',
       gPhone: 'WhatsApp / 电话（可选）',
@@ -96,7 +96,7 @@
       greeting:
         '你好，我是 QD 的助手。关于网站、NFC 标签、活动请柬或我们做的其他事情，有什么想问的吗？尽管问，我很乐意帮忙。',
       chips: ['你们做什么？', '一个项目需要多久？', '看看你们的作品', '我需要一个网站'],
-      leadSaved: '收到——你的信息已转交 QD 团队，我们会尽快跟进。',
+      leadSaved: '收到，你的信息已转交 QD 团队，我们会尽快跟进。',
       errorNetwork: '连接有点小问题。请再试一次，或 WhatsApp 联系 +971 50 461 1123。',
     },
     ru: {
@@ -109,15 +109,15 @@
       newChat: 'Новый чат',
       send: 'Отправить',
       gateTitle: 'Прежде чем начать',
-      gateSub: 'Оставьте контакты, чтобы команда могла связаться — даже если чат прервётся.',
+      gateSub: 'Оставьте контакты, чтобы команда могла связаться, даже если чат прервётся.',
       gName: 'Ваше имя',
       gEmail: 'Эл. почта',
       gPhone: 'WhatsApp / телефон (необязательно)',
       gStart: 'Начать чат →',
       greeting:
-        'Здравствуйте, я ассистент QD. Есть вопросы про сайты, NFC-метки, приглашения на события или что-то ещё из того, что мы делаем? Спрашивайте — с радостью помогу.',
+        'Здравствуйте, я ассистент QD. Есть вопросы про сайты, NFC-метки, приглашения на события или что-то ещё из того, что мы делаем? Спрашивайте, с радостью помогу.',
       chips: ['Что вы создаёте?', 'Сколько занимает проект?', 'Покажите ваши работы', 'Мне нужен сайт'],
-      leadSaved: 'Принято — ваши данные у команды QD. Скоро свяжемся.',
+      leadSaved: 'Принято, ваши данные у команды QD. Скоро свяжемся.',
       errorNetwork: 'Небольшой сбой связи. Попробуйте ещё раз или напишите в WhatsApp +971 50 461 1123.',
     },
   };
@@ -548,7 +548,7 @@
           } else if (obj.type === 'debug') {
             recordDebugStage(obj.stage, obj.meta || {});
           } else if (obj.type === 'lead' && obj.saved) {
-            addLeadBanner();
+            // The assistant's own reply already confirms the hand-off; no extra banner.
           } else if (obj.type === 'sources') {
             // Optionally store sources for debug — not displayed by default
             if (botEl) botEl.dataset.sources = JSON.stringify(obj.items);
@@ -711,10 +711,10 @@
   const NUDGE_DAY_MS = 24 * 3600 * 1000;
 
   const NUDGES = {
-    en: { dismiss: 'Dismiss', name: 'QD Assistant', msgs: { def: ["Hi, got any questions? I'm happy to help.", ''], nfc: ["Curious what one tap could do for your business? Happy to show you.", 'What could an NFC tag do for my business?'], events: ["Planning an event? I can walk you through how QD Events works.", "I'm planning an event — how does QD Events work?"], contact: ["Rather ask than fill a form? Go ahead — I'm here.", ''] } },
-    ar: { dismiss: 'إغلاق', name: 'مساعد QD', msgs: { def: ['أهلاً، عندك أي سؤال؟ يسعدني أساعدك.', ''], nfc: ['تتساءل ماذا تفعل لمسة واحدة لنشاطك؟ يسعدني أوضّح لك.', 'ماذا يمكن لبطاقة NFC أن تفعل لنشاطي؟'], events: ['تخطط لمناسبة؟ أشرح لك كيف يعمل QD Events.', 'أخطط لمناسبة — كيف يعمل QD Events؟'], contact: ['تفضّل تسأل بدل ملء النموذج؟ تفضّل، أنا هنا.', ''] } },
-    zh: { dismiss: '关闭', name: 'QD 助手', msgs: { def: ['你好，有什么想问的吗？我很乐意帮忙。', ''], nfc: ['想知道轻轻一碰能为你的业务做什么吗？我来给你讲讲。', '一个 NFC 标签能为我的业务做什么？'], events: ['在筹备活动？我可以给你介绍 QD Events 怎么用。', '我在筹备活动——QD Events 怎么用？'], contact: ['比起填表，直接问我更快——我在这儿。', ''] } },
-    ru: { dismiss: 'Закрыть', name: 'Ассистент QD', msgs: { def: ['Здравствуйте, есть вопросы? С радостью помогу.', ''], nfc: ['Интересно, что может одно касание для вашего бизнеса? Расскажу.', 'Что может NFC-метка для моего бизнеса?'], events: ['Планируете событие? Расскажу, как работает QD Events.', 'Я планирую событие — как работает QD Events?'], contact: ['Проще спросить, чем заполнять форму? Спрашивайте — я здесь.', ''] } },
+    en: { dismiss: 'Dismiss', name: 'QD Assistant', msgs: { def: ["Hi, got any questions? I'm happy to help.", ''], nfc: ["Curious what one tap could do for your business? Happy to show you.", 'What could an NFC tag do for my business?'], events: ["Planning an event? I can walk you through how QD Events works.", "I'm planning an event, how does QD Events work?"], contact: ["Rather ask than fill a form? Go ahead, I'm here.", ''] } },
+    ar: { dismiss: 'إغلاق', name: 'مساعد QD', msgs: { def: ['أهلاً، عندك أي سؤال؟ يسعدني أساعدك.', ''], nfc: ['تتساءل ماذا تفعل لمسة واحدة لنشاطك؟ يسعدني أوضّح لك.', 'ماذا يمكن لبطاقة NFC أن تفعل لنشاطي؟'], events: ['تخطط لمناسبة؟ أشرح لك كيف يعمل QD Events.', 'أخطط لمناسبة, كيف يعمل QD Events؟'], contact: ['تفضّل تسأل بدل ملء النموذج؟ تفضّل، أنا هنا.', ''] } },
+    zh: { dismiss: '关闭', name: 'QD 助手', msgs: { def: ['你好，有什么想问的吗？我很乐意帮忙。', ''], nfc: ['想知道轻轻一碰能为你的业务做什么吗？我来给你讲讲。', '一个 NFC 标签能为我的业务做什么？'], events: ['在筹备活动？我可以给你介绍 QD Events 怎么用。', '我在筹备活动，QD Events 怎么用？'], contact: ['比起填表，直接问我更快，我在这儿。', ''] } },
+    ru: { dismiss: 'Закрыть', name: 'Ассистент QD', msgs: { def: ['Здравствуйте, есть вопросы? С радостью помогу.', ''], nfc: ['Интересно, что может одно касание для вашего бизнеса? Расскажу.', 'Что может NFC-метка для моего бизнеса?'], events: ['Планируете событие? Расскажу, как работает QD Events.', 'Я планирую событие, как работает QD Events?'], contact: ['Проще спросить, чем заполнять форму? Спрашивайте, я здесь.', ''] } },
   };
 
   const nudgeState = { el: null, key: 'def', hideTimer: null, lastShown: 0, lastActivity: 0, hadActivity: false, loadedAt: Date.now(), sectionSince: {}, sectionKey: null, sectionTimes: {} };
