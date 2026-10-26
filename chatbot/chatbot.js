@@ -401,7 +401,7 @@
       link.append(title, label);
       wrap.appendChild(link);
     });
-    afterEl.insertAdjacentElement('afterend', wrap);
+    afterEl.appendChild(wrap);
     requestAnimationFrame(() => els.messages.scrollTop = els.messages.scrollHeight);
   }
 

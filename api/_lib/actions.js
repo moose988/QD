@@ -4,7 +4,7 @@
 // so they appear every time regardless of what the model writes.
 
 const LOGIN_RE = /\blog\s?-?in\b|\blogin\b|\bsign\s?-?in\b|customer (area|portal|access)|تسجيل\s*(ال)?دخول|سجل\s*(ال)?دخول|أين.*(أسجل|ادخل|أدخل)|登录|登陆|登入|\bвход\b|войти|логин|авторизац/i;
-const WEBSITE_RE = /\bwebsites?\b|\bweb\s?sites?\b|\bweb\s?design|\blanding page|\bportfolio\b|\bdemos?\b|\byour work\b|\bpast work\b|\bexamples?\b|\bsamples?\b|\bsee (what|some)\b|موقع|مواقع|أعمالكم|نماذج|网站|网页|作品|案例|сайт|работы|примеры|портфолио|демо/i;
+const DEMOS_RE = /\bdemos?\b|\byour (work|portfolio|projects|previous work)\b|\b(past|previous) (work|projects)\b|\bportfolio\b|\bexamples?\b|\bsamples?\b|\bshow me (some|what|your)\b|\bsee (some|what|your|examples)\b|\bwhat (have|did) you (built|made|done)\b|أعمالكم|نماذج|أمثلة|عرض أعمال|作品|案例|示例|看看你们|演示|примеры|портфолио|ваши работы|покажите|демо/i;
 
 const LABELS = {
   login: {
@@ -31,7 +31,7 @@ export function detectActions(message, lang = 'en') {
   const L = ['ar', 'zh', 'ru'].includes(lang) ? lang : 'en';
   const out = [];
   if (LOGIN_RE.test(text)) out.push({ kind: 'login', url: URLS.login, external: true, ...LABELS.login[L] });
-  if (WEBSITE_RE.test(text)) out.push({ kind: 'demos', url: URLS.demos, external: false, ...LABELS.demos[L] });
+  if (DEMOS_RE.test(text)) out.push({ kind: 'demos', url: URLS.demos, external: false, ...LABELS.demos[L] });
   return out.slice(0, 2);
 }
 
@@ -43,5 +43,5 @@ export function describeActions(actions) {
       ? '- a "customer login" button for QD Events (you DO know where the login is; never say you lack that detail)'
       : '- a "view our demos and work" button (our website previews and work)'
   );
-  return `BUTTONS (the site will show these under your reply automatically):\n${lines.join('\n')}\nIntroduce it in one short, natural sentence that fits the button (for login: "Here's the customer login for your event."; for demos: "Here are some of our demos and past work." — adapt to the visitor's words) and keep the reply to that, plus at most one short question when it genuinely helps (for a website request, ask what kind of business it's for). Do NOT paste any URL.`;
+  return `BUTTONS (the site will show these under your reply automatically):\n${lines.join('\n')}\nIntroduce it in one short, natural sentence that fits the button (for login: "Here's the customer login for your event."; for demos: "Here are some of our demos and past work." — adapt to the visitor's words) and keep the reply to exactly that one sentence. For the login button NEVER ask a question and never assume they are planning a new event: they are an existing customer who just needs the way in. Do NOT paste any URL.`;
 }

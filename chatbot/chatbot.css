@@ -643,22 +643,18 @@
 /* ─── Action cards (button under a reply) ──────────────────────────────── */
 
 .qd-chat-actions {
-  align-self: flex-start;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-width: 86%;
-  margin: -2px 0 6px;
+  margin-top: 10px;
 }
-
-.qd-chat-root[data-dir="rtl"] .qd-chat-actions { align-self: flex-start; }
 
 .qd-chat-action {
   display: block;
   padding: 11px 14px;
   border: 1px solid var(--qd-border);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.06);
   color: var(--qd-fg-1);
   text-decoration: none;
   transition: background 160ms ease, border-color 160ms ease;
