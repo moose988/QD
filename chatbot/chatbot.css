@@ -592,6 +592,17 @@
   cursor: pointer;
 }
 
+.qd-chat-nudge-name {
+  display: block;
+  margin-bottom: 3px;
+  font: 600 11px/1.2 var(--qd-font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--qd-fg-3);
+}
+
+.qd-chat-nudge-msg { display: block; }
+
 .qd-chat-nudge-x {
   flex: none;
   width: 32px;

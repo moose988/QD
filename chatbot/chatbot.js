@@ -47,7 +47,7 @@
       gPhone: 'WhatsApp / phone (optional)',
       gStart: 'Start chat →',
       greeting:
-        "Hey — I'm QD's AI assistant. I can answer questions about our services, process, work, and timelines — and book you in with the team if you're ready to start. What are you working on?",
+        "Hi, I'm QD's assistant. Got any questions about websites, NFC tags, event invitations or anything else we do? Ask away — I'm happy to help.",
       chips: [
         'What do you build?',
         'How long does a project take?',
@@ -73,7 +73,7 @@
       gPhone: 'واتساب / رقم الهاتف (اختياري)',
       gStart: 'ابدأ المحادثة ←',
       greeting:
-        'مرحباً — أنا المساعد الذكي لـ QD. أستطيع الإجابة عن أسئلتك حول خدماتنا وطريقة عملنا وأعمالنا والمدد الزمنية — وأوصلك بالفريق إذا كنت جاهزاً للبدء. ما الذي تعمل عليه؟',
+        'أهلاً، أنا مساعد QD. عندك أي سؤال عن المواقع أو بطاقات NFC أو دعوات المناسبات أو أي شيء نقدمه؟ اسأل براحتك — يسعدني أساعدك.',
       chips: ['ماذا تبنون؟', 'كم تستغرق مدة المشروع؟', 'اعرض أعمالكم', 'أحتاج موقعاً'],
       leadSaved: 'تم — بياناتك وصلت لفريق QD. سنتواصل معك قريباً.',
       errorNetwork: 'انقطاع بسيط في الاتصال. جرّب مرة أخرى، أو راسلنا واتساب +971 50 461 1123.',
@@ -94,7 +94,7 @@
       gPhone: 'WhatsApp / 电话（可选）',
       gStart: '开始对话 →',
       greeting:
-        '你好——我是 QD 的 AI 助手。我可以解答关于我们服务、流程、案例和交付时间的问题，如果你准备好了，也能帮你预约团队。你正在做什么项目？',
+        '你好，我是 QD 的助手。关于网站、NFC 标签、活动请柬或我们做的其他事情，有什么想问的吗？尽管问，我很乐意帮忙。',
       chips: ['你们做什么？', '一个项目需要多久？', '看看你们的作品', '我需要一个网站'],
       leadSaved: '收到——你的信息已转交 QD 团队，我们会尽快跟进。',
       errorNetwork: '连接有点小问题。请再试一次，或 WhatsApp 联系 +971 50 461 1123。',
@@ -115,7 +115,7 @@
       gPhone: 'WhatsApp / телефон (необязательно)',
       gStart: 'Начать чат →',
       greeting:
-        'Здравствуйте — я AI-ассистент QD. Отвечу на вопросы о наших услугах, процессе, работах и сроках, а если вы готовы начать — запишу вас к команде. Над чем вы работаете?',
+        'Здравствуйте, я ассистент QD. Есть вопросы про сайты, NFC-метки, приглашения на события или что-то ещё из того, что мы делаем? Спрашивайте — с радостью помогу.',
       chips: ['Что вы создаёте?', 'Сколько занимает проект?', 'Покажите ваши работы', 'Мне нужен сайт'],
       leadSaved: 'Принято — ваши данные у команды QD. Скоро свяжемся.',
       errorNetwork: 'Небольшой сбой связи. Попробуйте ещё раз или напишите в WhatsApp +971 50 461 1123.',
@@ -695,22 +695,26 @@
   // A small, polite "need help?" bubble. Never auto-opens the panel, never shows
   // to someone already chatting, and backs off if dismissed.
   const NUDGE_OFF_KEY = 'qd_chat_nudge_off_until';
+  const NUDGE_DISMISS_KEY = 'qd_chat_nudge_dismissals';
   const NUDGE_LOG_KEY = 'qd_chat_nudge_log';
   const NUDGE_SESSION_KEY = 'qd_chat_nudge_session';
   const NUDGE_ENGAGED_KEY = 'qd_chat_engaged';
-  const NUDGE_FIRST_MS = 28000;      // engaged time before the first generic nudge
-  const NUDGE_SECTION_MS = 8000;     // time a section must stay in view for its nudge
-  const NUDGE_SPACING_MS = 75000;    // minimum gap between nudges
-  const NUDGE_VISIBLE_MS = 12000;    // auto-hide
-  const NUDGE_MAX_SESSION = 3;
-  const NUDGE_MAX_WEEK = 5;
+  const NUDGE_FIRST_MS = 60000;       // on the site this long (and active) before the first nudge
+  const NUDGE_SECTION_MS = 10000;     // time a section must stay in view for its nudge
+  const NUDGE_SECTION_MIN_SITE_MS = 40000; // section nudges also wait this long after page load
+  const NUDGE_SPACING_MS = 4 * 60000; // minimum gap between nudges (ignored)
+  const NUDGE_SNOOZE_MS = 10 * 60000; // after the visitor presses X once
+  const NUDGE_VISIBLE_MS = 12000;     // auto-hide
+  const NUDGE_MAX_SESSION = 2;
+  const NUDGE_MAX_WEEK = 4;
   const NUDGE_SUPPRESS_MS = 7 * 24 * 3600 * 1000;
+  const NUDGE_DAY_MS = 24 * 3600 * 1000;
 
   const NUDGES = {
-    en: { dismiss: 'Dismiss', msgs: { def: ['Need any help?', ''], nfc: ['Curious what one tap could do for your business?', 'What could an NFC tag do for my business?'], events: ['Planning an event? See how QD Events works.', "I'm planning an event — how does QD Events work?"], contact: ['Want a quicker answer than a form? Ask me here.', ''] } },
-    ar: { dismiss: 'إغلاق', msgs: { def: ['تحتاج مساعدة؟', ''], nfc: ['تتساءل ماذا يمكن للمسة واحدة أن تفعل لنشاطك؟', 'ماذا يمكن لبطاقة NFC أن تفعل لنشاطي؟'], events: ['تخطط لمناسبة؟ تعرّف على QD Events.', 'أخطط لمناسبة — كيف يعمل QD Events؟'], contact: ['تريد جواباً أسرع من النموذج؟ اسألني هنا.', ''] } },
-    zh: { dismiss: '关闭', msgs: { def: ['需要帮助吗？', ''], nfc: ['想知道轻轻一碰能为你的业务做什么吗？', '一个 NFC 标签能为我的业务做什么？'], events: ['在筹备活动？了解 QD Events。', '我在筹备活动——QD Events 怎么用？'], contact: ['比填表更快？直接在这里问我。', ''] } },
-    ru: { dismiss: 'Закрыть', msgs: { def: ['Нужна помощь?', ''], nfc: ['Интересно, что может одно касание для вашего бизнеса?', 'Что может NFC-метка для моего бизнеса?'], events: ['Планируете событие? Посмотрите, как работает QD Events.', 'Я планирую событие — как работает QD Events?'], contact: ['Быстрее, чем форма? Спросите меня здесь.', ''] } },
+    en: { dismiss: 'Dismiss', name: 'QD Assistant', msgs: { def: ["Hi, got any questions? I'm happy to help.", ''], nfc: ["Curious what one tap could do for your business? Happy to show you.", 'What could an NFC tag do for my business?'], events: ["Planning an event? I can walk you through how QD Events works.", "I'm planning an event — how does QD Events work?"], contact: ["Rather ask than fill a form? Go ahead — I'm here.", ''] } },
+    ar: { dismiss: 'إغلاق', name: 'مساعد QD', msgs: { def: ['أهلاً، عندك أي سؤال؟ يسعدني أساعدك.', ''], nfc: ['تتساءل ماذا تفعل لمسة واحدة لنشاطك؟ يسعدني أوضّح لك.', 'ماذا يمكن لبطاقة NFC أن تفعل لنشاطي؟'], events: ['تخطط لمناسبة؟ أشرح لك كيف يعمل QD Events.', 'أخطط لمناسبة — كيف يعمل QD Events؟'], contact: ['تفضّل تسأل بدل ملء النموذج؟ تفضّل، أنا هنا.', ''] } },
+    zh: { dismiss: '关闭', name: 'QD 助手', msgs: { def: ['你好，有什么想问的吗？我很乐意帮忙。', ''], nfc: ['想知道轻轻一碰能为你的业务做什么吗？我来给你讲讲。', '一个 NFC 标签能为我的业务做什么？'], events: ['在筹备活动？我可以给你介绍 QD Events 怎么用。', '我在筹备活动——QD Events 怎么用？'], contact: ['比起填表，直接问我更快——我在这儿。', ''] } },
+    ru: { dismiss: 'Закрыть', name: 'Ассистент QD', msgs: { def: ['Здравствуйте, есть вопросы? С радостью помогу.', ''], nfc: ['Интересно, что может одно касание для вашего бизнеса? Расскажу.', 'Что может NFC-метка для моего бизнеса?'], events: ['Планируете событие? Расскажу, как работает QD Events.', 'Я планирую событие — как работает QD Events?'], contact: ['Проще спросить, чем заполнять форму? Спрашивайте — я здесь.', ''] } },
   };
 
   const nudgeState = { el: null, key: 'def', hideTimer: null, lastShown: 0, lastActivity: 0, hadActivity: false, loadedAt: Date.now(), sectionSince: {}, sectionKey: null, sectionTimes: {} };
@@ -756,7 +760,7 @@
     el.className = 'qd-chat-nudge';
     el.setAttribute('role', 'status');
     el.hidden = true;
-    el.innerHTML = '<button type="button" class="qd-chat-nudge-text"></button><button type="button" class="qd-chat-nudge-x" aria-label="Dismiss">✕</button>';
+    el.innerHTML = '<button type="button" class="qd-chat-nudge-text"><span class="qd-chat-nudge-name"></span><span class="qd-chat-nudge-msg"></span></button><button type="button" class="qd-chat-nudge-x" aria-label="Dismiss">✕</button>';
     el.querySelector('.qd-chat-nudge-text').addEventListener('click', () => {
       const prefill = (NUDGES[state.lang] || NUDGES.en).msgs[nudgeState.key][1];
       hideNudge();
@@ -768,7 +772,9 @@
     });
     el.querySelector('.qd-chat-nudge-x').addEventListener('click', () => {
       hideNudge();
-      nudgeWrite(localStorage, NUDGE_OFF_KEY, Date.now() + NUDGE_SUPPRESS_MS);
+      const dismissals = nudgeRead(sessionStorage, NUDGE_DISMISS_KEY, 0) + 1;
+      nudgeWrite(sessionStorage, NUDGE_DISMISS_KEY, dismissals);
+      nudgeWrite(localStorage, NUDGE_OFF_KEY, Date.now() + (dismissals >= 2 ? NUDGE_DAY_MS : NUDGE_SNOOZE_MS));
     });
     root.appendChild(el);
     nudgeState.el = el;
@@ -780,7 +786,8 @@
     const pack = NUDGES[state.lang] || NUDGES.en;
     const el = ensureNudgeEl();
     nudgeState.key = key;
-    el.querySelector('.qd-chat-nudge-text').textContent = pack.msgs[key][0];
+    el.querySelector('.qd-chat-nudge-name').textContent = pack.name;
+    el.querySelector('.qd-chat-nudge-msg').textContent = pack.msgs[key][0];
     el.querySelector('.qd-chat-nudge-x').setAttribute('aria-label', pack.dismiss);
     el.hidden = false;
     requestAnimationFrame(() => el.setAttribute('data-show', 'true'));
@@ -822,7 +829,7 @@
     setInterval(() => {
       if (!nudgeAllowed()) return;
       const now = Date.now();
-      if (now - nudgeState.loadedAt < 10000) return;
+      if (now - nudgeState.loadedAt < NUDGE_SECTION_MIN_SITE_MS) return;
       const seen = nudgeRead(sessionStorage, 'qd_chat_nudge_sections', []);
       for (const key of Object.keys(nudgeState.sectionSince)) {
         if (!seen.includes(key) && now - nudgeState.sectionSince[key] >= NUDGE_SECTION_MS) {
