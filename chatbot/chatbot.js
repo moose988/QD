@@ -395,6 +395,15 @@
       link.className = 'qd-chat-action';
       link.href = a.url;
       if (a.external) { link.target = '_blank'; link.rel = 'noopener noreferrer'; }
+      else if (a.kind === 'book') {
+        link.addEventListener('click', (e) => {
+          const trigger = document.querySelector('[data-book]');
+          if (!trigger) return; // no booking modal on this page: follow the #contact link
+          e.preventDefault();
+          if (typeof closePanel === 'function') closePanel();
+          trigger.click();
+        });
+      }
       else link.addEventListener('click', () => { if (typeof closePanel === 'function') closePanel(); });
       const title = document.createElement('span');
       title.className = 'qd-chat-action-title';

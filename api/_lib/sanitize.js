@@ -27,7 +27,7 @@ function splitSentences(t) {
   return t.split(/(?<=[.?؟。？])\s+/).map((s) => s.trim()).filter(Boolean);
 }
 
-export function sanitizeReply(input, { lang = 'en', allowedDigits = [] } = {}) {
+export function sanitizeReply(input, { lang = 'en', allowedDigits = [], allowPhone = false } = {}) {
   let t = String(input || '');
   t = t.replace(/<think>[\s\S]*?<\/think>/gi, '');
 
@@ -52,9 +52,9 @@ export function sanitizeReply(input, { lang = 'en', allowedDigits = [] } = {}) {
     return digits.length >= 9 ? QD_PHONE_DISPLAY : m;
   });
 
-  // drop stock sentences (only when something else remains)
+  // drop stock sentences and unprompted mentions of QD's number (only when something else remains)
   let sentences = splitSentences(t.replace(/\s*\n+\s*/g, ' '));
-  const kept = sentences.filter((s) => !STOCK_SENTENCE_RE.test(s));
+  const kept = sentences.filter((s) => !STOCK_SENTENCE_RE.test(s) && (allowPhone || !s.replace(/\D/g, '').includes(QD_PHONE_DIGITS)));
   if (kept.length) sentences = kept;
 
   // hard length cap: stop at the last full sentence under ~60 words

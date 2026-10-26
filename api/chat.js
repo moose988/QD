@@ -436,16 +436,14 @@ export default async function handler(req, res) {
 
     if (actions.length) send({ type: 'actions', items: actions });
 
-    fullText = sanitizeReply(fullText, { lang, allowedDigits: [visitor?.phone] });
+    const asksHowToReach = /contact|reach|whatsapp|phone|call|number|talk to|speak|تواصل|اتصل|واتساب|رقم|联系|电话|связаться|телефон|позвон/i.test(message);
+    fullText = sanitizeReply(fullText, { lang, allowedDigits: [visitor?.phone], allowPhone: asksHowToReach });
     // A button reply in the wrong language (e.g. English to an Arabic visitor) is replaced by a fixed local line.
     const SCRIPTS = { ar: /[\u0600-\u06FF]/, zh: /[\u4e00-\u9fff]/, ru: /[\u0400-\u04FF]/ };
     if (fullText && SCRIPTS[lang] && !SCRIPTS[lang].test(fullText) && actions.length) {
       fullText = ACTION_INTRO[actions[0].kind]?.[lang] || fullText;
     }
-    if (fullText) {
-      hasStreamedText = true;
-      for (const piece of fullText.match(/[\s\S]{1,32}(?:\s|$)/g) || [fullText]) send({ type: 'text', delta: piece });
-    }
+    // The reply is held back until lead handling is settled, so we never promise a hand-off that did not happen.
 
     // ─── 4. Persist lead if captured ────────────────────────────────────────
     stage.mark('groq_stream_completed', {
@@ -469,6 +467,23 @@ export default async function handler(req, res) {
       console.error('[chat] getDb failed (answer already delivered):', dbErr);
       stage.mark('db_init_failed', { message: dbErr?.message || 'Unknown DB init error' });
     }
+
+    // Saves a chat lead unless one was already captured for this session. The start form
+    // already writes a 'chatbot-prechat' doc, which does not count as a captured chat lead.
+    const persistLead = async (leadData) => {
+      if (!db) return 'no_db';
+      const existingLeads = await db.collection('chatLeads').where('sessionId', '==', sessionId).limit(10).get();
+      if (existingLeads.docs.some((d) => d.data()?.source !== 'chatbot-prechat')) return 'duplicate';
+      await db.collection('chatLeads').add({
+        ...leadData,
+        sessionId,
+        sourceUrl: body?.pageUrl || '',
+        userAgent: req.headers['user-agent'] || '',
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        status: 'new',
+      });
+      return 'saved';
+    };
 
     for (const tc of Object.values(toolCallParts)) {
       if (tc.name === 'capture_lead' && tc.args) {
@@ -509,24 +524,12 @@ export default async function handler(req, res) {
             stage.mark('lead_skipped_no_db');
             continue;
           }
-
-          // The start form already writes a 'chatbot-prechat' doc for this session; only a
-          // previously captured chat lead counts as a duplicate.
-          const existingLeads = await db.collection('chatLeads').where('sessionId', '==', sessionId).limit(10).get();
-          if (existingLeads.docs.some((d) => d.data()?.source !== 'chatbot-prechat')) {
+          const outcome = await persistLead(leadData);
+          if (outcome === 'duplicate') {
             leadSaved = true;
             stage.mark('lead_already_saved');
             continue;
           }
-          stage.mark('lead_save_started');
-          await db.collection('chatLeads').add({
-            ...leadData,
-            sessionId,
-            sourceUrl: body?.pageUrl || '',
-            userAgent: req.headers['user-agent'] || '',
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            status: 'new',
-          });
           leadSaved = true;
           leadNewlySaved = true;
           stage.mark('lead_save_completed');
@@ -567,11 +570,7 @@ export default async function handler(req, res) {
             max_tokens: 300,
           });
           const cleaned = sanitizeReply(followUp.choices?.[0]?.message?.content || '', { lang, allowedDigits: [visitor?.phone] });
-          if (cleaned) {
-            fullText += cleaned;
-            hasStreamedText = true;
-            send({ type: 'text', delta: cleaned });
-          }
+          if (cleaned) fullText += cleaned;
           stage.mark('tool_followup_completed', { responseLength: fullText.length });
         } catch (followErr) {
           stage.mark('tool_followup_failed', { message: followErr?.message || 'follow-up failed' });
@@ -587,7 +586,6 @@ export default async function handler(req, res) {
         ru: 'Передал это команде, они скоро свяжутся с вами.',
         en: "I've passed this to the team, and they'll message you soon.",
       }[lang] || "I've passed this to the team, and they'll message you soon.";
-      send({ type: 'text', delta: fullText });
     } else if (!fullText.trim() && leadIncomplete) {
       // Model tried to capture before we had a contact — ask naturally and keep going.
       const biz = leadBusiness.trim();
@@ -597,16 +595,58 @@ export default async function handler(req, res) {
         ru: `Хорошо${biz ? `, ${biz} нам хорошо знаком` : ''}. Как вам удобнее, чтобы команда связалась: WhatsApp, телефон или почта?`,
         en: `Sounds good${biz ? `, ${biz} is something we know well` : ''}. How would you like the team to reach you: WhatsApp, phone or email?`,
       }[lang] || 'Sounds good. How would you like the team to reach you: WhatsApp, phone or email?';
-      send({ type: 'text', delta: fullText });
+    }
+
+    // Never promise a hand-off that did not happen. If the reply says the team will follow up but
+    // no lead was saved (the model skipped the tool), do it here when it is legitimate; otherwise
+    // remove the promise.
+    const CLAIM_RE = /(pass(ed|ing)?|forward(ed|ing)?)\s+(this|it|that)\s+(on\s+)?to\s+the\s+team|(the\s+)?team\s+(will|'ll|is going to)\s+(message|contact|reach out|follow up|get back|be in touch)|they'?ll\s+(message|contact|reach|get back)|سيراسل|سيتواصل|سيتواصلون|حوّلت|团队.{0,10}(会联系|联系你|联系您)|转交|команда.{0,25}(напишет|свяжется)|(передам|передал).{0,10}команде/i;
+    if (fullText && !leadSaved && CLAIM_RE.test(fullText)) {
+      const contact = isUsableContact(visitor?.phone) ? visitor.phone : (isUsableContact(visitor?.email) ? visitor.email : '');
+      const userWordCount = [...cleanedHistory.filter((m) => m.role === 'user').map((m) => m.content), message].join(' ').split(/\s+/).filter(Boolean).length;
+      if (contact && db && hasHandoffIntent(recentUserText) && userWordCount >= 8) {
+        try {
+          const selfLead = normalizeLeadData({
+            name: visitor?.name || '',
+            contact,
+            contact_type: '',
+            business_type: '',
+            project_brief: recentUserText.slice(0, 300),
+            urgency: 'unknown',
+          }, lang);
+          const outcome = await persistLead(selfLead);
+          if (outcome === 'saved' || outcome === 'duplicate') {
+            leadSaved = true;
+            leadNewlySaved = outcome === 'saved';
+            stage.mark('lead_saved_by_server', { outcome });
+            if (outcome === 'saved') send({ type: 'lead', saved: true });
+          }
+        } catch (selfErr) {
+          stage.mark('lead_server_save_failed', { message: selfErr?.message || 'save failed' });
+        }
+      }
+      if (!leadSaved) {
+        const sentences = fullText.split(/(?<=[.?؟。？])\s+/).filter((s) => !CLAIM_RE.test(s));
+        fullText = sentences.join(' ').trim() || ({
+          en: 'What are you looking to build?',
+          ar: 'ماذا تريد أن تبني؟',
+          zh: '你想做什么？',
+          ru: 'Что вы хотите сделать?',
+        }[lang] || 'What are you looking to build?');
+        stage.mark('handoff_claim_removed');
+      }
     }
 
     // After a hand-off to the team, point the visitor at our work while they wait.
     if (leadNewlySaved && fullText.trim()) {
-      const tail = ` ${MEANWHILE_LINE[lang] || MEANWHILE_LINE.en}`;
-      fullText += tail;
-      hasStreamedText = true;
-      send({ type: 'text', delta: tail });
+      fullText += ` ${MEANWHILE_LINE[lang] || MEANWHILE_LINE.en}`;
       send({ type: 'actions', items: [getAction('demos', lang)] });
+    }
+
+    // Send the settled reply.
+    if (fullText.trim()) {
+      hasStreamedText = true;
+      for (const piece of fullText.match(/[\s\S]{1,32}(?:\s|$)/g) || [fullText]) send({ type: 'text', delta: piece });
     }
 
     // ─── 5. Log conversation turn ───────────────────────────────────────────

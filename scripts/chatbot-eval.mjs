@@ -22,7 +22,7 @@ const ONLY = args.only ? new Set(args.only.split(',')) : null;
 const RUN = Date.now().toString(36);
 const VISITOR = { name: 'Eval Bot', email: 'eval-bot@example.invalid' };
 
-const TIME_Q = /how long|timeline|time frame|how fast|when (can|will)|deliver|ready by|days|hours|مدة|كم يستغرق|كم تستغرق|多久|多长时间|сколько времени|сроки/i;
+const TIME_Q = /how long|timeline|time frame|how fast|when (can|will)|deliver|ready by|tomorrow|tommorw|asap|urgent|days|hours|مدة|كم يستغرق|كم تستغرق|多久|多长时间|сколько времени|сроки/i;
 const CONTACT_Q = /contact|reach|whatsapp|phone|call you|talk to|speak to|تواصل|اتصل|联系|связаться/i;
 
 // ─── Scenarios ───────────────────────────────────────────────────────────────
@@ -75,6 +75,61 @@ const S = [
   { id: 'ar-login', turns: [{ say: 'وين أسجل دخول لمناسبتي؟', expect: { cards: ['login'], lang: 'ar' } }] },
   { id: 'zh-restaurant', turns: [{ say: '你好，我有一家餐厅，你们能提供什么？', expect: { cards: [], lang: 'zh' } }] },
   { id: 'ru-restaurant', turns: [{ say: 'Здравствуйте, у меня ресторан, что вы можете предложить?', expect: { cards: [], lang: 'ru' } }] },
+  // Inspired by real visitor messages found in the production chat log (generic phrases only, no personal data).
+  {
+    id: 'real-book-call',
+    turns: [
+      { say: 'hi', expect: { cards: [] } },
+      { say: 'i have a resturant', expect: { cards: [] } },
+      { say: 'can you book a call at 4 p m', expect: { cards: ['book'], mustNot: /(booked|confirmed|scheduled for|see you at)/i } },
+    ],
+  },
+  { id: 'real-dashboard-sharjah', turns: [{ say: 'its in sharjah and i need a dashboard', expect: { cards: [], maxWords: 45 } }] },
+  {
+    id: 'real-typos-urgent',
+    turns: [
+      { say: 'I need a website', expect: { cards: [] } },
+      { say: 'resturnat ,online booking ,tommorw', expect: { cards: [] } },
+    ],
+  },
+  { id: 'real-hotel', turns: [{ say: 'i have hotel', expect: { cards: [], maxWords: 45 } }] },
+  {
+    id: 'real-clothing-shop',
+    turns: [
+      { say: 'i have a clothing shop , what can you offer', expect: { cards: [], maxWords: 50 } },
+      { say: 'can you also set up like an admin dashboard ?', expect: { cards: [], maxWords: 50 } },
+    ],
+  },
+  {
+    id: 'real-database',
+    turns: [
+      { say: 'i have a resturant what can you do', expect: { cards: [], maxWords: 50 } },
+      { say: 'can you set up my database ?', expect: { cards: [], maxWords: 50 } },
+    ],
+  },
+  {
+    id: 'real-not-sure',
+    turns: [
+      { say: 'i have a resturant', expect: { cards: [] } },
+      { say: 'not sure', expect: { cards: [], maxWords: 40 } },
+    ],
+  },
+  {
+    id: 'real-okay',
+    turns: [
+      { say: 'i need to build a website', expect: { cards: [] } },
+      { say: 'a resturant', expect: { cards: [] } },
+      { say: 'okay', expect: { cards: [], maxWords: 40 } },
+    ],
+  },
+  { id: 'real-ar-duration', turns: [{ say: 'كم تأخذ مدة المشروع؟', expect: { cards: [], lang: 'ar' } }] },
+  {
+    id: 'real-clinic-web',
+    turns: [
+      { say: 'do you guys offer nfc tags', expect: { cards: [] } },
+      { say: 'i need a web for my clic', expect: { cards: [], maxWords: 50 } },
+    ],
+  },
   { id: 'gibberish', turns: [{ say: 'asdfghjkl qwerty', expect: { cards: [] } }] },
   { id: 'emoji-only', turns: [{ say: '👍', expect: { cards: [] } }] },
   { id: 'rude', turns: [{ say: 'you are useless', expect: { cards: [], maxWords: 40 } }] },
@@ -93,7 +148,7 @@ function wordCount(t) {
   return latin + Math.ceil(cjk / 2);
 }
 
-function check(reply, userMsg, expect, cards, handoffSeen) {
+function check(reply, userMsg, expect, cards, handoffSeen, leadSaved) {
   const f = [];
   const e = expect || {};
   const t = reply.trim();
@@ -121,9 +176,11 @@ function check(reply, userMsg, expect, cards, handoffSeen) {
   if (e.mustNot && e.mustNot.test(t)) f.push(`contains forbidden content ${e.mustNot}`);
   const kinds = cards.map((c) => c.kind).sort().join(',');
   if (e.cards && kinds !== [...e.cards].sort().join(',')) f.push(`cards: got [${kinds}] expected [${e.cards.join(',')}]`);
-  const handoff = /(team|they).{0,25}(message|follow up|reach out|contact|get back)|الفريق.{0,20}(يراسل|يتواصل)|团队.{0,10}联系|команда.{0,25}(напиш|свяж)/i.test(t);
+  const handoffClaim = /(team|they).{0,25}(message|follow up|reach out|contact|get back)|الفريق.{0,20}(يراسل|يتواصل)|团队.{0,10}联系|команда.{0,25}(напиш|свяж)/i.test(t);
+  const handoff = handoffClaim;
   if (e.handoff === true && !handoff) f.push('expected a hand-off to the team');
   if (e.handoff === false && handoff) f.push('handed off too early');
+  if (handoff && !leadSaved && !handoffSeen) f.push('claimed a hand-off but no lead was saved');
   if (e.handoff === undefined && handoff && !handoffSeen) {
     // a hand-off that nobody expected is only a warning-level finding
     f.push('unexpected hand-off');
@@ -203,7 +260,7 @@ for (const sc of active) {
     } else if (r.errors.length) {
       failures.push(`error event: ${r.errors[0]}`);
     } else {
-      failures = check(r.text, turn.say, turn.expect, r.cards, handoffSeen);
+      failures = check(r.text, turn.say, turn.expect, r.cards, handoffSeen, r.lead);
     }
     if (r.text && /(team|they).{0,25}(message|follow up)/i.test(r.text)) handoffSeen = true;
     turns.push({ user: turn.say.slice(0, 120), bot: r.text, cards: r.cards.map((c) => c.kind), failures });
