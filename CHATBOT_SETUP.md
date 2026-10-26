@@ -245,3 +245,14 @@ The prompt explicitly tells it to match the user's language. If you see mixing, 
 - A/B test: greeting variations to see which converts more leads.
 - Admin: bulk-tag, export leads to CSV.
 - Vector index in Firestore for faster retrieval at scale (when KB grows beyond ~500 chunks).
+
+## Health check (`/api/health`)
+
+- **Public:** `GET /api/health` returns `{ "ok": true }`, a cheap liveness ping for uptime monitors (no data, no outside calls).
+- **Full report:** with `Authorization: Bearer <CRON_SECRET>` or an admin Firebase token it checks the env keys, that the configured Groq models still exist (a free call, no tokens), that every `knowledge/*.md` file is uploaded to Firestore, and last-24h conversation/lead counts.
+- **Daily alert:** a Vercel cron (`/api/health?alert=1`, 05:00 UTC) emails the admins when the status is not `ok`. It needs `CRON_SECRET` and the Zoho SMTP variables in Vercel.
+- **Fix list it catches:** a retired `GROQ_MODEL`, a missing `GROQ_API_KEY`, no fallback models, an empty or incomplete knowledge base (run `npm run build:kb`), Firestore trouble.
+
+## Function layout (Vercel Hobby allows 12)
+
+`api/` holds 9 functions: `book`, `card-view`, `chat`, `contact-email`, `demo`, `health`, `lead`, `maps-extract`, `quote-save`. `demo` and `quote-save` are dispatchers: `vercel.json` rewrites keep the public URLs (`/api/demo-get`, `/api/quote-create`, ...) unchanged. Shared code and route handlers live in `api/_lib/` (not counted as functions). `scripts/test-vercel-function-budget.mjs` enforces the limit.

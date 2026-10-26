@@ -1,6 +1,6 @@
-import { getDb } from './_lib/firebase.js';
+import { getDb } from '../firebase.js';
+import { getQueryParam } from '../quote-admin.js';
 
-export const config = { runtime: 'nodejs', maxDuration: 10 };
 
 const serializeTimestamp = (value) => {
   if (!value) return null;
@@ -24,8 +24,7 @@ export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const url = new URL(req.url, 'http://localhost');
-    const slug = String(url.searchParams.get('slug') || '').trim().toLowerCase();
+    const slug = String(getQueryParam(req, 'slug') || '').trim().toLowerCase();
     if (!slug) return res.status(400).json({ error: 'slug is required' });
 
     const db = getDb();

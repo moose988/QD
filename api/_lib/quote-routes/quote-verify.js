@@ -1,11 +1,10 @@
 // POST /api/quote-verify  { id, passcode } -> { quote } or 401
 // Public. Hashes input, compares to stored hash. Strips private fields before returning.
 
-import { getDb } from './_lib/firebase.js';
-import { verifyPasscode } from './_lib/quote-id.js';
-import { sanitizePublicQuote } from './_lib/quote-admin.js';
+import { getDb } from '../firebase.js';
+import { verifyPasscode } from '../quote-id.js';
+import { sanitizePublicQuote } from '../quote-admin.js';
 
-export const config = { runtime: 'nodejs', maxDuration: 10 };
 
 const BRAND = {
   name: 'QD Systems',
