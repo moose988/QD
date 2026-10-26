@@ -55,6 +55,8 @@ async function loadChunks() {
     'company.md',
     'services.md',
     'services-detailed.md',
+    'nfc.md',
+    'events.md',
     'faq.md',
     'process.md',
     'sales-playbook.md',
