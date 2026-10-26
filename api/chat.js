@@ -21,6 +21,7 @@ import { embedQuery, warmup } from './_lib/embed.js';
 import { retrieve, loadChunks } from './_lib/retrieval.js';
 import { buildSystemPrompt, detectLang, LEAD_TOOL } from './_lib/prompt.js';
 import { detectActions, describeActions, getAction, MEANWHILE_LINE } from './_lib/actions.js';
+import { sanitizeReply, hasHandoffIntent } from './_lib/sanitize.js';
 import { getDb, admin } from './_lib/firebase.js';
 
 // Start downloading the embedding model in the background as soon as the module loads.
@@ -74,6 +75,32 @@ function extractErrorDetails(err) {
     code: err?.code || err?.error?.type || null,
     statusCode: err?.status || err?.statusCode || err?.response?.status || 500,
   };
+}
+
+const FALLBACK_MODELS = (process.env.GROQ_FALLBACK_MODELS || 'openai/gpt-oss-20b,qwen/qwen3.8-27b')
+  .split(',')
+  .map((m) => m.trim())
+  .filter(Boolean);
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function classifyGroqError(err) {
+  const status = err?.status || err?.statusCode || err?.response?.status || 0;
+  const { message, code } = extractErrorDetails(err);
+  if (code === 'tool_use_failed' || err?.error?.error?.code === 'tool_use_failed' || /tool call|tool_use_failed|parse tool/i.test(message)) return 'tool';
+  if (status === 429) return 'rate';
+  if (status >= 500) return 'server';
+  if (status === 404 || /model/i.test(message)) return 'model';
+  if (!status) return 'server'; // network-level failure
+  return 'other';
+}
+
+function retryAfterMs(err) {
+  const header = Number(err?.headers?.['retry-after']);
+  if (Number.isFinite(header) && header > 0) return header * 1000;
+  const m = /try again in ([\d.]+)\s*(ms|s)/i.exec(extractErrorDetails(err).message || '');
+  if (m) return Number(m[1]) * (m[2].toLowerCase() === 's' ? 1000 : 1);
+  return 1500;
 }
 
 function withTimeout(promise, ms, label) {
@@ -188,7 +215,7 @@ function isUsableContact(contact) {
   return digits.length >= 7; // phone / whatsapp
 }
 
-function makeStageTracker(send) {
+function makeStageTracker(send, emitDebug) {
   let currentStage = 'request_received';
   const startedAt = Date.now();
 
@@ -198,7 +225,7 @@ function makeStageTracker(send) {
       const elapsedMs = Date.now() - startedAt;
       const payload = { ...meta, elapsedMs };
       console.log(`[chat] stage=${stage} elapsed=${elapsedMs}ms`, payload);
-      send({ type: 'debug', stage, meta: payload, at: new Date().toISOString() });
+      if (emitDebug) send({ type: 'debug', stage, meta: payload, at: new Date().toISOString() });
     },
     current() {
       return currentStage;
@@ -247,7 +274,9 @@ export default async function handler(req, res) {
   const send = (obj) => {
     res.write(`data: ${JSON.stringify(obj)}\n\n`);
   };
-  const stage = makeStageTracker(send);
+  // Internal diagnostics only go to the browser when running locally (or explicitly requested).
+  const isLocalDev = /^(localhost|127\.0\.0\.1)(:|$)/.test(String(req.headers.host || ''));
+  const stage = makeStageTracker(send, isLocalDev);
   // Tracks whether we've already streamed visible text to the client. Once true,
   // any later failure (DB writes, etc.) must NOT surface as a user-facing error
   // bubble — the answer already arrived, so we close the stream cleanly instead.
@@ -290,7 +319,7 @@ export default async function handler(req, res) {
       const queryEmbedding = await withTimeout(embedQuery(retrievalQuery), EMBEDDING_TIMEOUT_MS, 'Embedding');
       stage.mark('embedding_completed', { dimensions: queryEmbedding?.length || 0 });
       stage.mark('retrieval_started', { mode: retrievalMode });
-      retrieved = await retrieve(queryEmbedding, { topK: 6, lang });
+      retrieved = await retrieve(queryEmbedding, { topK: 5, lang });
       stage.mark('retrieval_completed', { retrievedCount: retrieved.length, mode: retrievalMode });
     } catch (embedErr) {
       retrievalMode = 'fallback';
@@ -335,54 +364,82 @@ export default async function handler(req, res) {
     const groq = new Groq({ apiKey: groqApiKey });
     stage.mark('groq_client_init_completed');
 
-    stage.mark('groq_stream_create_started', {
-      model: groqModel,
-      messageCount: messages.length,
-    });
-    const stream = await groq.chat.completions.create({
-      model: groqModel,
-      messages,
-      tools: [LEAD_TOOL],
-      tool_choice: 'auto',
-      temperature: 0.3,
-      max_tokens: 450,
-      stream: true,
-    });
-    stage.mark('groq_stream_create_completed');
-    if (actions.length) send({ type: 'actions', items: actions });
-
     let fullText = '';
-    const toolCallParts = {}; // index -> { name, args }
+    let toolCallParts = {}; // index -> { id, name, args }
     let chunkCount = 0;
     let lastChunkAt = Date.now();
+    let usedModel = groqModel;
+    let useTools = true;
+    let completed = false;
+    let lastErr = null;
+    const modelChain = [groqModel, ...FALLBACK_MODELS.filter((m) => m !== groqModel)];
+    const reasoningFor = (m) => (String(m).includes('gpt-oss') ? { reasoning_effort: 'low' } : {});
 
-    for await (const chunk of stream) {
-      chunkCount += 1;
-      lastChunkAt = Date.now();
-      if (chunkCount === 1) {
-        stage.mark('groq_stream_first_chunk_received');
-      } else if (chunkCount % 25 === 0) {
-        stage.mark('groq_stream_progress', { chunkCount });
-      }
-      const choice = chunk.choices?.[0];
-      if (!choice) continue;
-      const delta = choice.delta || {};
+    // The reply is buffered, cleaned and only then sent: replies are 1-3 sentences, so this costs
+    // almost nothing, and it lets us guarantee the parts that must never slip through.
+    outer: for (const model of modelChain) {
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+          fullText = '';
+          toolCallParts = {};
+          stage.mark('groq_stream_create_started', { model, attempt, useTools, messageCount: messages.length });
+          const stream = await groq.chat.completions.create({
+            model,
+            messages,
+            ...(useTools ? { tools: [LEAD_TOOL], tool_choice: 'auto' } : {}),
+            ...reasoningFor(model),
+            temperature: 0.3,
+            max_tokens: 450,
+            stream: true,
+          });
+          stage.mark('groq_stream_create_completed', { model });
 
-      if (delta.content) {
-        fullText += delta.content;
-        hasStreamedText = true;
-        send({ type: 'text', delta: delta.content });
-      }
-
-      if (delta.tool_calls) {
-        for (const tc of delta.tool_calls) {
-          const idx = tc.index ?? 0;
-          if (!toolCallParts[idx]) toolCallParts[idx] = { id: '', name: '', args: '' };
-          if (tc.id) toolCallParts[idx].id = tc.id;
-          if (tc.function?.name) toolCallParts[idx].name = tc.function.name;
-          if (tc.function?.arguments) toolCallParts[idx].args += tc.function.arguments;
+          for await (const chunk of stream) {
+            chunkCount += 1;
+            lastChunkAt = Date.now();
+            if (chunkCount === 1) stage.mark('groq_stream_first_chunk_received');
+            const delta = chunk.choices?.[0]?.delta || {};
+            if (delta.content) fullText += delta.content;
+            if (delta.tool_calls) {
+              for (const tc of delta.tool_calls) {
+                const idx = tc.index ?? 0;
+                if (!toolCallParts[idx]) toolCallParts[idx] = { id: '', name: '', args: '' };
+                if (tc.id) toolCallParts[idx].id = tc.id;
+                if (tc.function?.name) toolCallParts[idx].name = tc.function.name;
+                if (tc.function?.arguments) toolCallParts[idx].args += tc.function.arguments;
+              }
+            }
+          }
+          if (!fullText.trim() && !Object.values(toolCallParts).some((t) => t.name)) {
+            const emptyErr = new Error('Model returned an empty completion');
+            emptyErr.status = 502;
+            throw emptyErr;
+          }
+          completed = true;
+          usedModel = model;
+          break outer;
+        } catch (err) {
+          lastErr = err;
+          const kind = classifyGroqError(err);
+          stage.mark('groq_attempt_failed', { model, attempt, kind, message: extractErrorDetails(err).message });
+          if (kind === 'tool' && useTools) { useTools = false; continue; }
+          if (kind === 'rate') {
+            const wait = retryAfterMs(err);
+            if (attempt === 0 && wait <= 2500) { await sleep(wait); continue; }
+            continue outer;
+          }
+          continue outer; // server / model / other: try the next model
         }
       }
+    }
+    if (!completed) throw lastErr || new Error('No model could answer');
+
+    if (actions.length) send({ type: 'actions', items: actions });
+
+    fullText = sanitizeReply(fullText, { lang, allowedDigits: [visitor?.phone] });
+    if (fullText) {
+      hasStreamedText = true;
+      for (const piece of fullText.match(/[\s\S]{1,32}(?:\s|$)/g) || [fullText]) send({ type: 'text', delta: piece });
     }
 
     // ─── 4. Persist lead if captured ────────────────────────────────────────
@@ -393,6 +450,8 @@ export default async function handler(req, res) {
     });
     let leadSaved = false;
     let leadNewlySaved = false;
+    let leadVague = false;
+    let leadNoIntent = false;
     let leadCaptured = false;     // model tried to capture
     let leadIncomplete = false;   // ...but with no usable contact
     let leadBusiness = '';        // business type, if it told us one
@@ -421,6 +480,17 @@ export default async function handler(req, res) {
           }
           if (!leadData.name && visitor?.name) leadData.name = visitor.name;
           leadBusiness = leadData.business_type || '';
+          // Nothing concrete about what they want yet (e.g. a bare "how much"): don't hand off.
+          if (!leadData.business_type && (leadData.project_brief || '').length < 25) {
+            leadVague = true;
+            stage.mark('lead_skipped_vague');
+            continue;
+          }
+          if (!hasHandoffIntent(recentUserText)) {
+            leadNoIntent = true;
+            stage.mark('lead_skipped_no_intent');
+            continue;
+          }
 
           // Hard guard: only persist + confirm when there's a real contact.
           // Otherwise the model jumped the gun (e.g. on "a restaurant") and we
@@ -471,24 +541,31 @@ export default async function handler(req, res) {
         try {
           stage.mark('tool_followup_started');
           const callId = leadCall.id || 'call_capture_lead';
+          const toolNote = leadSaved
+            ? 'Saved. The team will message the visitor soon. Now reply to the visitor in the same language: answer their last question first (stay brief, no figures), then say the team will message them soon.'
+            : leadNoIntent
+              ? 'No hand-off needed yet. Reply in the same language: just answer their last question briefly and naturally. Do not mention the team and do not point to our work.'
+              : leadVague
+                ? "Not handed off yet: you don't know what they want built. Reply in the same language: say pricing is custom and depends on what they need, then ask in one short sentence what they're looking to build. Do not mention the team and do not point to our work."
+                : leadIncomplete
+                  ? 'Not saved: no usable contact yet. Reply naturally and ask how the team should reach them.'
+                  : 'Noted. Reply to the visitor in the same language: answer their last question first (stay brief, no figures), then say the team will follow up. Do NOT ask for contact details.';
           const followUp = await groq.chat.completions.create({
-            model: groqModel,
+            model: usedModel,
             messages: [
               ...messages,
               { role: 'assistant', content: null, tool_calls: [{ id: callId, type: 'function', function: { name: 'capture_lead', arguments: leadCall.args || '{}' } }] },
-              { role: 'tool', tool_call_id: callId, content: leadSaved ? 'Saved. The team will message the visitor soon. Now reply to the visitor in the same language: answer their last question first (stay brief, no figures), then say the team will message them soon.' : (leadIncomplete ? 'Not saved: no usable contact yet. Reply naturally and ask how the team should reach them.' : 'Noted. Reply to the visitor in the same language: answer their last question first (stay brief, no figures), then say the team will follow up. Do NOT ask for contact details.') },
+              { role: 'tool', tool_call_id: callId, content: toolNote },
             ],
+            ...reasoningFor(usedModel),
             temperature: 0.3,
-            max_tokens: 200,
-            stream: true,
+            max_tokens: 300,
           });
-          for await (const chunk of followUp) {
-            const delta = chunk.choices?.[0]?.delta?.content;
-            if (delta) {
-              fullText += delta;
-              hasStreamedText = true;
-              send({ type: 'text', delta });
-            }
+          const cleaned = sanitizeReply(followUp.choices?.[0]?.message?.content || '', { lang, allowedDigits: [visitor?.phone] });
+          if (cleaned) {
+            fullText += cleaned;
+            hasStreamedText = true;
+            send({ type: 'text', delta: cleaned });
           }
           stage.mark('tool_followup_completed', { responseLength: fullText.length });
         } catch (followErr) {
@@ -506,7 +583,7 @@ export default async function handler(req, res) {
         en: "I've passed this to the team, and they'll message you soon.",
       }[lang] || "I've passed this to the team, and they'll message you soon.";
       send({ type: 'text', delta: fullText });
-    } else if (!fullText.trim() && (leadIncomplete || leadCaptured)) {
+    } else if (!fullText.trim() && leadIncomplete) {
       // Model tried to capture before we had a contact — ask naturally and keep going.
       const biz = leadBusiness.trim();
       fullText = {
@@ -584,15 +661,12 @@ export default async function handler(req, res) {
     send({
       type: 'error',
       message: {
-        ar: 'حدث خطأ. جرّب مرة أخرى أو راسلنا واتساب +971 50 461 1123.',
-        zh: '出了点问题。请重试，或通过 WhatsApp 联系我们 +971 50 461 1123。',
-        ru: 'Что-то пошло не так. Попробуйте ещё раз или напишите в WhatsApp +971 50 461 1123.',
-        en: 'Something went wrong. Try again, or WhatsApp us at +971 50 461 1123.',
-      }[lang] || 'Something went wrong. Try again, or WhatsApp us at +971 50 461 1123.',
-      details: errorDetails.message,
-      code: errorDetails.code,
-      statusCode: errorDetails.statusCode,
-      stage: stage.current(),
+        ar: 'عذراً، واجهتني مشكلة من جهتي. هل تعيد المحاولة بعد لحظات؟',
+        zh: '抱歉，我这边出了点小问题。能请你稍后再试一次吗？',
+        ru: 'Извините, у меня небольшая заминка. Попробуете ещё раз через минуту?',
+        en: "Sorry, I'm having a hiccup on my side. Could you try that again in a moment?",
+      }[lang] || "Sorry, I'm having a hiccup on my side. Could you try that again in a moment?",
+      ...(isLocalDev ? { details: errorDetails.message, code: errorDetails.code, statusCode: errorDetails.statusCode, stage: stage.current() } : {}),
     });
     res.end();
   }

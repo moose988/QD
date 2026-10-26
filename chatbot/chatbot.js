@@ -55,7 +55,7 @@
         'I need a website',
       ],
       leadSaved: 'Got it, your details are with the QD team. We\'ll follow up shortly.',
-      errorNetwork: 'Connection hiccup. Try once more, or WhatsApp +971 50 461 1123.',
+      errorNetwork: "Sorry, I'm having a hiccup on my side. Could you try that again in a moment?",
     },
     ar: {
       title: 'مساعد QD',
@@ -355,6 +355,9 @@
     console.info(`[qd-chat] stage: ${stage}`, meta, entry.at);
   }
 
+  // Internal diagnostics are for developers only: localhost, or ?chatdebug=1.
+  const DEBUG_UI = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) || /[?&]chatdebug=1\b/.test(location.search);
+
   function formatDebugStages(limit = 6) {
     return state.debugStages
       .slice(-limit)
@@ -366,6 +369,7 @@
   }
 
   function buildDebugMessage(baseMessage, extras = []) {
+    if (!DEBUG_UI) return baseMessage;
     const stages = formatDebugStages();
     return [
       baseMessage,
@@ -597,8 +601,8 @@
               debugStages: state.debugStages,
             });
             if (!botText) {
-              const stageLabel = obj.stage ? `Debug stage: ${obj.stage}` : '';
-              const detailLabel = obj.details ? `Reason: ${obj.details}` : '';
+              const stageLabel = DEBUG_UI && obj.stage ? `Debug stage: ${obj.stage}` : '';
+              const detailLabel = DEBUG_UI && obj.details ? `Reason: ${obj.details}` : '';
               const debugText = [obj.message || STRINGS[state.lang].errorNetwork, stageLabel, detailLabel]
                 .filter(Boolean)
                 .join('\n');
@@ -629,9 +633,11 @@
         addMessage(
           'assistant',
           buildDebugMessage(
-            state.lang === 'ar'
-              ? 'لم يصل أي رد نصي من الخادم. راجع نقاط التحقق التالية وسجلات Vercel.'
-              : 'The server finished without sending any text. Check the checkpoints below and the Vercel logs.'
+            !DEBUG_UI
+              ? STRINGS[state.lang].errorNetwork
+              : (state.lang === 'ar'
+                ? 'لم يصل أي رد نصي من الخادم. راجع نقاط التحقق التالية وسجلات Vercel.'
+                : 'The server finished without sending any text. Check the checkpoints below and the Vercel logs.')
           )
         );
       }
@@ -647,10 +653,10 @@
                 ? 'انتهت مهلة طلب الدردشة قبل وصول الرد.'
                 : 'The chat request timed out before a response arrived.')
             : STRINGS[state.lang].errorNetwork,
-          [
+          DEBUG_UI ? [
             err?.message ? `Reason: ${err.message}` : '',
             'If this is the Vercel deployment, check the function logs for `/api/chat`.',
-          ]
+          ] : []
         )
       );
     } finally {

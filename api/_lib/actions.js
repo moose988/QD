@@ -46,7 +46,7 @@ export function describeActions(actions) {
       ? '- a "customer login" button for QD Events (you DO know where the login is; never say you lack that detail)'
       : '- a "view our demos and work" button (our website previews and work)'
   );
-  return `BUTTONS (the site will show these under your reply automatically):\n${lines.join('\n')}\nIntroduce it in one short, natural sentence that fits the button (for login: "Here's the customer login for your event."; for demos: "Here are some of our demos and past work." — adapt to the visitor's words) and keep the reply to exactly that one sentence. For the login button NEVER ask a question and never assume they are planning a new event: they are an existing customer who just needs the way in. Do NOT paste any URL.`;
+  return `BUTTONS (the site will show these under your reply automatically):\n${lines.join('\n')}\nWrite in the SAME language the visitor used. Introduce it in one short, natural sentence that fits the button (for login: "Here's the customer login for your event."; for demos: "Here are some of our demos and past work." — adapt to the visitor's words) and keep the reply to exactly that one sentence. For the login button NEVER ask a question and never assume they are planning a new event: they are an existing customer who just needs the way in. Do NOT paste any URL.`;
 }
 
 export function getAction(kind, lang = 'en') {
