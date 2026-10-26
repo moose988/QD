@@ -485,6 +485,7 @@
           sessionId: state.sessionId,
           pageLang: state.lang,
           pageUrl: location.href,
+          visitor: state.lead ? { name: state.lead.name, email: state.lead.email, phone: state.lead.phone } : undefined,
         }),
       });
       recordDebugStage('fetch_response_received', { ok: resp.ok, status: resp.status });
@@ -690,12 +691,153 @@
     setTimeout(syncMobilePanelLayout, 120);
   });
 
+  // ─── Proactive nudge ──────────────────────────────────────────────────────
+  // A small, polite "need help?" bubble. Never auto-opens the panel, never shows
+  // to someone already chatting, and backs off if dismissed.
+  const NUDGE_OFF_KEY = 'qd_chat_nudge_off_until';
+  const NUDGE_LOG_KEY = 'qd_chat_nudge_log';
+  const NUDGE_SESSION_KEY = 'qd_chat_nudge_session';
+  const NUDGE_ENGAGED_KEY = 'qd_chat_engaged';
+  const NUDGE_FIRST_MS = 28000;      // engaged time before the first generic nudge
+  const NUDGE_SECTION_MS = 8000;     // time a section must stay in view for its nudge
+  const NUDGE_SPACING_MS = 75000;    // minimum gap between nudges
+  const NUDGE_VISIBLE_MS = 12000;    // auto-hide
+  const NUDGE_MAX_SESSION = 3;
+  const NUDGE_MAX_WEEK = 5;
+  const NUDGE_SUPPRESS_MS = 7 * 24 * 3600 * 1000;
+
+  const NUDGES = {
+    en: { dismiss: 'Dismiss', msgs: { def: ['Need any help?', ''], nfc: ['Curious what one tap could do for your business?', 'What could an NFC tag do for my business?'], events: ['Planning an event? See how QD Events works.', "I'm planning an event — how does QD Events work?"], contact: ['Want a quicker answer than a form? Ask me here.', ''] } },
+    ar: { dismiss: 'إغلاق', msgs: { def: ['تحتاج مساعدة؟', ''], nfc: ['تتساءل ماذا يمكن للمسة واحدة أن تفعل لنشاطك؟', 'ماذا يمكن لبطاقة NFC أن تفعل لنشاطي؟'], events: ['تخطط لمناسبة؟ تعرّف على QD Events.', 'أخطط لمناسبة — كيف يعمل QD Events؟'], contact: ['تريد جواباً أسرع من النموذج؟ اسألني هنا.', ''] } },
+    zh: { dismiss: '关闭', msgs: { def: ['需要帮助吗？', ''], nfc: ['想知道轻轻一碰能为你的业务做什么吗？', '一个 NFC 标签能为我的业务做什么？'], events: ['在筹备活动？了解 QD Events。', '我在筹备活动——QD Events 怎么用？'], contact: ['比填表更快？直接在这里问我。', ''] } },
+    ru: { dismiss: 'Закрыть', msgs: { def: ['Нужна помощь?', ''], nfc: ['Интересно, что может одно касание для вашего бизнеса?', 'Что может NFC-метка для моего бизнеса?'], events: ['Планируете событие? Посмотрите, как работает QD Events.', 'Я планирую событие — как работает QD Events?'], contact: ['Быстрее, чем форма? Спросите меня здесь.', ''] } },
+  };
+
+  const nudgeState = { el: null, key: 'def', hideTimer: null, lastShown: 0, lastActivity: 0, hadActivity: false, loadedAt: Date.now(), sectionSince: {}, sectionKey: null, sectionTimes: {} };
+
+  function nudgeRead(storage, key, fallback) {
+    try { const v = storage.getItem(key); return v == null ? fallback : JSON.parse(v); } catch (e) { return fallback; }
+  }
+  function nudgeWrite(storage, key, value) {
+    try { storage.setItem(key, JSON.stringify(value)); } catch (e) {}
+  }
+
+  function nudgeAllowed() {
+    if (state.open || state.sending) return false;
+    if (state.lead || (state.history && state.history.length)) return false;
+    if (sessionStorage.getItem(NUDGE_ENGAGED_KEY)) return false;
+    if (document.visibilityState !== 'visible') return false;
+    const now = Date.now();
+    if (now < nudgeRead(localStorage, NUDGE_OFF_KEY, 0)) return false;
+    if (nudgeRead(sessionStorage, NUDGE_SESSION_KEY, 0) >= NUDGE_MAX_SESSION) return false;
+    const week = nudgeRead(localStorage, NUDGE_LOG_KEY, []).filter((t) => now - t < NUDGE_SUPPRESS_MS);
+    if (week.length >= NUDGE_MAX_WEEK) return false;
+    if (now - nudgeState.lastShown < NUDGE_SPACING_MS) return false;
+    const a = document.activeElement;
+    if (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && !root.contains(a)) return false;
+    if (isMobileLayout() && (window.innerHeight < 600 || isKeyboardOpen())) return false;
+    return true;
+  }
+
+  function hideNudge() {
+    clearTimeout(nudgeState.hideTimer);
+    const el = nudgeState.el;
+    if (!el) return;
+    el.setAttribute('data-show', 'false');
+    setTimeout(() => { if (el.getAttribute('data-show') === 'false') el.hidden = true; }, 280);
+  }
+
+  function ensureNudgeEl() {
+    if (nudgeState.el) return nudgeState.el;
+    const el = document.createElement('div');
+    el.className = 'qd-chat-nudge';
+    el.setAttribute('role', 'status');
+    el.hidden = true;
+    el.innerHTML = '<button type="button" class="qd-chat-nudge-text"></button><button type="button" class="qd-chat-nudge-x" aria-label="Dismiss">✕</button>';
+    el.querySelector('.qd-chat-nudge-text').addEventListener('click', () => {
+      const prefill = (NUDGES[state.lang] || NUDGES.en).msgs[nudgeState.key][1];
+      hideNudge();
+      openPanel();
+      if (prefill && root.getAttribute('data-gate') !== 'true' && !els.input.value) {
+        els.input.value = prefill;
+        els.input.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    });
+    el.querySelector('.qd-chat-nudge-x').addEventListener('click', () => {
+      hideNudge();
+      nudgeWrite(localStorage, NUDGE_OFF_KEY, Date.now() + NUDGE_SUPPRESS_MS);
+    });
+    root.appendChild(el);
+    nudgeState.el = el;
+    return el;
+  }
+
+  function showNudge(key) {
+    if (!nudgeAllowed()) return;
+    const pack = NUDGES[state.lang] || NUDGES.en;
+    const el = ensureNudgeEl();
+    nudgeState.key = key;
+    el.querySelector('.qd-chat-nudge-text').textContent = pack.msgs[key][0];
+    el.querySelector('.qd-chat-nudge-x').setAttribute('aria-label', pack.dismiss);
+    el.hidden = false;
+    requestAnimationFrame(() => el.setAttribute('data-show', 'true'));
+    const now = Date.now();
+    nudgeState.lastShown = now;
+    nudgeWrite(sessionStorage, NUDGE_SESSION_KEY, nudgeRead(sessionStorage, NUDGE_SESSION_KEY, 0) + 1);
+    nudgeWrite(localStorage, NUDGE_LOG_KEY, nudgeRead(localStorage, NUDGE_LOG_KEY, []).filter((t) => now - t < NUDGE_SUPPRESS_MS).concat(now));
+    clearTimeout(nudgeState.hideTimer);
+    nudgeState.hideTimer = setTimeout(hideNudge, NUDGE_VISIBLE_MS);
+  }
+
+  function onChatOpened() {
+    try { sessionStorage.setItem(NUDGE_ENGAGED_KEY, '1'); } catch (e) {}
+    hideNudge();
+  }
+
+  function initNudge() {
+    const markActive = () => { nudgeState.lastActivity = Date.now(); nudgeState.hadActivity = true; };
+    ['scroll', 'pointermove', 'touchstart', 'keydown', 'click'].forEach((ev) => window.addEventListener(ev, markActive, { passive: true }));
+
+    // Section-aware nudges: NFC, QD Events, contact.
+    if ('IntersectionObserver' in window) {
+      const targets = [['#nfc', 'nfc'], ['.build-events', 'events'], ['#contact', 'contact']];
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          const key = entry.target.getAttribute('data-nudge-key');
+          if (entry.isIntersecting) nudgeState.sectionSince[key] = nudgeState.sectionSince[key] || Date.now();
+          else delete nudgeState.sectionSince[key];
+        });
+      }, { threshold: 0.35 });
+      targets.forEach(([sel, key]) => {
+        const node = document.querySelector(sel);
+        if (node) { node.setAttribute('data-nudge-key', key); io.observe(node); }
+      });
+    }
+
+    setInterval(() => {
+      if (!nudgeAllowed()) return;
+      const now = Date.now();
+      if (now - nudgeState.loadedAt < 10000) return;
+      const seen = nudgeRead(sessionStorage, 'qd_chat_nudge_sections', []);
+      for (const key of Object.keys(nudgeState.sectionSince)) {
+        if (!seen.includes(key) && now - nudgeState.sectionSince[key] >= NUDGE_SECTION_MS) {
+          nudgeWrite(sessionStorage, 'qd_chat_nudge_sections', seen.concat(key));
+          showNudge(key);
+          return;
+        }
+      }
+      const activeRecently = nudgeState.hadActivity && now - nudgeState.lastActivity < 15000;
+      if (activeRecently && now - nudgeState.loadedAt >= NUDGE_FIRST_MS) showNudge('def');
+    }, 4000);
+  }
+
   // ─── Open / close ─────────────────────────────────────────────────────────
   function openPanel() {
     state.open = true;
     root.setAttribute('data-open', 'true');
     document.body.classList.add('qd-chat-open');
     sessionStorage.setItem(OPEN_KEY, '1');
+    onChatOpened();
     syncMobilePanelLayout();
     setTimeout(maybeFocusChatInput, 200);
   }
@@ -761,6 +903,7 @@
   }
   refreshStrings();
   if (sessionStorage.getItem(OPEN_KEY)) openPanel();
+  initNudge();
 
   // Follow the site-wide language switcher (only before the visitor has typed —
   // once they're mid-conversation we keep the language they were chatting in).

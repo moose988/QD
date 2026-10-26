@@ -27,7 +27,8 @@ warmup();
 
 const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile';
 const DEFAULT_EMBED_MODEL = 'Xenova/multilingual-e5-small';
-const MAX_HISTORY = 8; // last 8 messages (4 turns)
+const MAX_HISTORY = 10; // last 10 messages (5 turns)
+const MAX_ASSISTANT_CHARS = 600;
 const EMBEDDING_TIMEOUT_MS = 3500;
 const DEPRECATED_GROQ_MODELS = {
   'mixtral-8x7b-32768': 'llama-3.3-70b-versatile',
@@ -87,6 +88,31 @@ function withTimeout(promise, ms, label) {
   return Promise.race([promise, timeoutPromise]).finally(() => {
     if (timeoutId) clearTimeout(timeoutId);
   });
+}
+
+// Short or pronoun-y follow-ups ("how much is it?", "and for a clinic?") carry no
+// topic on their own, so retrieval also looks at the previous user message.
+const FOLLOW_UP_RE = /\b(it|that|this|those|them|they|its|and for|what about|how much|how long|price|cost)\b|كم|وماذا|وهل|وبالنسبة|هذا|هذه|ذلك|这个|那个|多少钱|多久|那么|этот|это|сколько|а для|а если/i;
+
+function buildRetrievalQuery(message, history) {
+  const msg = String(message || '').trim();
+  const prevUser = [...history].reverse().find((m) => m.role === 'user')?.content;
+  const needsContext = msg.length < 60 || FOLLOW_UP_RE.test(msg);
+  if (!prevUser || !needsContext) return msg;
+  return `${String(prevUser).slice(0, 250)} ${msg}`.slice(0, 400);
+}
+
+function sanitizeVisitor(raw, pageUrl) {
+  const clean = (v, max) => String(v || '').replace(/[\r\n\t]+/g, ' ').trim().slice(0, max);
+  let page = '';
+  try { page = new URL(String(pageUrl || '')).pathname.slice(0, 80); } catch { /* ignore */ }
+  const v = {
+    name: clean(raw?.name, 60),
+    email: clean(raw?.email, 80),
+    phone: clean(raw?.phone, 40),
+    page,
+  };
+  return v.name || v.email || v.phone || v.page ? v : null;
 }
 
 async function getFallbackContext(lang, limit = 6) {
@@ -209,6 +235,7 @@ export default async function handler(req, res) {
   if (message.length > 2000) return res.status(400).json({ error: 'message too long (max 2000 chars)' });
 
   const lang = detectLang(message) || pageLang;
+  const visitor = sanitizeVisitor(body?.visitor, body?.pageUrl);
 
   // ─── SSE response setup ───────────────────────────────────────────────────
   res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
@@ -240,6 +267,16 @@ export default async function handler(req, res) {
       embedModel: process.env.EMBED_MODEL || DEFAULT_EMBED_MODEL,
       hasGroqApiKey: Boolean(groqApiKey),
     });
+    const cleanedHistory = history
+      .filter(m => m && m.role && m.content && ['user', 'assistant'].includes(m.role))
+      .slice(-MAX_HISTORY)
+      .map(m => ({
+        role: m.role,
+        content: String(m.content).slice(0, m.role === 'assistant' ? MAX_ASSISTANT_CHARS : 1500),
+      }));
+    const retrievalQuery = buildRetrievalQuery(message, cleanedHistory);
+    const recentUserText = [...cleanedHistory.filter(m => m.role === 'user').slice(-2).map(m => m.content), message].join(' ');
+
     // ─── 1. Embed query + retrieve ──────────────────────────────────────────
     let retrieved = [];
     let retrievalMode = 'semantic';
@@ -249,10 +286,10 @@ export default async function handler(req, res) {
         lang,
         timeoutMs: EMBEDDING_TIMEOUT_MS,
       });
-      const queryEmbedding = await withTimeout(embedQuery(message), EMBEDDING_TIMEOUT_MS, 'Embedding');
+      const queryEmbedding = await withTimeout(embedQuery(retrievalQuery), EMBEDDING_TIMEOUT_MS, 'Embedding');
       stage.mark('embedding_completed', { dimensions: queryEmbedding?.length || 0 });
       stage.mark('retrieval_started', { mode: retrievalMode });
-      retrieved = await retrieve(queryEmbedding, { topK: 8, lang });
+      retrieved = await retrieve(queryEmbedding, { topK: 6, lang });
       stage.mark('retrieval_completed', { retrievedCount: retrieved.length, mode: retrievalMode });
     } catch (embedErr) {
       retrievalMode = 'fallback';
@@ -282,13 +319,8 @@ export default async function handler(req, res) {
 
     // ─── 2. Build prompt ────────────────────────────────────────────────────
     stage.mark('prompt_build_started');
-    const systemPrompt = buildSystemPrompt({ lang, contextChunks: retrieved });
+    const systemPrompt = buildSystemPrompt({ lang, contextChunks: retrieved, visitor, recentUserText });
     stage.mark('prompt_build_completed', { promptLength: systemPrompt.length });
-
-    const cleanedHistory = history
-      .filter(m => m && m.role && m.content && ['user', 'assistant'].includes(m.role))
-      .slice(-MAX_HISTORY)
-      .map(m => ({ role: m.role, content: String(m.content).slice(0, 4000) }));
 
     const messages = [
       { role: 'system', content: systemPrompt },
@@ -310,8 +342,8 @@ export default async function handler(req, res) {
       messages,
       tools: [LEAD_TOOL],
       tool_choice: 'auto',
-      temperature: 0.4,
-      max_tokens: 1024,
+      temperature: 0.3,
+      max_tokens: 450,
       stream: true,
     });
     stage.mark('groq_stream_create_completed');
