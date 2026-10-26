@@ -60,3 +60,19 @@ export const MEANWHILE_LINE = {
   zh: '在此期间，你可以先看看我们的作品。',
   ru: 'А пока можете посмотреть наши работы.',
 };
+
+// Used when the model answers a button request in the wrong language.
+export const ACTION_INTRO = {
+  login: {
+    en: "Here's the customer login for your event.",
+    ar: 'هذا رابط تسجيل دخول العملاء لمناسبتك.',
+    zh: '这是你活动的客户登录入口。',
+    ru: 'Вот вход для клиентов для вашего события.',
+  },
+  demos: {
+    en: 'Here are some of our demos and past work.',
+    ar: 'هذه بعض نماذجنا وأعمالنا السابقة.',
+    zh: '这是我们的一些演示和过往作品。',
+    ru: 'Вот несколько наших демо и прошлых работ.',
+  },
+};

@@ -20,7 +20,7 @@ import Groq from 'groq-sdk';
 import { embedQuery, warmup } from './_lib/embed.js';
 import { retrieve, loadChunks } from './_lib/retrieval.js';
 import { buildSystemPrompt, detectLang, LEAD_TOOL } from './_lib/prompt.js';
-import { detectActions, describeActions, getAction, MEANWHILE_LINE } from './_lib/actions.js';
+import { detectActions, describeActions, getAction, MEANWHILE_LINE, ACTION_INTRO } from './_lib/actions.js';
 import { sanitizeReply, hasHandoffIntent } from './_lib/sanitize.js';
 import { getDb, admin } from './_lib/firebase.js';
 
@@ -437,6 +437,11 @@ export default async function handler(req, res) {
     if (actions.length) send({ type: 'actions', items: actions });
 
     fullText = sanitizeReply(fullText, { lang, allowedDigits: [visitor?.phone] });
+    // A button reply in the wrong language (e.g. English to an Arabic visitor) is replaced by a fixed local line.
+    const SCRIPTS = { ar: /[\u0600-\u06FF]/, zh: /[\u4e00-\u9fff]/, ru: /[\u0400-\u04FF]/ };
+    if (fullText && SCRIPTS[lang] && !SCRIPTS[lang].test(fullText) && actions.length) {
+      fullText = ACTION_INTRO[actions[0].kind]?.[lang] || fullText;
+    }
     if (fullText) {
       hasStreamedText = true;
       for (const piece of fullText.match(/[\s\S]{1,32}(?:\s|$)/g) || [fullText]) send({ type: 'text', delta: piece });

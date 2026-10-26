@@ -57,12 +57,12 @@ export function sanitizeReply(input, { lang = 'en', allowedDigits = [] } = {}) {
   const kept = sentences.filter((s) => !STOCK_SENTENCE_RE.test(s));
   if (kept.length) sentences = kept;
 
-  // hard length cap: stop at the last full sentence under ~85 words
+  // hard length cap: stop at the last full sentence under ~60 words
   const out = [];
   let words = 0;
   for (const s of sentences) {
     const w = countWords(s);
-    if (out.length && words + w > 85) break;
+    if (out.length && words + w > 60) break;
     out.push(s);
     words += w;
   }

@@ -58,7 +58,7 @@ const S = [
     id: 'nfc-cafe',
     turns: [
       { say: 'do you do nfc for cafes?', expect: { cards: [], must: /tap|nfc/i } },
-      { say: 'per table. how much is it?', expect: { cards: [] } },
+      { say: 'per table. how much is it?', expect: { handoff: true, cards: ['demos'] } },
     ],
   },
   { id: 'offtopic-homework', turns: [{ say: 'can you help me write my history homework', expect: { cards: [], mustNot: /\b(treaty|war|empire|revolution)\b/i } }] },
@@ -162,8 +162,29 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const results = [];
 const sessions = [];
 
-for (const sc of S) {
-  if (ONLY && !ONLY.has(sc.id)) continue;
+// ─── Progress bars ───────────────────────────────────────────────────────────
+const tty = process.stdout.isTTY;
+const bar = (done, total, width = 20) => {
+  const filled = total ? Math.round((done / total) * width) : 0;
+  return '█'.repeat(filled) + '░'.repeat(width - filled);
+};
+const GREEN = tty ? '\x1b[32m' : '';
+const RED = tty ? '\x1b[31m' : '';
+const DIM = tty ? '\x1b[2m' : '';
+const RESET = tty ? '\x1b[0m' : '';
+const active = S.filter((sc) => !ONLY || ONLY.has(sc.id));
+const totalTurns = active.reduce((n, sc) => n + sc.turns.length, 0);
+let doneTurns = 0;
+let scenarioIndex = 0;
+const pad = (str, n) => String(str).padEnd(n).slice(0, n);
+function render(sc, turnDone, note) {
+  const overall = `${bar(doneTurns, totalTurns, 24)} ${String(Math.round((doneTurns / totalTurns) * 100)).padStart(3)}%`;
+  const line = `[${String(scenarioIndex).padStart(2)}/${active.length}] ${pad(sc.id, 20)} ${bar(turnDone, sc.turns.length, 10)} ${turnDone}/${sc.turns.length}  ${DIM}${note}${RESET}   overall ${overall}`;
+  if (tty) process.stdout.write(`\r\x1b[2K${line}`);
+}
+
+for (const sc of active) {
+  scenarioIndex += 1;
   const sessionId = `eval-${RUN}-${sc.id}`.slice(0, 64);
   sessions.push(sessionId);
   const history = [];
@@ -171,7 +192,9 @@ for (const sc of S) {
   let handoffSeen = false;
   for (const turn of sc.turns) {
     const lang = turn.expect?.lang || 'en';
+    render(sc, turns.length, 'waiting (rate limit)');
     await sleep(DELAY);
+    render(sc, turns.length, 'asking the chatbot');
     let r;
     try { r = await chat(sessionId, turn.say, history, lang); } catch (err) { r = { status: 0, text: '', cards: [], errors: [String(err)] }; }
     let failures = [];
@@ -185,9 +208,13 @@ for (const sc of S) {
     if (r.text && /(team|they).{0,25}(message|follow up)/i.test(r.text)) handoffSeen = true;
     turns.push({ user: turn.say.slice(0, 120), bot: r.text, cards: r.cards.map((c) => c.kind), failures });
     history.push({ role: 'user', content: turn.say }, { role: 'assistant', content: r.text });
-    process.stdout.write(failures.length ? 'x' : '.');
+    doneTurns += 1;
+    render(sc, turns.length, failures.length ? 'turn failed' : 'turn ok');
   }
   results.push({ id: sc.id, turns });
+  const bad = turns.filter((t) => t.failures.length).length;
+  if (tty) process.stdout.write('\r\x1b[2K');
+  console.log(`${bad ? RED + '✗' : GREEN + '✓'}${RESET} [${String(scenarioIndex).padStart(2)}/${active.length}] ${pad(sc.id, 20)} ${bar(turns.length - bad, turns.length, 10)} ${turns.length - bad}/${turns.length} passed   ${DIM}overall ${bar(doneTurns, totalTurns, 24)} ${Math.round((doneTurns / totalTurns) * 100)}%${RESET}`);
 }
 console.log('');
 
