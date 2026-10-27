@@ -26,6 +26,10 @@
   const DEBUG_KEY = 'qd_chat_debug_v1';
   const LEAD_KEY = 'qd_chat_lead_v1';
   const MAX_HISTORY = 12;
+  const SERVER_HISTORY = 10; // api/chat.js reads at most 10 earlier messages
+  const MAX_INPUT = 2000;
+  const COUNTER_FROM = 1500;
+  let lastSent = { text: '', at: 0 };
   const REQUEST_TIMEOUT_MS = 45000;
   const STREAM_STALL_TIMEOUT_MS = 15000;
 
@@ -198,13 +202,14 @@
 
       <div class="qd-chat-chips" hidden></div>
 
-      <form class="qd-chat-input-wrap">
+      <form class="qd-chat-input-wrap" style="position:relative">
         <textarea
           class="qd-chat-input"
           rows="1"
           placeholder="${STRINGS[state.lang].placeholder}"
           aria-label="Message"
           maxlength="2000"></textarea>
+        <span class="qd-chat-count" aria-live="polite" hidden style="position:absolute;bottom:2px;inset-inline-end:56px;font-size:11px;opacity:.6;pointer-events:none"></span>
         <button class="qd-chat-send" type="submit" aria-label="${STRINGS[state.lang].send}" disabled>
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M5 12h14M13 6l6 6-6 6"/>
@@ -230,6 +235,7 @@
     form: root.querySelector('form'),
     input: root.querySelector('.qd-chat-input'),
     send: root.querySelector('.qd-chat-send'),
+    count: root.querySelector('.qd-chat-count'),
   };
 
   // ─── Rendering ────────────────────────────────────────────────────────────
@@ -479,6 +485,9 @@
   async function send(messageText) {
     const text = (messageText ?? els.input.value).trim();
     if (!text || state.sending) return;
+    // Ignore an accidental double send of the same text (double tap, chip + Enter).
+    if (text === lastSent.text && Date.now() - lastSent.at < 3000) return;
+    lastSent = { text, at: Date.now() };
 
     // Switch language to match the user only on a clear signal; an ambiguous
     // message (digits, a bare email) keeps the current conversation language.
@@ -491,6 +500,7 @@
     state.sending = true;
     els.input.value = '';
     autosize();
+    updateCounter();
     els.send.disabled = true;
     els.input.disabled = true;
 
@@ -525,7 +535,11 @@
         signal: abortController.signal,
         body: JSON.stringify({
           message: text,
-          history: state.history.slice(-MAX_HISTORY, -1), // exclude just-added user turn
+          // Exclude the just-added user turn; send only what the server reads (10 messages, same caps).
+          history: state.history.slice(-(SERVER_HISTORY + 1), -1).map((m) => ({
+            role: m.role,
+            content: String(m.content || '').slice(0, m.role === 'assistant' ? 600 : 1500),
+          })),
           sessionId: state.sessionId,
           pageLang: state.lang,
           pageUrl: location.href,
@@ -939,7 +953,15 @@
     els.input.style.height = Math.min(els.input.scrollHeight, 120) + 'px';
   }
 
+  function updateCounter() {
+    const n = els.input.value.length;
+    if (!els.count) return;
+    els.count.hidden = n < COUNTER_FROM;
+    els.count.textContent = `${n}/${MAX_INPUT}`;
+  }
+
   els.input.addEventListener('input', () => {
+    updateCounter();
     autosize();
     els.send.disabled = !els.input.value.trim() || state.sending;
   });
