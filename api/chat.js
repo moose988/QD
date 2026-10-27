@@ -32,7 +32,7 @@ import { RequestLimiter, checkOrigin, clientIp } from './_lib/quota.js';
 import { recordUsage, incrementDailyUsage } from './_lib/usage.js';
 import { quickReply, ReplyCache, cacheKey, isCacheable } from './_lib/quick-replies.js';
 import { degradedReply } from './_lib/degraded.js';
-import { decideHandoff, buildLead, handoffNote, HANDOFF_LINE, visitorContact, isUsableContact } from './_lib/handoff.js';
+import { decideHandoff, buildLead, handoffNote, HANDOFF_LINE, CONSENT_ASK, CONFIRM_LINE, DECLINE_LINE, ASK_RE, visitorContact, isUsableContact } from './_lib/handoff.js';
 
 // Start loading the embedding model in the background as soon as the module loads.
 warmup();
@@ -278,6 +278,21 @@ export default async function handler(req, res) {
       return 'saved';
     };
 
+    // Records the visitor's answer to "would you like the team to message you?" on their lead.
+    // If the lead was never saved (e.g. a database hiccup at the offer), a 'yes' creates it now.
+    const setLeadConsent = async (consent) => {
+      if (!db) return 'no_db';
+      const snap = await db.collection('chatLeads').where('sessionId', '==', sessionId).limit(10).get();
+      const mine = snap.docs.filter((d) => d.data()?.source !== 'chatbot-prechat');
+      if (mine.length) {
+        await Promise.all(mine.map((d) => d.ref.update({ contactConsent: consent, consentAt: admin.firestore.FieldValue.serverTimestamp() })));
+        return 'updated';
+      }
+      if (consent !== 'yes') return 'none';
+      await persistLead({ ...normalizeLeadData(buildLead({ userTexts, visitor, lang }), lang), contactConsent: 'yes' });
+      return 'created';
+    };
+
     let fullText = '';
     let retrieved = [];
     let retrievalMode = 'none';
@@ -300,7 +315,8 @@ export default async function handler(req, res) {
       // ─── Hand-off decision (server-owned) ──────────────────────────────
       const alreadyHandedOff = cleanedHistory.some((m) => m.role === 'assistant' && claimsHandoff(m.content));
       const lastAssistant = [...cleanedHistory].reverse().find((m) => m.role === 'assistant')?.content || '';
-      hd = LEAD_TOOL_MODE === 'off' ? decideHandoff({ userTexts, visitor, alreadyHandedOff, lastAssistant }) : { decision: 'legacy' };
+      const alreadyAsked = cleanedHistory.some((m) => m.role === 'assistant' && ASK_RE.test(m.content));
+      hd = LEAD_TOOL_MODE === 'off' ? decideHandoff({ userTexts, visitor, alreadyHandedOff, alreadyAsked, lastAssistant }) : { decision: 'legacy' };
       if (hd.decision === 'handoff' && actions.some((x) => x.kind === 'book')) hd = { decision: 'none', reason: 'booking card is the action' };
       stage.mark('handoff_decided', { decision: hd.decision, reason: hd.reason });
       if (hd.decision === 'already') leadSaved = true;
@@ -310,6 +326,19 @@ export default async function handler(req, res) {
             return 'failed';
           })
         : null;
+
+      // The visitor answered our offer: fixed, zero-token reply, and the lead records their choice.
+      if (hd.decision === 'confirm' || hd.decision === 'decline') {
+        fullText = (hd.decision === 'confirm' ? CONFIRM_LINE : DECLINE_LINE)[lang] || (hd.decision === 'confirm' ? CONFIRM_LINE : DECLINE_LINE).en;
+        usageEntry = { path: 'consent' };
+        if (hd.decision === 'confirm') leadSaved = true;
+        try {
+          const result = await withTimeout(setLeadConsent(hd.decision === 'confirm' ? 'yes' : 'no'), DB_WRITE_TIMEOUT_MS, 'Consent save');
+          stage.mark('consent_recorded', { consent: hd.decision, result });
+        } catch (err) {
+          stage.mark('consent_save_failed', { message: err?.message || 'consent save failed' });
+        }
+      }
 
       // ─── Cached generic first-turn answer ──────────────────────────────
       cacheKeyForTurn = firstTurn && hd.decision === 'none' && !actions.length ? cacheKey(message, lang) : null;
@@ -457,18 +486,24 @@ export default async function handler(req, res) {
       if (!fullText.trim()) fullText = ASK_WHAT[lang] || ASK_WHAT.en;
     }
 
-    // Server decided to hand off and the lead is saved: make sure the reply says so.
-    if (hd.decision === 'handoff' && leadSaved && fullText && !claimsHandoff(fullText)) {
-      fullText = `${fullText} ${HANDOFF_LINE[lang] || HANDOFF_LINE.en}`;
+    // First answer to a price question: the lead is saved quietly, and the visitor is ASKED (never told) that
+    // the team will message them. A promise only appears after they say yes (the 'confirm' reply).
+    if (hd.decision === 'handoff') {
+      if (fullText && claimsHandoff(fullText)) {
+        fullText = stripHandoffClaims(fullText, lang);
+        stage.mark('handoff_claim_removed');
+      }
+      if (fullText && !ASK_RE.test(fullText)) fullText = `${fullText} ${CONSENT_ASK[lang] || CONSENT_ASK.en}`;
     }
-    // Never promise a hand-off that did not happen.
-    if (fullText && !leadSaved && claimsHandoff(fullText)) {
+    // Never promise a hand-off that did not happen or was not agreed.
+    const mayClaim = hd.decision === 'confirm' || hd.decision === 'already';
+    if (fullText && (hd.decision === 'legacy' ? !leadSaved : !mayClaim) && claimsHandoff(fullText)) {
       fullText = stripHandoffClaims(fullText, lang);
       stage.mark('handoff_claim_removed');
     }
 
-    // After a hand-off to the team, point the visitor at our work while they wait.
-    if (leadNewlySaved && fullText.trim()) {
+    // After the visitor agrees to a team message, point them at our work while they wait.
+    if (hd.decision === 'confirm' && fullText.trim()) {
       fullText += ` ${MEANWHILE_LINE[lang] || MEANWHILE_LINE.en}`;
       send({ type: 'actions', items: [{ ...getAction('demos', lang), auto: true }] });
     }

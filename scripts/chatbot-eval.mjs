@@ -28,7 +28,15 @@ const CONTACT_Q = /contact|reach|whatsapp|phone|call you|talk to|speak to|توا
 // ─── Scenarios ───────────────────────────────────────────────────────────────
 // expect: { cards: [kinds], handoff: bool, lang, maxWords, must: RegExp, mustNot: RegExp, status }
 const S = [
-  { id: 'greeting', turns: [{ say: 'hi', expect: { cards: [] } }] },
+  { id: 'greeting', turns: [{ say: 'hi', expect: { cards: [], mustNot: /working on/i, must: /how can i help|what can i help/i } }] },
+  {
+    id: 'consent-no',
+    turns: [
+      { say: 'i have a salon, what can you offer me', expect: { cards: [] } },
+      { say: 'how much?', expect: { ask: true, handoff: false, cards: [] } },
+      { say: 'no thanks', expect: { handoff: false, cards: [], must: /no problem/i, maxWords: 25 } },
+    ],
+  },
   { id: 'what-do-you-build', turns: [{ say: 'What do you build?', expect: { cards: [], maxWords: 55 } }] },
   {
     id: 'restaurant-flow',
@@ -36,7 +44,8 @@ const S = [
       { say: 'hi, i have a restaurant', expect: { cards: [] } },
       { say: 'what can you offer', expect: { cards: [], must: /nfc|order|website/i, maxWords: 55 } },
       { say: 'can you elaborate', expect: { cards: [], maxWords: 60 } },
-      { say: 'whats the cost', expect: { handoff: true, cards: ['demos'] } },
+      { say: 'whats the cost', expect: { ask: true, handoff: false, cards: [] } },
+      { say: 'yes please', expect: { handoff: true, cards: ['demos'], maxWords: 30 } },
       { say: 'what about the timeline', expect: { cards: [] } },
     ],
   },
@@ -58,7 +67,7 @@ const S = [
     id: 'nfc-cafe',
     turns: [
       { say: 'do you do nfc for cafes?', expect: { cards: [], must: /tap|nfc/i } },
-      { say: 'per table. how much is it?', expect: { handoff: true, cards: ['demos'] } },
+      { say: 'per table. how much is it?', expect: { ask: true, handoff: false, cards: [] } },
     ],
   },
   { id: 'offtopic-homework', turns: [{ say: 'can you help me write my history homework', expect: { cards: [], mustNot: /\b(treaty|war|empire|revolution)\b/i } }] },
@@ -142,7 +151,7 @@ const S = [
       { say: 'what about a dashboard for the receptionist', expect: { cards: [] } },
       { say: 'and arabic support', expect: { cards: [] } },
       { say: 'can you do a patient intake form too', expect: { cards: [] } },
-      { say: 'whats the cost for all of that', expect: { handoff: true, cards: ['demos'] } },
+      { say: 'whats the cost for all of that', expect: { ask: true, handoff: false, cards: [] } },
       { say: 'what was the first thing i told you about my business?', expect: { cards: [], must: /clinic/i } },
     ],
   },
@@ -209,7 +218,10 @@ function check(reply, userMsg, expect, cards, handoffSeen, leadSaved) {
   if (e.mustNot && e.mustNot.test(t)) f.push(`contains forbidden content ${e.mustNot}`);
   const kinds = cards.map((c) => c.kind).sort().join(',');
   if (e.cards && kinds !== [...e.cards].sort().join(',')) f.push(`cards: got [${kinds}] expected [${e.cards.join(',')}]`);
-  const handoffClaim = /(team|they).{0,25}(message|follow up|reach out|contact|get back)|الفريق.{0,20}(يراسل|يتواصل)|团队.{0,10}联系|команда.{0,25}(напиш|свяж)/i.test(t);
+  const handoffClaim = /(team|they).{0,25}(message|follow up|reach out|contact|get back)|الفريق.{0,20}(يراسل|يتواصل)|团队.{0,10}联系|команда.{0,25}(напиш|свяж)/i.test(t) && !/(if you.d like|would you like|do you want|shall i)[^.?!]{0,50}team/i.test(t);
+  const offered = /(if you.d like|would you like|do you want|shall i)[^.?!]{0,50}team[^.?!]{0,30}(message|contact|reach)/i.test(t);
+  if (e.ask === true && !offered) f.push('expected an offer to have the team message them');
+  if (e.ask === false && offered) f.push('offered the team message too early');
   const handoff = handoffClaim;
   if (e.handoff === true && !handoff) f.push('expected a hand-off to the team');
   if (e.handoff === false && handoff) f.push('handed off too early');
@@ -281,6 +293,7 @@ for (const sc of active) {
   const history = [];
   const turns = [];
   let handoffSeen = false;
+  let leadEver = false;
   for (const turn of sc.turns) {
     const lang = turn.expect?.lang || 'en';
     render(sc, turns.length, 'waiting (rate limit)');
@@ -294,9 +307,10 @@ for (const sc of active) {
     } else if (r.errors.length) {
       failures.push(`error event: ${r.errors[0]}`);
     } else {
-      failures = check(r.text, turn.say, turn.expect, r.cards, handoffSeen, r.lead);
+      failures = check(r.text, turn.say, turn.expect, r.cards, handoffSeen, r.lead || leadEver);
     }
-    if (r.text && /(team|they).{0,25}(message|follow up)/i.test(r.text)) handoffSeen = true;
+    if (r.lead) leadEver = true;
+    if (r.text && /(team|they).{0,25}(will|'ll)\s+(message|follow up)/i.test(r.text)) handoffSeen = true;
     turns.push({ user: turn.say.slice(0, 120), bot: r.text, cards: r.cards.map((c) => c.kind), failures });
     history.push({ role: 'user', content: turn.say }, { role: 'assistant', content: r.text });
     doneTurns += 1;

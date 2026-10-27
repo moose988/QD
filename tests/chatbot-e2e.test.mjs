@@ -144,24 +144,26 @@ test('every model rate-limited: degraded KB answer, quickly, never an error bubb
   assert.ok(!/\+971|AED|\d+\s?hours/i.test(r2.text), r2.text);
 });
 
-test('degraded mode keeps cards and the server-owned hand-off', async () => {
+test('degraded mode keeps cards and asks before the team hand-off', async () => {
   resetAll();
   const db = createFakeFirestore();
   chat.__setTestDb(db);
   fake.setResponder(() => ({ status: 503 }));
   const r = await call({ message: 'how much is a website for my restaurant?' });
   assert.equal(r.error, null);
-  assert.ok(r.lead, 'lead saved');
-  assert.ok(/team/i.test(r.text), r.text);
-  assert.ok(r.cards.includes('demos'));
+  assert.ok(r.lead, 'lead saved quietly');
+  assert.ok(/if you.d like[^.]*team/i.test(r.text), r.text); // the visitor is asked, not told
+  assert.ok(!/will message|passed|pass this/i.test(r.text), r.text);
+  assert.ok(!r.cards.includes('demos'), 'the demos card waits until they say yes');
   assert.equal(db.docsIn('chatLeads').length, 1);
+  assert.equal(db.docsIn('chatLeads')[0].contactConsent, 'asked');
   const lead = db.docsIn('chatLeads')[0];
   assert.equal(lead.contact, 'sara@example.com');
   assert.equal(lead.business_type, 'restaurant');
   assert.ok(lead.project_brief.includes('how much is a website for my restaurant?'));
 });
 
-test('hand-off: price with a known project saves once and says so; vague price asks what they want', async () => {
+test('hand-off: price saves the lead quietly and ASKS; yes confirms with the demos card; no declines', async () => {
   resetAll();
   const db = createFakeFirestore();
   chat.__setTestDb(db);
@@ -169,14 +171,54 @@ test('hand-off: price with a known project saves once and says so; vague price a
   const vague = await call({ message: 'how much' });
   assert.ok(!/team/i.test(vague.text));
   assert.ok(/SERVER HANDOFF DECISION: not yet/.test(fake.requests.at(-1).body.messages[0].content));
+
   const sessionId = 'test-handoff-session';
   const h = [{ role: 'user', content: 'i have a restaurant' }, { role: 'assistant', content: 'A website with online ordering and NFC tags fit best.' }];
-  const r = await call({ sessionId, message: 'whats the cost', history: h });
-  assert.ok(r.lead);
-  assert.ok(/team/i.test(r.text) && r.cards.includes('demos'), r.text);
-  const again = await call({ sessionId, message: 'and how much for the nfc tags?', history: [...h, { role: 'user', content: 'whats the cost' }, { role: 'assistant', content: r.text }] });
-  assert.ok(!again.lead, 'no second lead');
+  // 1. price question: lead saved, reply asks, nothing is promised yet
+  const ask = await call({ sessionId, message: 'whats the cost', history: h });
+  assert.ok(ask.lead, 'lead saved at the price question');
+  assert.match(ask.text, /if you.d like, I can have the team message you/i);
+  assert.ok(!/will message|passed this|pass this/i.test(ask.text), ask.text);
+  assert.ok(!ask.cards.includes('demos'));
   assert.equal(db.docsIn('chatLeads').length, 1);
+  assert.equal(db.docsIn('chatLeads')[0].contactConsent, 'asked');
+
+  // 1b. asked again before answering: no second offer, no second lead
+  const h2 = [...h, { role: 'user', content: 'whats the cost' }, { role: 'assistant', content: ask.text }];
+  const again = await call({ sessionId, message: 'and how much for the nfc tags?', history: h2 });
+  assert.ok(!again.lead, 'no second lead');
+  assert.ok(!/would you like|if you.d like/i.test(again.text), again.text);
+  assert.equal(db.docsIn('chatLeads').length, 1);
+
+  // 2. yes: fixed reply, no model call, demos card, consent recorded
+  const before = fake.requests.length;
+  const yes = await call({ sessionId, message: 'yes please', history: h2 });
+  assert.equal(fake.requests.length, before, 'confirming costs no tokens');
+  assert.equal(yes.text, 'Great, the team will message you soon. In the meantime, you can take a look at our work.');
+  assert.ok(yes.cards.includes('demos'));
+  assert.equal(db.docsIn('chatLeads')[0].contactConsent, 'yes');
+
+  // 3. a different visitor says no: polite close, nothing promised, consent recorded
+  resetAll();
+  const db2 = createFakeFirestore();
+  chat.__setTestDb(db2);
+  fake.setResponder(() => ({ reply: "It's custom, so it depends on what you need built." }));
+  const sid2 = 'test-handoff-no';
+  const ask2 = await call({ sessionId: sid2, message: 'whats the cost', history: h });
+  const no = await call({ sessionId: sid2, message: 'no thanks', history: [...h, { role: 'user', content: 'whats the cost' }, { role: 'assistant', content: ask2.text }] });
+  assert.match(no.text, /No problem, I won.t pass it on/);
+  assert.ok(!no.cards.includes('demos'));
+  assert.equal(db2.docsIn('chatLeads')[0].contactConsent, 'no');
+});
+
+test('a "yes" that is not an answer to our offer does not trigger a hand-off', async () => {
+  resetAll();
+  const db = createFakeFirestore();
+  chat.__setTestDb(db);
+  fake.setResponder(() => ({ reply: 'Glad to hear it. What kind of business is it for?' }));
+  const r = await call({ message: 'yes', history: [{ role: 'user', content: 'hi' }, { role: 'assistant', content: 'Hi, welcome to QD. How can I help you?' }] });
+  assert.ok(!/will message/i.test(r.text), r.text);
+  assert.equal(db.docsIn('chatLeads').length, 0);
 });
 
 test('model claims a hand-off that did not happen: claim is removed', async () => {

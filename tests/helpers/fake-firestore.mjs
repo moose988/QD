@@ -15,6 +15,11 @@ export function createFakeFirestore() {
       writes.push({ op: 'set', path, data });
       store.set(path, opts?.merge ? { ...(store.get(path) || {}), ...data } : { ...data });
     },
+    async update(data) {
+      if (!store.has(path)) throw new Error(`No document to update: ${path}`);
+      writes.push({ op: 'update', path, data });
+      store.set(path, { ...store.get(path), ...data });
+    },
     async get() {
       return { exists: store.has(path), data: () => store.get(path) };
     },
@@ -28,7 +33,7 @@ export function createFakeFirestore() {
         const docs = [];
         for (const [p, data] of store) {
           if (!p.startsWith(`${path}/`) || p.slice(path.length + 1).includes('/')) continue;
-          if (filters.every(([f, , v]) => data[f] === v)) docs.push({ id: p.split('/').pop(), data: () => data });
+          if (filters.every(([f, , v]) => data[f] === v)) docs.push({ id: p.split('/').pop(), data: () => data, ref: docRef(p) });
           if (docs.length >= max) break;
         }
         return { docs, size: docs.length, empty: !docs.length };

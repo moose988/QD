@@ -266,3 +266,9 @@ Each model has 8,000 tokens per minute and 200,000 per day on Groq's free tier; 
 - **No dead ends:** when every model is out of budget the reply comes from the offline mode (knowledge base only), with the usual buttons and hand-off.
 - **Proof, with zero tokens:** `tests/concurrency.test.mjs` simulates 2 to 5 visitors against a fake Groq that enforces the real caps.
 - **Watch it:** `/api/health` reports per-model daily usage and warns at 80%, and when prompt caching is not being observed.
+
+## Team hand-off is a two-step, consent-based flow
+
+1. When a visitor asks about price and we know what they want built, the lead is saved quietly (`chatLeads`, `contactConsent: "asked"`) and the bot answers: *pricing is custom and depends on the scope. If you'd like, I can have the team message you.* Nothing is promised yet.
+2. If they say yes (any of the four languages), the next reply is a fixed, zero-token line: *Great, the team will message you soon. In the meantime, you can take a look at our work.* with the demos card, and the lead becomes `contactConsent: "yes"`. If they say no, the bot closes politely and the lead becomes `"no"`: please do not contact those visitors.
+3. Leads with `contactConsent: "asked"` were never answered. The start form's own record (`source: "chatbot-prechat"`) is separate.

@@ -216,3 +216,31 @@ test('claimsHandoff catches curly apostrophes and "our team"', () => {
   assert.ok(claimsHandoff('They\u2019ll message you shortly.'));
   assert.ok(!claimsHandoff('Our team builds websites for restaurants.'));
 });
+
+// ─── consent flow: offer, yes, no (all four languages) ──────────────────────
+import { decideHandoff, ASK_RE, CONSENT_ASK, CONFIRM_LINE, DECLINE_LINE } from '../api/_lib/handoff.js';
+import { claimsHandoff as claimsHO } from '../api/_lib/sanitize.js';
+
+test('the offer lines are recognised as offers and never as promises, in every language', () => {
+  for (const lang of LANGS) {
+    assert.ok(ASK_RE.test(CONSENT_ASK[lang]), `${lang} offer not recognised: ${CONSENT_ASK[lang]}`);
+    assert.ok(!claimsHO(CONSENT_ASK[lang]), `${lang} offer would be stripped as a promise`);
+    assert.ok(claimsHO(CONFIRM_LINE[lang]), `${lang} confirmation should count as a promise`);
+    assert.ok(!ASK_RE.test(CONFIRM_LINE[lang]) && !ASK_RE.test(DECLINE_LINE[lang]));
+  }
+});
+
+test('decideHandoff: yes and no answer the offer, in four languages, and only when an offer was made', () => {
+  const visitor = { name: 'A', email: 'a@x.co' };
+  const run = (answer, lang = 'en', offered = true) => decideHandoff({ userTexts: ['i have a restaurant', 'whats the cost', answer], visitor, lastAssistant: offered ? CONSENT_ASK[lang] : 'We build websites.' }).decision;
+  for (const yes of ['yes', 'Yes please', 'sure', 'ok go ahead']) assert.equal(run(yes), 'confirm', yes);
+  for (const no of ['no', 'no thanks', 'not now', 'maybe later']) assert.equal(run(no), 'decline', no);
+  assert.equal(run('نعم', 'ar'), 'confirm');
+  assert.equal(run('لا شكراً', 'ar'), 'decline');
+  assert.equal(run('好的', 'zh'), 'confirm');
+  assert.equal(run('不用了', 'zh'), 'decline');
+  assert.equal(run('да, конечно', 'ru'), 'confirm');
+  assert.equal(run('нет, спасибо', 'ru'), 'decline');
+  assert.notEqual(run('yes', 'en', false), 'confirm'); // no offer on the table
+  assert.notEqual(run('yes i want a website with online ordering for my three branches and a loyalty app too'), 'confirm'); // a long message is not a bare answer
+});

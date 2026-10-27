@@ -10,10 +10,10 @@ const EMPTYISH = /^[\s\p{P}\p{S}\p{Extended_Pictographic}‍️]*$/u;
 
 const VARIANTS = {
   greeting: {
-    en: ['Hi, welcome to QD. What can I help you with?', 'Hello, good to have you here. What are you working on?', 'Hi there. What can I help you with today?'],
-    ar: ['أهلاً بك في QD. كيف أقدر أساعدك؟', 'هلا والله، حياك. وش اللي تشتغل عليه؟', 'مرحباً بك. بماذا أقدر أساعدك اليوم؟'],
-    zh: ['你好，欢迎来到 QD。有什么可以帮你的？', '你好，很高兴见到你。你在做什么项目？', '你好。今天有什么我可以帮忙的？'],
-    ru: ['Здравствуйте, добро пожаловать в QD. Чем могу помочь?', 'Здравствуйте, рад вас видеть. Над чем вы работаете?', 'Добрый день. Чем могу помочь сегодня?'],
+    en: ['Hi, welcome to QD. What can I help you with?', 'Hello, good to have you here. How can I help you?', 'Hi there. What can I help you with today?'],
+    ar: ['أهلاً بك في QD. كيف أقدر أساعدك؟', 'هلا والله، حياك. كيف أقدر أساعدك؟', 'مرحباً بك. بماذا أقدر أساعدك اليوم؟'],
+    zh: ['你好，欢迎来到 QD。有什么可以帮你的？', '你好，很高兴见到你。有什么可以帮你的？', '你好。今天有什么我可以帮忙的？'],
+    ru: ['Здравствуйте, добро пожаловать в QD. Чем могу помочь?', 'Здравствуйте, рад вас видеть. Чем могу помочь?', 'Добрый день. Чем могу помочь сегодня?'],
   },
   thanks: {
     en: ["You're welcome. I'm here if you need me.", 'Any time. Happy to help whenever you need.', "Glad it helped. I'm around if anything comes up."],
