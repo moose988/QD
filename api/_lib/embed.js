@@ -12,22 +12,36 @@ xenovaEnv.useBrowserCache = false;
 const MODEL = process.env.EMBED_MODEL || 'Xenova/multilingual-e5-small';
 
 let _extractorPromise = null;
+let _state = 'idle'; // idle | loading | ready | failed | disabled
+const DISABLED = process.env.CHAT_DISABLE_EMBEDDINGS === '1';
 
 function getExtractor() {
+  if (DISABLED) {
+    _state = 'disabled';
+    return Promise.reject(Object.assign(new Error('Embeddings disabled (CHAT_DISABLE_EMBEDDINGS=1)'), { code: 'EMBED_DISABLED' }));
+  }
   if (!_extractorPromise) {
     const startedAt = Date.now();
+    _state = 'loading';
     console.log(`[embed] initializing extractor for model=${MODEL}`);
     _extractorPromise = pipeline('feature-extraction', MODEL, { quantized: true });
     _extractorPromise
       .then(() => {
+        _state = 'ready';
         console.log(`[embed] extractor ready model=${MODEL} in ${Date.now() - startedAt}ms`);
       })
       .catch((error) => {
+        _state = 'failed';
         console.error(`[embed] extractor init failed model=${MODEL}:`, error?.message || error);
         _extractorPromise = null;
       });
   }
   return _extractorPromise;
+}
+
+// 'ready' means a query embeds in a few ms; anything else means the caller should not wait long.
+export function embedderState() {
+  return DISABLED ? 'disabled' : _state;
 }
 
 function meanPool(output) {
@@ -51,10 +65,8 @@ export async function embedQuery(text) {
   const startedAt = Date.now();
   const extractor = await getExtractor();
   const output = await extractor(`query: ${text}`, { pooling: 'none', normalize: false });
-  console.log(`[embed] query embedded in ${Date.now() - startedAt}ms`, {
-    model: MODEL,
-    textLength: text.length,
-  });
+  const ms = Date.now() - startedAt;
+  if (ms > 50) console.log(`[embed] query embedded in ${ms}ms`, { model: MODEL, textLength: text.length });
   return meanPool(output);
 }
 
