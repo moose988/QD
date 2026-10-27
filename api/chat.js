@@ -1,38 +1,52 @@
 // api/chat.js
 // QD Systems chatbot endpoint — Vercel Node serverless function.
 //
-// Pipeline:
-//   1. Validate request, detect language
-//   2. Embed user query (multilingual-e5)
-//   3. Retrieve top-K relevant chunks from Firestore (cosine sim, cached)
-//   4. Build bilingual system prompt with retrieved context
-//   5. Stream Llama 3.3 70B response from Groq (with capture_lead tool)
-//   6. If tool was called, persist lead to chatLeads collection
-//   7. Append message + response to chatConversations doc
+// Pipeline (every step before the model call costs zero tokens):
+//   1. Origin allowlist, per-IP / per-session rate limits, validation, language detection
+//   2. Zero-token paths: bare greeting / thanks / emoji, cached generic first-turn answers
+//   3. Compress the visitor message to an intent note, compact the history to 2 turns + a facts line
+//   4. Server-owned hand-off decision (no tool call); the lead is saved in parallel with the model call
+//   5. Retrieve top-K KB chunks (bundled snapshot; semantic when the embedder is ready, BM25 otherwise)
+//   6. Build the prompt (static cacheable prefix first) and call the model chain under one deadline,
+//      routed by remaining budget; if every model is limited or failing, answer from the KB (degraded)
+//   7. Sanitize, settle the hand-off, send the reply, log the turn and real token usage in one batch
 //
 // Response format: Server-Sent Events (SSE) with JSON-encoded chunks:
 //   data: {"type":"text","delta":"Hi"}
 //   data: {"type":"sources","items":[{...}]}
+//   data: {"type":"actions","items":[{...}]}
 //   data: {"type":"lead","saved":true}
 //   data: {"type":"done"}
 
-import Groq from 'groq-sdk';
-import { embedQuery, warmup } from './_lib/embed.js';
-import { retrieve, loadChunks } from './_lib/retrieval.js';
+import { embedQuery, embedderState, warmup } from './_lib/embed.js';
+import { retrieve, retrieveLexical } from './_lib/retrieval.js';
 import { buildSystemPrompt, detectLang, LEAD_TOOL } from './_lib/prompt.js';
 import { detectActions, describeActions, getAction, MEANWHILE_LINE, ACTION_INTRO } from './_lib/actions.js';
-import { sanitizeReply, hasHandoffIntent, claimsHandoff, stripHandoffClaims } from './_lib/sanitize.js';
-import { extractErrorDetails, classifyGroqError, retryAfterMs } from './_lib/groq-errors.js';
+import { sanitizeReply, hasHandoffIntent, claimsHandoff, stripHandoffClaims, ASK_WHAT } from './_lib/sanitize.js';
+import { extractErrorDetails } from './_lib/groq-errors.js';
 import { getDb, admin } from './_lib/firebase.js';
+import { compressIntent, compressTurn } from './_lib/intent.js';
+import { compactHistory, estimateMessagesTokens } from './_lib/token-budget.js';
+import { complete, loadChain, budget, AllModelsFailed } from './_lib/llm.js';
+import { RequestLimiter, checkOrigin, clientIp } from './_lib/quota.js';
+import { recordUsage, incrementDailyUsage } from './_lib/usage.js';
+import { quickReply, ReplyCache, cacheKey, isCacheable } from './_lib/quick-replies.js';
+import { degradedReply } from './_lib/degraded.js';
+import { decideHandoff, buildLead, handoffNote, HANDOFF_LINE, visitorContact, isUsableContact } from './_lib/handoff.js';
 
-// Start downloading the embedding model in the background as soon as the module loads.
+// Start loading the embedding model in the background as soon as the module loads.
 warmup();
 
-const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile';
 const DEFAULT_EMBED_MODEL = 'Xenova/multilingual-e5-small';
-const MAX_HISTORY = 10; // last 10 messages (5 turns)
+const MAX_HISTORY = 10; // last 10 messages (5 turns) are read; 2 turns go to the model verbatim
 const MAX_ASSISTANT_CHARS = 600;
-const EMBEDDING_TIMEOUT_MS = 3500;
+const EMBED_WAIT_READY_MS = 1500;
+const EMBED_WAIT_COLD_MS = 3000;
+const DEADLINE_MS = Number(process.env.CHAT_DEADLINE_MS) || 20000; // vercel.json maxDuration is 30 s
+const DB_WRITE_TIMEOUT_MS = 4000;
+// 'off' (default): the server decides the hand-off. 'intent': legacy capture_lead tool, attached only
+// on turns with price/quote/start intent.
+const LEAD_TOOL_MODE = process.env.CHAT_LEAD_TOOL === 'intent' ? 'intent' : 'off';
 const DEPRECATED_GROQ_MODELS = {
   'mixtral-8x7b-32768': 'llama-3.3-70b-versatile',
   'llama3-70b-8192': 'llama-3.3-70b-versatile',
@@ -41,38 +55,13 @@ const DEPRECATED_GROQ_MODELS = {
   'llama-3.1-70b-specdec': 'llama-3.3-70b-specdec',
 };
 
-function getRequiredChatConfig() {
-  const groqApiKey = process.env.GROQ_API_KEY?.trim();
-  if (!groqApiKey) {
-    const error = new Error(
-      'GROQ_API_KEY is missing. Set it in the active environment before calling /api/chat.'
-    );
-    error.statusCode = 500;
-    throw error;
-  }
+const limiter = new RequestLimiter();
+const replyCache = new ReplyCache();
+let _testDb; // tests inject a fake Firestore; undefined = real one
 
-  const groqModel = process.env.GROQ_MODEL?.trim() || DEFAULT_GROQ_MODEL;
-  const replacement = DEPRECATED_GROQ_MODELS[groqModel];
-  if (replacement) {
-    const error = new Error(
-      `GROQ_MODEL "${groqModel}" is deprecated. Use "${replacement}" instead.`
-    );
-    error.statusCode = 500;
-    throw error;
-  }
-
-  return { groqApiKey, groqModel };
+export function __setTestDb(db) {
+  _testDb = db;
 }
-
-
-const FALLBACK_MODELS = (process.env.GROQ_FALLBACK_MODELS || 'openai/gpt-oss-20b,qwen/qwen3.8-27b')
-  .split(',')
-  .map((m) => m.trim())
-  .filter(Boolean);
-
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-
 
 function withTimeout(promise, ms, label) {
   let timeoutId = null;
@@ -97,7 +86,7 @@ function buildRetrievalQuery(message, history) {
   const msg = String(message || '').trim();
   const prevUser = [...history].reverse().find((m) => m.role === 'user')?.content;
   const needsContext = msg.length < 60 || FOLLOW_UP_RE.test(msg);
-  if (!prevUser || !needsContext) return msg;
+  if (!prevUser || !needsContext) return msg.slice(0, 600);
   return `${String(prevUser).slice(0, 250)} ${msg}`.slice(0, 400);
 }
 
@@ -114,44 +103,14 @@ function sanitizeVisitor(raw, pageUrl) {
   return v.name || v.email || v.phone || v.page ? v : null;
 }
 
-async function getFallbackContext(lang, limit = 6) {
-  const chunks = await loadChunks();
-  const matchingLang = chunks.filter((chunk) => chunk.lang === lang);
-  const pool = matchingLang.length ? matchingLang : chunks;
-  return pool.slice(0, limit).map((chunk, index) => ({
-    ...chunk,
-    score: typeof chunk.score === 'number' ? chunk.score : 0.01 - (index * 0.001),
-  }));
-}
-
 function normalizeContactType(rawType, contactValue = '') {
   const type = String(rawType || '').trim().toLowerCase();
   const contact = String(contactValue || '').trim().toLowerCase();
 
   if (type === 'email' || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact)) return 'email';
-
-  if (
-    type.includes('whatsapp') ||
-    type === 'wa' ||
-    type === 'whats app'
-  ) {
-    return 'whatsapp';
-  }
-
-  if (
-    type.includes('phone') ||
-    type.includes('call') ||
-    type.includes('mobile') ||
-    type.includes('number') ||
-    type.includes('tel')
-  ) {
-    return 'phone';
-  }
-
-  if (/^\+?[\d\s()\-]{7,}$/.test(contact)) {
-    return 'phone';
-  }
-
+  if (type.includes('whatsapp') || type === 'wa' || type === 'whats app') return 'whatsapp';
+  if (type.includes('phone') || type.includes('call') || type.includes('mobile') || type.includes('number') || type.includes('tel')) return 'phone';
+  if (/^\+?[\d\s()\-]{7,}$/.test(contact)) return 'phone';
   return 'other';
 }
 
@@ -165,31 +124,13 @@ function normalizeLeadData(leadData, lang) {
     urgency: typeof leadData?.urgency === 'string' ? leadData.urgency.trim().toLowerCase() : 'unknown',
     language: ['ar', 'zh', 'ru'].includes(lang) ? lang : 'en',
   };
-
   normalized.contact_type = normalizeContactType(leadData?.contact_type, normalized.contact);
-
-  if (!['urgent', 'soon', 'exploring', 'unknown'].includes(normalized.urgency)) {
-    normalized.urgency = 'unknown';
-  }
-
+  if (!['urgent', 'soon', 'exploring', 'unknown'].includes(normalized.urgency)) normalized.urgency = 'unknown';
   return normalized;
 }
 
-// A lead is only "real" if the visitor actually gave a reachable contact.
-// The model sometimes calls capture_lead the instant it hears a business type
-// (e.g. "a restaurant") with an empty contact — we must NOT save/confirm those.
-function isUsableContact(contact) {
-  const c = String(contact || '').trim();
-  if (!c) return false;
-  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c)) return true; // email
-  const digits = c.replace(/\D/g, '');
-  return digits.length >= 7; // phone / whatsapp
-}
-
-function makeStageTracker(send, emitDebug) {
+function makeStageTracker(send, emitDebug, startedAt = Date.now()) {
   let currentStage = 'request_received';
-  const startedAt = Date.now();
-
   return {
     mark(stage, meta = {}) {
       currentStage = stage;
@@ -204,18 +145,47 @@ function makeStageTracker(send, emitDebug) {
   };
 }
 
+// Replies for requests the limiter turns away (no model call).
+const LIMIT_TEXT = {
+  burst: {
+    en: "You're sending messages faster than I can keep up. Give it a few seconds and try again.",
+    ar: 'الرسائل تصلني أسرع مما أستطيع الرد. انتظر ثواني قليلة وجرّب مرة أخرى.',
+    zh: '消息来得有点快，我跟不上了。请稍等几秒再试。',
+    ru: 'Сообщения приходят быстрее, чем я успеваю ответить. Подождите пару секунд и попробуйте снова.',
+  },
+  minute: {
+    en: "That's a lot of messages in a short time. Give me a minute, then ask again.",
+    ar: 'رسائل كثيرة في وقت قصير. امنحني دقيقة ثم اسأل مرة أخرى.',
+    zh: '短时间内消息有点多，请一分钟后再问。',
+    ru: 'Слишком много сообщений за короткое время. Подождите минуту и спросите снова.',
+  },
+  day: {
+    en: "We've covered a lot today. The team can take it from here: you can pick a time for a free call.",
+    ar: 'تكلمنا كثيراً اليوم. الفريق يقدر يكمل معك: تقدر تختار وقتاً لمكالمة مجانية.',
+    zh: '今天我们聊了很多。接下来可以交给团队：你可以选一个免费通话的时间。',
+    ru: 'Сегодня мы многое обсудили. Дальше поможет команда: можно выбрать время для бесплатного звонка.',
+  },
+};
+
 export const config = {
-  // Use Node runtime (we need transformers.js + firebase-admin)
+  // Node runtime (transformers.js + firebase-admin). vercel.json sets maxDuration 30 s; DEADLINE_MS stays inside it.
   runtime: 'nodejs',
-  // Vercel Hobby: 10s. Pro: 60s. Stream tokens fast.
   maxDuration: 30,
 };
 
 export default async function handler(req, res) {
-  // ─── CORS / preflight ────────────────────────────────────────────────────
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const startedAt = Date.now();
+  const deadlineAt = startedAt + DEADLINE_MS;
+
+  // ─── CORS / origin allowlist ─────────────────────────────────────────────
+  const origin = checkOrigin(req);
+  if (origin.ok && origin.origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin.origin);
+    res.setHeader('Vary', 'Origin');
+  }
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (!origin.ok) return res.status(403).json({ error: 'Origin not allowed' });
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -226,8 +196,9 @@ export default async function handler(req, res) {
   }
 
   const message = (body?.message || '').toString().trim();
-  const history = Array.isArray(body?.history) ? body.history : [];
-  const sessionId = (body?.sessionId || '').toString().slice(0, 64) || `anon-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const history = Array.isArray(body?.history) ? body.history.slice(-40) : [];
+  const rawSessionId = (body?.sessionId || '').toString().slice(0, 64);
+  const sessionId = rawSessionId || `anon-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const pageLang = ['ar', 'zh', 'ru'].includes(body?.pageLang) ? body.pageLang : 'en';
 
   if (!message) return res.status(400).json({ error: 'message is required' });
@@ -235,6 +206,7 @@ export default async function handler(req, res) {
 
   const lang = detectLang(message) || pageLang;
   const visitor = sanitizeVisitor(body?.visitor, body?.pageUrl);
+  const gate = limiter.check({ ip: clientIp(req), sessionId: rawSessionId });
 
   // ─── SSE response setup ───────────────────────────────────────────────────
   res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
@@ -245,197 +217,47 @@ export default async function handler(req, res) {
   const send = (obj) => {
     res.write(`data: ${JSON.stringify(obj)}\n\n`);
   };
-  // Internal diagnostics only go to the browser when running locally (or explicitly requested).
+  // Internal diagnostics only go to the browser when running locally.
   const isLocalDev = /^(localhost|127\.0\.0\.1)(:|$)/.test(String(req.headers.host || ''));
-  const stage = makeStageTracker(send, isLocalDev);
-  // Tracks whether we've already streamed visible text to the client. Once true,
-  // any later failure (DB writes, etc.) must NOT surface as a user-facing error
-  // bubble — the answer already arrived, so we close the stream cleanly instead.
+  const stage = makeStageTracker(send, isLocalDev, startedAt);
+  const sendText = (text) => {
+    for (const piece of text.match(/[\s\S]{1,32}(?:\s|$)/g) || [text]) send({ type: 'text', delta: piece });
+  };
+  // Once visible text went out, later failures (DB writes, etc.) must not surface as an error bubble.
   let hasStreamedText = false;
-  stage.mark('request_received', {
-    sessionId,
-    messageLength: message.length,
-    historyCount: history.length,
-    pageLang,
-    detectedLang: lang,
-  });
+  stage.mark('request_received', { sessionId, messageLength: message.length, historyCount: history.length, pageLang, detectedLang: lang });
 
+  if (!gate.ok) {
+    stage.mark('rate_limited', { reason: gate.reason });
+    const kind = gate.reason === 'session_day' || gate.reason === 'day' ? 'day' : gate.reason;
+    if (kind === 'day') send({ type: 'actions', items: [getAction('book', lang)] });
+    sendText(LIMIT_TEXT[kind][lang] || LIMIT_TEXT[kind].en);
+    recordUsage({ path: 'blocked' });
+    send({ type: 'done' });
+    return res.end();
+  }
+
+  let usageEntry = { path: 'llm' };
   try {
-    stage.mark('handler_started', { method: req.method });
-    const { groqApiKey, groqModel } = getRequiredChatConfig();
-    stage.mark('env_checked', {
-      groqModel,
-      embedModel: process.env.EMBED_MODEL || DEFAULT_EMBED_MODEL,
-      hasGroqApiKey: Boolean(groqApiKey),
-    });
+    const replacement = DEPRECATED_GROQ_MODELS[String(process.env.GROQ_MODEL || '').trim()];
+    if (replacement) console.warn(`[chat] GROQ_MODEL is deprecated, use "${replacement}"`);
+
     const cleanedHistory = history
-      .filter(m => m && m.role && m.content && ['user', 'assistant'].includes(m.role))
+      .filter((m) => m && m.role && m.content && ['user', 'assistant'].includes(m.role))
       .slice(-MAX_HISTORY)
-      .map(m => ({
+      .map((m) => ({
         role: m.role,
         content: String(m.content).slice(0, m.role === 'assistant' ? MAX_ASSISTANT_CHARS : 1500),
       }));
-    const retrievalQuery = buildRetrievalQuery(message, cleanedHistory);
-    const recentUserText = [...cleanedHistory.filter(m => m.role === 'user').slice(-2).map(m => m.content), message].join(' ');
-
-    // ─── 1. Embed query + retrieve ──────────────────────────────────────────
-    let retrieved = [];
-    let retrievalMode = 'semantic';
-    try {
-      stage.mark('embedding_started', {
-        messageLength: message.length,
-        lang,
-        timeoutMs: EMBEDDING_TIMEOUT_MS,
-      });
-      const queryEmbedding = await withTimeout(embedQuery(retrievalQuery), EMBEDDING_TIMEOUT_MS, 'Embedding');
-      stage.mark('embedding_completed', { dimensions: queryEmbedding?.length || 0 });
-      stage.mark('retrieval_started', { mode: retrievalMode });
-      retrieved = await retrieve(queryEmbedding, { topK: 4, lang });
-      stage.mark('retrieval_completed', { retrievedCount: retrieved.length, mode: retrievalMode });
-    } catch (embedErr) {
-      retrievalMode = 'fallback';
-      const details = extractErrorDetails(embedErr);
-      stage.mark('embedding_failed', {
-        message: details.message,
-        code: details.code,
-        statusCode: details.statusCode,
-      });
-      stage.mark('fallback_context_started', { lang });
-      retrieved = await getFallbackContext(lang, 8);
-      stage.mark('fallback_context_completed', { retrievedCount: retrieved.length, mode: retrievalMode });
-    }
-
-    // Tell the client what sources we used (optional, for transparency / citations)
-    send({
-      type: 'sources',
-      items: retrieved.map(c => ({
-        id: c.id,
-        source: c.source,
-        heading: c.heading,
-        lang: c.lang,
-        score: Math.round(c.score * 1000) / 1000,
-        mode: retrievalMode,
-      })),
-    });
-
-    // ─── 2. Build prompt ────────────────────────────────────────────────────
-    stage.mark('prompt_build_started');
+    const userTexts = [...cleanedHistory.filter((m) => m.role === 'user').map((m) => m.content), message];
+    const recentUserText = userTexts.slice(-3).join(' ');
     const actions = detectActions(message, lang);
-    const systemPrompt = buildSystemPrompt({ lang, contextChunks: retrieved, visitor, recentUserText, actionsNote: describeActions(actions) });
-    stage.mark('prompt_build_completed', { promptLength: systemPrompt.length });
+    const firstTurn = !cleanedHistory.some((m) => m.role === 'user');
 
-    const messages = [
-      { role: 'system', content: systemPrompt },
-      ...cleanedHistory,
-      { role: 'user', content: message },
-    ];
-
-    // ─── 3. Stream Groq response ────────────────────────────────────────────
-    stage.mark('groq_client_init_started');
-    const groq = new Groq({ apiKey: groqApiKey });
-    stage.mark('groq_client_init_completed');
-
-    let fullText = '';
-    let toolCallParts = {}; // index -> { id, name, args }
-    let chunkCount = 0;
-    let lastChunkAt = Date.now();
-    let usedModel = groqModel;
-    let useTools = true;
-    let completed = false;
-    let lastErr = null;
-    const modelChain = [groqModel, ...FALLBACK_MODELS.filter((m) => m !== groqModel)];
-    const reasoningFor = (m) => (String(m).includes('gpt-oss') ? { reasoning_effort: 'low' } : {});
-
-    // The reply is buffered, cleaned and only then sent: replies are 1-3 sentences, so this costs
-    // almost nothing, and it lets us guarantee the parts that must never slip through.
-    outer: for (const model of modelChain) {
-      for (let attempt = 0; attempt < 2; attempt += 1) {
-        try {
-          fullText = '';
-          toolCallParts = {};
-          stage.mark('groq_stream_create_started', { model, attempt, useTools, messageCount: messages.length });
-          const stream = await groq.chat.completions.create({
-            model,
-            messages,
-            ...(useTools ? { tools: [LEAD_TOOL], tool_choice: 'auto' } : {}),
-            ...reasoningFor(model),
-            temperature: 0.3,
-            max_tokens: 450,
-            stream: true,
-          });
-          stage.mark('groq_stream_create_completed', { model });
-
-          for await (const chunk of stream) {
-            chunkCount += 1;
-            lastChunkAt = Date.now();
-            if (chunkCount === 1) stage.mark('groq_stream_first_chunk_received');
-            const delta = chunk.choices?.[0]?.delta || {};
-            if (delta.content) fullText += delta.content;
-            if (delta.tool_calls) {
-              for (const tc of delta.tool_calls) {
-                const idx = tc.index ?? 0;
-                if (!toolCallParts[idx]) toolCallParts[idx] = { id: '', name: '', args: '' };
-                if (tc.id) toolCallParts[idx].id = tc.id;
-                if (tc.function?.name) toolCallParts[idx].name = tc.function.name;
-                if (tc.function?.arguments) toolCallParts[idx].args += tc.function.arguments;
-              }
-            }
-          }
-          if (!fullText.trim() && !Object.values(toolCallParts).some((t) => t.name)) {
-            const emptyErr = new Error('Model returned an empty completion');
-            emptyErr.status = 502;
-            throw emptyErr;
-          }
-          completed = true;
-          usedModel = model;
-          break outer;
-        } catch (err) {
-          lastErr = err;
-          const kind = classifyGroqError(err);
-          stage.mark('groq_attempt_failed', { model, attempt, kind, message: extractErrorDetails(err).message });
-          if (kind === 'tool' && useTools) { useTools = false; continue; }
-          if (kind === 'rate') {
-            const wait = retryAfterMs(err);
-            if (attempt === 0 && wait <= 2500) { await sleep(wait); continue; }
-            continue outer;
-          }
-          continue outer; // server / model / other: try the next model
-        }
-      }
-    }
-    if (!completed) throw lastErr || new Error('No model could answer');
-
-    if (actions.length) send({ type: 'actions', items: actions });
-
-    const asksHowToReach = /contact|reach|whatsapp|phone|call|number|talk to|speak|تواصل|اتصل|واتساب|رقم|联系|电话|связаться|телефон|позвон/i.test(message);
-    fullText = sanitizeReply(fullText, { lang, allowedDigits: [visitor?.phone], allowPhone: asksHowToReach });
-    // A button reply in the wrong language (e.g. English to an Arabic visitor) is replaced by a fixed local line.
-    const SCRIPTS = { ar: /[\u0600-\u06FF]/, zh: /[\u4e00-\u9fff]/, ru: /[\u0400-\u04FF]/ };
-    if (fullText && SCRIPTS[lang] && !SCRIPTS[lang].test(fullText) && actions.length) {
-      fullText = ACTION_INTRO[actions[0].kind]?.[lang] || fullText;
-    }
-    // The reply is held back until lead handling is settled, so we never promise a hand-off that did not happen.
-
-    // ─── 4. Persist lead if captured ────────────────────────────────────────
-    stage.mark('groq_stream_completed', {
-      chunkCount,
-      responseLength: fullText.length,
-      idleAfterLastChunkMs: Date.now() - lastChunkAt,
-    });
-    let leadSaved = false;
-    let leadNewlySaved = false;
-    let leadVague = false;
-    let leadNoIntent = false;
-    let leadCaptured = false;     // model tried to capture
-    let leadIncomplete = false;   // ...but with no usable contact
-    let leadBusiness = '';        // business type, if it told us one
-    // Initialize Firestore defensively. The answer has already streamed to the
-    // user; a DB-init failure here must never turn into a user-facing error.
     let db = null;
     try {
-      db = getDb();
+      db = _testDb !== undefined ? _testDb : getDb();
     } catch (dbErr) {
-      console.error('[chat] getDb failed (answer already delivered):', dbErr);
       stage.mark('db_init_failed', { message: dbErr?.message || 'Unknown DB init error' });
     }
 
@@ -456,149 +278,186 @@ export default async function handler(req, res) {
       return 'saved';
     };
 
-    for (const tc of Object.values(toolCallParts)) {
-      if (tc.name === 'capture_lead' && tc.args) {
+    let fullText = '';
+    let retrieved = [];
+    let retrievalMode = 'none';
+    let usedModel = null;
+    let toolCallParts = {};
+    let leadSaved = false;
+    let leadNewlySaved = false;
+    let hd = { decision: 'none' };
+    let cacheKeyForTurn = null;
+
+    // ─── Zero-token paths ─────────────────────────────────────────────────
+    const quick = actions.length ? null : quickReply({ message, history: cleanedHistory, lang, seed: `${sessionId}:${cleanedHistory.length}` });
+    if (quick) {
+      usageEntry = { path: 'quick' };
+      fullText = quick.text;
+      stage.mark('quick_reply', { kind: quick.kind });
+    }
+
+    if (!fullText) {
+      // ─── Hand-off decision (server-owned) ──────────────────────────────
+      const alreadyHandedOff = cleanedHistory.some((m) => m.role === 'assistant' && claimsHandoff(m.content));
+      const lastAssistant = [...cleanedHistory].reverse().find((m) => m.role === 'assistant')?.content || '';
+      hd = LEAD_TOOL_MODE === 'off' ? decideHandoff({ userTexts, visitor, alreadyHandedOff, lastAssistant }) : { decision: 'legacy' };
+      stage.mark('handoff_decided', { decision: hd.decision, reason: hd.reason });
+      if (hd.decision === 'already') leadSaved = true;
+      const leadPromise = hd.decision === 'handoff' && db
+        ? withTimeout(persistLead(normalizeLeadData(buildLead({ userTexts, visitor, lang }), lang)), DB_WRITE_TIMEOUT_MS, 'Lead save').catch((err) => {
+            stage.mark('lead_save_failed', { message: err?.message || 'lead save failed' });
+            return 'failed';
+          })
+        : null;
+
+      // ─── Cached generic first-turn answer ──────────────────────────────
+      cacheKeyForTurn = firstTurn && hd.decision === 'none' && !actions.length ? cacheKey(message, lang) : null;
+      const cached = replyCache.get(cacheKeyForTurn);
+      if (cached) {
+        usageEntry = { path: 'cache' };
+        fullText = cached;
+        stage.mark('cache_hit');
+      }
+
+      // ─── Compress the visitor message and the history ──────────────────
+      const intent = compressIntent(message);
+      const compact = compactHistory(cleanedHistory, { keepTurns: 2, assistantChars: 300, userTextsForFacts: userTexts, compressUser: compressTurn });
+
+      if (!fullText) {
+        // ─── Retrieval ─────────────────────────────────────────────────────
+        const chainConfig = loadChain();
+        const lean = budget.dayPressure(chainConfig.chain.map((c) => c.id)) > 0.8;
+        const buttonOnly = actions.length > 0 && message.length < 120;
+        const topK = lean || buttonOnly ? 2 : 4;
+        const retrievalQuery = buildRetrievalQuery(message, cleanedHistory);
+        const embedWait = Math.min(embedderState() === 'ready' ? EMBED_WAIT_READY_MS : EMBED_WAIT_COLD_MS, Math.max(0, deadlineAt - Date.now() - 8000));
         try {
-          leadCaptured = true;
+          stage.mark('embedding_started', { state: embedderState(), timeoutMs: embedWait });
+          const queryEmbedding = await withTimeout(embedQuery(retrievalQuery), embedWait, 'Embedding');
+          retrieved = await retrieve(queryEmbedding, { topK, lang });
+          retrievalMode = 'semantic';
+        } catch (embedErr) {
+          stage.mark('embedding_skipped', { message: extractErrorDetails(embedErr).message });
+          retrieved = await retrieveLexical(retrievalQuery, { topK, lang });
+          retrievalMode = 'lexical';
+        }
+        stage.mark('retrieval_completed', { retrievedCount: retrieved.length, mode: retrievalMode });
+        send({
+          type: 'sources',
+          items: retrieved.map((c) => ({ id: c.id, source: c.source, heading: c.heading, lang: c.lang, score: Math.round(c.score * 1000) / 1000, mode: retrievalMode })),
+        });
+
+        // ─── Prompt ────────────────────────────────────────────────────────
+        const legacy = LEAD_TOOL_MODE === 'intent';
+        const systemPrompt = buildSystemPrompt({
+          lang,
+          contextChunks: retrieved,
+          visitor,
+          recentUserText,
+          actionsNote: describeActions(actions),
+          useTool: legacy,
+          factsLine: compact.factsLine,
+          handoffNote: handoffNote(hd.decision),
+          chunkChars: lean ? [420, 300] : null,
+        });
+        const messages = [{ role: 'system', content: systemPrompt }, ...compact.messages, { role: 'user', content: legacy ? message : intent.text }];
+        const tools = legacy && hasHandoffIntent(recentUserText) ? [LEAD_TOOL] : null;
+        const estTokens = estimateMessagesTokens(messages, tools);
+        const simple = message.length < 80 && hd.decision === 'none' && cleanedHistory.length <= 4;
+        stage.mark('prompt_built', { promptChars: systemPrompt.length, estTokens, compressed: intent.compressed, historyKept: compact.messages.length, lean, simple });
+
+        // ─── Model call (or degraded answer) ───────────────────────────────
+        try {
+          const result = await complete({
+            messages,
+            tools,
+            deadlineAt,
+            estTokens,
+            chainConfig,
+            prefer: simple && chainConfig.small ? [chainConfig.small] : [],
+            onStage: (name, meta) => stage.mark(name, meta),
+          });
+          fullText = result.text;
+          usedModel = result.model;
+          result.toolCalls.forEach((tc, i) => {
+            toolCallParts[i] = { id: tc.id || '', name: tc.function?.name || '', args: tc.function?.arguments || '' };
+          });
+          usageEntry = { path: 'llm', model: result.model, ...result.usage };
+          stage.mark('llm_completed', { model: result.model, usage: result.usage, attempts: result.attempts.length });
+        } catch (err) {
+          if (!(err instanceof AllModelsFailed)) throw err;
+          const asks = (re) => re.test(message);
+          const d = degradedReply({
+            message: `${retrievalQuery} ${message}`,
+            lang,
+            chunks: retrieved,
+            asksTime: asks(/how long|timeline|how fast|when|deliver|مدة|متى|كم يستغرق|多久|сроки|сколько времени/i),
+            asksContact: asks(/contact|reach|whatsapp|phone|call|number|تواصل|رقم|联系|связаться|телефон/i),
+            asksPrice: false,
+          });
+          fullText = d.text;
+          if (hd.decision === 'ask_what') fullText = `${fullText} ${ASK_WHAT[lang] || ASK_WHAT.en}`;
+          usageEntry = { path: 'degraded', reason: err.reason };
+          stage.mark('degraded_reply', { reason: err.reason, matched: d.matched, attempts: err.attempts });
+        }
+      }
+
+      // ─── Settle the server-owned hand-off ──────────────────────────────
+      if (leadPromise) {
+        const outcome = await leadPromise;
+        leadSaved = outcome === 'saved' || outcome === 'duplicate';
+        leadNewlySaved = outcome === 'saved';
+        stage.mark('lead_settled', { outcome });
+        if (leadNewlySaved) send({ type: 'lead', saved: true });
+      }
+    }
+
+    if (actions.length) send({ type: 'actions', items: actions });
+
+    const asksHowToReach = /contact|reach|whatsapp|phone|call|number|talk to|speak|تواصل|اتصل|واتساب|رقم|联系|电话|связаться|телефон|позвон/i.test(message);
+    fullText = sanitizeReply(fullText, { lang, allowedDigits: [visitor?.phone], allowPhone: asksHowToReach });
+    // A button reply in the wrong language (e.g. English to an Arabic visitor) is replaced by a fixed local line.
+    const SCRIPTS = { ar: /[؀-ۿ]/, zh: /[一-鿿]/, ru: /[Ѐ-ӿ]/ };
+    if (fullText && SCRIPTS[lang] && !SCRIPTS[lang].test(fullText) && actions.length) {
+      fullText = ACTION_INTRO[actions[0].kind]?.[lang] || fullText;
+    }
+
+    // ─── Legacy tool path (CHAT_LEAD_TOOL=intent) ─────────────────────────
+    if (hd.decision === 'legacy') {
+      for (const tc of Object.values(toolCallParts)) {
+        if (tc.name !== 'capture_lead' || !tc.args) continue;
+        try {
           const leadData = normalizeLeadData(JSON.parse(tc.args), lang);
-          // Visitors already gave name + contact in the start form; use it when the model leaves it blank.
           if (!isUsableContact(leadData.contact) && visitor) {
-            const known = isUsableContact(visitor.phone) ? visitor.phone : (isUsableContact(visitor.email) ? visitor.email : '');
+            const known = visitorContact(visitor);
             if (known) {
               leadData.contact = known;
               leadData.contact_type = normalizeContactType('', known);
             }
           }
           if (!leadData.name && visitor?.name) leadData.name = visitor.name;
-          leadBusiness = leadData.business_type || '';
-          // Nothing concrete about what they want yet (e.g. a bare "how much"): don't hand off.
-          if (!leadData.business_type && (leadData.project_brief || '').length < 25) {
-            leadVague = true;
-            stage.mark('lead_skipped_vague');
-            continue;
-          }
-          if (!hasHandoffIntent(recentUserText)) {
-            leadNoIntent = true;
-            stage.mark('lead_skipped_no_intent');
-            continue;
-          }
-
-          // Hard guard: only persist + confirm when there's a real contact.
-          // Otherwise the model jumped the gun (e.g. on "a restaurant") and we
-          // must keep the conversation going instead of dead-ending it.
-          if (!isUsableContact(leadData.contact)) {
-            leadIncomplete = true;
-            stage.mark('lead_skipped_no_contact', { business: leadBusiness });
-            continue;
-          }
-          if (!db) {
-            stage.mark('lead_skipped_no_db');
-            continue;
-          }
-          const outcome = await persistLead(leadData);
-          if (outcome === 'duplicate') {
-            leadSaved = true;
-            stage.mark('lead_already_saved');
-            continue;
-          }
+          if (!leadData.business_type && (leadData.project_brief || '').length < 25) continue;
+          if (!hasHandoffIntent(recentUserText) || !isUsableContact(leadData.contact) || !db) continue;
+          const outcome = await withTimeout(persistLead(leadData), DB_WRITE_TIMEOUT_MS, 'Lead save');
           leadSaved = true;
-          leadNewlySaved = true;
-          stage.mark('lead_save_completed');
-          send({ type: 'lead', saved: true });
+          leadNewlySaved = outcome === 'saved';
+          if (leadNewlySaved) send({ type: 'lead', saved: true });
         } catch (err) {
-          console.error('[chat] failed to parse/save lead:', err);
           stage.mark('lead_save_failed', { message: err?.message || 'Unknown lead save error' });
         }
       }
+      if (!fullText.trim() && leadSaved) fullText = HANDOFF_LINE[lang] || HANDOFF_LINE.en;
+      if (!fullText.trim()) fullText = ASK_WHAT[lang] || ASK_WHAT.en;
     }
 
-    // If the model only called the lead tool and wrote nothing, finish the tool
-    // round-trip so it writes a real reply (answering the question) instead of a canned line.
-    if (!fullText.trim() && (leadSaved || leadCaptured)) {
-      const leadCall = Object.values(toolCallParts).find((t) => t.name === 'capture_lead');
-      if (leadCall) {
-        try {
-          stage.mark('tool_followup_started');
-          const callId = leadCall.id || 'call_capture_lead';
-          const toolNote = leadSaved
-            ? 'Saved. The team will message the visitor soon. Now reply to the visitor in the same language: answer their last question first (stay brief, no figures), then say the team will message them soon.'
-            : leadNoIntent
-              ? 'No hand-off needed yet. Reply in the same language: just answer their last question briefly and naturally. Do not mention the team and do not point to our work.'
-              : leadVague
-                ? "Not handed off yet: you don't know what they want built. Reply in the same language: say pricing is custom and depends on what they need, then ask in one short sentence what they're looking to build. Do not mention the team and do not point to our work."
-                : leadIncomplete
-                  ? 'Not saved: no usable contact yet. Reply naturally and ask how the team should reach them.'
-                  : 'Noted. Reply to the visitor in the same language: answer their last question first (stay brief, no figures), then say the team will follow up. Do NOT ask for contact details.';
-          const followUp = await groq.chat.completions.create({
-            model: usedModel,
-            messages: [
-              ...messages,
-              { role: 'assistant', content: null, tool_calls: [{ id: callId, type: 'function', function: { name: 'capture_lead', arguments: leadCall.args || '{}' } }] },
-              { role: 'tool', tool_call_id: callId, content: toolNote },
-            ],
-            ...reasoningFor(usedModel),
-            temperature: 0.3,
-            max_tokens: 300,
-          });
-          const cleaned = sanitizeReply(followUp.choices?.[0]?.message?.content || '', { lang, allowedDigits: [visitor?.phone] });
-          if (cleaned) fullText += cleaned;
-          stage.mark('tool_followup_completed', { responseLength: fullText.length });
-        } catch (followErr) {
-          stage.mark('tool_followup_failed', { message: followErr?.message || 'follow-up failed' });
-        }
-      }
+    // Server decided to hand off and the lead is saved: make sure the reply says so.
+    if (hd.decision === 'handoff' && leadSaved && fullText && !claimsHandoff(fullText)) {
+      fullText = `${fullText} ${HANDOFF_LINE[lang] || HANDOFF_LINE.en}`;
     }
-
-    // Only show the "we got your details" confirmation when a REAL lead saved.
-    if (!fullText.trim() && leadSaved) {
-      fullText = {
-        ar: 'حوّلت طلبك للفريق، وسيراسلونك قريباً.',
-        zh: '我已经把这个转给团队了，他们很快会联系你。',
-        ru: 'Передал это команде, они скоро свяжутся с вами.',
-        en: "I've passed this to the team, and they'll message you soon.",
-      }[lang] || "I've passed this to the team, and they'll message you soon.";
-    } else if (!fullText.trim() && leadIncomplete) {
-      // Model tried to capture before we had a contact — ask naturally and keep going.
-      const biz = leadBusiness.trim();
-      fullText = {
-        ar: `تمام${biz ? `، ${biz} مجال نعرفه جيداً` : ''}. كيف أفضل أن يتواصل معك الفريق، واتساب أو هاتف أو بريد؟`,
-        zh: `好的${biz ? `，${biz}是我们熟悉的领域` : ''}。你更希望团队通过 WhatsApp、电话还是邮箱联系你？`,
-        ru: `Хорошо${biz ? `, ${biz} нам хорошо знаком` : ''}. Как вам удобнее, чтобы команда связалась: WhatsApp, телефон или почта?`,
-        en: `Sounds good${biz ? `, ${biz} is something we know well` : ''}. How would you like the team to reach you: WhatsApp, phone or email?`,
-      }[lang] || 'Sounds good. How would you like the team to reach you: WhatsApp, phone or email?';
-    }
-
-    // Never promise a hand-off that did not happen. If the reply says the team will follow up but
-    // no lead was saved (the model skipped the tool), do it here when it is legitimate; otherwise
-    // remove the promise.
+    // Never promise a hand-off that did not happen.
     if (fullText && !leadSaved && claimsHandoff(fullText)) {
-      const contact = isUsableContact(visitor?.phone) ? visitor.phone : (isUsableContact(visitor?.email) ? visitor.email : '');
-      const userWordCount = [...cleanedHistory.filter((m) => m.role === 'user').map((m) => m.content), message].join(' ').split(/\s+/).filter(Boolean).length;
-      if (contact && db && hasHandoffIntent(recentUserText) && userWordCount >= 8) {
-        try {
-          const selfLead = normalizeLeadData({
-            name: visitor?.name || '',
-            contact,
-            contact_type: '',
-            business_type: '',
-            project_brief: recentUserText.slice(0, 300),
-            urgency: 'unknown',
-          }, lang);
-          const outcome = await persistLead(selfLead);
-          if (outcome === 'saved' || outcome === 'duplicate') {
-            leadSaved = true;
-            leadNewlySaved = outcome === 'saved';
-            stage.mark('lead_saved_by_server', { outcome });
-            if (outcome === 'saved') send({ type: 'lead', saved: true });
-          }
-        } catch (selfErr) {
-          stage.mark('lead_server_save_failed', { message: selfErr?.message || 'save failed' });
-        }
-      }
-      if (!leadSaved) {
-        fullText = stripHandoffClaims(fullText, lang);
-        stage.mark('handoff_claim_removed');
-      }
+      fullText = stripHandoffClaims(fullText, lang);
+      stage.mark('handoff_claim_removed');
     }
 
     // After a hand-off to the team, point the visitor at our work while they wait.
@@ -607,63 +466,63 @@ export default async function handler(req, res) {
       send({ type: 'actions', items: [{ ...getAction('demos', lang), auto: true }] });
     }
 
+    if (usageEntry.path === 'llm' && cacheKeyForTurn && isCacheable({ history: cleanedHistory, decision: hd.decision, actions, message, reply: fullText, visitor })) {
+      replyCache.set(cacheKeyForTurn, fullText);
+    }
+
     // Send the settled reply.
     if (fullText.trim()) {
       hasStreamedText = true;
-      for (const piece of fullText.match(/[\s\S]{1,32}(?:\s|$)/g) || [fullText]) send({ type: 'text', delta: piece });
+      sendText(fullText);
     }
 
-    // ─── 5. Log conversation turn ───────────────────────────────────────────
+    // ─── Usage + conversation log (one Firestore round trip) ─────────────
+    const entry = recordUsage({ ...usageEntry, lang });
+    console.log('[chat-usage]', JSON.stringify({ path: entry.path, model: entry.model || null, prompt: entry.prompt || 0, completion: entry.completion || 0, cached: entry.cached || 0, reasoning: entry.reasoning || 0, billable: entry.billable || 0, ms: Date.now() - startedAt, retrieval: retrievalMode, lang }));
     try {
       if (!db) throw new Error('Firestore unavailable (db init failed)');
-      stage.mark('conversation_log_started');
+      const FieldValue = admin.firestore.FieldValue;
       const convoRef = db.collection('chatConversations').doc(sessionId);
-      await convoRef.set(
+      const batch = db.batch();
+      batch.set(
+        convoRef,
         {
           lang,
           pageUrl: body?.pageUrl || '',
-          messageCount: admin.firestore.FieldValue.increment(2),
+          messageCount: FieldValue.increment(2),
           lastMessage: message,
           lastResponse: fullText,
-          lastUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
-          // Only set hasLead when a lead actually saved. (Writing increment(0)
-          // on a turn after the field is already boolean `true` throws in
-          // Firestore and would silently kill all later conversation logging.)
-          ...(leadSaved ? { hasLead: true } : {}),
+          lastUpdatedAt: FieldValue.serverTimestamp(),
+          // Only set hasLead when a lead actually saved (increment(0) on a boolean would throw).
+          ...(leadSaved && hd.decision !== 'already' ? { hasLead: true } : {}),
         },
         { merge: true }
       );
-      await convoRef.collection('messages').add({
-        role: 'user',
-        content: message,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
-      await convoRef.collection('messages').add({
+      batch.set(convoRef.collection('messages').doc(), { role: 'user', content: message, createdAt: FieldValue.serverTimestamp() });
+      batch.set(convoRef.collection('messages').doc(), {
         role: 'assistant',
         content: fullText,
-        sources: retrieved.map(c => c.id),
+        sources: retrieved.map((c) => c.id),
         leadSaved,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        path: entry.path,
+        ...(usedModel ? { model: usedModel } : {}),
+        createdAt: FieldValue.serverTimestamp(),
       });
+      incrementDailyUsage(batch, db, FieldValue, entry);
+      await withTimeout(batch.commit(), DB_WRITE_TIMEOUT_MS, 'Conversation log');
       stage.mark('conversation_log_completed');
     } catch (err) {
-      console.error('[chat] failed to log conversation:', err);
       stage.mark('conversation_log_failed', { message: err?.message || 'Unknown conversation log error' });
     }
 
-    stage.mark('handler_completed');
+    stage.mark('handler_completed', { path: entry.path });
     send({ type: 'done' });
     res.end();
   } catch (err) {
     const errorDetails = extractErrorDetails(err);
     console.error('[chat] error:', errorDetails, err);
-    // If we already streamed a visible answer, don't tack on a scary error
-    // bubble — the user got their reply. Close the stream cleanly instead.
     if (hasStreamedText) {
-      stage.mark('post_stream_error_suppressed', {
-        message: errorDetails.message,
-        code: errorDetails.code,
-      });
+      stage.mark('post_stream_error_suppressed', { message: errorDetails.message, code: errorDetails.code });
       send({ type: 'done' });
       return res.end();
     }

@@ -95,7 +95,7 @@ export function claimsHandoff(text) {
   return CLAIM_RE.test(String(text || ''));
 }
 
-const ASK_WHAT = {
+export const ASK_WHAT = {
   en: 'What are you looking to build?',
   ar: 'ماذا تريد أن تبني؟',
   zh: '你想做什么？',

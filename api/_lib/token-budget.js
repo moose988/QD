@@ -293,7 +293,7 @@ export function compressMessage(input, { targetChars = COMPRESS_TARGET_CHARS, tr
  * folds everything older into one short facts line built from the visitor's own words.
  * Returns { messages, factsLine, droppedCount }.
  */
-export function compactHistory(history = [], { keepTurns = 2, assistantChars = 400, userTextsForFacts = null } = {}) {
+export function compactHistory(history = [], { keepTurns = 2, assistantChars = 400, userTextsForFacts = null, compressUser = compressMessage } = {}) {
   const list = (Array.isArray(history) ? history : []).filter((m) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string');
   // Find the start index of the last `keepTurns` user turns.
   let start = list.length;
@@ -309,11 +309,12 @@ export function compactHistory(history = [], { keepTurns = 2, assistantChars = 4
   // Never start on an assistant turn that has no user turn before it in the kept window.
   const kept = list.slice(start).map((m) => ({
     role: m.role,
-    content: m.role === 'assistant' ? clip(m.content.trim(), assistantChars) : compressMessage(m.content.trim()),
+    content: m.role === 'assistant' ? clip(m.content.trim(), assistantChars) : compressUser(m.content.trim()),
   }));
   const older = list.slice(0, start);
   const factSource = userTextsForFacts || list.filter((m) => m.role === 'user').map((m) => m.content);
   const facts = extractFacts(factSource);
-  const factsLine = older.length || userTextsForFacts ? formatFacts(facts) : '';
+  // Facts are only worth sending once there is a conversation to summarize.
+  const factsLine = factSource.length > 1 || older.length ? formatFacts(facts) : '';
   return { messages: kept, factsLine, droppedCount: older.length, facts };
 }

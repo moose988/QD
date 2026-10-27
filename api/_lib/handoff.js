@@ -28,14 +28,15 @@ export function visitorContact(visitor) {
  * userTexts: the visitor's own messages, oldest first, including the current one (original text).
  * alreadyHandedOff: a lead was saved earlier in this session (known from history/Firestore).
  */
-export function decideHandoff({ userTexts = [], visitor = null, alreadyHandedOff = false } = {}) {
+export function decideHandoff({ userTexts = [], visitor = null, alreadyHandedOff = false, lastAssistant = '' } = {}) {
   const texts = userTexts.map((t) => String(t || ''));
   const recent = texts.slice(-3).join(' ');
   if (!hasHandoffIntent(recent)) return { decision: 'none', reason: 'no intent' };
   if (alreadyHandedOff) return { decision: 'already', reason: 'lead exists' };
   const facts = extractFacts(texts);
   const priorTurns = Math.max(0, texts.length - 1);
-  const knowsWhat = texts.some((t) => PROJECT_RE.test(t)) || (Boolean(facts.business) && priorTurns >= 2);
+  // Their business plus a concrete proposal we already made ("a website with online ordering") counts.
+  const knowsWhat = texts.some((t) => PROJECT_RE.test(t)) || (Boolean(facts.business) && (priorTurns >= 2 || PROJECT_RE.test(String(lastAssistant || ''))));
   if (!knowsWhat) return { decision: 'ask_what', reason: 'project unknown', facts };
   if (!visitorContact(visitor)) return { decision: 'no_contact', reason: 'no contact', facts };
   return { decision: 'handoff', reason: 'intent + project + contact', facts };
