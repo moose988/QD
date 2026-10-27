@@ -92,10 +92,10 @@ function buildVisitorBlock(visitor, { useTool = true } = {}) {
 // Visitor turns may arrive as short notes (api/_lib/intent.js) instead of their exact words.
 const NOTES_RULE = `VISITOR MESSAGES: a visitor turn may reach you as a compact note of what they said, e.g. "restaurant; asks: offer" or "clinic; wants: website; asks: cost; place: sharjah". Treat it as their full message and answer the whole intent naturally, in their language and tone, as if you read their exact words. Never mention notes or compression and never reply in note style.`;
 
-// Everything up to here is identical for every visitor, so the provider's prompt cache can reuse it
+// The block below is identical for every visitor, so the provider's prompt cache can reuse it
 // (Groq: cached input tokens do not count toward rate limits). Per-language examples come next, then
 // everything that changes per request.
-const STATIC_SERVER = [systemCore(RULE6_SERVER), NFC_FULL, EVENTS_FULL, STYLE_CORE, NOTES_RULE].join('\n\n');
+const STATIC_SERVER = [systemCore(RULE6_SERVER), NFC_SHORT, EVENTS_SHORT, STYLE_CORE, NOTES_RULE].join('\n\n');
 
 export const CONTEXT_CHUNK_CHARS = [600, 600, 420, 420, 300, 300];
 
@@ -116,8 +116,13 @@ export function buildSystemPrompt({ lang, contextChunks = [], visitor = null, re
   const L = ['ar', 'zh', 'ru'].includes(lang) ? lang : 'en';
   if (useTool) return buildLegacyPrompt({ L, contextChunks, visitor, recentUserText, actionsNote });
 
+  // The detailed product notes are added only when the visitor's own words are about them
+  // (the retrieved KB chunks already carry the facts otherwise).
+  const topic = String(recentUserText || '');
   const tail = [
     `LANGUAGE: reply in ${LANG_NAME[L]}, matching the visitor's own wording and tone.`,
+    NFC_RE.test(topic) ? NFC_FULL : '',
+    EVENTS_RE.test(topic) ? EVENTS_FULL : '',
     buildVisitorBlock(visitor, { useTool: false }),
     factsLine ? `CHAT SO FAR (from the visitor's own words, older turns summarized): ${sanitizeFact(factsLine, 400)}` : '',
     actionsNote,

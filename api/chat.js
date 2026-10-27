@@ -335,6 +335,9 @@ export default async function handler(req, res) {
           stage.mark('embedding_started', { state: embedderState(), timeoutMs: embedWait });
           const queryEmbedding = await withTimeout(embedQuery(retrievalQuery), embedWait, 'Embedding');
           retrieved = await retrieve(queryEmbedding, { topK, lang });
+          // Adaptive top-K: drop chunks clearly weaker than the best match (keep at least two).
+          const best = retrieved[0]?.score ?? 0;
+          retrieved = retrieved.filter((c, i) => i < 2 || c.score >= best - 0.06);
           retrievalMode = 'semantic';
         } catch (embedErr) {
           stage.mark('embedding_skipped', { message: extractErrorDetails(embedErr).message });
