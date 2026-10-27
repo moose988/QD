@@ -105,6 +105,9 @@ export function extractFacts(userTexts = []) {
   const facts = {};
   const biz = firstMatch(BUSINESS_RE, newestFirst);
   if (biz) facts.business = biz[0].toLowerCase();
+  // What they opened with, so "what was the first thing I told you?" survives history compaction.
+  const firstBiz = firstMatch(BUSINESS_RE, texts);
+  if (firstBiz) facts.firstMentioned = firstBiz[0].toLowerCase();
   const goals = [];
   for (const t of texts) {
     for (const m of t.matchAll(new RegExp(PROJECT_RE.source, 'giu'))) {
@@ -133,6 +136,7 @@ export function formatFacts(facts = {}) {
   const parts = [];
   if (facts.name) parts.push(`name ${clean(facts.name)}`);
   if (facts.business) parts.push(`business: ${clean(facts.business)}`);
+  if (facts.firstMentioned) parts.push(`first mentioned: ${clean(facts.firstMentioned)}`);
   if (facts.goals?.length) parts.push(`interested in: ${facts.goals.map(clean).join(', ')}`);
   if (facts.date) parts.push(`date mentioned: ${clean(facts.date)}`);
   if (facts.guests) parts.push(`guests: ${clean(facts.guests)}`);

@@ -92,7 +92,7 @@ export function hasHandoffIntent(text) {
 }
 
 // A reply that promises a hand-off ("I'll pass this to the team", "they'll message you soon").
-const CLAIM_RE = /(pass(ed|ing)?|forward(ed|ing)?)\s+(this|it|that)\s+(on\s+)?to\s+the\s+team|(the\s+)?team\s+(will|'ll|is going to)\s+(message|contact|reach out|follow up|get back|be in touch)|they'?ll\s+(message|contact|reach|get back)|سيراسل|سيتواصل|سيتواصلون|حوّلت|团队.{0,10}(会联系|联系你|联系您)|转交|команда.{0,25}(напишет|свяжется)|(передам|передал).{0,10}команде/i;
+const CLAIM_RE = /(pass(ed|ing)?|forward(ed|ing)?|send(ing)?|hand(ed|ing)?)\s+(this|it|that)\s+(on\s+|over\s+)?to\s+(the|our|your)\s+team|(the|our|your)\s+team\s+(will|['’]ll|is going to|are going to)\s+(message|contact|reach out|reach you|follow up|get back|be in touch|be touch)|they\s*(will|['’]ll)\s+(message|contact|reach|get back|be in touch)|سيراسل|سيتواصل|سيتواصلون|حوّلت|团队.{0,10}(会联系|联系你|联系您)|转交|команда.{0,25}(напишет|свяжется)|(передам|передал).{0,10}команде/i;
 
 export function claimsHandoff(text) {
   return CLAIM_RE.test(String(text || ''));

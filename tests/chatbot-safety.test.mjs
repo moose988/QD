@@ -209,3 +209,10 @@ test('sanitizeReply strips unprompted timelines but keeps them when allowed', ()
   assert.ok(/24 hours/.test(sanitizeReply(reply, { allowTimeline: true })));
   assert.ok(sanitizeReply('A site takes about three days.', { allowTimeline: false }).length > 0);
 });
+
+test('claimsHandoff catches curly apostrophes and "our team"', () => {
+  assert.ok(claimsHandoff('I’ll forward this to our team right away; they’ll reach out to you soon.'));
+  assert.ok(claimsHandoff('Our team will get back to you.'));
+  assert.ok(claimsHandoff('They\u2019ll message you shortly.'));
+  assert.ok(!claimsHandoff('Our team builds websites for restaurants.'));
+});
