@@ -11,6 +11,9 @@ const INTERNAL_SOURCES = /sales-playbook/i; // instructions for the bot, not fac
 const PRICE_RE = /\b(?:aed|usd|dhs?|dirhams?|\$|€|£)\s?\d|\d+\s?(?:aed|usd|dhs?|dirhams?)\b|درهم|迪拉姆|дирхам/iu;
 const TIME_FIGURE_RE = /\d\s*(?:[-–]\s*\d+\s*)?(?:hours?|days?|weeks?|months?|ساع|يوم|أيام|أسابيع|小时|天|周|час|дн|недел)/iu;
 const PHONE_RE = /\+?\d[\d\s().-]{7,}\d/;
+const URL_RE = /https?:\/\/|www\.|\b[\w-]+\.(?:ae|com|html)\b|\s\/[\w-]+/i;
+// Sentences written as instructions to the assistant, not facts for a visitor.
+const INSTRUCTION_RE = /\b(?:direct (?:them|him|her)|send them|tell them|ask them|give them|if (?:someone|a visitor|the visitor|they)\b|the bot\b|you (?:should|must|can say))|\b(?:we avoid|never|do not|don't)\b|وجّهه|وجهه|اطلب منه|إذا كان لدى|如果对方|如果访客|请引导|引导其|если человек|направь|скажи|спроси/i;
 const MARKUP_RE = /^\s*(?:[-*•]|\d+[.)]|#+|\|)/;
 
 const STOP = new Set('the and you your yours can could for with what how are our have has does did this that these from will would about need want like just also into than then them they their there here which who when where why yes not all any some get got make made one more most much many very its it\'s is was were been be do of to in on at by or an we me my us hi hello hey please thanks'.split(' '));
@@ -51,6 +54,7 @@ export function degradedReply({ message = '', lang = 'en', chunks = [], asksTime
         if (!asksPrice && PRICE_RE.test(s)) continue;
         if (!asksTime && TIME_FIGURE_RE.test(s)) continue;
         if (!asksContact && PHONE_RE.test(s)) continue;
+        if (URL_RE.test(s) || INSTRUCTION_RE.test(s)) continue;
         const toks = keyTokens(s);
         let overlap = 0;
         for (const t of new Set(toks)) if (q.has(t)) overlap += 1;
@@ -59,7 +63,9 @@ export function degradedReply({ message = '', lang = 'en', chunks = [], asksTime
         candidates.push({ s, score, overlap: overlap + headingOverlap, id: c.id, sameLang });
       }
     });
-  const usable = candidates.filter((c) => c.sameLang && c.overlap > 0).sort((a, b) => b.score - a.score);
+  // A broad question needs a sentence that matches at least two of its words; a tiny one needs one.
+  const need = q.size >= 3 ? 2 : 1;
+  const usable = candidates.filter((c) => c.sameLang && c.overlap >= need).sort((a, b) => b.score - a.score);
   if (!usable.length) return { text: FALLBACK[L], usedChunkIds: [], matched: false };
   const picked = [usable[0]];
   const second = usable.find((c) => c !== usable[0] && c.id === usable[0].id && c.overlap > 0 && c.s !== usable[0].s);

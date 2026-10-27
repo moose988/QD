@@ -7,7 +7,7 @@ const LOGIN_RE = /\blog\s?-?in\b|\blogin\b|\bsign\s?-?in\b|customer (area|portal
 // "can you build a login page?" is a project request, not a customer looking for the way in.
 const LOGIN_BUILD_RE = /\b(build|make|create|design|develop|add|implement|integrate|code)\b[^.?!\n]{0,40}\b(log\s?-?in|sign\s?-?in|authentication|auth)\b|\b(log\s?-?in|sign\s?-?in|authentication)\b[^.?!\n]{0,20}\b(system|feature|flow|functionality|for (my|our|the) (website|app|site))\b|ابن|صمم|أنشئ|搭建|开发|做一个|создать|сделать|разработ/i;
 
-const BOOK_RE = /\b(book|schedule|arrange|set up)\b[^.?!\n]{0,25}\b(call|meeting|appointment|consultation|demo)\b|\bcall me\b|\bcall back\b|\bphone call\b|\bappointment\b|\bspeak to (someone|a person|a human)\b|\btalk to (someone|a person|a human|the team)\b|احجز|حجز موعد|موعد|مكالمة|اجتماع|اتصلوا بي|预约|约个|电话会议|通话|созвон|записаться|назначить|встреч|позвон/i;
+const BOOK_RE = /\b(book|schedule|arrange|set up)\b[^.?!\n]{0,25}\b(call|meeting|appointment|consultation|demo)\b|\bcall me\b|\bcall back\b|\bphone call\b|\bappointment\b|\b(?:speak|talk|chat) (?:to|with) (?:someone|somebody|a person|a real person|a human|a real human|a real agent|an agent|a representative|the team|your team|a team member)\b|\b(?:real|live) (?:person|human|agent)\b|\bhuman agent\b|احجز|حجز موعد|موعد|مكالمة|اجتماع|اتصلوا بي|预约|约个|电话会议|通话|созвон|записаться|назначить|встреч|позвон/i;
 
 const DEMOS_RE = /\bdemos?\b|\byour (work|portfolio|projects|previous work)\b|\b(past|previous) (work|projects)\b|\bportfolio\b|\bexamples?\b|\bsamples?\b|\bshow me (some|what|your)\b|\bsee (some|what|your|examples)\b|\bwhat (have|did) you (built|made|done)\b|أعمالكم|نماذج|أمثلة|عرض أعمال|作品|案例|示例|看看你们|演示|примеры|портфолио|ваши работы|покажите|демо/i;
 

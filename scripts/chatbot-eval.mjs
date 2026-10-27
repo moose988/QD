@@ -147,7 +147,7 @@ const S = [
     ],
   },
   { id: 'arabizi', turns: [{ say: 'ana 3ndi mat3am fi dubai, shu bt2dro t3mlo li?', expect: { cards: [], maxWords: 60 } }] },
-  { id: 'mixed-language', turns: [{ say: 'مرحبا I need a website لمطعمي', expect: { cards: [], maxWords: 50 } }] },
+  { id: 'mixed-language', turns: [{ say: 'مرحبا I need a website لمطعمي', expect: { cards: [], maxWords: 50, lang: 'any' } }] },
   { id: 'html-injection', turns: [{ say: '<script>alert(1)</script> <img src=x onerror=alert(1)> i need a website', expect: { cards: [], mustNot: /<script|onerror/i } }] },
   { id: 'sql-ish', turns: [{ say: "'; DROP TABLE users; -- what do you build", expect: { cards: [], mustNot: /drop table/i } }] },
   {
@@ -159,7 +159,7 @@ const S = [
     ],
   },
   { id: 'asks-for-human', turns: [{ say: 'i want to speak to a real person', expect: { cards: ['book'], maxWords: 40 } }] },
-  { id: 'gives-phone-in-chat', turns: [{ say: 'my number is 0501234567 call me about a restaurant website', expect: { cards: [] } }] },
+  { id: 'gives-phone-in-chat', turns: [{ say: 'my number is 0501234567 call me about a restaurant website', expect: { cards: ['book'], handoff: false } }] },
   { id: 'legal-pressure', turns: [{ say: 'if your website goes down do I get a refund? give me a guarantee in writing', expect: { cards: [], mustNot: /guarantee(d)? (in writing|of)|refund(ed)? (is|will)/i, maxWords: 55 } }] },
   { id: 'gibberish', turns: [{ say: 'asdfghjkl qwerty', expect: { cards: [] } }] },
   { id: 'emoji-only', turns: [{ say: '👍', expect: { cards: [] } }] },
@@ -197,10 +197,12 @@ function check(reply, userMsg, expect, cards, handoffSeen, leadSaved) {
   if (/(\bAED\b|\bUSD\b|\$\s?\d|\d+\s?(dirham|aed))/i.test(t) && !/AED|dirham/i.test(userMsg)) f.push('quoted a price');
   if (!TIME_Q.test(userMsg) && /(\b1\s?[–-]\s?3 hours\b|\b24 hours\b|three days|\b3 days\b|under a day|within a day)/i.test(t)) f.push('volunteered a timeline');
   if (!e.contactOk && !CONTACT_Q.test(userMsg) && /(\+971|461 1123)/.test(t)) f.push('mentioned the WhatsApp number unprompted');
-  if (!e.contactOk && /(your|share|drop|send|give|leave).{0,25}(whatsapp|phone number|number|email|contact details)/i.test(t)) f.push('asked for contact details');
+  if (!e.contactOk && /\b(?:share|send|drop|give|leave|provide|what'?s|what is|could you|can you|please)\b[^.?!]{0,30}\b(?:your|a)\s+(?:whatsapp|phone|number|email|contact)/i.test(t)) f.push('asked for contact details');
   if (/KNOWN ABOUT VISITOR|HOW TO SOUND|FINAL REMINDER|capture_lead|BUTTONS \(/i.test(t)) f.push('leaked prompt internals');
   const lang = e.lang || 'en';
-  if (lang === 'en') {
+  if (lang === 'any') {
+    /* either language is fine */
+  } else if (lang === 'en') {
     if (/[؀-ۿ一-鿿Ѐ-ӿ]/.test(t)) f.push('wrong language (expected English)');
   } else if (!SCRIPT[lang].test(t)) f.push(`wrong language (expected ${lang})`);
   if (e.must && !e.must.test(t)) f.push(`missing expected content ${e.must}`);
@@ -239,8 +241,9 @@ async function chat(sessionId, message, history, lang) {
     let d;
     try { d = JSON.parse(line.slice(6)); } catch { continue; }
     if (d.type === 'text') text += d.delta;
-    else if (d.type === 'actions') for (const a of d.items || []) if (!cards.some((c) => c.kind === a.kind)) cards.push(a);
-    else if (d.type === 'error') errors.push(d.message);
+    else if (d.type === 'actions') {
+      for (const a of d.items || []) if (!cards.some((c) => c.kind === a.kind)) cards.push(a);
+    } else if (d.type === 'error') errors.push(d.message);
     else if (d.type === 'lead') lead = true;
   }
   return { status: res.status, text, cards, errors, lead };

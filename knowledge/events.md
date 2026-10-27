@@ -36,7 +36,7 @@ Background music, photo gallery, event countdown, venue map with directions (inc
 
 ### Existing customers: login
 
-If someone already has an event with QD, send them to the customer login: https://events.qdsystems.ae/customer-login.html (also reachable from the Customer login link on /event-management). If they say they have an event but don't know where to log in, give them this link. If they still can't get in, ask them to message WhatsApp +971 50 461 1123.
+Customers who already have an event with QD Events sign in through the customer login page at https://events.qdsystems.ae/customer-login.html, which is also linked from the QD Events page (/event-management). A customer who cannot sign in can message the QD team on WhatsApp +971 50 461 1123.
 
 ### QD Events FAQ
 
@@ -87,7 +87,7 @@ An NFC tag can open an invitation, an RSVP page or a guest check-in link, so a t
 
 ### العملاء الحاليون: تسجيل الدخول
 
-إذا كان لدى الشخص مناسبة قائمة مع QD، وجّهه إلى تسجيل دخول العملاء: https://events.qdsystems.ae/customer-login.html (ويمكن الوصول إليه أيضاً من رابط تسجيل دخول العملاء في /event-management). إذا قال إن لديه مناسبة ولا يعرف أين يسجّل الدخول، أعطه هذا الرابط. وإن تعذّر دخوله فاطلب منه مراسلة واتساب +971 50 461 1123.
+يسجّل العملاء الذين لديهم مناسبة مع QD Events دخولهم عبر صفحة تسجيل دخول العملاء على https://events.qdsystems.ae/customer-login.html، وهي متاحة أيضاً من صفحة QD Events (/event-management). من لا يستطيع الدخول يمكنه مراسلة فريق QD على واتساب +971 50 461 1123.
 
 ### أسئلة شائعة
 
@@ -138,7 +138,7 @@ QD Events 适用于所有类型的活动：婚礼、订婚、生日、性别揭�
 
 ### 现有客户：登录
 
-如果对方已在 QD 有活动，请引导其使用客户登录：https://events.qdsystems.ae/customer-login.html（也可通过 /event-management 页面上的客户登录链接进入）。如果对方说有活动但不知道从哪里登录，就把这个链接给他。如果仍无法登录，请他通过 WhatsApp +971 50 461 1123 联系。
+已在 QD Events 创建活动的客户，通过客户登录页面登录：https://events.qdsystems.ae/customer-login.html，该入口也可在 QD Events 页面（/event-management）找到。无法登录的客户可以通过 WhatsApp +971 50 461 1123 联系 QD 团队。
 
 ### 常见问题
 
@@ -189,7 +189,7 @@ QD Events подходит для любых событий: свадьбы, п�
 
 ### Действующие клиенты: вход
 
-Если у человека уже есть событие в QD, направь его на клиентский вход: https://events.qdsystems.ae/customer-login.html (также доступен по ссылке «Customer login» на странице /event-management). Если он говорит, что событие есть, но не знает, где входить, дай эту ссылку. Если войти всё равно не получается — пусть напишет в WhatsApp +971 50 461 1123.
+Клиенты, у которых уже есть событие в QD Events, входят через страницу клиентского входа https://events.qdsystems.ae/customer-login.html; ссылка также есть на странице QD Events (/event-management). Клиент, который не может войти, может написать команде QD в WhatsApp +971 50 461 1123.
 
 ### Частые вопросы
 

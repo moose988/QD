@@ -301,6 +301,7 @@ export default async function handler(req, res) {
       const alreadyHandedOff = cleanedHistory.some((m) => m.role === 'assistant' && claimsHandoff(m.content));
       const lastAssistant = [...cleanedHistory].reverse().find((m) => m.role === 'assistant')?.content || '';
       hd = LEAD_TOOL_MODE === 'off' ? decideHandoff({ userTexts, visitor, alreadyHandedOff, lastAssistant }) : { decision: 'legacy' };
+      if (hd.decision === 'handoff' && actions.some((x) => x.kind === 'book')) hd = { decision: 'none', reason: 'booking card is the action' };
       stage.mark('handoff_decided', { decision: hd.decision, reason: hd.reason });
       if (hd.decision === 'already') leadSaved = true;
       const leadPromise = hd.decision === 'handoff' && db
@@ -418,7 +419,8 @@ export default async function handler(req, res) {
     if (actions.length) send({ type: 'actions', items: actions });
 
     const asksHowToReach = /contact|reach|whatsapp|phone|call|number|talk to|speak|تواصل|اتصل|واتساب|رقم|联系|电话|связаться|телефон|позвон/i.test(message);
-    fullText = sanitizeReply(fullText, { lang, allowedDigits: [visitor?.phone], allowPhone: asksHowToReach });
+    const asksTimeline = /how long|how fast|timeline|time frame|when (?:can|will)|deliver|ready by|tomorrow|tommorw|asap|urgent|days|hours|weeks|مدة|كم يستغرق|كم تستغرق|كم تأخذ|متى|多久|多长时间|什么时候|сколько времени|сроки|когда/i.test(userTexts.slice(-2).join(' '));
+    fullText = sanitizeReply(fullText, { lang, allowedDigits: [visitor?.phone], allowPhone: asksHowToReach, allowTimeline: asksTimeline });
     // A button reply in the wrong language (e.g. English to an Arabic visitor) is replaced by a fixed local line.
     const SCRIPTS = { ar: /[؀-ۿ]/, zh: /[一-鿿]/, ru: /[Ѐ-ӿ]/ };
     if (fullText && SCRIPTS[lang] && !SCRIPTS[lang].test(fullText) && actions.length) {

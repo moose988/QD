@@ -8,6 +8,9 @@ const QD_PHONE_DISPLAY = '+971 50 461 1123';
 
 const STOCK_SENTENCE_RE = /(feel free|don'?t hesitate|is there anything else|anything else i can|happy to assist|assist you|delighted|thank you for (your )?interest|great question|how may i help|let me know if you (have|need)|لا تتردد|هل هناك شيء آخر|欢迎随时联系|还有什么可以帮|не стесняйтесь|могу ли я ещё)/i;
 
+// Delivery-time claims ("live in under 24 hours", "about three days") are only for visitors who asked.
+const TIMELINE_RE = /\b(?:\d+\s*(?:-|to)?\s*\d*\s*(?:hours?|days?|weeks?)|(?:one|two|three|four|five|a)\s+(?:hours?|days?|weeks?)|under (?:a|an|one) (?:day|hour)|within (?:a|an|one) (?:day|hour)|same[- ]day|overnight)\b|ساعة|ساعات|أيام|يوم واحد|小时|天内|几天|час(?:а|ов)?\b|дн(?:я|ей)\b/iu;
+
 const LEAK_RE = /KNOWN ABOUT VISITOR|HOW TO SOUND|FINAL REMINDER|capture_lead|BUTTONS \(|CONTEXT \(authoritative|system prompt|ABSOLUTE RULES|REPLY STYLE|SERVER HANDOFF DECISION|CHAT SO FAR \(|VISITOR MESSAGES:/i;
 
 const DEFLECT = {
@@ -27,7 +30,7 @@ function splitSentences(t) {
   return t.split(/(?<=[.?؟。？])\s+/).map((s) => s.trim()).filter(Boolean);
 }
 
-export function sanitizeReply(input, { lang = 'en', allowedDigits = [], allowPhone = false } = {}) {
+export function sanitizeReply(input, { lang = 'en', allowedDigits = [], allowPhone = false, allowTimeline = true } = {}) {
   let t = String(input || '');
   t = t.replace(/<think>[\s\S]*?<\/think>/gi, '');
 
@@ -54,7 +57,7 @@ export function sanitizeReply(input, { lang = 'en', allowedDigits = [], allowPho
 
   // drop stock sentences and unprompted mentions of QD's number (only when something else remains)
   let sentences = splitSentences(t.replace(/\s*\n+\s*/g, ' '));
-  const kept = sentences.filter((s) => !STOCK_SENTENCE_RE.test(s) && (allowPhone || !s.replace(/\D/g, '').includes(QD_PHONE_DIGITS)));
+  const kept = sentences.filter((s) => !STOCK_SENTENCE_RE.test(s) && (allowPhone || !s.replace(/\D/g, '').includes(QD_PHONE_DIGITS)) && (allowTimeline || !TIMELINE_RE.test(s)));
   if (kept.length) sentences = kept;
 
   // hard length cap: stop at the last full sentence under ~60 words

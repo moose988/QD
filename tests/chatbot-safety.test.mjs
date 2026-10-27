@@ -194,3 +194,18 @@ test('detectLang picks the script it sees', () => {
   assert.equal(detectLang('привет'), 'ru');
   assert.equal(detectLang('hello'), null);
 });
+
+// ─── regressions found by live evaluation round 5 ────────────────────────────
+test('book card triggers for asking to speak to a real person', () => {
+  for (const msg of ['i want to speak to a real person', 'can I talk to a human', 'need a real agent', 'let me chat with someone']) {
+    assert.ok(detectActions(msg, 'en').some((a) => a.kind === 'book'), msg);
+  }
+  assert.ok(!detectActions('do you build human resources software', 'en').some((a) => a.kind === 'book'));
+});
+
+test('sanitizeReply strips unprompted timelines but keeps them when allowed', () => {
+  const reply = 'We build custom websites, usually live in under 24 hours. What kind of business is it for?';
+  assert.ok(!/24 hours/.test(sanitizeReply(reply, { allowTimeline: false })));
+  assert.ok(/24 hours/.test(sanitizeReply(reply, { allowTimeline: true })));
+  assert.ok(sanitizeReply('A site takes about three days.', { allowTimeline: false }).length > 0);
+});
