@@ -70,10 +70,31 @@ export function parseRateLimit(err) {
 
 // ─── Per-model budget ────────────────────────────────────────────────────────
 export class ModelBudget {
-  constructor({ now = () => Date.now(), limits = LIMITS } = {}) {
+  constructor({ now = () => Date.now(), limits = LIMITS, minuteMs = 60000 } = {}) {
     this.now = now;
     this.limits = limits;
+    this.minuteMs = minuteMs; // length of the provider's per-minute window (tests scale it down)
     this.models = new Map();
+    this.inflight = new Map(); // model -> tokens reserved by requests that are still running
+  }
+
+  /**
+   * Reserves a request's tokens on a model while it runs, so simultaneous visitors do not all see the
+   * same 'budget left' and overshoot the per-minute cap together. Returns the release function.
+   */
+  reserve(model, tokens) {
+    const n = Math.max(0, Number(tokens) || 0);
+    this.inflight.set(model, (this.inflight.get(model) || 0) + n);
+    let released = false;
+    return () => {
+      if (released) return;
+      released = true;
+      this.inflight.set(model, Math.max(0, (this.inflight.get(model) || 0) - n));
+    };
+  }
+
+  inflightTokens(model) {
+    return this.inflight.get(model) || 0;
   }
 
   get(model) {
@@ -140,7 +161,7 @@ export class ModelBudget {
   }
 
   usedLastMinute(model) {
-    const minAgo = this.now() - 60000;
+    const minAgo = this.now() - this.minuteMs;
     return this.get(model).ledger.reduce((n, [t, v]) => (t >= minAgo ? n + v : n), 0);
   }
 
@@ -149,8 +170,14 @@ export class ModelBudget {
     const s = this.get(model);
     const now = this.now();
     if (now < s.cooldownUntil) return { state: 'cooldown', scope: s.cooldownScope, retryInMs: s.cooldownUntil - now };
-    const minuteLeft = s.remainingTokens != null && now < s.tokensResetAt ? s.remainingTokens : this.limits.tpm - this.usedLastMinute(model);
-    if (estTokens && minuteLeft < estTokens) return { state: 'short', scope: 'tpm', retryInMs: Math.max(0, s.tokensResetAt - now) };
+    const base = s.remainingTokens != null && now < s.tokensResetAt ? s.remainingTokens : this.limits.tpm - this.usedLastMinute(model);
+    const minuteLeft = base - this.inflightTokens(model);
+    if (estTokens && minuteLeft < estTokens) {
+      // Without header data, assume the oldest usage in the last minute is what frees the room.
+      const oldest = s.ledger.find(([t]) => t >= now - this.minuteMs);
+      const retryInMs = s.tokensResetAt > now ? s.tokensResetAt - now : oldest ? Math.max(0, oldest[0] + this.minuteMs - now) : 1000;
+      return { state: 'short', scope: 'tpm', retryInMs, minuteLeft };
+    }
     return { state: 'ok', minuteLeft, dayUsed: this.usedToday(model) };
   }
 

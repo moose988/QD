@@ -110,3 +110,9 @@ test('usageIssues warns at 80% of a model daily budget only', () => {
   assert.match(usageIssues({ models: { 'openai/gpt-oss-120b': { billable: 170000 } } })[0], /85%/);
   assert.deepEqual(usageIssues({}), []);
 });
+
+test('usageIssues flags a model that never gets cache hits', () => {
+  assert.match(usageIssues({ models: { m: { billable: 1000, calls: 25, cached: 0 } } })[0], /no cached prompt tokens/);
+  assert.deepEqual(usageIssues({ models: { m: { billable: 1000, calls: 25, cached: 4000 } } }), []);
+  assert.deepEqual(usageIssues({ models: { m: { billable: 100, calls: 3, cached: 0 } } }), []);
+});

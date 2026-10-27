@@ -142,6 +142,8 @@ export async function complete({
   onStage = () => {},
   attemptTimeoutMs = Number(process.env.LLM_ATTEMPT_TIMEOUT_MS) || 9000,
   temperature = 0.3,
+  // The longest we will queue for per-minute budget to free up (real milliseconds) before giving up.
+  maxQueueWaitMs = Number(process.env.LLM_MAX_QUEUE_WAIT_MS) || 6000,
 } = {}) {
   const { providers, chain } = chainConfig;
   const attempts = [];
@@ -156,10 +158,26 @@ export async function complete({
   let sawRate = skipped.length > 0;
   let sawDeadline = false;
   let lastErrorKind = null;
+  // Pass 1 skips models that cannot fit this request right now (counting requests already in flight).
+  // If every usable model is momentarily full and room frees up within maxQueueWaitMs, wait once and retry.
+  for (let pass = 0; pass < 2; pass += 1) {
+  let shortestWait = Infinity;
   for (const id of order) {
     const entry = chain.find((c) => c.id === id);
     const provider = providers.get(entry.provider);
     if (!provider || deadProviders.has(entry.provider)) continue;
+    const st = budgetTracker.status(id, estTokens);
+    if (st.state === 'cooldown') {
+      attempts.push({ model: id, outcome: 'skipped', scope: st.scope, retryInMs: st.retryInMs });
+      sawRate = true;
+      continue;
+    }
+    if (st.state === 'short') {
+      attempts.push({ model: id, outcome: 'busy', scope: 'tpm', retryInMs: st.retryInMs });
+      shortestWait = Math.min(shortestWait, st.retryInMs);
+      sawRate = true;
+      continue;
+    }
     let useTools = Boolean(tools);
     let maxTokens = null;
     let waitedOnce = false;
@@ -173,8 +191,10 @@ export async function complete({
       const body = { messages, temperature, ...modelParams(entry, { maxTokens }), ...(useTools ? { tools, tool_choice: 'auto' } : {}) };
       const startedAt = Date.now();
       onStage('llm_attempt_started', { model: id, attempt, useTools, timeoutMs });
+      const release = budgetTracker.reserve ? budgetTracker.reserve(id, estTokens) : () => {};
       try {
         const { json, headers } = await callOnce({ provider, entry, body, timeoutMs, fetchImpl });
+        release();
         budgetTracker.recordHeaders(id, headers);
         const choice = json?.choices?.[0] || {};
         const msg = choice.message || {};
@@ -197,6 +217,7 @@ export async function complete({
         attempts.push({ model: id, outcome: 'ok', ms, usage, finishReason });
         return { text, toolCalls, model: id, usage, finishReason, attempts };
       } catch (err) {
+        release();
         const ms = Date.now() - startedAt;
         const timedOut = err?.name === 'TimeoutError' || err?.name === 'AbortError';
         const kind = timedOut ? 'timeout' : classifyGroqError(err);
@@ -214,7 +235,7 @@ export async function complete({
           entryLog.scope = info.scope;
           entryLog.waitMs = info.waitMs;
           // Only a short per-minute wait is worth it, once, and only inside the deadline.
-          if (!waitedOnce && info.scope === 'tpm' && info.waitMs <= 1500 && deadlineAt - Date.now() > info.waitMs + 3000) {
+          if (!waitedOnce && info.scope === 'tpm' && info.waitMs <= Math.min(1500, maxQueueWaitMs) && deadlineAt - Date.now() > info.waitMs + 3000) {
             waitedOnce = true;
             await sleep(info.waitMs);
             continue;
@@ -228,6 +249,13 @@ export async function complete({
         break; // server, timeout, model, other: next model
       }
     }
+  }
+  if (pass === 0 && Number.isFinite(shortestWait) && shortestWait <= maxQueueWaitMs && deadlineAt - Date.now() > shortestWait + 3000) {
+    onStage('llm_queue_wait', { waitMs: Math.round(shortestWait) });
+    await sleep(shortestWait + 20);
+    continue;
+  }
+  break;
   }
   const reason = sawDeadline ? 'deadline' : sawRate && (lastErrorKind === 'rate' || lastErrorKind === null) ? 'rate' : deadProviders.size ? 'auth' : 'error';
   throw new AllModelsFailed(reason, attempts);

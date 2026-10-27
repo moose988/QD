@@ -124,5 +124,9 @@ export function usageIssues(today, dailyLimit = 200000) {
     const fraction = (Number(m.billable) || 0) / dailyLimit;
     if (fraction >= 0.8) issues.push(`${model} has used ${Math.round(fraction * 100)}% of its daily token budget; replies will move to backup models or offline mode soon.`);
   }
+  // Caching is what lets the free tier serve several people at once; zero cached tokens after many calls means the prefix is not caching.
+  for (const [model, m] of Object.entries(today?.models || {})) {
+    if ((Number(m.calls) || 0) >= 20 && !Number(m.cached)) issues.push(`${model}: no cached prompt tokens after ${m.calls} calls, so capacity is about 3x lower than designed (check that the static prompt prefix is unchanged between requests).`);
+  }
   return issues;
 }
