@@ -256,3 +256,13 @@ The prompt explicitly tells it to match the user's language. If you see mixing, 
 ## Function layout (Vercel Hobby allows 12)
 
 `api/` holds 9 functions: `book`, `card-view`, `chat`, `contact-email`, `demo`, `health`, `lead`, `maps-extract`, `quote-save`. `demo` and `quote-save` are dispatchers: `vercel.json` rewrites keep the public URLs (`/api/demo-get`, `/api/quote-create`, ...) unchanged. Shared code and route handlers live in `api/_lib/` (not counted as functions). `scripts/test-vercel-function-budget.mjs` enforces the limit.
+
+## Capacity on the free Groq tier (several visitors at once)
+
+Each model has 8,000 tokens per minute and 200,000 per day on Groq's free tier; there are three models in the chain. What keeps several people chatting at once working:
+
+- **Prompt caching:** `openai/gpt-oss-120b` serves the static start of the prompt from cache, and cached tokens do not count toward the limits, so a chat costs about 600 to 1,100 tokens instead of about 2,000. The small models do not cache, which is why the 120B model goes first and the others take the overflow (`GROQ_SMALL_MODEL` is off by default).
+- **Reservations:** requests in flight reserve their tokens on a model, so simultaneous visitors spill over to the next model instead of all hitting the same limit together. A request waits up to 6 s once if every model is momentarily full.
+- **No dead ends:** when every model is out of budget the reply comes from the offline mode (knowledge base only), with the usual buttons and hand-off.
+- **Proof, with zero tokens:** `tests/concurrency.test.mjs` simulates 2 to 5 visitors against a fake Groq that enforces the real caps.
+- **Watch it:** `/api/health` reports per-model daily usage and warns at 80%, and when prompt caching is not being observed.

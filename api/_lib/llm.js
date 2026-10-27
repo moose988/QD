@@ -56,7 +56,9 @@ export function loadChain(env = process.env) {
     providers.set(p.name, { name: p.name, baseURL: String(p.baseURL).replace(/\/+$/, ''), apiKey: key });
     for (const m of p.models) chain.push({ id: `${p.name}:${m}`, provider: p.name, model: m });
   }
-  const small = String(env.GROQ_SMALL_MODEL ?? 'openai/gpt-oss-20b').trim();
+  // Off by default: on Groq's free tier only gpt-oss-120b serves our prompt prefix from cache (about 600-1,100
+  // billable tokens per chat), while the small models bill about 2,000. Set GROQ_SMALL_MODEL to enable the cascade.
+  const small = String(env.GROQ_SMALL_MODEL ?? '').trim();
   return { providers, chain, small: chain.some((c) => c.id === small) ? small : null };
 }
 
@@ -140,7 +142,7 @@ export async function complete({
   fetchImpl = globalThis.fetch,
   budgetTracker = budget,
   onStage = () => {},
-  attemptTimeoutMs = Number(process.env.LLM_ATTEMPT_TIMEOUT_MS) || 9000,
+  attemptTimeoutMs = Number(process.env.LLM_ATTEMPT_TIMEOUT_MS) || 5500,
   temperature = 0.3,
   // The longest we will queue for per-minute budget to free up (real milliseconds) before giving up.
   maxQueueWaitMs = Number(process.env.LLM_MAX_QUEUE_WAIT_MS) || 6000,
@@ -166,7 +168,9 @@ export async function complete({
     const entry = chain.find((c) => c.id === id);
     const provider = providers.get(entry.provider);
     if (!provider || deadProviders.has(entry.provider)) continue;
-    const st = budgetTracker.status(id, estTokens);
+    // Use what this model has really been billing per request (cached prompts are cheap), capped by the caller's estimate.
+    const est = budgetTracker.estimateFor ? budgetTracker.estimateFor(id, estTokens) : estTokens;
+    const st = budgetTracker.status(id, est);
     if (st.state === 'cooldown') {
       attempts.push({ model: id, outcome: 'skipped', scope: st.scope, retryInMs: st.retryInMs });
       sawRate = true;
@@ -191,7 +195,7 @@ export async function complete({
       const body = { messages, temperature, ...modelParams(entry, { maxTokens }), ...(useTools ? { tools, tool_choice: 'auto' } : {}) };
       const startedAt = Date.now();
       onStage('llm_attempt_started', { model: id, attempt, useTools, timeoutMs });
-      const release = budgetTracker.reserve ? budgetTracker.reserve(id, estTokens) : () => {};
+      const release = budgetTracker.reserve ? budgetTracker.reserve(id, est) : () => {};
       try {
         const { json, headers } = await callOnce({ provider, entry, body, timeoutMs, fetchImpl });
         release();

@@ -93,6 +93,18 @@ export class ModelBudget {
     };
   }
 
+  /**
+   * Tokens to reserve for the next request on this model: what it has actually been billing lately
+   * (cache hits make it far cheaper than the worst case), with headroom, never above the caller's estimate.
+   */
+  estimateFor(model, fallbackEstimate = 0) {
+    const recent = this.get(model).ledger.slice(-8);
+    if (recent.length < 3) return fallbackEstimate;
+    const avg = recent.reduce((n, [, v]) => n + v, 0) / recent.length;
+    const est = Math.max(500, Math.round(avg * 1.4));
+    return fallbackEstimate ? Math.min(fallbackEstimate, est) : est;
+  }
+
   inflightTokens(model) {
     return this.inflight.get(model) || 0;
   }
