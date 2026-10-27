@@ -94,14 +94,14 @@ export class ModelBudget {
   }
 
   /**
-   * Tokens to reserve for the next request on this model: what it has actually been billing lately
-   * (cache hits make it far cheaper than the worst case), with headroom, never above the caller's estimate.
+   * Tokens to reserve for the next request on this model. Billing is bimodal (a cache hit bills about a
+   * third of a miss), so an average would under-reserve after a run of misses: use the largest of the
+   * last few billed calls, never above the caller's worst-case estimate.
    */
   estimateFor(model, fallbackEstimate = 0) {
-    const recent = this.get(model).ledger.slice(-8);
+    const recent = this.get(model).ledger.slice(-6);
     if (recent.length < 3) return fallbackEstimate;
-    const avg = recent.reduce((n, [, v]) => n + v, 0) / recent.length;
-    const est = Math.max(500, Math.round(avg * 1.4));
+    const est = Math.max(500, ...recent.map(([, v]) => v));
     return fallbackEstimate ? Math.min(fallbackEstimate, est) : est;
   }
 

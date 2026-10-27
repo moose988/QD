@@ -321,8 +321,10 @@ export default async function handler(req, res) {
       }
 
       // ─── Compress the visitor message and the history ──────────────────
-      const intent = compressIntent(message);
-      const compact = compactHistory(cleanedHistory, { keepTurns: 2, assistantChars: 300, userTextsForFacts: userTexts, compressUser: compressTurn });
+      // Local-only A/B switch (scripts/chatbot-ab.mjs): send the visitor's exact words instead of the compressed note.
+      const rawInput = isLocalDev && body?.rawInput === true;
+      const intent = rawInput ? { text: message, compressed: false, confidence: 1, reason: 'raw input (local A/B)', slots: null } : compressIntent(message);
+      const compact = compactHistory(cleanedHistory, { keepTurns: 2, assistantChars: 300, userTextsForFacts: userTexts, compressUser: rawInput ? undefined : compressTurn });
 
       if (!fullText) {
         // ─── Retrieval ─────────────────────────────────────────────────────
