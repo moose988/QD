@@ -116,3 +116,13 @@ export function formatAlert({ status, issues, checkedAt }) {
     'Details: sign in to the admin and open /api/health, or run the check from the terminal.',
   ].join('\n');
 }
+
+// Warns when any model has used 80% or more of its daily token allowance (per-model data from usage.js).
+export function usageIssues(today, dailyLimit = 200000) {
+  const issues = [];
+  for (const [model, m] of Object.entries(today?.models || {})) {
+    const fraction = (Number(m.billable) || 0) / dailyLimit;
+    if (fraction >= 0.8) issues.push(`${model} has used ${Math.round(fraction * 100)}% of its daily token budget; replies will move to backup models or offline mode soon.`);
+  }
+  return issues;
+}

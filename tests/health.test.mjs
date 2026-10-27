@@ -6,7 +6,7 @@ import { readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  KB_EXPECTED_SOURCES, checkEnv, checkGroq, checkKnowledgeBase, checkActivity, summarize, formatAlert, getConfiguredModels, withTimeout,
+  KB_EXPECTED_SOURCES, checkEnv, checkGroq, checkKnowledgeBase, checkActivity, summarize, formatAlert, getConfiguredModels, withTimeout, usageIssues,
 } from '../api/_lib/health.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -103,4 +103,10 @@ test('formatAlert lists issues and never includes secrets', () => {
 test('withTimeout rejects slow work', async () => {
   await assert.rejects(withTimeout(new Promise(() => {}), 20, 'slow'), /slow timed out/);
   assert.equal(await withTimeout(Promise.resolve(5), 50, 'fast'), 5);
+});
+
+test('usageIssues warns at 80% of a model daily budget only', () => {
+  assert.deepEqual(usageIssues({ models: { a: { billable: 100000 } } }), []);
+  assert.match(usageIssues({ models: { 'openai/gpt-oss-120b': { billable: 170000 } } })[0], /85%/);
+  assert.deepEqual(usageIssues({}), []);
 });

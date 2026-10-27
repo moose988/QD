@@ -49,13 +49,6 @@
       "headers": [
         { "key": "Content-Type", "value": "application/xml; charset=utf-8" }
       ]
-    },
-    {
-      "source": "/api/chat",
-      "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "POST, OPTIONS" }
-      ]
     }
   ]
 }

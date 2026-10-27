@@ -7,7 +7,8 @@ import { getDb } from './_lib/firebase.js';
 import { requireAdmin } from './_lib/admin-auth.js';
 import { getQueryParam } from './_lib/quote-admin.js';
 import { getAdminRecipients, safeError, sendZohoMail } from './_lib/zoho-mail.js';
-import { checkEnv, checkGroq, checkKnowledgeBase, checkActivity, getConfiguredModels, summarize, formatAlert } from './_lib/health.js';
+import { usageSnapshot, summarizeDailyDoc, dayKey } from './_lib/usage.js';
+import { checkEnv, checkGroq, checkKnowledgeBase, checkActivity, getConfiguredModels, summarize, formatAlert, usageIssues } from './_lib/health.js';
 
 export const config = { runtime: 'nodejs', maxDuration: 15 };
 
@@ -54,7 +55,17 @@ export default async function handler(req, res) {
       db ? checkActivity({ db }) : { ok: false, issues: [] },
     ]);
 
-    const report = { env, groq, knowledgeBase, activity };
+    // Token usage: today's total across instances (Firestore) plus this instance's recent window.
+    let usage = { ok: true, issues: [] };
+    try {
+      const doc = db ? (await db.collection('chatUsage').doc(dayKey()).get()).data() || {} : {};
+      const today = summarizeDailyDoc(doc);
+      usage = { ok: true, today, thisInstance: usageSnapshot(), issues: usageIssues(today) };
+    } catch (err) {
+      usage = { ok: false, issues: [`Usage check failed: ${err.message}`] };
+    }
+
+    const report = { env, groq, knowledgeBase, activity, usage };
     const { status, issues } = summarize(report);
     const checkedAt = new Date().toISOString();
 
