@@ -1225,10 +1225,8 @@ if (SHOW_LIVE_DEMO) {
 -->
 
 <script src="i18n.js"></script>
-<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
-<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
-<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script defer src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin></script>
+<script defer src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
 <script>
 /* intro — never gated on window.load (so it can't hang on Three.js/fonts) */
 var isMobile=innerWidth<768;
@@ -1598,7 +1596,7 @@ if(bForm)bForm.addEventListener('submit',async e=>{e.preventDefault();
 });
 
 /* ---------- WebGL chrome (lights-only, reliable) ---------- */
-(function(){
+function qdInitGL(){
   if(!window.THREE) return;
   const canvas=document.getElementById('gl'); if(!canvas) return;
   if(perfLite&&!isMobile){ canvas.style.display='none'; return; }
@@ -1656,9 +1654,15 @@ if(bForm)bForm.addEventListener('submit',async e=>{e.preventDefault();
     camera.position.x=tx*1.2; camera.position.y=-ty*1.0; camera.lookAt(0,0,0);
     renderer.render(scene,camera);
   })();
-})();
+}
+function qdLoadGL(){
+  if(perfLite&&!isMobile){var c=document.getElementById('gl');if(c)c.style.display='none';return;}
+  var t=document.createElement('script');t.src='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';t.onload=qdInitGL;document.head.appendChild(t);
+}
+function qdGLWhenIdle(){if(window.requestIdleCallback)requestIdleCallback(qdLoadGL,{timeout:2500});else setTimeout(qdLoadGL,800);}
+if(document.readyState==='complete')qdGLWhenIdle();else addEventListener('load',qdGLWhenIdle,{once:true});
 </script>
-<script type="text/babel" data-presets="react" src="components/interactivework.jsx"></script>
+<script defer src="components/interactivework.js"></script>
 <link rel="stylesheet" href="/chatbot/chatbot.css">
 <script src="/chatbot/chatbot.js" defer></script>
 </body>

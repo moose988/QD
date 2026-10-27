@@ -1,4 +1,5 @@
-/* QD Events page copy. Loaded by event-management/index.html before service-page.js. */
+/* QD Events page copy. Loaded by event-management/index.html before service-page.js.
+   Keys are applied via data-service-copy / data-service-aria attributes. */
 (function () {
   'use strict';
 
@@ -48,7 +49,8 @@
       q6: 'Are invitations available in all four website languages?', a6: 'The QD Systems product page is available in English, Arabic, Simplified Chinese and Russian. Invitation templates have their own language options; available languages vary by template and are confirmed during planning.',
       q7: 'How can I ask about an event?', a7: 'Book a free call through QD Systems or message us on WhatsApp. We can discuss the celebration, invitation direction and event-management needs.',
       cta: 'Let’s talk about your celebration', ctaText: 'Share the occasion and the kind of guest experience you want to create. QD Systems can discuss the invitation design and event-management setup with you.',
-      ctaButton: 'Book a Free Call', whatsapp: 'Message us on WhatsApp', whatsappAria: 'Message QD Systems on WhatsApp about QD Events'
+      ctaButton: 'Book a Free Call', whatsapp: 'Message us on WhatsApp', whatsappAria: 'Message QD Systems on WhatsApp about QD Events',
+      sceneSample: 'Sample', sceneArrivals: 'Arrivals', sceneAttending: 'Attending', sceneDecline: 'Decline', sceneChecked: 'Checked in', sceneScan: 'Scan to check in', sceneInvite: 'You’re invited', barWhatsapp: 'WhatsApp', cardsAria: 'Guest journey cards', demoHint: 'Load the interactive demo to open the fictional sample invitation inside this phone.'
     },
     ar: {
       title: 'QD Events | دعوات رقمية وإدارة المناسبات',
@@ -94,7 +96,8 @@
       q6: 'هل تتوفر الدعوات بلغات الموقع الأربع؟', a6: 'صفحة QD Systems متوفرة بالإنجليزية والعربية والصينية المبسطة والروسية. أما قوالب الدعوات فلها خيارات لغوية خاصة بها تختلف حسب القالب، ويتم تأكيدها أثناء التخطيط.',
       q7: 'كيف أستفسر عن مناسبة؟', a7: 'احجزوا مكالمة مجانية عبر QD Systems أو راسلونا على واتساب لمناقشة المناسبة وتصميم الدعوة واحتياجات الإدارة.',
       cta: 'لنتحدث عن احتفالكم', ctaText: 'أخبرونا عن المناسبة وتجربة الضيوف التي ترغبون في إعدادها. يسعد QD Systems مناقشة تصميم الدعوة وتجهيز إدارة المناسبة معكم.',
-      ctaButton: 'احجز مكالمة مجانية', whatsapp: 'راسلونا عبر واتساب', whatsappAria: 'راسل QD Systems عبر واتساب عن QD Events'
+      ctaButton: 'احجز مكالمة مجانية', whatsapp: 'راسلونا عبر واتساب', whatsappAria: 'راسل QD Systems عبر واتساب عن QD Events',
+      sceneSample: 'نموذج', sceneArrivals: 'الحضور', sceneAttending: 'سأحضر', sceneDecline: 'أعتذر', sceneChecked: 'تم تسجيل الحضور', sceneScan: 'امسح لتسجيل الحضور', sceneInvite: 'أنتم مدعوون', barWhatsapp: 'واتساب', cardsAria: 'بطاقات رحلة الضيف', demoHint: 'حمّلوا العرض التفاعلي لفتح نموذج الدعوة الخيالي داخل هذا الهاتف.'
     },
     zh: {
       title: 'QD Events | 数字请柬与活动管理',
@@ -140,7 +143,8 @@
       q6: '请柬是否支持网站的四种语言？', a6: 'QD Systems 产品页支持英语、阿拉伯语、简体中文和俄语。请柬模板有各自的语言选项，实际支持语言因模板而异，并会在筹备时确认。',
       q7: '如何咨询活动服务？', a7: '您可以预约 QD Systems 免费通话，或通过 WhatsApp 联系我们，讨论庆典、请柬设计和活动管理需求。',
       cta: '聊聊您的庆典', ctaText: '告诉我们活动类型以及您想为宾客打造的体验。QD Systems 可与您讨论请柬设计和活动管理方案。',
-      ctaButton: '预约免费通话', whatsapp: '通过 WhatsApp 联系我们', whatsappAria: '通过 WhatsApp 就 QD Events 联系 QD Systems'
+      ctaButton: '预约免费通话', whatsapp: '通过 WhatsApp 联系我们', whatsappAria: '通过 WhatsApp 就 QD Events 联系 QD Systems',
+      sceneSample: '示例', sceneArrivals: '到场', sceneAttending: '出席', sceneDecline: '婉拒', sceneChecked: '已签到', sceneScan: '扫码签到', sceneInvite: '诚挚邀请', barWhatsapp: 'WhatsApp', cardsAria: '宾客体验卡片', demoHint: '加载交互演示，即可在此手机画面中打开虚构的样例请柬。'
     },
     ru: {
       title: 'QD Events | Цифровые приглашения и управление событиями',
@@ -186,7 +190,8 @@
       q6: 'Доступны ли приглашения на всех четырёх языках сайта?', a6: 'Страница QD Systems доступна на английском, арабском, упрощённом китайском и русском. У шаблонов приглашений свои языковые настройки; доступные языки зависят от шаблона и уточняются при планировании.',
       q7: 'Как обсудить мероприятие?', a7: 'Запишитесь на бесплатный звонок через QD Systems или напишите нам в WhatsApp. Обсудим праздник, дизайн приглашения и задачи по управлению мероприятием.',
       cta: 'Обсудим ваш праздник', ctaText: 'Расскажите о поводе и о том, какой опыт вы хотите создать для гостей. QD Systems обсудит с вами дизайн приглашения и организацию мероприятия.',
-      ctaButton: 'Записаться на бесплатный звонок', whatsapp: 'Написать нам в WhatsApp', whatsappAria: 'Написать QD Systems о QD Events в WhatsApp'
+      ctaButton: 'Записаться на бесплатный звонок', whatsapp: 'Написать нам в WhatsApp', whatsappAria: 'Написать QD Systems о QD Events в WhatsApp',
+      sceneSample: 'Пример', sceneArrivals: 'Прибыли', sceneAttending: 'Приду', sceneDecline: 'Не смогу', sceneChecked: 'Отмечен', sceneScan: 'Сканируйте для входа', sceneInvite: 'Приглашаем вас', barWhatsapp: 'WhatsApp', cardsAria: 'Карточки пути гостя', demoHint: 'Загрузите интерактивное демо, чтобы открыть вымышленный образец приглашения прямо в этом телефоне.'
     }
   };
 })();
