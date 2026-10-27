@@ -6,10 +6,10 @@
   window.QD_SERVICE_PAGE_CONTENT = window.QD_SERVICE_PAGE_CONTENT || {};
   window.QD_SERVICE_PAGE_CONTENT.events = {
     en: {
-      title: 'QD Events | Digital Invitations and Event Management',
-      description: 'Create a personal digital invitation, collect guest replies, plan seating and manage arrivals with QD Events.',
-      ogTitle: 'QD Events | Invitations and celebration planning',
-      ogDescription: 'Personalized digital invitations connected to guest responses, seating and event management.',
+      title: 'Digital Invitations & Event Management UAE | QD Events',
+      description: 'Digital invitations for weddings and celebrations in Dubai and the UAE. Collect RSVPs, plan seating and check in guests with QR codes in one place.',
+      ogTitle: 'QD Events | Digital invitations, RSVPs and seating in the UAE',
+      ogDescription: 'Personal digital invitations connected to guest replies, seating plans and QR check-in for weddings and celebrations in the UAE.',
       mainNav: 'Main navigation', footerNav: 'Footer navigation',
       breadcrumb: 'QD Events', customerLogin: 'Customer login', heroEyebrow: 'A more considered way to celebrate',
       h1: 'Beautiful invitations. Effortlessly organized celebrations.',
