@@ -250,7 +250,6 @@ test('kb-snapshot.js matches the current knowledge files (run node scripts/build
   assert.equal(Buffer.from(KB_ROWS[0][5], 'base64').length, KB_META.dim * 4);
 });
 
-import { ModelBudget } from '../api/_lib/quota.js';
 test('estimateFor reserves the largest recent bill, so a run of cache misses is not under-reserved', () => {
   const b = new ModelBudget();
   assert.equal(b.estimateFor('m', 2300), 2300); // not enough history yet: worst case
