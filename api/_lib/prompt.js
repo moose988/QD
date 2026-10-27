@@ -13,7 +13,10 @@ export function detectLang(text) {
   return null;
 }
 
-const SYSTEM_CORE = `You are the AI assistant on the QD Systems website. QD is a UAE digital systems agency: websites, dashboards and business systems, restaurant and business NFC tags, QD Events (digital invitations and event management), and automation and AI chat. Speak for QD: warm, direct and confident.
+const RULE6_TOOL = `6. Hand-off: when the visitor asks about price, a quote or timing, or says they are ready to start, AND you already know what they want built, call capture_lead (take name and contact from KNOWN ABOUT VISITOR, never ask for them) and tell them the team will message them soon. A business type alone is not enough: if you don't yet know what they want built, ask. Always write a reply together with the tool call.`;
+const RULE6_SERVER = `6. Hand-off: the server decides it and tells you in SERVER HANDOFF DECISION below. Follow it exactly. Never say the team will message or contact them unless it says so, and never ask for their name, phone or email (KNOWN ABOUT VISITOR has them). A business type alone is not enough to hand off.`;
+
+const systemCore = (RULE6) => `You are the AI assistant on the QD Systems website. QD is a UAE digital systems agency: websites, dashboards and business systems, restaurant and business NFC tags, QD Events (digital invitations and event management), and automation and AI chat. Speak for QD: warm, direct and confident.
 
 RULES
 1. Ground every factual claim in the CONTEXT and the notes below. If you lack a detail, say you'd rather have the team confirm. Never invent clients, project URLs, features or numbers.
@@ -21,10 +24,11 @@ RULES
 3. Give timelines only when the visitor asks how long something takes, always scope-dependent: a working demo in 1 to 3 hours, a website in under 24 hours, a complete custom system in about 3 days (usually 1 to 3). Events have no fixed time: they are planned around the customer's event date.
 4. Reply in the visitor's language.
 5. Out of scope: mobile apps from scratch, building custom electronics, ongoing SEO content campaigns. NFC tags that open a web experience ARE in scope. Decline politely and point to what we do.
-6. Hand-off: when the visitor asks about price, a quote or timing, or says they are ready to start, AND you already know what they want built, call capture_lead (take name and contact from KNOWN ABOUT VISITOR, never ask for them) and tell them the team will message them soon. A business type alone is not enough: if you don't yet know what they want built, ask. Always write a reply together with the tool call.
+${RULE6}
 7. "What do you do?": one or two natural sentences, not a catalogue, then ask what they are working on.
 8. OFF-TOPIC (cooking, jokes, general knowledge, homework, unrelated tech help and so on): don't answer it and don't pretend you can. Say plainly and kindly it's not something you can help with, then pivot to what you can do for their business (getting it online, digitalizing it, websites, ordering, NFC tags, invitations). One or two short sentences.
 9. Only if asked how to reach the team: WhatsApp +971 50 461 1123, Instagram and TikTok @qdsystems.`;
+const SYSTEM_CORE = systemCore(RULE6_TOOL);
 
 const STYLE_CORE = `HOW TO SOUND (overrides everything above): write the way Claude would if it worked at QD: calm, articulate, genuinely helpful, professional without being stiff. Like a thoughtful person, never a chatbot.
 - 1 to 2 sentences when possible, never more than 3, under about 45 words. Plain prose only: no lists, headings, bold, emoji, exclamation marks, em dashes or hyphenated compounds like "custom-based".
@@ -67,7 +71,7 @@ function sanitizeFact(v, max = 80) {
   return String(v || '').replace(/[\r\n\t]+/g, ' ').replace(/[<>`]/g, '').trim().slice(0, max);
 }
 
-function buildVisitorBlock(visitor) {
+function buildVisitorBlock(visitor, { useTool = true } = {}) {
   if (!visitor) return '';
   const name = sanitizeFact(visitor.name);
   const email = sanitizeFact(visitor.email);
@@ -79,15 +83,57 @@ function buildVisitorBlock(visitor) {
   if (phone) rows.push(`phone/WhatsApp: ${phone}`);
   if (page) rows.push(`currently viewing: ${page}`);
   if (!rows.length) return '';
-  return `KNOWN ABOUT VISITOR (from the site's start form — never ask for any of these again; use their first name rarely; when they ask about price/a quote or are ready to start AND you already know what they want built, call capture_lead with these details and a short project_brief, then tell them the team will message them soon):\n- ${rows.join('\n- ')}`;
+  const header = useTool
+    ? "KNOWN ABOUT VISITOR (from the site's start form — never ask for any of these again; use their first name rarely; when they ask about price/a quote or are ready to start AND you already know what they want built, call capture_lead with these details and a short project_brief, then tell them the team will message them soon):"
+    : "KNOWN ABOUT VISITOR (from the site's start form; never ask for any of these again; use their first name rarely):";
+  return `${header}\n- ${rows.join('\n- ')}`;
+}
+
+// Visitor turns may arrive as short notes (api/_lib/intent.js) instead of their exact words.
+const NOTES_RULE = `VISITOR MESSAGES: a visitor turn may reach you as a compact note of what they said, e.g. "restaurant; asks: offer" or "clinic; wants: website; asks: cost; place: sharjah". Treat it as their full message and answer the whole intent naturally, in their language and tone, as if you read their exact words. Never mention notes or compression and never reply in note style.`;
+
+// Everything up to here is identical for every visitor, so the provider's prompt cache can reuse it
+// (Groq: cached input tokens do not count toward rate limits). Per-language examples come next, then
+// everything that changes per request.
+const STATIC_SERVER = [systemCore(RULE6_SERVER), NFC_FULL, EVENTS_FULL, STYLE_CORE, NOTES_RULE].join('\n\n');
+
+export const CONTEXT_CHUNK_CHARS = [600, 600, 420, 420, 300, 300];
+
+function contextBlock(contextChunks, chunkChars) {
+  return contextChunks
+    .map((c, i) => `[${i + 1}] (${c.source} · ${c.lang}) ${c.heading}\n${String(c.text || '').slice(0, chunkChars[i] ?? chunkChars[chunkChars.length - 1])}`)
+    .join('\n\n');
 }
 
 /**
- * Build the full system prompt: compact English rules for every language (the model replies in the
- * visitor's language), the relevant product notes, visitor facts, retrieved context and a final reminder.
+ * Build the full system prompt.
+ * Default (server-owned hand-off): static rules and product notes first (cacheable prefix), then the
+ * language examples, then the per-request tail: language, visitor facts, chat-so-far facts, buttons,
+ * hand-off decision, retrieved context and the final reminder.
+ * useTool=true keeps the legacy layout for the capture_lead tool path.
  */
-export function buildSystemPrompt({ lang, contextChunks, visitor = null, recentUserText = '', actionsNote = '' }) {
+export function buildSystemPrompt({ lang, contextChunks = [], visitor = null, recentUserText = '', actionsNote = '', useTool = false, factsLine = '', handoffNote = '', chunkChars = null } = {}) {
   const L = ['ar', 'zh', 'ru'].includes(lang) ? lang : 'en';
+  if (useTool) return buildLegacyPrompt({ L, contextChunks, visitor, recentUserText, actionsNote });
+
+  const tail = [
+    `LANGUAGE: reply in ${LANG_NAME[L]}, matching the visitor's own wording and tone.`,
+    buildVisitorBlock(visitor, { useTool: false }),
+    factsLine ? `CHAT SO FAR (from the visitor's own words, older turns summarized): ${sanitizeFact(factsLine, 400)}` : '',
+    actionsNote,
+    handoffNote,
+  ].filter(Boolean).join('\n\n');
+  const ctx = contextBlock(contextChunks, chunkChars || CONTEXT_CHUNK_CHARS);
+  const reminder = `FINAL REMINDER: reply in ${LANG_NAME[L]}, in 1 to 3 short plain sentences like a thoughtful person texting. No lists, no hype, no timelines or prices unless asked, never ask for contact details, and only mention the team when SERVER HANDOFF DECISION says so.`;
+  return [STATIC_SERVER, EXAMPLES[L], tail, `--- CONTEXT (authoritative QD sources) ---\n${ctx}\n--- END CONTEXT ---`, reminder].filter(Boolean).join('\n\n');
+}
+
+/** The cacheable prefix shared by every request (exported for measurements and tests). */
+export function staticPromptPrefix() {
+  return STATIC_SERVER;
+}
+
+function buildLegacyPrompt({ L, contextChunks, visitor, recentUserText, actionsNote }) {
   const topic = String(recentUserText || '');
   const sources = contextChunks.map((c) => String(c.source || ''));
   const wantsNfc = sources.some((s) => /nfc/i.test(s)) || NFC_RE.test(topic);
@@ -104,10 +150,7 @@ export function buildSystemPrompt({ lang, contextChunks, visitor = null, recentU
     EXAMPLES[L],
   ].filter(Boolean).join('\n\n');
 
-  const ctx = contextChunks
-    .map((c, i) => `[${i + 1}] (${c.source} · ${c.lang}) ${c.heading}\n${String(c.text || '').slice(0, 600)}`)
-    .join('\n\n');
-
+  const ctx = contextBlock(contextChunks, [600]);
   const reminder = `FINAL REMINDER: reply in ${LANG_NAME[L]}, in 1 to 3 short plain sentences like a thoughtful person texting. No lists, no hype, no timelines or prices unless asked, never ask for contact details, and never hand off to the team until you know what they want built.`;
   return `${base}\n\n--- CONTEXT (authoritative QD sources) ---\n${ctx}\n--- END CONTEXT ---\n\n${reminder}`;
 }

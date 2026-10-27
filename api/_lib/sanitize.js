@@ -8,7 +8,7 @@ const QD_PHONE_DISPLAY = '+971 50 461 1123';
 
 const STOCK_SENTENCE_RE = /(feel free|don'?t hesitate|is there anything else|anything else i can|happy to assist|assist you|delighted|thank you for (your )?interest|great question|how may i help|let me know if you (have|need)|لا تتردد|هل هناك شيء آخر|欢迎随时联系|还有什么可以帮|не стесняйтесь|могу ли я ещё)/i;
 
-const LEAK_RE = /KNOWN ABOUT VISITOR|HOW TO SOUND|FINAL REMINDER|capture_lead|BUTTONS \(|CONTEXT \(authoritative|system prompt|ABSOLUTE RULES|REPLY STYLE/i;
+const LEAK_RE = /KNOWN ABOUT VISITOR|HOW TO SOUND|FINAL REMINDER|capture_lead|BUTTONS \(|CONTEXT \(authoritative|system prompt|ABSOLUTE RULES|REPLY STYLE|SERVER HANDOFF DECISION|CHAT SO FAR \(|VISITOR MESSAGES:/i;
 
 const DEFLECT = {
   en: "That's not something I can share, but I can help with websites, NFC tags or event invitations. What are you working on?",
