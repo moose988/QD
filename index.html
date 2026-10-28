@@ -37,6 +37,7 @@
 <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+.lang-menu{opacity:0;pointer-events:none}
 :root{
   --bg:#070708; --panel:#131316; --fg:#F4F4F6; --muted:#A6A6AD; --dim:#8b8b93;
   --line:rgba(255,255,255,.10); --line2:rgba(255,255,255,.06); --live:#35d27e;
@@ -168,7 +169,7 @@ body.ready .word{opacity:1;transform:none;filter:none;transition:opacity .7s var
 
 body>nav{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:16px 28px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:linear-gradient(180deg,rgba(7,7,8,.86),rgba(7,7,8,.3))}
 .brand{display:flex;align-items:center;gap:12px}
-.brand img{width:38px;height:38px;border-radius:9px;object-fit:cover;box-shadow:0 0 0 1px var(--line)}
+.brand img{width:38px;height:38px;object-fit:cover;border-radius:0;mix-blend-mode:screen;box-shadow:none}
 .brand b{font-family:"Space Grotesk";letter-spacing:.22em;font-size:14px;font-weight:600}
 .nav-links{display:flex;gap:30px;font-family:"Space Grotesk",sans-serif;font-size:14px;font-weight:700}
 .nav-links a{color:#ececf0;transition:color .25s}.nav-links a:hover,.nav-links a.active{color:#fff}
@@ -209,7 +210,7 @@ body>nav .nav-cta-btn{padding:0 22px;line-height:1;white-space:nowrap}
 .btn-ghost:hover{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.22)}
 
 .qd-hero{position:relative;z-index:5;padding:172px 0 96px;min-height:100vh;display:flex;align-items:center;overflow:hidden}
-.qd-hero::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(7,7,8,.99) 0%,rgba(7,7,8,.98) 52%,rgba(7,7,8,.85) 64%,rgba(7,7,8,.3) 80%,transparent 92%);pointer-events:none}
+.qd-hero::before{content:"";position:absolute;inset:0;z-index:-1;-webkit-mask-image:linear-gradient(to bottom,#000 72%,transparent 100%);mask-image:linear-gradient(to bottom,#000 72%,transparent 100%);background:linear-gradient(90deg,rgba(7,7,8,.99) 0%,rgba(7,7,8,.98) 52%,rgba(7,7,8,.85) 64%,rgba(7,7,8,.3) 80%,transparent 92%);pointer-events:none}
 /* cinematic loop — full-page fixed layer inside .bg-fx, shows through the translucent sections everywhere; lazy-loaded after the page is interactive */
 .hero-video{position:absolute;inset:0;overflow:hidden;pointer-events:none}
 .hero-video video{width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.8s ease}
@@ -553,12 +554,14 @@ footer{position:relative;z-index:5;padding:40px 0 96px;color:var(--dim);font-siz
    so the journey changes color room-by-room without ever fogging the text */
 main>section{overflow:hidden}
 main>section>*{position:relative;z-index:1}
-main>section::before{content:"";position:absolute;inset:-18% -28%;pointer-events:none;z-index:0;
+main>section::before{content:"";position:absolute;inset:0 -28%;pointer-events:none;z-index:0;
   background:radial-gradient(42% 48% at 50% 38%,rgba(255,255,255,.095),transparent 70%);
-  animation:aurora 12s ease-in-out infinite alternate}
+  animation:aurora 12s ease-in-out infinite alternate;
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 30%,#000 70%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 30%,#000 70%,transparent 100%)}
+#work #proof::before{-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 30%,#000 70%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 30%,#000 70%,transparent 100%)}
 #demo::before{background:radial-gradient(42% 48% at 46% 34%,rgba(160,180,255,.115),transparent 70%)}
 #work #proof{position:relative;padding:12px 0 48px}
-#work #proof::before{content:"";position:absolute;inset:-18% -28%;pointer-events:none;z-index:0;background:radial-gradient(42% 48% at 60% 40%,rgba(255,255,255,.10),transparent 70%);animation:aurora 15s ease-in-out infinite alternate}
+#work #proof::before{content:"";position:absolute;inset:0 -28%;pointer-events:none;z-index:0;background:radial-gradient(42% 48% at 60% 40%,rgba(255,255,255,.10),transparent 70%);animation:aurora 15s ease-in-out infinite alternate}
 #work #proof .wrap{position:relative;z-index:1}
 #work::before{background:radial-gradient(42% 48% at 30% 42%,rgba(255,255,255,.105),transparent 70%);animation-duration:13s;animation-direction:alternate-reverse}
 #build::before{background:radial-gradient(42% 48% at 68% 36%,rgba(255,228,196,.08),transparent 70%);animation-duration:16s}
@@ -778,6 +781,7 @@ body>nav{transition:padding .3s var(--ease),background .3s,backdrop-filter .3s,-
 body>nav.nav-in-hero{background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none}
 body>nav.scrolled{padding:10px 28px}
 body>nav.scrolled:not(.nav-in-hero){background:rgba(7,7,8,.94);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+body>nav.scrolled.nav-in-hero{background:rgba(7,7,8,.94);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 /* floating call button — mirrors chat launcher on the left */
 .qd-call-fab{position:fixed;bottom:calc(24px + env(safe-area-inset-bottom,0px));left:24px;width:64px;height:64px;border-radius:50%;border:1px solid rgba(232,232,238,.3);background:var(--silver);color:#0a0a0b;cursor:pointer;display:grid;place-items:center;box-shadow:0 18px 48px rgba(0,0,0,.5),0 0 0 1px rgba(232,232,238,.18),0 0 48px rgba(232,232,238,.28);transition:transform 220ms cubic-bezier(.34,1.56,.64,1),box-shadow 220ms ease;z-index:9998;-webkit-tap-highlight-color:transparent}
 .qd-call-fab:hover{transform:translateY(-2px) scale(1.04);box-shadow:0 24px 64px rgba(0,0,0,.55),0 0 64px rgba(232,232,238,.45)}
@@ -982,7 +986,7 @@ html:not(.js) #intro,html:not(.js) #introSkip{display:none}
   /* one primary pill, docked beside (never under) the chat bubble; hidden over the hero and the contact section */
   .qd-mbar{position:fixed;z-index:9990;bottom:calc(20px + env(safe-area-inset-bottom,0px));inset-inline-start:var(--bar-s,16px);inset-inline-end:var(--bar-e,88px);display:flex;transform:translateY(calc(100% + 40px));opacity:0;transition:transform .45s var(--ease-out),opacity .3s;pointer-events:none}
   .qd-mbar.is-on{transform:none;opacity:1;pointer-events:auto}
-  body>nav.scrolled.nav-in-hero{background:linear-gradient(180deg,rgba(7,7,8,.94),rgba(7,7,8,.6))}
+  body>nav.scrolled.nav-in-hero{background:rgba(7,7,8,.94)}
   .qd-mbar a{flex:1;display:flex;align-items:center;justify-content:center;min-height:52px;min-width:0;padding:0 18px;border-radius:999px;background:var(--silver);color:#111;font:700 15px/1.15 Inter,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 14px 36px rgba(0,0,0,.5);-webkit-tap-highlight-color:transparent;transition:transform .2s var(--ease-out)}
   body.modal-open .qd-mbar,body.qd-chat-open .qd-mbar{opacity:0;pointer-events:none}
   footer{padding-bottom:calc(110px + env(safe-area-inset-bottom,0px))}
@@ -1210,31 +1214,71 @@ h1.hero{margin:14px 0 22px}
 .hero-link-arrow{display:inline-block;transition:transform .3s var(--ease-out)}
 .hero-link:hover .hero-link-arrow{transform:translateY(3px)}
 
-/* services: an editorial index of five rows — the whole row is the link */
+/* services: five compact studio rows — hairline dividers, small silver line icon in a ring, label, headline, one line, one action.
+   The whole row is the link (the action's ::after covers it). ~180px per row on a 375px phone. */
 .build-head{max-width:680px}
-.svc-list{list-style:none;margin:8px 0 0;padding:0;border-top:1px solid var(--line)}
-.svc{position:relative;display:grid;grid-template-columns:minmax(150px,210px) minmax(0,1fr) auto;gap:12px 40px;align-items:center;padding:30px 6px;border-bottom:1px solid var(--line2);transition:background .35s var(--ease)}
-.svc-k{font:600 11.5px/1.4 Inter,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
-.svc h3{font-size:clamp(1.3rem,1.9vw,1.65rem);font-weight:600;letter-spacing:-.015em;line-height:1.2;margin:0 0 6px}
-.svc p{color:var(--muted);font-size:15.5px;line-height:1.55;max-width:54ch;margin:0}
-.svc-more{display:inline-flex;align-items:center;gap:12px;min-height:44px;color:#dcdce2;font-size:14px;font-weight:600;white-space:nowrap}
-.svc-more::after{content:"";position:absolute;inset:0;border-radius:4px}
+.svc-list{list-style:none;margin:4px 0 0;padding:0;border-top:1px solid rgba(255,255,255,.08)}
+.svc{--acc-rgb:220,220,228;position:relative;isolation:isolate;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr);gap:4px;padding:18px 2px 8px;border-bottom:1px solid rgba(255,255,255,.08);-webkit-tap-highlight-color:transparent;transition:background .25s var(--ease)}
+.svc--web{--acc-rgb:157,188,255}.svc--nfc{--acc-rgb:134,227,200}.svc--ai{--acc-rgb:196,182,255}.svc--dash{--acc-rgb:255,208,133}.svc--ev{--acc-rgb:242,191,174}
+.svc::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(100deg,transparent 35%,rgba(255,255,255,.055) 50%,transparent 65%);transform:translateX(-110%);pointer-events:none}
+.svc.is-lit::after{animation:svcSweep 1.2s var(--ease) .3s 1 both}
+@keyframes svcSweep{to{transform:translateX(110%)}}
+.svc-k{display:inline-flex;align-items:center;gap:10px;justify-self:start;font:600 12.5px/1.3 Inter,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#d9d9e0}
+html[lang="ar"] .svc-k,html[lang="zh"] .svc-k{letter-spacing:.02em;font-size:13.5px}
+.svc-ic{display:inline-grid;place-items:center;width:30px;height:30px;flex:none;border-radius:50%;color:#e4e4ea;border:1px solid rgba(255,255,255,.18);background:none}
+.svc-ic svg{width:15px;height:15px;stroke-width:1.5}
+.svc-body{min-width:0}
+.svc h3{font-family:"Space Grotesk",Inter,sans-serif;font-size:clamp(1.3rem,1.9vw,1.6rem);font-weight:600;letter-spacing:-.02em;line-height:1.2;margin:4px 0 4px;color:#f6f6f8}
+.svc p{color:#b3b3bb;font-size:15.5px;line-height:1.5;max-width:54ch;margin:0}
+.svc-more{display:inline-flex;align-items:center;gap:10px;justify-self:start;min-height:44px;color:#f2f2f5;font:600 14.5px/1.2 Inter,sans-serif;white-space:nowrap}
+.svc-more>span:first-child{border-bottom:1px solid rgba(255,255,255,.28);padding-bottom:2px;transition:border-color .2s}
+.svc-more::after{content:"";position:absolute;inset:0}
 .svc-more:focus-visible{outline:none}
-.svc-more:focus-visible::after{outline:2px solid #d2d2d9;outline-offset:-2px}
+.svc-more:focus-visible::after{outline:2px solid #e2e2e8;outline-offset:-2px;border-radius:6px}
 .svc-arrow{display:inline-grid;place-items:center;width:36px;height:36px;flex:none;border:1px solid var(--line);border-radius:50%;font-size:14px;line-height:1;transition:background .3s var(--ease),color .3s,border-color .3s,transform .35s var(--ease-out)}
+.svc .svc-arrow{width:30px;height:30px;font-size:13px;border-color:rgba(255,255,255,.24);color:#f2f2f5}
 [dir="rtl"] .svc-arrow{transform:scaleX(-1)}
+/* pressed: a soft silver wash, the action brightens */
+.svc:active,.svc.is-press{background:rgba(255,255,255,.035)}
+.svc:active .svc-arrow,.svc.is-press .svc-arrow{background:var(--silver);color:#0a0a0b;border-color:transparent}
+.svc:active .svc-more>span:first-child,.svc.is-press .svc-more>span:first-child{border-color:#fff}
 @media(hover:hover) and (pointer:fine){
-  .svc:hover{background:linear-gradient(90deg,rgba(255,255,255,.03),transparent 70%)}
-  [dir="rtl"] .svc:hover{background:linear-gradient(270deg,rgba(255,255,255,.03),transparent 70%)}
+  .svc:hover{background:linear-gradient(90deg,rgba(255,255,255,.03),transparent 75%)}
+  [dir="rtl"] .svc:hover{background:linear-gradient(270deg,rgba(255,255,255,.03),transparent 75%)}
+  .svc:hover .svc-more>span:first-child{border-color:rgba(255,255,255,.7)}
   .svc:hover .svc-arrow,.pl-act:hover .svc-arrow{background:var(--silver);color:#0a0a0b;border-color:transparent;transform:translateX(3px)}
   [dir="rtl"] .svc:hover .svc-arrow,[dir="rtl"] .pl-act:hover .svc-arrow{transform:scaleX(-1) translateX(3px)}
 }
-.js .reveal.svc-list .svc{opacity:0;transform:translateY(14px);transition:opacity .7s var(--ease),transform .7s var(--ease),background .35s var(--ease)}
-.reveal.in.svc-list .svc{opacity:1;transform:none}
-.reveal.in.svc-list .svc:nth-child(2){transition-delay:.06s}
-.reveal.in.svc-list .svc:nth-child(3){transition-delay:.12s}
-.reveal.in.svc-list .svc:nth-child(4){transition-delay:.18s}
-.reveal.in.svc-list .svc:nth-child(5){transition-delay:.24s}
+@media(min-width:769px){
+  .svc{grid-template-columns:minmax(200px,240px) minmax(0,1fr) auto;gap:10px 36px;align-items:center;padding:28px 8px}
+  .svc h3{margin-top:0}
+}
+/* service icons: one small thematic gesture as each row arrives (twice, then still) */
+.svc-ic svg *{transform-box:fill-box}
+.svc--web.is-lit .svc-ic path{transform-origin:0 50%;animation:icGrowX .9s var(--ease) .45s 2 both}
+.svc--nfc.is-lit .svc-ic path{animation:icWave 1.2s ease-in-out .4s 2 both}
+.svc--nfc.is-lit .svc-ic path:nth-of-type(2){animation-delay:.55s}.svc--nfc.is-lit .svc-ic path:nth-of-type(3){animation-delay:.7s}
+.svc--ai.is-lit .svc-ic path:nth-of-type(2){animation:icHop .9s ease-in-out .45s 2 both}
+.svc--dash.is-lit .svc-ic path:nth-of-type(2){transform-origin:50% 100%;animation:icGrowY .9s var(--ease) .45s 2 both}
+.svc--dash.is-lit .svc-ic path:nth-of-type(3){stroke-dasharray:24;animation:icDraw 1s ease-out .6s 2 both}
+.svc--ev.is-lit .svc-ic path{transform-origin:50% 0;animation:icFlap 1s var(--ease) .45s 2 both}
+@keyframes icGrowX{from{transform:scaleX(0)}to{transform:none}}
+@keyframes icGrowY{from{transform:scaleY(0)}to{transform:none}}
+@keyframes icWave{0%,100%{opacity:1}40%{opacity:.15}}
+@keyframes icHop{0%,100%{transform:none}40%{transform:translateY(-2px)}}
+@keyframes icDraw{from{stroke-dashoffset:24}to{stroke-dashoffset:0}}
+@keyframes icFlap{0%{transform:scaleY(1)}45%{transform:scaleY(-1)}100%{transform:scaleY(1)}}
+@media(prefers-reduced-motion:reduce){.svc.is-lit .svc-ic svg *{animation:none!important}}
+@media(max-width:560px){.proof-live .pl-item{padding:18px 18px 8px}}
+/* section headlines reveal through a moving mask when their head block comes in (reveal adds .in) */
+@media(prefers-reduced-motion:no-preference){
+  .js .reveal .h2{clip-path:inset(-12% 100% -12% 0);transition:clip-path 1.1s var(--ease) .12s}
+  [dir="rtl"].js .reveal .h2,.js[dir="rtl"] .reveal .h2{clip-path:inset(-12% 0 -12% 100%)}
+  .js .reveal.in .h2{clip-path:inset(-12% 0 -12% 0)}
+}
+/* each card slides in as it enters the viewport (JS adds .svc-each; no JS = static and visible) */
+.svc-each .svc{opacity:0;transform:translateY(18px);transition:opacity .6s var(--ease),transform .6s var(--ease),background .25s var(--ease)}
+.svc-each .svc.is-in{opacity:1;transform:none}
 
 /* how we work: three steps + one reassurance line */
 .how-head{max-width:680px}
@@ -1278,10 +1322,8 @@ main>#faq{background:linear-gradient(180deg,var(--bg) 0%,#0b0c0f 40%,var(--bg) 1
   .hero-sub{font-size:16.5px;margin-bottom:26px}
   .qd-hero .cta-row{flex-direction:column;align-items:stretch;gap:6px;margin-bottom:84px}
   .hero-link{align-self:center;justify-content:center;padding:0 12px}
-  .svc{grid-template-columns:minmax(0,1fr);gap:8px;padding:26px 0 18px}
   .svc h3{font-size:1.32rem}
   .svc p{font-size:16px}
-  .svc-more{justify-self:start;margin-top:4px;font-size:15px}
   .how-note{padding:20px 18px;margin-top:26px}
   .how-note-p{font-size:16px;flex-basis:100%}
   #work #proof{padding:76px 0 0}
@@ -1291,7 +1333,161 @@ main>#faq{background:linear-gradient(180deg,var(--bg) 0%,#0b0c0f 40%,var(--bg) 1
   .qd-cta-h2{font-size:clamp(1.8rem,8.2vw,2.3rem)}
 }
 @media(max-width:560px){.qd-cta-sub{margin-inline:0}.proof-live{grid-template-columns:minmax(0,1fr);gap:12px}.pl-item{padding:22px 20px 14px}}
-@media(prefers-reduced-motion:reduce){.js .reveal.svc-list .svc{opacity:1;transform:none;transition:none}.svc-arrow,.hero-link-arrow{transition:none}}
+@media(prefers-reduced-motion:reduce){.svc-each .svc{opacity:1;transform:none;transition:none}.svc.is-lit::after{animation:none}.svc:active,.svc.is-press{background:none}.svc-arrow,.hero-link-arrow{transition:none}}
+
+/* ════════ COMPACT STUDIO PASS — no topic takes a whole phone screen; folds keep longer copy in the page ════════ */
+.hm-more{margin:-6px 0 22px}
+.hm-more summary{display:inline-flex;align-items:center;gap:8px;min-height:44px;cursor:pointer;list-style:none;color:#a9a9b1;font-size:14px}
+.hm-more summary::-webkit-details-marker{display:none}
+.hm-more summary::after{content:"+";font-size:16px;line-height:1}
+.hm-more[open] summary::after{content:"\2212"}
+.hm-more p{margin:4px 0 0;color:var(--muted);font-size:16px;line-height:1.6;max-width:600px}
+.how-note .hm-more{margin:0;flex-basis:100%}
+.iwork-more-info summary{display:inline-flex;align-items:center;gap:8px;min-height:44px;cursor:pointer;list-style:none;color:#a9a9b1;font-size:14px}
+.iwork-more-info summary::-webkit-details-marker{display:none}
+.iwork-more-info summary::after{content:"+";font-size:16px;line-height:1}
+.iwork-more-info[open] summary::after{content:"\2212"}
+.iwork-more-info .iwork-result{margin:4px 0 8px}
+@media(prefers-reduced-motion:no-preference){
+  .iwork-card.in .iwork-shot{animation:iwPan 14s ease-in-out 1s infinite alternate}
+  @keyframes iwPan{from{transform:scale(1.04) translateY(0)}to{transform:scale(1.04) translateY(-4%)}}
+}
+@media(max-width:768px){
+  main>section,.nfc-section{padding:64px 0}
+  #build{padding:60px 0 40px}
+  .svc{padding:14px 2px 4px}
+  .svc h3{margin:2px 0 2px}
+  .build-head .lead{margin-bottom:4px}
+  #how{padding:56px 0}
+  #work{padding-top:56px}
+  #work #proof{padding:52px 0 0}
+  #faq{padding:56px 0}
+  #contact{padding:48px 0 40px}
+  .lead{margin-bottom:10px;font-size:16px}
+  .h2{margin-bottom:10px}
+  .tag{margin-bottom:10px}
+  .steps{gap:10px}
+  .step{padding:18px 18px 16px}
+  .step .num{margin-bottom:8px}
+  .step h3{margin-bottom:4px}
+  .how-note{padding:14px 16px;margin-top:16px}
+  .iwork-viewport{height:112px}
+  .iwork-browser-bar{padding-block:6px;min-height:0}
+  .iwork-activate{left:auto;right:auto;inset-inline-end:10px;bottom:10px;transform:none;min-width:0;min-height:44px;padding:5px 14px 5px 5px;gap:8px}
+  .iwork-activate-copy{display:none}
+  .iwork-body{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:12px;row-gap:4px;padding:12px 16px 14px}
+  .iwork-body>.iwork-meta,.iwork-body>.iwork-desc{grid-column:1/-1}
+  .iwork-more-info[open]{grid-column:1/-1}
+  .iwork-body .iwork-actions{grid-column:2;grid-row:3;margin:0}
+  .iwork-body .iwork-more-info[open]~.iwork-actions{grid-row:auto;grid-column:1/-1}
+  .iwork-body .iwork-btn{width:auto;flex:none;min-width:0;padding:0 16px}
+  .iwork-body h3{font-size:1.2rem}
+  .iwork-desc{font-size:16px;line-height:1.45}
+  .iwork-actions{margin-top:2px}
+  .iwork-btn{min-height:46px}
+  .iwork-grid{gap:12px}
+  .iwork-more{margin-top:14px}
+  .faq .qa button{min-height:52px;padding:14px 0}
+  .qd-cta{padding:26px 20px}
+  .qd-cta-h2{font-size:clamp(1.55rem,7vw,1.9rem);margin-bottom:10px}
+  .qd-cta-eyebrow{margin-bottom:12px}
+  .qd-cta-sub{margin-bottom:18px}
+  .qd-cta-guarantees{display:flex;flex-direction:column;gap:2px;margin-top:14px}
+  #contact .guard{font-size:14px;min-height:28px;padding:2px 0;border:0;background:none;color:#bdbdc4}
+}
+
+/* ════════ MOTION PASS — purposeful, attention-guiding; one moving thing per screen ════════
+   hero: headline words rise (existing) → "Digitally." gets two slow silver sweeps → the primary CTA starts a soft breathing glow
+   that stops on first interaction → the "See what we build" arrow nudges down until the first scroll.
+   below: each service card slides in as it enters and gets one accent sweep; "How we work" rail draws with scroll (existing). */
+@media(prefers-reduced-motion:no-preference){
+  body.ready h1.hero .hero-line--quiet .word{background-image:linear-gradient(110deg,#8e8e97 0%,#c9c9d0 38%,#ffffff 50%,#c9c9d0 62%,#9c9ca5 100%);background-size:260% 100%;background-position:100% 0;animation:qdDigSweep 2.6s var(--ease) 1.5s 2 both}
+  @keyframes qdDigSweep{from{background-position:100% 0}to{background-position:0 0}}
+  .qd-hero .cta-row .btn-silver{position:relative;isolation:isolate}
+  .qd-hero .cta-row .btn-silver::after{content:"";position:absolute;inset:-1px;border-radius:inherit;box-shadow:0 0 0 1px rgba(255,255,255,.35),0 14px 44px rgba(255,255,255,.28);opacity:0;pointer-events:none;z-index:-1}
+  body.ready:not(.qd-engaged) .qd-hero .cta-row .btn-silver::after{animation:qdBreathe 3.4s ease-in-out 4.2s infinite}
+  @keyframes qdBreathe{0%,100%{opacity:0;transform:scale(1)}50%{opacity:1;transform:scale(1.025)}}
+  body.ready:not(.qd-scrolled) .hero-link-arrow{animation:qdNudge 1.9s ease-in-out 3.2s infinite}
+  @keyframes qdNudge{0%,55%,100%{transform:none}25%{transform:translateY(5px)}}
+  /* universal tap feedback on touch screens */
+  @media(hover:none){
+    .pl-act,.hero-link,.footer-social a,.footer-services a,.qd-cta-wa,.nfc-actions .btn{transition:transform .14s var(--ease-out),color .2s}
+    .pl-act:active,.hero-link:active,.footer-social a:active,.footer-services a:active,.qd-cta-wa:active,.nfc-actions .btn:active{transform:scale(.96)}
+  }
+}
+
+/* ════════ QD HUB SCENE — a quiet, fixed background layer: the QD mark is the hub, five service nodes orbit it,
+   one spoke at a time pulses QD → node. Small and beside/above the copy on the first screen, then eases into a dim
+   background role for the rest of the page (the pulse follows the section in view). Decorative (aria-hidden),
+   transform/opacity/stroke-dashoffset only, no filters, paused when the tab is hidden. ════════ */
+.qd-bg-scene{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden;contain:strict}
+.qd-stage{position:absolute;left:0;top:0;width:360px;height:280px;transform-origin:50% 50%;opacity:0;will-change:transform,opacity}
+@media(min-width:769px){.qd-stage{width:720px;height:540px}.qd-stage--knot{width:840px;height:640px}}
+.qd-stage #gl{position:absolute;left:0;top:0;right:auto;width:100%;height:100%;max-width:none;transform:none;opacity:.5;filter:none;display:block;z-index:auto}
+.qd-stage .hero-glow{position:absolute;left:50%;top:50%;width:0;height:0;opacity:1}
+.qd-stage .hero-glow i{position:absolute;left:calc(var(--gs,300px)/-2);top:calc(var(--gs,300px)/-2);width:var(--gs,300px);height:var(--gs,300px);border-radius:50%;background:radial-gradient(circle,rgba(214,220,232,.14) 0%,rgba(214,220,232,.06) 34%,rgba(214,220,232,0) 68%)}
+.qd-stage .hero-scene{position:absolute;inset:0}
+.qd-stage .hero-scene svg{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible}
+/* the copy no longer sits over a canvas: drop the old hero darkening veil, and let the dark section washes breathe */
+.qd-hero::before{content:none!important}
+html main>#work,html main>#nfc,html main>#why,html main>#faq{background:radial-gradient(1200px 520px at 32% -12%,rgba(255,255,255,.04),transparent 62%),linear-gradient(180deg,rgba(7,7,8,0) 0%,rgba(13,14,17,.5) 22%,rgba(10,11,14,.5) 78%,rgba(7,7,8,0) 100%)!important}
+.on-ring{fill:none;stroke:rgba(255,255,255,.09);stroke-width:1;vector-effect:non-scaling-stroke}
+.on-line{stroke:rgba(214,219,230,.14);stroke-width:1;fill:none;vector-effect:non-scaling-stroke}
+.on-pulse{stroke:#fff;stroke-width:1.5;stroke-linecap:round;fill:none;stroke-dasharray:.16 2;stroke-dashoffset:.16;opacity:.9}
+.on-body{transition:transform .55s var(--ease-out)}
+.on-disc{fill:url(#onFill);stroke:url(#onRim);stroke-width:1}
+.on-ic{fill:none;stroke:#cfd2da;stroke-width:1.35;stroke-linecap:round;stroke-linejoin:round;transition:stroke .5s}
+.on-ic .f{fill:#cfd2da;stroke:none;transition:fill .5s}
+.on-halo{fill:url(#onHalo);opacity:0;transition:opacity .6s var(--ease)}
+.on-node.is-lit .on-halo,.on-node.is-active .on-halo{opacity:1}
+.on-node.is-active .on-halo{opacity:.55}
+.on-node.is-lit .on-body{transform:scale(1.12)}
+.on-node.is-lit .on-ic,.on-node.is-active .on-ic{stroke:#fff}
+.on-node.is-lit .on-ic .f,.on-node.is-active .on-ic .f{fill:#fff}
+/* QD hub mark */
+.qd-hubdisc{fill:#0b0b0d;stroke:url(#onRim);stroke-width:1.2}
+.qd-hubring{fill:none;stroke:rgba(232,236,244,.5);stroke-width:1;transform-box:fill-box;transform-origin:50% 50%;opacity:0}
+.qd-hubmark{opacity:.95}
+@media(prefers-reduced-motion:no-preference){
+  .qd-stage .hero-glow i{animation:qdHubBreathe 7s ease-in-out infinite}
+  @keyframes qdHubBreathe{0%,100%{transform:scale(.9);opacity:.6}50%{transform:scale(1.06);opacity:1}}
+  .qd-hubring{animation:qdHubRing 3.8s cubic-bezier(.2,.7,.3,1) infinite}
+  .qd-hubring.r2{animation-delay:1.9s}
+  @keyframes qdHubRing{0%{transform:scale(1);opacity:.55}100%{transform:scale(1.9);opacity:0}}
+  .qd-bg-scene.is-paused .hero-glow i,.qd-bg-scene.is-paused .qd-hubring{animation-play-state:paused}
+  /* "Digitally." — two sweeps on arrival, then one calm sweep every ~11s */
+  body.ready h1.hero .hero-line--quiet .word{animation:qdDigSweep 2.6s var(--ease) 1.5s 2 both,qdDigSweepLoop 11s var(--ease) 6.7s infinite}
+  @keyframes qdDigSweepLoop{0%{background-position:100% 0}22%,100%{background-position:0 0}}
+}
+@media(prefers-reduced-motion:reduce){.qd-hubring{opacity:.35;transform:scale(1.25)}.qd-hubring.r2{display:none}}
+
+/* ════════ WIDE-LAPTOP CONTAINER — every section below the hero shares one centred content box
+   (1144px at 1440, ~1180px from 1500 up) so section edges line up with their headings instead of drifting to the screen edges. ════════ */
+@media(min-width:1500px){.wrap{max-width:1236px}}
+/* service rows on desktop: label | text | action read as one connected row */
+@media(min-width:1101px){
+  .svc-list{border-top-color:rgba(255,255,255,.1)}
+  .svc{grid-template-columns:220px minmax(0,1fr) auto;column-gap:48px;align-items:center;min-height:118px;padding:24px 22px;border-radius:0;border-bottom-color:rgba(255,255,255,.08)}
+  .svc-k{align-self:center}
+  .svc-body{max-width:60ch}
+  .svc p{max-width:60ch}
+  .svc h3{margin:0 0 6px}
+  .svc-more{justify-self:end;gap:12px;padding-inline-start:12px}
+  .svc .svc-arrow{width:34px;height:34px}
+  /* row highlight: a soft wash across the whole row, a hairline in the service's accent at the leading edge */
+  .svc::before{content:"";position:absolute;inset-block:0;inset-inline-start:0;width:2px;background:rgba(var(--acc-rgb),.85);transform:scaleY(0);transform-origin:50% 50%;transition:transform .45s var(--ease-out);pointer-events:none}
+}
+@media(min-width:1101px) and (hover:hover) and (pointer:fine){
+  .svc{transition:background .35s var(--ease)}
+  .svc:hover{background:linear-gradient(90deg,rgba(255,255,255,.045),rgba(255,255,255,.018) 60%,rgba(255,255,255,.035))}
+  [dir="rtl"] .svc:hover{background:linear-gradient(270deg,rgba(255,255,255,.045),rgba(255,255,255,.018) 60%,rgba(255,255,255,.035))}
+  .svc:hover::before{transform:scaleY(1)}
+  .svc .svc-ic{transition:border-color .3s,color .3s}
+  .svc:hover .svc-ic{border-color:rgba(var(--acc-rgb),.6);color:#fff}
+  .svc:hover .svc-arrow{transform:translateX(6px)}
+  [dir="rtl"] .svc:hover .svc-arrow{transform:scaleX(-1) translateX(6px)}
+}
+@media(min-width:1101px) and (prefers-reduced-motion:reduce){.svc::before{transition:none}}
 </style>
 <link rel="stylesheet" href="assets/page-fx.css">
 <script defer src="assets/page-fx.js"></script>
@@ -1308,6 +1504,8 @@ main>#faq{background:linear-gradient(180deg,var(--bg) 0%,#0b0c0f 40%,var(--bg) 1
 <button type="button" id="introSkip">Skip intro</button>
 
 <div class="bg-fx" aria-hidden="true"><div class="glow a"></div><div class="glow b"></div></div>
+<!-- QD hub scene: fixed, behind all content. QD powers five services (orbiting nodes); the knot is a quiet shape behind the mark. -->
+<div class="qd-bg-scene" aria-hidden="true"><div class="qd-stage qd-stage--knot"><canvas id="gl"></canvas></div><div class="qd-stage qd-stage--hub"><div class="hero-glow"><i></i></div><div class="hero-scene"></div></div></div>
 <div class="grain" aria-hidden="true"></div><div class="vignette" aria-hidden="true"></div>
 <div id="progress" aria-hidden="true"></div>
 
@@ -1353,7 +1551,6 @@ main>#faq{background:linear-gradient(180deg,var(--bg) 0%,#0b0c0f 40%,var(--bg) 1
 </div>
 
 <header class="qd-hero">
-  <canvas id="gl" aria-hidden="true"></canvas>
   <div class="wrap">
     <div class="hero-col">
       <p class="hero-kicker" data-i18n="home.hero.kicker">Digitalize your business · Dubai &amp; UAE</p>
@@ -1371,32 +1568,32 @@ main>#faq{background:linear-gradient(180deg,var(--bg) 0%,#0b0c0f 40%,var(--bg) 1
 
 <section id="build" aria-labelledby="build-h">
   <div class="wrap">
-    <div class="reveal build-head"><span class="tag" data-i18n="home.svc.tag">What we build</span><h2 class="h2" id="build-h" data-i18n="home.svc.h2">One team for everything digital.</h2><p class="lead" data-i18n="home.svc.lead">Start with what your business needs most. Every piece is built to work with the others, and you only ever deal with us.</p></div>
-    <ul class="svc-list reveal">
-      <li class="svc">
-        <span class="svc-k" data-i18n="home.svc.web.k">Website</span>
+    <div class="reveal build-head"><span class="tag" data-i18n="home.svc.tag">What we build</span><h2 class="h2" id="build-h" data-i18n="home.svc.h2">One team for everything digital.</h2><p class="lead" data-i18n="home.svc.lead1">Start with what your business needs most.</p><details class="hm-more"><summary data-i18n="svc.more.details">More details</summary><p data-i18n="home.svc.lead2">Every piece is built to work with the others, and you only ever deal with us.</p></details></div>
+    <ul class="svc-list">
+      <li class="svc svc--web">
+        <span class="svc-k"><span class="svc-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 9h18"/><circle cx="6.5" cy="6.5" r=".6" fill="currentColor"/><circle cx="9" cy="6.5" r=".6" fill="currentColor"/></svg></span><span data-i18n="home.svc.web.k">Website</span></span>
         <div class="svc-body"><h3 data-i18n="home.svc.web.h">Get found and trusted</h3><p data-i18n="home.svc.web.p">A fast, bilingual website that shows customers how good your business really is.</p></div>
-        <a class="svc-more" href="/website-development"><span data-i18n="home.svc.more">Learn more</span><span class="sr-only" data-i18n="home.svc.web.sr">about website development</span><span class="svc-arrow" aria-hidden="true">→</span></a>
+        <a class="svc-more" href="/website-development" data-svx="web"><span data-i18n="home.svc.more">Learn more</span><span class="sr-only" data-i18n="home.svc.web.sr">about website development</span><span class="svc-arrow" aria-hidden="true">→</span></a>
       </li>
-      <li class="svc" id="nfc">
-        <span class="svc-k" data-i18n="home.svc.book.k">Booking &amp; NFC</span>
+      <li class="svc svc--nfc" id="nfc">
+        <span class="svc-k"><span class="svc-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 8.5a5 5 0 0 1 0 7"/><path d="M12 6a8.5 8.5 0 0 1 0 12"/><path d="M15.5 3.5a12 12 0 0 1 0 17"/><circle cx="5" cy="12" r="1.3" fill="currentColor"/></svg></span><span data-i18n="home.svc.book.k">Booking &amp; NFC</span></span>
         <div class="svc-body"><h3 data-i18n="home.svc.book.h">Take bookings and orders</h3><p data-i18n="home.svc.book.p">Online booking, ordering and NFC tags that let customers act with a single tap.</p></div>
-        <a class="svc-more" href="/restaurant-nfc"><span data-i18n="home.svc.more">Learn more</span><span class="sr-only" data-i18n="home.svc.book.sr">about booking and restaurant NFC</span><span class="svc-arrow" aria-hidden="true">→</span></a>
+        <a class="svc-more" href="/restaurant-nfc" data-svx="nfc"><span data-i18n="home.svc.more">Learn more</span><span class="sr-only" data-i18n="home.svc.book.sr">about booking and restaurant NFC</span><span class="svc-arrow" aria-hidden="true">→</span></a>
       </li>
-      <li class="svc">
-        <span class="svc-k" data-i18n="home.svc.ai.k">AI chat &amp; automation</span>
+      <li class="svc svc--ai">
+        <span class="svc-k"><span class="svc-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 4v-4h0A1.5 1.5 0 0 1 4 14.5z"/><path d="M8.5 10h.01M12 10h.01M15.5 10h.01" stroke-width="2.4"/></svg></span><span data-i18n="home.svc.ai.k">AI chat &amp; automation</span></span>
         <div class="svc-body"><h3 data-i18n="home.svc.ai.h">Answer customers 24/7</h3><p data-i18n="home.svc.ai.p">An AI assistant and WhatsApp flows that reply, qualify and book while you&rsquo;re busy.</p></div>
-        <a class="svc-more" href="/ai-automation"><span data-i18n="home.svc.more">Learn more</span><span class="sr-only" data-i18n="home.svc.ai.sr">about AI chatbots and automation</span><span class="svc-arrow" aria-hidden="true">→</span></a>
+        <a class="svc-more" href="/ai-automation" data-svx="ai"><span data-i18n="home.svc.more">Learn more</span><span class="sr-only" data-i18n="home.svc.ai.sr">about AI chatbots and automation</span><span class="svc-arrow" aria-hidden="true">→</span></a>
       </li>
-      <li class="svc">
-        <span class="svc-k" data-i18n="home.svc.dash.k">Dashboards</span>
+      <li class="svc svc--dash">
+        <span class="svc-k"><span class="svc-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16"/><path d="M7 16v-4M12 16V8M17 16v-6"/><path d="M5 9l5-4 4 3 5-4"/></svg></span><span data-i18n="home.svc.dash.k">Dashboards</span></span>
         <div class="svc-body"><h3 data-i18n="home.svc.dash.h">See and run your business</h3><p data-i18n="home.svc.dash.p">Orders, bookings and sales in one clear dashboard you can check from your phone.</p></div>
-        <a class="svc-more" href="/business-dashboards"><span data-i18n="home.svc.more">Learn more</span><span class="sr-only" data-i18n="home.svc.dash.sr">about business dashboards</span><span class="svc-arrow" aria-hidden="true">→</span></a>
+        <a class="svc-more" href="/business-dashboards" data-svx="dash"><span data-i18n="home.svc.more">Learn more</span><span class="sr-only" data-i18n="home.svc.dash.sr">about business dashboards</span><span class="svc-arrow" aria-hidden="true">→</span></a>
       </li>
-      <li class="svc">
-        <span class="svc-k" data-i18n="home.svc.events.k">Events</span>
+      <li class="svc svc--ev">
+        <span class="svc-k"><span class="svc-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3.5 7l8.5 6.5L20.5 7"/></svg></span><span data-i18n="home.svc.events.k">Events</span></span>
         <div class="svc-body"><h3 data-i18n="home.svc.events.h">Host events</h3><p data-i18n="home.svc.events.p">Digital invitations with guest replies, seating and arrivals, handled in one place.</p></div>
-        <a class="svc-more" href="/event-management"><span data-i18n="home.svc.more">Learn more</span><span class="sr-only" data-i18n="home.svc.events.sr">about event management</span><span class="svc-arrow" aria-hidden="true">→</span></a>
+        <a class="svc-more" href="/event-management" data-svx="ev"><span data-i18n="home.svc.more">Learn more</span><span class="sr-only" data-i18n="home.svc.events.sr">about event management</span><span class="svc-arrow" aria-hidden="true">→</span></a>
       </li>
     </ul>
   </div>
@@ -1404,7 +1601,7 @@ main>#faq{background:linear-gradient(180deg,var(--bg) 0%,#0b0c0f 40%,var(--bg) 1
 
 <section id="how" aria-labelledby="how-h">
   <div class="wrap">
-    <div class="reveal how-head"><span class="tag" data-i18n="home.how.tag">How we work</span><h2 class="h2" id="how-h" data-i18n="home.how.h2">Three steps, one team.</h2><p class="lead" data-i18n="home.how.lead">No jargon and no handovers between agencies. The same people stay with you from the first call.</p></div>
+    <div class="reveal how-head"><span class="tag" data-i18n="home.how.tag">How we work</span><h2 class="h2" id="how-h" data-i18n="home.how.h2">Three steps, one team.</h2><p class="lead" data-i18n="home.how.lead1">No jargon and no handovers between agencies.</p><details class="hm-more"><summary data-i18n="svc.more.details">More details</summary><p data-i18n="home.how.lead2">The same people stay with you from the first call.</p></details></div>
     <ol class="steps steps--3 reveal" id="howSteps">
       <li class="step" data-step="01"><div class="num" aria-hidden="true">01</div><h3 data-i18n="home.how.s1.h">Understand your business</h3><p data-i18n="home.how.s1.p">A free call to learn how you work, who your customers are and where time gets lost.</p></li>
       <li class="step" data-step="02"><div class="num" aria-hidden="true">02</div><h3 data-i18n="home.how.s2.h">Build the pieces that fit</h3><p data-i18n="home.how.s2.p">We design and build only what moves your business forward, in English and Arabic.</p></li>
@@ -1413,7 +1610,7 @@ main>#faq{background:linear-gradient(180deg,var(--bg) 0%,#0b0c0f 40%,var(--bg) 1
     </ol>
     <div class="how-note reveal">
       <p class="how-note-h" data-i18n="home.how.note.h">Start with one thing. Add more later.</p>
-      <p class="how-note-p" data-i18n="home.how.note.p">Begin with a website or a booking flow. Everything we build connects, so the next piece slots straight in.</p>
+      <details class="hm-more"><summary data-i18n="svc.more.details">More details</summary><p class="how-note-p" data-i18n="home.how.note.p">Begin with a website or a booking flow. Everything we build connects, so the next piece slots straight in.</p></details>
     </div>
   </div>
 </section>
@@ -1424,7 +1621,7 @@ main>#faq{background:linear-gradient(180deg,var(--bg) 0%,#0b0c0f 40%,var(--bg) 1
   </div>
   <div id="proof" class="qd-work-proof">
     <div class="wrap">
-      <div class="reveal proof-head"><span class="tag" data-i18n="home.proof.tag">Proof, not promises</span><h2 class="h2" data-i18n="home.proof.h2">This site runs on what we sell.</h2><p class="lead" data-i18n="home.proof.lead">Everything you are using on this page is something we build for clients. Try it for yourself.</p></div>
+      <div class="reveal proof-head"><span class="tag" data-i18n="home.proof.tag">Proof, not promises</span><h2 class="h2" data-i18n="home.proof.h2">This site runs on what we sell.</h2><p class="lead" data-i18n="home.proof.lead1">Everything on this page is something we build for clients.</p></div>
       <ul class="proof-live reveal">
         <li class="pl-item"><span class="pl-live"><i aria-hidden="true"></i><span data-i18n="home.proof.live">Live on this page</span></span><h3 data-i18n="home.proof.chat.h">AI assistant</h3><p data-i18n="home.proof.chat.p">Ask it anything about QD. It answers in your language, day or night.</p><button type="button" class="pl-act" data-open-chat><span data-i18n="home.proof.chat.cta">Open the chat</span><span class="svc-arrow" aria-hidden="true">→</span></button></li>
         <li class="pl-item"><span class="pl-live"><i aria-hidden="true"></i><span data-i18n="home.proof.live">Live on this page</span></span><h3 data-i18n="home.proof.book.h">Online booking</h3><p data-i18n="home.proof.book.p">Request a call in under a minute and get an email confirmation straight away.</p><button type="button" class="pl-act" data-book><span data-i18n="home.proof.book.cta">Try booking</span><span class="svc-arrow" aria-hidden="true">→</span></button></li>
@@ -1508,14 +1705,14 @@ if (SHOW_LIVE_DEMO) {
     <a data-i18n="footer.privacy" href="/privacy">Privacy Policy</a>
     <a data-i18n="footer.terms" href="/terms">Terms &amp; Conditions</a>
   </div>
-  <nav class="footer-services" aria-label="Services">
+  <nav class="footer-services" aria-label="Services" data-i18n-aria="footer.services.aria">
     <a href="/website-development" data-i18n="build.more.web">Website development</a>
     <a href="/ai-automation" data-i18n="build.more.ai">AI chat &amp; automation</a>
     <a href="/business-dashboards" data-i18n="build.more.systems">Dashboards &amp; systems</a>
     <a href="/restaurant-nfc" data-i18n="build.more.nfc">Restaurant NFC</a>
     <a href="/event-management" data-home-t="events.link">Event management</a>
   </nav>
-  <div class="footer-copy" data-i18n="footer.copy">© {year} QD Systems · Built in the UAE</div>
+  <div class="footer-copy" data-i18n="footer.copy">© 2026 QD Systems · Built in the UAE</div>
 </div></footer>
 
 <button type="button" class="qd-call-fab" id="qdCallFab" aria-label="Book a free call" data-book>
@@ -1892,6 +2089,8 @@ if(bForm)bForm.addEventListener('submit',async e=>{e.preventDefault();
 
 /* ---------- WebGL chrome (lights-only, reliable) ---------- */
 function qdInitGL(){
+  /* the knot lives in the fixed background stage (.qd-stage) behind the QD hub — always centred in its stage,
+     never offset sideways. The stage itself is moved/scaled/faded by the bg-scene script (compositor-only). */
   if(!window.THREE) return;
   const canvas=document.getElementById('gl'); if(!canvas) return;
   if(perfLite&&!isMobile){ canvas.style.display='none'; return; }
@@ -1899,56 +2098,48 @@ function qdInitGL(){
   const renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:!mobileGl,powerPreference:mobileGl?'low-power':'default'});
   renderer.setPixelRatio(Math.min(devicePixelRatio,mobileGl?1.5:2));
   const scene=new THREE.Scene();
-  const camera=new THREE.PerspectiveCamera(45,1,0.1,100); camera.position.z=mobileGl?5.2:4.6;
+  const camera=new THREE.PerspectiveCamera(45,1,0.1,100);
   const mat=new THREE.MeshStandardMaterial({color:0x9ca3ad,metalness:0.48,roughness:0.46});
-  const knot=new THREE.Mesh(new THREE.TorusKnotGeometry(1.05,0.34,mobileGl?72:220,mobileGl?10:32,2,3),mat); scene.add(knot);
+  const geo=new THREE.TorusKnotGeometry(1.05,0.34,mobileGl?72:200,mobileGl?10:28,2,3);
+  geo.computeBoundingSphere();
+  const knot=new THREE.Mesh(geo,mat); scene.add(knot);
   scene.add(new THREE.AmbientLight(0xffffff,mobileGl?0.32:0.34));
   const d1=new THREE.DirectionalLight(0xffffff,mobileGl?1.8:2.0); d1.position.set(4,5,5); scene.add(d1);
   const d2=new THREE.DirectionalLight(0xcbd5e4,mobileGl?0.8:0.9); d2.position.set(-4,3,5); scene.add(d2);
   const p1=new THREE.PointLight(0xffffff,mobileGl?0.25:0.3); p1.position.set(1,-2,4); scene.add(p1);
-  if(!mobileGl){const d3=new THREE.DirectionalLight(0xffffff,0.35); d3.position.set(0,1,6); scene.add(d3);}
-  function glLayout(){
-    if(innerWidth<981) return null;
-    if(innerWidth<=1100) return{oldWidth:.50};
-    if(innerWidth<=1280) return{oldWidth:.54};
-    return{oldWidth:.48};
-  }
+  /* frame the knot so its radius is ~31% of the stage height (matches the hub/orbit geometry in the scene script) */
+  const R=geo.boundingSphere.radius*0.8, dist=R/(0.31*2*Math.tan(22.5*Math.PI/180));
+  camera.position.z=dist;
   function resize(){
     const w=canvas.clientWidth||1,h=canvas.clientHeight||1;
     renderer.setSize(w,h,false);
-    const layout=glLayout();
-    if(layout){
-      const fullWidth=innerWidth*layout.oldWidth;
-      // In RTL the canvas sits on the LEFT, so shift the object the other way.
-      const rtl=document.documentElement.getAttribute('dir')==='rtl';
-      const shiftRight=innerWidth*0.055*(rtl?-1:1);
-      camera.setViewOffset(fullWidth,h,-shiftRight,0,w,h);
-    }else{
-      camera.clearViewOffset();
-      camera.aspect=w/h;
-    }
-    camera.updateProjectionMatrix();
+    camera.aspect=w/h; camera.updateProjectionMatrix();
+    if(noMotion) renderer.render(scene,camera);
   }
   resize(); addEventListener('resize',qdOnResize(resize),{passive:true});
-  addEventListener('qd:langchange',()=>setTimeout(resize,60));
-  const glBaseOpacity=innerWidth<769?0.62:innerWidth<=980?0.3:innerWidth<=1100?0.85:0.44;
-  let t=0,tx=0,ty=0,sp=0,glVisible=!document.hidden;
-  document.addEventListener('visibilitychange',()=>{glVisible=!document.hidden;},{passive:true});
-  (function loop(){ requestAnimationFrame(loop); if(!heroFxActive||!glVisible) return; t+=0.016;
-    /* scroll progress through the hero (0→1) — the object reacts to the journey instead of ignoring it */
+  const finePtr=matchMedia('(hover:hover) and (pointer:fine)').matches;
+  let t=0,tx=0,ty=0,sp=0,frameN=0,glVisible=!document.hidden,lastY=scrollY,vel=0;
+  if(noMotion){ knot.rotation.set(0.5,0.6,0); renderer.render(scene,camera); return; } /* static dim version */
+  let parked=false;
+  addEventListener('qd:knot',()=>{if(parked&&!window.qdKnotHidden&&glVisible){parked=false;requestAnimationFrame(loop);}});
+  function loop(){ if(!glVisible) return; if(window.qdKnotHidden){parked=true;return;} requestAnimationFrame(loop);
+    /* background role on phones: 30fps is plenty for a dim, slow shape */
+    const bg=false; frameN++; if(mobileGl&&bg&&(frameN&1)) return;
+    t+=bg&&mobileGl?0.032:0.016;
     const target=Math.min(scrollY/Math.max(innerHeight,1),1);
-    sp+=(target-sp)*0.06; /* eased */
-    knot.rotation.y+=(mobileGl?0.0035:0.005)+sp*0.012; /* spins up as you leave the hero */
-    knot.rotation.x+=(mobileGl?0.0015:0.002)+sp*0.004;
-    knot.position.y=Math.sin(t*0.8)*0.15 - sp*1.1;      /* dives down… */
-    knot.position.x=sp*(document.documentElement.getAttribute('dir')==='rtl'?-0.9:0.9); /* …and sweeps aside */
-    const k=1-sp*0.35; knot.scale.set(k,k,k);            /* shrinking as it goes */
-    canvas.style.opacity=String(glBaseOpacity*(1-sp*0.85)); /* hands the stage to the content */
-    tx+=(((typeof mx!=="undefined"?mx:0.5)-0.5)*0.6 - tx)*0.05;
-    ty+=(((typeof my!=="undefined"?my:0.5)-0.5)*0.5 - ty)*0.05;
+    sp+=(target-sp)*0.06;
+    const dy=scrollY-lastY; lastY=scrollY; vel+=(Math.min(Math.abs(dy),60)-vel)*0.08; /* scroll gives it a gentle extra turn */
+    const step=bg&&mobileGl?2:1;
+    knot.rotation.y+=((mobileGl?0.0035:0.005)+sp*0.004+vel*0.00025)*step;
+    knot.rotation.x+=((mobileGl?0.0015:0.002)+vel*0.0001)*step;
+    knot.position.set(0,Math.sin(t*0.8)*0.08,0);
+    const cx=finePtr&&typeof mx!=="undefined"?mx:0.5, cy=finePtr&&typeof my!=="undefined"?my:0.5;
+    tx+=((cx-0.5)*0.5 - tx)*0.05; ty+=((cy-0.5)*0.4 - ty)*0.05;
     camera.position.x=tx*1.2; camera.position.y=-ty*1.0; camera.lookAt(0,0,0);
     renderer.render(scene,camera);
-  })();
+  }
+  document.addEventListener('visibilitychange',()=>{const was=glVisible;glVisible=!document.hidden;if(glVisible&&!was&&!window.qdKnotHidden){parked=false;requestAnimationFrame(loop);}},{passive:true});
+  requestAnimationFrame(loop);
 }
 function qdLoadGL(){
   if(perfLite&&!isMobile){var c=document.getElementById('gl');if(c)c.style.display='none';return;}
@@ -1960,5 +2151,205 @@ if(document.readyState==='complete')qdGLWhenIdle();else addEventListener('load',
 <script defer src="components/interactivework.js"></script>
 <link rel="stylesheet" href="/chatbot/chatbot.css">
 <script src="/chatbot/chatbot.js" defer></script>
+<script>
+/* homepage motion pass: per-card reveal + one-time accent sweep, CTA breathe stop, scroll-hint stop, knot parallax on phones */
+(function(){
+  var rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var b=document.body;
+  function engaged(){b.classList.add('qd-engaged');}
+  addEventListener('pointerdown',engaged,{once:true,passive:true});
+  addEventListener('keydown',engaged,{once:true});
+  var list=document.querySelector('.svc-list');
+  var cards=list?[].slice.call(list.querySelectorAll('.svc')):[];
+  /* pressed state on touch (iOS needs a touch listener for :active, and we keep it visible while the transition starts) */
+  cards.forEach(function(c){
+    c.addEventListener('touchstart',function(){c.classList.add('is-press');},{passive:true});
+    ['touchend','touchcancel'].forEach(function(t){c.addEventListener(t,function(){setTimeout(function(){c.classList.remove('is-press');},160);},{passive:true});});
+  });
+  if(!rm&&list&&'IntersectionObserver' in window){
+    list.classList.add('svc-each');
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;var c=e.target;c.classList.add('is-in');setTimeout(function(){c.classList.add('is-lit');},120);io.unobserve(c);});},{rootMargin:'0px 0px -12% 0px',threshold:.25});
+    cards.forEach(function(c){io.observe(c);});
+  }
+  addEventListener('scroll',function(){if(scrollY>40)b.classList.add('qd-scrolled');},{passive:true});
+})();
+
+/* QD hub scene — fixed background layer. The QD mark is the hub; five service nodes orbit it on one slow tilted ring and
+   a pulse travels QD → node, one at a time. First screen: small, in the free space (above the kicker on phones,
+   beside the copy on desktop), never over any text. Scrolling eases it into a dim background role; the pulse then
+   points at the service that matches the section in view. Everything is transform/opacity/dashoffset on one layer. */
+(function(){
+  var layer=document.querySelector('.qd-bg-scene'),stage=layer&&layer.querySelector('.qd-stage--hub'),kstage=layer&&layer.querySelector('.qd-stage--knot'),host=stage&&stage.querySelector('.hero-scene'),glow=stage&&stage.querySelector('.hero-glow');
+  var hero=document.querySelector('.qd-hero');
+  if(!layer||!stage||!kstage||!host||!hero||!document.createElementNS)return;
+  var rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var fine=matchMedia('(hover:hover) and (pointer:fine)').matches;
+  var NS='http://www.w3.org/2000/svg';
+  var ICONS=[
+    '<rect x="-6.5" y="-5" width="13" height="10" rx="2"/><path d="M-6.5 -1.6h13"/><circle class="f" cx="-4.4" cy="-3.3" r=".65"/><circle class="f" cx="-2.5" cy="-3.3" r=".65"/>',
+    '<circle class="f" cx="-4.6" cy="0" r="1.25"/><path d="M-1.6 -3.6a5 5 0 0 1 0 7.2"/><path d="M1.4 -6.2a8.6 8.6 0 0 1 0 12.4"/>',
+    '<path d="M-6.2 -4.8h12.4a.8.8 0 0 1 .8 .8v6.6a.8.8 0 0 1 -.8 .8h-6.4l-3.4 2.8v-2.8h-2.6a.8.8 0 0 1 -.8 -.8v-6.6a.8.8 0 0 1 .8 -.8z"/><circle class="f" cx="-2.6" cy="-.7" r=".7"/><circle class="f" cx="0" cy="-.7" r=".7"/><circle class="f" cx="2.6" cy="-.7" r=".7"/>',
+    '<path d="M-6.5 5.5h13"/><path d="M-4.2 3v-3.4"/><path d="M0 3v-8"/><path d="M4.2 3v-5.4"/>',
+    '<rect x="-6.5" y="-4.8" width="13" height="9.6" rx="1.6"/><path d="M-6 -4l6 4.6 6 -4.6"/>'
+  ];
+  /* section in view → which service the pulse points at (website, booking/NFC, AI chat, dashboard, events) */
+  var SECTIONS=['build','how','work','faq','contact'];
+  var N=5,nodes=[],G={},built=false;
+  function el(tag,attrs){var e=document.createElementNS(NS,tag);for(var k in attrs)e.setAttribute(k,attrs[k]);return e;}
+  /* stage geometry (stage px; hub at the centre) */
+  function geom(){
+    var desk=innerWidth>769,SW=desk?720:360,SH=desk?540:280;
+    return {SW:SW,SH:SH,cx:SW/2,cy:SH/2,rx:SW*.455,ry:SH*.17,tilt:(desk?-9:-6)*Math.PI/180,nr:desk?22:15,hr:desk?40:27,knotR:SH*.31};
+  }
+  function build(){
+    G=geom();
+    var svg=el('svg',{focusable:'false','aria-hidden':'true',viewBox:'0 0 '+G.SW+' '+G.SH});
+    var ct=Math.cos(G.tilt),st=Math.sin(G.tilt),ax=G.rx*ct,ay=G.rx*st,deg=(G.tilt*180/Math.PI).toFixed(2);
+    var ring='M'+(G.cx+ax)+' '+(G.cy+ay)+'A'+G.rx+' '+G.ry+' '+deg+' 1 1 '+(G.cx-ax)+' '+(G.cy-ay)+'A'+G.rx+' '+G.ry+' '+deg+' 1 1 '+(G.cx+ax)+' '+(G.cy+ay);
+    svg.innerHTML='<defs>'+
+      '<radialGradient id="onFill" cx=".34" cy=".28" r=".85"><stop offset="0" stop-color="#3b3e46"/><stop offset=".55" stop-color="#1e2025"/><stop offset="1" stop-color="#121316"/></radialGradient>'+
+      '<linearGradient id="onRim" x1="0" y1="0" x2=".6" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".65"/><stop offset=".5" stop-color="#fff" stop-opacity=".14"/><stop offset="1" stop-color="#fff" stop-opacity=".34"/></linearGradient>'+
+      '<radialGradient id="onHalo"><stop offset="0" stop-color="#e6eaf2" stop-opacity=".34"/><stop offset=".45" stop-color="#e6eaf2" stop-opacity=".1"/><stop offset="1" stop-color="#e6eaf2" stop-opacity="0"/></radialGradient>'+
+      '<clipPath id="qdHubClip"><circle cx="'+G.cx+'" cy="'+G.cy+'" r="'+(G.hr-1)+'"/></clipPath>'+
+      '</defs><path class="on-ring" d="'+ring+'"/><g class="on-lines"></g>'+
+      /* the QD mark: the brand logo (dark JPEG) clipped into a silver-rimmed disc, with two slow breathing rings */
+      '<g class="qd-hub"><circle class="qd-hubring" cx="'+G.cx+'" cy="'+G.cy+'" r="'+G.hr+'"/><circle class="qd-hubring r2" cx="'+G.cx+'" cy="'+G.cy+'" r="'+G.hr+'"/>'+
+      '<circle class="qd-hubdisc" cx="'+G.cx+'" cy="'+G.cy+'" r="'+G.hr+'"/>'+
+      '<image class="qd-hubmark" href="assets/qd-logo.jpeg" x="'+(G.cx-G.hr*1.12)+'" y="'+(G.cy-G.hr*1.12)+'" width="'+(G.hr*2.24)+'" height="'+(G.hr*2.24)+'" clip-path="url(#qdHubClip)" preserveAspectRatio="xMidYMid slice"/>'+
+      '<circle cx="'+G.cx+'" cy="'+G.cy+'" r="'+G.hr+'" fill="none" stroke="url(#onRim)" stroke-width="1.2"/></g>'+
+      '<g class="on-nodes"></g>';
+    var gl=svg.querySelector('.on-lines'),gn=svg.querySelector('.on-nodes');
+    for(var i=0;i<N;i++){
+      var line=el('line',{'class':'on-line'}),pulse=el('line',{'class':'on-pulse',pathLength:'1'});
+      gl.appendChild(line);gl.appendChild(pulse);
+      var g=el('g',{'class':'on-node'}),body=el('g',{'class':'on-body'});
+      body.innerHTML='<circle class="on-halo" r="40"/><circle class="on-disc" r="16"/><g class="on-ic">'+ICONS[i]+'</g>';
+      g.appendChild(body);gn.appendChild(g);
+      nodes.push({g:g,body:body,line:line,pulse:pulse,pulseT:null,lit:0});
+    }
+    host.appendChild(svg);
+    glow.style.setProperty('--gs',Math.round(G.hr*5.5)+'px');
+    built=true;
+  }
+  /* two phases, never on screen together:
+     1) hero — ONLY the 3D knot, in the free space (above the kicker on phones, beside the copy on desktop); it scrolls
+        with the content (so it can never slide over the copy) and fades out across the hero; when gone it stops rendering.
+     2) after the hero — ONLY the QD hub + orbit, a dim fixed background layer; it fades in once the knot is below ~10%. */
+  var P={};
+  function plan(){
+    var vw=innerWidth,vh=innerHeight,desk=vw>769,rtl=document.documentElement.dir==='rtl';
+    var y0=scrollY,hr=hero.getBoundingClientRect();
+    var kick=hero.querySelector('.hero-kicker'),col=hero.querySelector('.hero-col');
+    var nav=document.querySelector('body>nav'),navB=nav?Math.max(0,nav.getBoundingClientRect().top)+nav.getBoundingClientRect().height:64;
+    var KW=desk?840:360,KH=desk?640:280,kR=KH*.31+6; /* knot radius in its stage */
+    var k;
+    if(!desk||!col||col.getBoundingClientRect().width>vw*.7){
+      var kt=kick?kick.getBoundingClientRect().top+y0:hr.top+y0+260;
+      var top=navB+6,bot=kt-14;
+      k={x:vw/2,y:(top+bot)/2,s:Math.min(1,(bot-top)/(2*kR),(vw-8)/KW*1.6)};
+    }else{
+      var cr=col.getBoundingClientRect();
+      var lo=rtl?24:cr.right+40,hi=rtl?cr.left-40:vw-24,t0=navB+20,b0=Math.min(vh,hr.bottom+y0)-40;
+      k={x:(lo+hi)/2,y:(t0+b0)/2,s:Math.min(1,(hi-lo)/(2*kR),(b0-t0)/(2*kR))};
+    }
+    /* hub scene, background role */
+    var halfW=G.rx+G.nr+6,halfH=Math.max(G.hr*1.9,G.ry+G.nr)+4,b1;
+    if(!desk){b1={x:vw/2,y:vh*.42,s:Math.min(1.05,(vw-12)/(2*halfW)),o:.3};}
+    else{var s1=Math.min(.95,(vw*.5)/(2*halfW),(vh*.8)/(2*halfH));var off=halfW*s1+24;b1={x:rtl?off:vw-off,y:vh*.42,s:s1,o:.26};}
+    P={k:k,KW:KW,KH:KH,b1:b1,vh:vh,heroH:Math.max(hr.height,vh*.8)};
+  }
+  function cl(v){return v<0?0:v>1?1:v;}
+  var cur={},shown=false,hubOp=0,knotHidden=false;
+  function place(force){
+    var y=scrollY,H=P.heroH;
+    var kOp=1-cl((y-.15*H)/(.45*H));                        /* knot: 1 → 0 between 15% and 60% of the hero */
+    var hOp=kOp<.1?cl((y-.62*H)/(.25*H)):0;                   /* hub: 0 → 1 between 62% and 87%, only once the knot is (nearly) gone */
+    var k=P.k,ks=k.s*(1-.08*cl(y/H)),b=P.b1,drift=rm?0:Math.sin(y/1100)*12*hOp;
+    var key=y+'|'+(force?Math.random():0);
+    if(key===cur.key)return;cur.key=key;
+    kstage.style.transform='translate3d('+(k.x-P.KW/2).toFixed(1)+'px,'+(k.y-y-P.KH/2).toFixed(1)+'px,0) scale('+ks.toFixed(4)+')';
+    kstage.style.opacity=shown?kOp.toFixed(3):'0';
+    kstage.style.visibility=kOp<=0?'hidden':'';
+    stage.style.transform='translate3d('+(b.x-G.SW/2).toFixed(1)+'px,'+(b.y+drift-G.SH/2).toFixed(1)+'px,0) scale('+b.s.toFixed(4)+')';
+    stage.style.opacity=shown?(hOp*b.o).toFixed(3):'0';
+    stage.style.visibility=hOp<=0?'hidden':'';
+    hubOp=hOp;bgRole=hOp>0;
+    var kh=kOp<=0;if(kh!==knotHidden){knotHidden=kh;window.qdKnotHidden=kh;dispatchEvent(new Event('qd:knot'));}
+  }
+  /* orbit + pulses */
+  var ang=-Math.PI/2+0.45,SPEED=(Math.PI*2)/64,PULSE=0.9,clock=0,next=1.2,turn=0,px=0,py=0,bgRole=false,active=-1;
+  function fire(i){var n=nodes[i];n.pulseT=0;}
+  function draw(dt){
+    var s=G.nr/16,ct=Math.cos(G.tilt),st=Math.sin(G.tilt);
+    if(fine&&!rm&&typeof mx!=='undefined'){px+=((mx-.5)*12-px)*.05;py+=((my-.5)*8-py)*.05;}
+    for(var i=0;i<N;i++){
+      var n=nodes[i],a=ang+i*Math.PI*2/N,ex=G.rx*Math.cos(a),ey=G.ry*Math.sin(a),k=.5+.5*Math.sin(a),par=.4+.6*k;
+      var x=G.cx+ex*ct-ey*st+px*par,y=G.cy+ex*st+ey*ct+py*par;
+      n.g.setAttribute('transform','translate('+x.toFixed(1)+' '+y.toFixed(1)+') scale('+(s*(.84+.16*k)).toFixed(3)+')');
+      n.body.style.opacity=(.5+.5*k).toFixed(3);
+      var dx=x-G.cx,dy=y-G.cy,d=Math.sqrt(dx*dx+dy*dy)||1,ux=dx/d,uy=dy/d;
+      var r0=Math.min(G.hr*1.15,d*.5),x1=G.cx+ux*r0,y1=G.cy+uy*r0,x2=x-ux*G.nr*1.05,y2=y-uy*G.nr*1.05;
+      var at={x1:x1.toFixed(1),y1:y1.toFixed(1),x2:x2.toFixed(1),y2:y2.toFixed(1)};
+      for(var q in at){n.line.setAttribute(q,at[q]);n.pulse.setAttribute(q,at[q]);}
+      n.line.style.opacity=(i===active?1:.45+.55*k).toFixed(3);
+      if(n.pulseT!=null&&dt!=null){
+        n.pulseT+=dt;var p=Math.min(1,n.pulseT/PULSE),e=1-Math.pow(1-p,3);
+        n.pulse.style.strokeDashoffset=(.16-e*1.18).toFixed(3);
+        if(p>=.82&&!n.lit){n.lit=1;n.g.classList.add('is-lit');}
+        if(n.pulseT>PULSE+.9){n.pulseT=null;n.lit=0;n.g.classList.remove('is-lit');n.pulse.style.strokeDashoffset='';}
+      }
+    }
+  }
+  function setActive(i){
+    if(i===active)return;active=i;
+    nodes.forEach(function(n,j){n.g.classList.toggle('is-active',j===i);});
+    if(rm&&i>=0){/* static: show the matching spoke lit */nodes.forEach(function(n,j){n.pulse.style.strokeDashoffset=j===i?'-.5':'';n.pulse.style.strokeDasharray=j===i?'1 0':'';});}
+  }
+  var running=false,last=0,visible=!document.hidden,frameN=0,mobile=innerWidth<=768;
+  function frame(now){
+    if(!running)return;requestAnimationFrame(frame);
+    var dt=Math.min(.05,(now-(last||now))/1000);last=now;
+    place(false);
+    if(!bgRole)return; /* hub hidden (hero phase): nothing to animate */
+    /* on phones, 30fps is plenty for a dim background */
+    frameN++;if(mobile&&(frameN&1))return;
+    if(mobile&&bgRole)dt*=2;
+    ang+=SPEED*dt;clock+=dt;
+    if(clock>=next){
+      if(active>=0){next=clock+2.6;fire(active);}
+      else{next=clock+1.9;fire(turn%N);turn++;}
+    }
+    draw(dt);
+  }
+  function sync(){
+    var want=built&&visible&&!rm;
+    layer.classList.toggle('is-paused',!visible);
+    if(want&&!running){running=true;last=0;requestAnimationFrame(frame);}
+    else if(!want)running=false;
+  }
+  function relayout(){var g=geom();if(g.SW!==G.SW){/* crossed the phone/desktop size: rebuild */host.innerHTML='';nodes=[];built=false;build();}mobile=innerWidth<=768;plan();place(true);draw();}
+  function start(){
+    if(built)return;build();plan();place(true);draw();
+    if(rm){addEventListener('scroll',function(){place(false);},{passive:true});}
+    else addEventListener('scroll',function(){if(!running)place(false);},{passive:true});
+    requestAnimationFrame(function(){shown=true;place(true);});
+    addEventListener('resize',(window.qdOnResize?qdOnResize(relayout):relayout),{passive:true});
+    addEventListener('qd:langchange',function(){setTimeout(relayout,120);});
+    if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){plan();place(true);});
+    if('IntersectionObserver' in window){
+      var seen={};
+      var io=new IntersectionObserver(function(es){es.forEach(function(e){seen[e.target.id]=e.isIntersecting?e.intersectionRatio:0;});
+        var best=-1,bv=0;SECTIONS.forEach(function(id,i){if((seen[id]||0)>bv){bv=seen[id];best=i;}});if(scrollY<innerHeight*.5)best=-1;setActive(best);},{threshold:[0,.15,.3,.5,.7]});
+      SECTIONS.forEach(function(id){var s=document.getElementById(id);if(s)io.observe(s);});
+    }
+    sync();
+  }
+  document.addEventListener('visibilitychange',function(){visible=!document.hidden;sync();});
+  var began=false;
+  function go(){if(began)return;began=true;setTimeout(start,rm?0:350);}
+  function whenReady(){if(document.body.classList.contains('ready')){go();return;}setTimeout(whenReady,150);}
+  requestAnimationFrame(function(){setTimeout(whenReady,300);});
+})();
+</script>
 </body>
 </html>

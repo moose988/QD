@@ -679,3 +679,8 @@
 
 .qd-chat-action-label::after { content: " \2192"; }
 .qd-chat-root[data-dir="rtl"] .qd-chat-action-label::after { content: " \2190"; }
+
+/* gentle nod when the assistant offers help */
+@keyframes qdNod{0%,100%{transform:translateY(0) rotate(0)}15%{transform:translateY(-7px) rotate(-6deg)}30%{transform:translateY(0) rotate(5deg)}45%{transform:translateY(-5px) rotate(-4deg)}60%{transform:translateY(0) rotate(3deg)}75%{transform:translateY(-2px) rotate(0)}}
+.qd-chat-launcher.qd-nod{animation:qdNod 1.3s ease-in-out 2}
+@media (prefers-reduced-motion:reduce){.qd-chat-launcher.qd-nod{animation:none}}

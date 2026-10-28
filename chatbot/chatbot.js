@@ -766,9 +766,9 @@
   const NUDGE_LOG_KEY = 'qd_chat_nudge_log';
   const NUDGE_SESSION_KEY = 'qd_chat_nudge_session';
   const NUDGE_ENGAGED_KEY = 'qd_chat_engaged';
-  const NUDGE_FIRST_MS = 60000;       // on the site this long (and active) before the first nudge
-  const NUDGE_SECTION_MS = 10000;     // time a section must stay in view for its nudge
-  const NUDGE_SECTION_MIN_SITE_MS = 40000; // section nudges also wait this long after page load
+  const NUDGE_FIRST_MS = 5000;        // on the site this long (and active) before the first nudge
+  const NUDGE_SECTION_MS = 6000;      // time a section must stay in view for its nudge
+  const NUDGE_SECTION_MIN_SITE_MS = 5000; // section nudges also wait this long after page load
   const NUDGE_SPACING_MS = 4 * 60000; // minimum gap between nudges (ignored)
   const NUDGE_SNOOZE_MS = 10 * 60000; // after the visitor presses X once
   const NUDGE_VISIBLE_MS = 12000;     // auto-hide
@@ -778,10 +778,10 @@
   const NUDGE_DAY_MS = 24 * 3600 * 1000;
 
   const NUDGES = {
-    en: { dismiss: 'Dismiss', name: 'QD Assistant', msgs: { def: ["Hi, got any questions? I'm happy to help.", ''], nfc: ["Curious what one tap could do for your business? Happy to show you.", 'What could an NFC tag do for my business?'], events: ["Planning an event? I can walk you through how QD Events works.", "I'm planning an event, how does QD Events work?"], contact: ["Rather ask than fill a form? Go ahead, I'm here.", ''] } },
-    ar: { dismiss: 'إغلاق', name: 'مساعد QD', msgs: { def: ['أهلاً، عندك أي سؤال؟ يسعدني أساعدك.', ''], nfc: ['تتساءل ماذا تفعل لمسة واحدة لنشاطك؟ يسعدني أوضّح لك.', 'ماذا يمكن لبطاقة NFC أن تفعل لنشاطي؟'], events: ['تخطط لمناسبة؟ أشرح لك كيف يعمل QD Events.', 'أخطط لمناسبة، كيف يعمل QD Events؟'], contact: ['تفضّل تسأل بدل ملء النموذج؟ تفضّل، أنا هنا.', ''] } },
-    zh: { dismiss: '关闭', name: 'QD 助手', msgs: { def: ['你好，有什么想问的吗？我很乐意帮忙。', ''], nfc: ['想知道轻轻一碰能为你的业务做什么吗？我来给你讲讲。', '一个 NFC 标签能为我的业务做什么？'], events: ['在筹备活动？我可以给你介绍 QD Events 怎么用。', '我在筹备活动，QD Events 怎么用？'], contact: ['比起填表，直接问我更快，我在这儿。', ''] } },
-    ru: { dismiss: 'Закрыть', name: 'Ассистент QD', msgs: { def: ['Здравствуйте, есть вопросы? С радостью помогу.', ''], nfc: ['Интересно, что может одно касание для вашего бизнеса? Расскажу.', 'Что может NFC-метка для моего бизнеса?'], events: ['Планируете событие? Расскажу, как работает QD Events.', 'Я планирую событие, как работает QD Events?'], contact: ['Проще спросить, чем заполнять форму? Спрашивайте, я здесь.', ''] } },
+    en: { dismiss: 'Dismiss', name: 'QD Assistant', msgs: { def: ["Need a hand digitalizing your business? Tell me what you do and we'll explore what fits.", ''], build: ["Not sure where to start? Tell me about your business and I'll point you to the right fit.", ''], nfc: ["Curious what one tap could do for your business? Happy to show you.", 'What could an NFC tag do for my business?'], events: ["Planning an event? I can walk you through how QD Events works.", "I'm planning an event, how does QD Events work?"], contact: ["Rather ask than fill a form? Go ahead, I'm here.", ''] } },
+    ar: { dismiss: 'إغلاق', name: 'مساعد QD', msgs: { def: ['تحتاج مساعدة في رقمنة نشاطك؟ احكِ لي عن عملك ونستكشف ما يناسبك.', ''], build: ['لست متأكداً من أين تبدأ؟ احكِ لي عن نشاطك وأدلّك على الأنسب.', ''], nfc: ['تتساءل ماذا تفعل لمسة واحدة لنشاطك؟ يسعدني أوضّح لك.', 'ماذا يمكن لبطاقة NFC أن تفعل لنشاطي؟'], events: ['تخطط لمناسبة؟ أشرح لك كيف يعمل QD Events.', 'أخطط لمناسبة، كيف يعمل QD Events؟'], contact: ['تفضّل تسأل بدل ملء النموذج؟ تفضّل، أنا هنا.', ''] } },
+    zh: { dismiss: '关闭', name: 'QD 助手', msgs: { def: ['需要帮忙把业务数字化吗？告诉我你做什么，我们一起看看哪种方案合适。', ''], build: ['不确定从哪里开始？告诉我你的业务，我来推荐合适的方案。', ''], nfc: ['想知道轻轻一碰能为你的业务做什么吗？我来给你讲讲。', '一个 NFC 标签能为我的业务做什么？'], events: ['在筹备活动？我可以给你介绍 QD Events 怎么用。', '我在筹备活动，QD Events 怎么用？'], contact: ['比起填表，直接问我更快，我在这儿。', ''] } },
+    ru: { dismiss: 'Закрыть', name: 'Ассистент QD', msgs: { def: ['Нужна помощь с цифровизацией бизнеса? Расскажите, чем занимаетесь, и подберём решение.', ''], build: ['Не знаете, с чего начать? Расскажите о бизнесе, и я подскажу, что подойдёт.', ''], nfc: ['Интересно, что может одно касание для вашего бизнеса? Расскажу.', 'Что может NFC-метка для моего бизнеса?'], events: ['Планируете событие? Расскажу, как работает QD Events.', 'Я планирую событие, как работает QD Events?'], contact: ['Проще спросить, чем заполнять форму? Спрашивайте, я здесь.', ''] } },
   };
 
   const nudgeState = { el: null, key: 'def', hideTimer: null, lastShown: 0, lastActivity: 0, hadActivity: false, loadedAt: Date.now(), sectionSince: {}, sectionKey: null, sectionTimes: {} };
@@ -858,6 +858,8 @@
     el.querySelector('.qd-chat-nudge-x').setAttribute('aria-label', pack.dismiss);
     el.hidden = false;
     requestAnimationFrame(() => el.setAttribute('data-show', 'true'));
+    const launcher = root.querySelector('.qd-chat-launcher');
+    if (launcher) { launcher.classList.remove('qd-nod'); void launcher.offsetWidth; launcher.classList.add('qd-nod'); setTimeout(() => launcher.classList.remove('qd-nod'), 2600); }
     const now = Date.now();
     nudgeState.lastShown = now;
     nudgeWrite(sessionStorage, NUDGE_SESSION_KEY, nudgeRead(sessionStorage, NUDGE_SESSION_KEY, 0) + 1);
@@ -877,7 +879,7 @@
 
     // Section-aware nudges: NFC, QD Events, contact.
     if ('IntersectionObserver' in window) {
-      const targets = [['#nfc', 'nfc'], ['.build-events', 'events'], ['#contact', 'contact']];
+      const targets = [['#build', 'build'], ['#nfc', 'nfc'], ['.build-events', 'events'], ['#contact', 'contact']];
       const io = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
           const key = entry.target.getAttribute('data-nudge-key');
@@ -907,7 +909,7 @@
       }
       const activeRecently = nudgeState.hadActivity && now - nudgeState.lastActivity < 15000;
       if (activeRecently && now - nudgeState.loadedAt >= NUDGE_FIRST_MS) showNudge('def');
-    }, 4000);
+    }, 1000);
   }
 
   // ─── Open / close ─────────────────────────────────────────────────────────

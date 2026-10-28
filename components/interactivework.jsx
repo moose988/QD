@@ -145,6 +145,7 @@ const WORK_COPY = {
     viewLive: 'View live site',
     seeMore: 'See more',
     seeLess: 'Show less',
+    moreDetails: 'More details',
     fallbackTitle: 'Preview unavailable in-frame',
     fallbackBody: 'This site blocks embedded previews. Open it in a new tab to explore.',
     projects: [
@@ -181,6 +182,7 @@ const WORK_COPY = {
     viewLive: 'زيارة الموقع المباشر',
     seeMore: 'عرض المزيد',
     seeLess: 'عرض أقل',
+    moreDetails: 'مزيد من التفاصيل',
     fallbackTitle: 'المعاينة غير متاحة داخل الإطار',
     fallbackBody: 'هذا الموقع يمنع التضمين. افتحه في تبويب جديد للاستكشاف.',
     projects: [
@@ -217,6 +219,7 @@ const WORK_COPY = {
     viewLive: '访问线上网站',
     seeMore: '查看更多',
     seeLess: '收起',
+    moreDetails: '更多详情',
     fallbackTitle: '无法在框架内预览',
     fallbackBody: '该网站禁止嵌入预览。请在新标签页中打开以浏览。',
     projects: [
@@ -253,6 +256,7 @@ const WORK_COPY = {
     viewLive: 'Открыть сайт',
     seeMore: 'Показать ещё',
     seeLess: 'Свернуть',
+    moreDetails: 'Подробнее',
     fallbackTitle: 'Превью недоступно во фрейме',
     fallbackBody: 'Этот сайт блокирует встроенный просмотр. Откройте его в новой вкладке.',
     projects: [
@@ -512,8 +516,6 @@ const InteractiveWorkPreview = ({ project, copy }) => {
   const [useIframe, setUseIframe] = useState(false);
   const allowHover = !reduced && !coarse;
 
-  const openLive = () => window.open(project.url, '_blank', 'noopener,noreferrer');
-
   return (
     <article
       ref={cardRef}
@@ -546,16 +548,19 @@ const InteractiveWorkPreview = ({ project, copy }) => {
           <h3>{project.name}</h3>
         </div>
         <p className="iwork-desc">{project.description}</p>
-        <p className="iwork-result">{project.result}</p>
-        <div className="iwork-tags" aria-label="Services delivered">
-          {project.tags.map((tag) => (
-            <span key={tag} className="iwork-tag">{tag}</span>
-          ))}
-        </div>
+        <details className="iwork-more-info">
+          <summary>{copy.moreDetails || 'More details'}</summary>
+          <p className="iwork-result">{project.result}</p>
+          <div className="iwork-tags" aria-label="Services delivered">
+            {project.tags.map((tag) => (
+              <span key={tag} className="iwork-tag">{tag}</span>
+            ))}
+          </div>
+        </details>
         <div className="iwork-actions">
-          <button type="button" className="btn btn-silver iwork-btn" onClick={openLive}>
+          <a className="btn btn-silver iwork-btn" href={project.url} target="_blank" rel="noopener noreferrer">
             {copy.viewLive} <span aria-hidden="true">↗</span>
-          </button>
+          </a>
         </div>
       </div>
     </article>

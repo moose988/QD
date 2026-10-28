@@ -303,6 +303,9 @@
     '404.homeAria':  { en: 'Go to the QD Systems homepage', ar: 'الانتقال إلى الصفحة الرئيسية لكيودي سيستمز', zh: '前往 QD Systems 首页', ru: 'Перейти на главную страницу QD Systems' },
     'footer.privacy': { en: 'Privacy Policy', ar: 'سياسة الخصوصية', zh: '隐私政策', ru: 'Конфиденциальность' },
     'footer.terms':   { en: 'Terms & Conditions', ar: 'الشروط والأحكام', zh: '条款与条件', ru: 'Условия использования' },
+    'footer.events':  { en: 'Event management', ar: 'إدارة الفعاليات', zh: '活动管理', ru: 'Управление мероприятиями' },
+    'footer.services.aria': { en: 'Services', ar: 'الخدمات', zh: '服务', ru: 'Услуги' },
+    'svc.more.details': { en: 'More details', ar: 'مزيد من التفاصيل', zh: '更多详情', ru: 'Подробнее' },
 
     /* booking modal */
     'book.title':     { en: 'Book your free call', ar: 'احجز مكالمتك المجانية', zh: '预约你的免费通话', ru: 'Запишитесь на бесплатный звонок' },
@@ -345,6 +348,11 @@
     "home.hero.secondary": { en: "See what we build", ar: "تعرّف على ما نبنيه", zh: "看看我们做什么", ru: "Что мы создаём" },
     "home.svc.tag": { en: "What we build", ar: "ماذا نبني", zh: "我们的服务", ru: "Что мы создаём" },
     "home.svc.h2": { en: "One team for everything digital.", ar: "فريق واحد لكل ما هو رقمي.", zh: "一个团队，搞定所有数字化。", ru: "Одна команда для всего цифрового." },
+    "home.svc.lead1": { en: "Start with what your business needs most.", ar: "ابدأ بما يحتاجه عملك أولاً.", zh: "先从企业最需要的开始。", ru: "Начните с того, что нужнее всего вашему бизнесу." },
+    "home.svc.lead2": { en: "Every piece is built to work with the others, and you only ever deal with us.", ar: "كل جزء نبنيه يتكامل مع البقية، وتتعامل معنا وحدنا من البداية إلى النهاية.", zh: "我们打造的每一部分都能彼此协作，而您始终只需对接我们。", ru: "Каждая часть работает вместе с остальными, а общаетесь вы только с нами." },
+    "home.how.lead1": { en: "No jargon and no handovers between agencies.", ar: "بلا مصطلحات معقّدة، ولا تنقّل بين الوكالات.", zh: "没有晦涩术语，也不用在多家机构之间来回对接。", ru: "Без жаргона и без передачи между агентствами." },
+    "home.how.lead2": { en: "The same people stay with you from the first call.", ar: "الفريق نفسه يرافقك منذ المكالمة الأولى.", zh: "从第一通电话起，始终是同一批人陪伴您。", ru: "С первого звонка с вами одни и те же люди." },
+    "home.proof.lead1": { en: "Everything on this page is something we build for clients.", ar: "كل ما تستخدمه في هذه الصفحة نبنيه لعملائنا أيضاً.", zh: "您在本页面用到的一切，都是我们为客户打造的。", ru: "Всё, чем вы пользуетесь на этой странице, мы делаем и для клиентов." },
     "home.svc.lead": { en: "Start with what your business needs most. Every piece is built to work with the others, and you only ever deal with us.", ar: "ابدأ بما يحتاجه عملك أولاً. كل جزء نبنيه يتكامل مع البقية، وتتعامل معنا وحدنا من البداية إلى النهاية.", zh: "先从企业最需要的开始。我们打造的每一部分都能彼此协作，而您始终只需对接我们。", ru: "Начните с того, что нужнее всего вашему бизнесу. Каждая часть работает вместе с остальными, а общаетесь вы только с нами." },
     "home.svc.web.k": { en: "Website", ar: "المواقع الإلكترونية", zh: "网站", ru: "Сайт" },
     "home.svc.web.h": { en: "Get found and trusted", ar: "حضور يُرى ويُوثق به", zh: "被找到，被信任", ru: "Вас находят и вам доверяют" },

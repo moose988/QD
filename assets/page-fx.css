@@ -6,3 +6,84 @@ body.pg-out .pg-veil{opacity:1;pointer-events:auto}
 .pg-veil b{font-family:"Space Grotesk",system-ui,sans-serif;font-weight:700;font-size:30px;letter-spacing:.22em;color:#e8e8ee;opacity:0;transform:scale(.92);transition:opacity .22s ease .08s,transform .3s cubic-bezier(.16,1,.3,1) .08s}
 body.pg-out .pg-veil b{opacity:.9;transform:none}
 @media(prefers-reduced-motion:reduce){body{animation:none}.pg-veil{display:none}}
+
+/* ════════ per-service transitions (homepage service rows → product page), ~820ms, then navigate ════════
+   Each one is built from a handful of absolutely positioned divs/SVG and animates transform/opacity/clip-path only.
+   The overlay always ends as solid #070708 — the product pages' own background — so the arrival reads as one move. */
+.svx{position:fixed;inset:0;z-index:10050;pointer-events:auto;overflow:hidden;contain:strict;--x:50vw;--y:50vh;--acc:#cfd0d8;--acc-rgb:207,208,216}
+.svx *{position:absolute;box-sizing:border-box}
+.svx-bg{inset:0;background:#070708;animation:svxFade .18s ease-out both}
+.svx-end{inset:0;background:#070708;opacity:0;animation:svxFade .14s ease-in .68s forwards}
+@keyframes svxFade{from{opacity:0}to{opacity:1}}
+
+/* Website — a browser frame wireframes itself in, then expands to become the page */
+.svx--web{--acc:#9dbcff;--acc-rgb:157,188,255}
+.svx--web .w-frame{left:50%;top:50%;width:min(72vw,420px);height:min(52vh,300px);margin:calc(min(52vh,300px)/-2) 0 0 calc(min(72vw,420px)/-2);border:1.5px solid rgba(var(--acc-rgb),.9);border-radius:14px;background:rgba(var(--acc-rgb),.04);box-shadow:0 0 70px rgba(var(--acc-rgb),.22);transform:scale(.82);opacity:0;animation:svxWebIn .26s cubic-bezier(.16,1,.3,1) .04s forwards,svxWebGrow .3s cubic-bezier(.7,0,.84,0) .5s forwards}
+.svx--web .w-bar{left:0;right:0;top:0;height:26px;border-bottom:1px solid rgba(var(--acc-rgb),.5)}
+.svx--web .w-bar i{top:10px;width:6px;height:6px;border-radius:50%;background:rgba(var(--acc-rgb),.7)}
+.svx--web .w-bar i:nth-child(1){left:12px}.svx--web .w-bar i:nth-child(2){left:23px}.svx--web .w-bar i:nth-child(3){left:34px}
+.svx--web .w-b{background:rgba(var(--acc-rgb),.3);border-radius:4px;transform:scaleX(0);transform-origin:0 50%;animation:svxGrowX .24s cubic-bezier(.16,1,.3,1) forwards}
+.svx--web .w-b1{left:8%;top:40px;width:38%;height:9px;animation-delay:.16s}
+.svx--web .w-b2{left:8%;top:58px;width:58%;height:22px;background:rgba(var(--acc-rgb),.6);animation-delay:.22s}
+.svx--web .w-b3{left:8%;top:96px;width:26%;bottom:16%;animation-delay:.3s}
+.svx--web .w-b4{left:37%;top:96px;width:26%;bottom:16%;animation-delay:.35s}
+.svx--web .w-b5{left:66%;top:96px;width:26%;bottom:16%;animation-delay:.4s}
+@keyframes svxWebIn{to{opacity:1;transform:scale(1)}}
+@keyframes svxWebGrow{from{opacity:1;transform:scale(1)}to{opacity:1;transform:scale(3.4)}}
+@keyframes svxGrowX{to{transform:scaleX(1)}}
+
+/* Booking & NFC — rings emanate from the exact point you tapped, a pulse, then the screen fills from that point */
+.svx--nfc{--acc:#86e3c8;--acc-rgb:134,227,200}
+.svx--nfc .svx-bg{background:#070708;clip-path:circle(0 at var(--x) var(--y));animation:svxIris .62s cubic-bezier(.65,0,.35,1) .14s forwards;opacity:1}
+.svx--nfc .n-ring{left:var(--x);top:var(--y);width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;border:2px solid rgba(var(--acc-rgb),1);box-shadow:0 0 24px rgba(var(--acc-rgb),.35);opacity:0;transform:scale(.1);animation:svxRing .7s cubic-bezier(.16,1,.3,1) forwards}
+.svx--nfc .n-ring:nth-of-type(2){animation-delay:.12s}
+.svx--nfc .n-ring:nth-of-type(3){animation-delay:.24s}
+.svx--nfc .n-dot{left:var(--x);top:var(--y);width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:rgba(var(--acc-rgb),.95);box-shadow:0 0 30px rgba(var(--acc-rgb),.7);animation:svxTap .5s cubic-bezier(.16,1,.3,1) forwards}
+@keyframes svxIris{to{clip-path:circle(150% at var(--x) var(--y))}}
+@keyframes svxRing{0%{opacity:.95;transform:scale(.1)}100%{opacity:0;transform:scale(4.6)}}
+@keyframes svxTap{0%{transform:scale(.4);opacity:0}30%{transform:scale(1.15);opacity:1}60%{transform:scale(.9)}100%{transform:scale(1);opacity:.9}}
+
+/* AI chat & automation — a short conversation: bubble, reply, typing dots; then a wipe up */
+.svx--ai{--acc:#c4b6ff;--acc-rgb:196,182,255}
+.svx--ai .a-col{left:50%;top:50%;width:min(76vw,340px);height:180px;margin:-90px 0 0 calc(min(76vw,340px)/-2)}
+.svx--ai .a-b{height:38px;border-radius:19px;opacity:0;transform:translateY(14px) scale(.9);animation:svxPop .26s cubic-bezier(.16,1,.3,1) forwards}
+.svx--ai .a-b1{left:0;top:0;width:62%;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);border-bottom-left-radius:6px;transform-origin:0 100%;animation-delay:.06s}
+.svx--ai .a-b2{right:0;top:52px;width:54%;background:rgba(var(--acc-rgb),.42);border:1px solid rgba(var(--acc-rgb),.8);box-shadow:0 0 30px rgba(var(--acc-rgb),.25);border-bottom-right-radius:6px;transform-origin:100% 100%;animation-delay:.2s}
+.svx--ai .a-b3{left:0;top:104px;width:78px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);border-bottom-left-radius:6px;transform-origin:0 100%;animation-delay:.34s}
+.svx--ai .a-b3 i{top:16px;width:7px;height:7px;border-radius:50%;background:rgba(var(--acc-rgb),.9);animation:svxDot .5s ease-in-out .4s infinite}
+.svx--ai .a-b3 i:nth-child(1){left:20px}.svx--ai .a-b3 i:nth-child(2){left:35px;animation-delay:.5s}.svx--ai .a-b3 i:nth-child(3){left:50px;animation-delay:.6s}
+.svx--ai .a-wipe{inset:0;background:linear-gradient(180deg,rgba(var(--acc-rgb),.22),#070708 18%);clip-path:inset(100% 0 0 0);animation:svxWipe .3s cubic-bezier(.7,0,.3,1) .54s forwards}
+@keyframes svxPop{to{opacity:1;transform:none}}
+@keyframes svxDot{0%,100%{transform:translateY(0);opacity:.45}50%{transform:translateY(-4px);opacity:1}}
+@keyframes svxWipe{to{clip-path:inset(0 0 0 0)}}
+
+/* Business dashboards — bars rise, a trend line draws across them, then the chart zooms into the page */
+.svx--dash{--acc:#ffd085;--acc-rgb:255,208,133}
+.svx--dash .d-chart{left:50%;top:50%;width:min(70vw,360px);height:180px;margin:-90px 0 0 calc(min(70vw,360px)/-2);border-bottom:1px solid rgba(255,255,255,.18);animation:svxZoom .28s cubic-bezier(.7,0,.84,0) .56s forwards}
+.svx--dash .d-bar{bottom:0;width:12%;border-radius:5px 5px 0 0;background:linear-gradient(180deg,rgba(var(--acc-rgb),.75),rgba(var(--acc-rgb),.18));transform:scaleY(0);transform-origin:50% 100%;animation:svxGrowY .3s cubic-bezier(.16,1,.3,1) forwards}
+.svx--dash .d-bar:nth-child(1){left:4%;height:34%;animation-delay:.06s}
+.svx--dash .d-bar:nth-child(2){left:24%;height:52%;animation-delay:.11s}
+.svx--dash .d-bar:nth-child(3){left:44%;height:44%;animation-delay:.16s}
+.svx--dash .d-bar:nth-child(4){left:64%;height:70%;animation-delay:.21s}
+.svx--dash .d-bar:nth-child(5){left:84%;height:88%;animation-delay:.26s}
+.svx--dash svg{left:0;top:0;width:100%;height:100%;overflow:visible;z-index:2}
+.svx--dash svg polyline{fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;animation:svxDraw .3s ease-out .28s forwards;filter:drop-shadow(0 0 6px rgba(var(--acc-rgb),.8))}
+@keyframes svxGrowY{to{transform:scaleY(1)}}
+@keyframes svxDraw{to{stroke-dashoffset:0}}
+@keyframes svxZoom{to{transform:scale(5);opacity:0}}
+
+/* Events — an envelope arrives, the flap opens, the invitation card slides out and becomes the page */
+.svx--ev{--acc:#f2bfae;--acc-rgb:242,191,174}
+.svx--ev .e-env{left:50%;top:54%;width:min(64vw,300px);height:min(42vw,196px);margin:calc(min(42vw,196px)/-2) 0 0 calc(min(64vw,300px)/-2);perspective:700px;opacity:0;transform:translateY(16px);animation:svxPop .24s cubic-bezier(.16,1,.3,1) .04s forwards}
+.svx--ev .e-back{inset:0;border-radius:10px;background:#141317;border:1px solid rgba(var(--acc-rgb),.38)}
+.svx--ev .e-card{left:7%;right:7%;top:10%;bottom:8%;border-radius:8px;background:linear-gradient(160deg,#f6efe9,#d9c9c0);transform:translateY(0);animation:svxCard .3s cubic-bezier(.16,1,.3,1) .42s forwards,svxCardFill .22s cubic-bezier(.7,0,.84,0) .66s forwards}
+.svx--ev .e-card::before{content:"";position:absolute;left:22%;right:22%;top:24%;height:7px;border-radius:4px;background:rgba(20,18,22,.35);box-shadow:0 18px 0 -1px rgba(20,18,22,.18),0 32px 0 -1px rgba(20,18,22,.18)}
+.svx--ev .e-front{left:0;right:0;bottom:0;height:62%;border-radius:0 0 10px 10px;background:linear-gradient(160deg,#1b1a1f,#121115);border:1px solid rgba(var(--acc-rgb),.38);border-top:0;clip-path:polygon(0 0,50% 46%,100% 0,100% 100%,0 100%)}
+.svx--ev .e-flap{left:0;right:0;top:0;height:58%;background:linear-gradient(180deg,#22202a,#17161b);clip-path:polygon(0 0,100% 0,50% 100%);transform-origin:50% 0;animation:svxFlap .26s cubic-bezier(.6,0,.4,1) .2s forwards;backface-visibility:hidden}
+.svx--ev .e-seal{left:50%;top:58%;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe0d4,rgba(var(--acc-rgb),1) 55%,#b98473);box-shadow:0 0 18px rgba(var(--acc-rgb),.6);animation:svxSeal .2s ease-in .14s forwards}
+@keyframes svxFlap{to{transform:rotateX(180deg);opacity:.25}}
+@keyframes svxSeal{to{transform:scale(.2);opacity:0}}
+@keyframes svxCard{to{transform:translateY(-46%)}}
+@keyframes svxCardFill{from{transform:translateY(-46%)}to{transform:translateY(-46%) scale(4.5);opacity:.2}}
+
+@media(prefers-reduced-motion:reduce){.svx{display:none}}
