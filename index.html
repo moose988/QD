@@ -1416,50 +1416,74 @@ main>#faq{background:linear-gradient(180deg,var(--bg) 0%,#0b0c0f 40%,var(--bg) 1
   }
 }
 
-/* ════════ QD HUB SCENE — a quiet, fixed background layer: the QD mark is the hub, five service nodes orbit it,
-   one spoke at a time pulses QD → node. Small and beside/above the copy on the first screen, then eases into a dim
-   background role for the rest of the page (the pulse follows the section in view). Decorative (aria-hidden),
-   transform/opacity/stroke-dashoffset only, no filters, paused when the tab is hidden. ════════ */
+/* ════════ HERO KNOT (fixed layer, hero phase only) + QD HUB LANDING (in flow, between the hero and "What we build") ════════ */
 .qd-bg-scene{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden;contain:strict}
 .qd-stage{position:absolute;left:0;top:0;width:360px;height:280px;transform-origin:50% 50%;opacity:0;will-change:transform,opacity}
-@media(min-width:769px){.qd-stage{width:720px;height:540px}.qd-stage--knot{width:840px;height:640px}}
+@media(min-width:769px){.qd-stage{width:840px;height:640px}}
 .qd-stage #gl{position:absolute;left:0;top:0;right:auto;width:100%;height:100%;max-width:none;transform:none;opacity:.5;filter:none;display:block;z-index:auto}
-.qd-stage .hero-glow{position:absolute;left:50%;top:50%;width:0;height:0;opacity:1}
-.qd-stage .hero-glow i{position:absolute;left:calc(var(--gs,300px)/-2);top:calc(var(--gs,300px)/-2);width:var(--gs,300px);height:var(--gs,300px);border-radius:50%;background:radial-gradient(circle,rgba(214,220,232,.14) 0%,rgba(214,220,232,.06) 34%,rgba(214,220,232,0) 68%)}
-.qd-stage .hero-scene{position:absolute;inset:0}
-.qd-stage .hero-scene svg{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible}
-/* the copy no longer sits over a canvas: drop the old hero darkening veil, and let the dark section washes breathe */
 .qd-hero::before{content:none!important}
-html main>#work,html main>#nfc,html main>#why,html main>#faq{background:radial-gradient(1200px 520px at 32% -12%,rgba(255,255,255,.04),transparent 62%),linear-gradient(180deg,rgba(7,7,8,0) 0%,rgba(13,14,17,.5) 22%,rgba(10,11,14,.5) 78%,rgba(7,7,8,0) 100%)!important}
-.on-ring{fill:none;stroke:rgba(255,255,255,.09);stroke-width:1;vector-effect:non-scaling-stroke}
-.on-line{stroke:rgba(214,219,230,.14);stroke-width:1;fill:none;vector-effect:non-scaling-stroke}
+
+/* the landing block: reserved height, tucked into the existing gap (negative margins eat the empty padding around it) */
+.qd-land{position:relative;z-index:5;height:270px;margin:-104px 0 -40px;pointer-events:none;overflow:hidden}
+.qd-land-in{position:absolute;inset:0;max-width:760px;margin:0 auto}
+.qd-land-in svg{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible}
+/* before it lands: just a faint orbit trace, so the gap never looks empty */
+.qd-land-in::before{content:"";position:absolute;left:7%;right:7%;top:50%;height:34%;transform:translateY(-50%) rotate(-6deg);border:1px solid rgba(255,255,255,.055);border-radius:50%;transition:opacity .8s}
+.qd-land.is-landed .qd-land-in::before{opacity:0}
+.qd-land-glow{position:absolute;left:50%;top:50%;width:200px;height:200px;margin:-100px 0 0 -100px;border-radius:50%;background:radial-gradient(circle,rgba(214,220,232,.13) 0%,rgba(214,220,232,.05) 36%,rgba(214,220,232,0) 68%);opacity:0;transition:opacity 1.2s var(--ease) .5s}
+.qd-land.is-landed .qd-land-glow{opacity:1}
+@media(min-width:769px){
+  .qd-land{height:400px;margin:-70px 0 -56px}
+  .qd-land-in{max-width:min(860px,92vw)}
+  .qd-land-glow{width:320px;height:320px;margin:-160px 0 0 -160px}
+}
+.on-ring{fill:none;stroke:rgba(255,255,255,.1);stroke-width:1;stroke-dasharray:1 1;stroke-dashoffset:1}
+.on-line{stroke:rgba(214,219,230,.16);stroke-width:1;fill:none;opacity:0}
 .on-pulse{stroke:#fff;stroke-width:1.5;stroke-linecap:round;fill:none;stroke-dasharray:.16 2;stroke-dashoffset:.16;opacity:.9}
+.on-pop{opacity:0;transform:scale(0)}
 .on-body{transition:transform .55s var(--ease-out)}
 .on-disc{fill:url(#onFill);stroke:url(#onRim);stroke-width:1}
 .on-ic{fill:none;stroke:#cfd2da;stroke-width:1.35;stroke-linecap:round;stroke-linejoin:round;transition:stroke .5s}
 .on-ic .f{fill:#cfd2da;stroke:none;transition:fill .5s}
 .on-halo{fill:url(#onHalo);opacity:0;transition:opacity .6s var(--ease)}
-.on-node.is-lit .on-halo,.on-node.is-active .on-halo{opacity:1}
-.on-node.is-active .on-halo{opacity:.55}
+.on-node.is-lit .on-halo{opacity:1}
 .on-node.is-lit .on-body{transform:scale(1.12)}
-.on-node.is-lit .on-ic,.on-node.is-active .on-ic{stroke:#fff}
-.on-node.is-lit .on-ic .f,.on-node.is-active .on-ic .f{fill:#fff}
-/* QD hub mark */
+.on-node.is-lit .on-ic{stroke:#fff}
+.on-node.is-lit .on-ic .f{fill:#fff}
+.qd-hub{opacity:0;transform-box:fill-box;transform-origin:50% 50%}
 .qd-hubdisc{fill:#0b0b0d;stroke:url(#onRim);stroke-width:1.2}
-.qd-hubring{fill:none;stroke:rgba(232,236,244,.5);stroke-width:1;transform-box:fill-box;transform-origin:50% 50%;opacity:0}
-.qd-hubmark{opacity:.95}
+.qd-hubring,.qd-ripple{fill:none;stroke:rgba(232,236,244,.55);stroke-width:1;transform-box:fill-box;transform-origin:50% 50%;opacity:0}
+/* landed (also the reduced-motion static state) */
+.qd-land.is-landed .qd-hub{opacity:1}
+.qd-land.is-landed .on-ring{stroke-dashoffset:0}
+.qd-land.is-landed .on-line{opacity:1}
+.qd-land.is-landed .on-pop{opacity:1;transform:none}
 @media(prefers-reduced-motion:no-preference){
-  .qd-stage .hero-glow i{animation:qdHubBreathe 7s ease-in-out infinite}
-  @keyframes qdHubBreathe{0%,100%{transform:scale(.9);opacity:.6}50%{transform:scale(1.06);opacity:1}}
-  .qd-hubring{animation:qdHubRing 3.8s cubic-bezier(.2,.7,.3,1) infinite}
-  .qd-hubring.r2{animation-delay:1.9s}
-  @keyframes qdHubRing{0%{transform:scale(1);opacity:.55}100%{transform:scale(1.9);opacity:0}}
-  .qd-bg-scene.is-paused .hero-glow i,.qd-bg-scene.is-paused .qd-hubring{animation-play-state:paused}
+  /* 1) QD drops in from above and settles with a small overshoot */
+  .qd-land.is-landed .qd-hub{animation:qdDrop .95s cubic-bezier(.3,1.35,.5,1) both}
+  @keyframes qdDrop{0%{opacity:0;transform:translateY(-150px) scale(.9)}35%{opacity:1}72%{transform:translateY(5px) scale(1.02)}100%{opacity:1;transform:none}}
+  /* 2) a ripple spreads from the impact point */
+  .qd-land.is-landed .qd-ripple{animation:qdRipple 1.3s cubic-bezier(.2,.7,.3,1) .62s both}
+  .qd-land.is-landed .qd-ripple.r2{animation-delay:.8s}
+  @keyframes qdRipple{0%{opacity:.7;transform:scale(1)}100%{opacity:0;transform:scale(4.2)}}
+  /* 3) the orbit draws in */
+  .qd-land.is-landed .on-ring{transition:stroke-dashoffset 1.3s var(--ease) .75s}
+  /* 4) the five nodes pop out one by one, their spokes after them */
+  .qd-land.is-landed .on-pop{animation:qdPop .6s cubic-bezier(.3,1.5,.5,1) both}
+  @keyframes qdPop{0%{opacity:0;transform:scale(0)}100%{opacity:1;transform:none}}
+  .qd-land.is-landed .on-line{transition:opacity .6s var(--ease)}
+  /* 5) after landing: the hub breathes */
+  .qd-land.is-live .qd-hubring{animation:qdHubRing 3.8s cubic-bezier(.2,.7,.3,1) infinite}
+  .qd-land.is-live .qd-hubring.r2{animation-delay:1.9s}
+  @keyframes qdHubRing{0%{transform:scale(1);opacity:.5}100%{transform:scale(1.9);opacity:0}}
+  .qd-land.is-live .qd-land-glow{animation:qdHubBreathe 7s ease-in-out infinite}
+  @keyframes qdHubBreathe{0%,100%{transform:scale(.9);opacity:.65}50%{transform:scale(1.06);opacity:1}}
+  .qd-land.is-paused .qd-hubring,.qd-land.is-paused .qd-land-glow{animation-play-state:paused}
   /* "Digitally." — two sweeps on arrival, then one calm sweep every ~11s */
   body.ready h1.hero .hero-line--quiet .word{animation:qdDigSweep 2.6s var(--ease) 1.5s 2 both,qdDigSweepLoop 11s var(--ease) 6.7s infinite}
   @keyframes qdDigSweepLoop{0%{background-position:100% 0}22%,100%{background-position:0 0}}
 }
-@media(prefers-reduced-motion:reduce){.qd-hubring{opacity:.35;transform:scale(1.25)}.qd-hubring.r2{display:none}}
+@media(prefers-reduced-motion:reduce){.qd-land .qd-hubring{opacity:.3;transform:scale(1.3)}.qd-land .qd-hubring.r2{display:none}}
 
 /* ════════ WIDE-LAPTOP CONTAINER — every section below the hero shares one centred content box
    (1144px at 1440, ~1180px from 1500 up) so section edges line up with their headings instead of drifting to the screen edges. ════════ */
@@ -1504,8 +1528,8 @@ html main>#work,html main>#nfc,html main>#why,html main>#faq{background:radial-g
 <button type="button" id="introSkip">Skip intro</button>
 
 <div class="bg-fx" aria-hidden="true"><div class="glow a"></div><div class="glow b"></div></div>
-<!-- QD hub scene: fixed, behind all content. QD powers five services (orbiting nodes); the knot is a quiet shape behind the mark. -->
-<div class="qd-bg-scene" aria-hidden="true"><div class="qd-stage qd-stage--knot"><canvas id="gl"></canvas></div><div class="qd-stage qd-stage--hub"><div class="hero-glow"><i></i></div><div class="hero-scene"></div></div></div>
+<!-- hero knot: fixed layer, hero phase only (scrolls with the copy, fades out, stops rendering) -->
+<div class="qd-bg-scene" aria-hidden="true"><div class="qd-stage qd-stage--knot"><canvas id="gl"></canvas></div></div>
 <div class="grain" aria-hidden="true"></div><div class="vignette" aria-hidden="true"></div>
 <div id="progress" aria-hidden="true"></div>
 
@@ -1563,6 +1587,9 @@ html main>#work,html main>#nfc,html main>#why,html main>#faq{background:radial-g
     </div>
   </div>
 </header>
+
+<!-- QD hub "lands" here: QD powers the five services. Decorative; height is reserved so nothing shifts. -->
+<div class="qd-land" aria-hidden="true"><div class="qd-land-in"><div class="qd-land-glow"></div></div></div>
 
 <main id="main">
 
@@ -2174,16 +2201,56 @@ if(document.readyState==='complete')qdGLWhenIdle();else addEventListener('load',
   addEventListener('scroll',function(){if(scrollY>40)b.classList.add('qd-scrolled');},{passive:true});
 })();
 
-/* QD hub scene — fixed background layer. The QD mark is the hub; five service nodes orbit it on one slow tilted ring and
-   a pulse travels QD → node, one at a time. First screen: small, in the free space (above the kicker on phones,
-   beside the copy on desktop), never over any text. Scrolling eases it into a dim background role; the pulse then
-   points at the service that matches the section in view. Everything is transform/opacity/dashoffset on one layer. */
+/* Hero knot + QD hub landing.
+   Knot: fixed layer, hero phase only — sits in the free space (above the kicker on phones, beside the copy on desktop),
+   scrolls with the copy, fades out across the hero and then stops rendering (window.qdKnotHidden + 'qd:knot').
+   Hub: an in-flow block in the gap under the hero. When it scrolls into view (once) QD drops in and settles, a ripple
+   spreads, the orbit draws in, the five service nodes pop out one by one, then a slow orbit with one pulse at a time
+   from QD to each node. SVG/CSS only; the loop pauses off-screen and when the tab is hidden. */
 (function(){
-  var layer=document.querySelector('.qd-bg-scene'),stage=layer&&layer.querySelector('.qd-stage--hub'),kstage=layer&&layer.querySelector('.qd-stage--knot'),host=stage&&stage.querySelector('.hero-scene'),glow=stage&&stage.querySelector('.hero-glow');
-  var hero=document.querySelector('.qd-hero');
-  if(!layer||!stage||!kstage||!host||!hero||!document.createElementNS)return;
+  var hero=document.querySelector('.qd-hero'),kstage=document.querySelector('.qd-stage--knot');
+  var land=document.querySelector('.qd-land'),host=land&&land.querySelector('.qd-land-in');
   var rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
   var fine=matchMedia('(hover:hover) and (pointer:fine)').matches;
+
+  /* ---------- knot (hero phase) ---------- */
+  if(hero&&kstage){
+    var K={},shown=false,hidden=false;
+    var cl=function(v){return v<0?0:v>1?1:v;};
+    var plan=function(){
+      var vw=innerWidth,vh=innerHeight,desk=vw>769,rtl=document.documentElement.dir==='rtl',y0=scrollY,hr=hero.getBoundingClientRect();
+      var kick=hero.querySelector('.hero-kicker'),col=hero.querySelector('.hero-col');
+      var nav=document.querySelector('body>nav'),navB=nav?Math.max(0,nav.getBoundingClientRect().top)+nav.getBoundingClientRect().height:64;
+      var KW=desk?840:360,KH=desk?640:280,kR=KH*.31+6,k;
+      if(!desk||!col||col.getBoundingClientRect().width>vw*.7){
+        var kt=kick?kick.getBoundingClientRect().top+y0:hr.top+y0+260,top=navB+6,bot=kt-14;
+        k={x:vw/2,y:(top+bot)/2,s:Math.min(1,(bot-top)/(2*kR))};
+      }else{
+        var cr=col.getBoundingClientRect(),lo=rtl?24:cr.right+40,hi=rtl?cr.left-40:vw-24,t0=navB+20,b0=Math.min(vh,hr.bottom+y0)-40;
+        k={x:(lo+hi)/2,y:(t0+b0)/2,s:Math.min(1,(hi-lo)/(2*kR),(b0-t0)/(2*kR))};
+      }
+      K={k:k,KW:KW,KH:KH,H:Math.max(hr.height,vh*.8)};
+    };
+    var lastY=-1;
+    var placeKnot=function(force){
+      var y=scrollY;if(!force&&y===lastY)return;lastY=y;
+      var op=1-cl((y-.15*K.H)/(.45*K.H)),s=K.k.s*(1-.08*cl(y/K.H));
+      kstage.style.transform='translate3d('+(K.k.x-K.KW/2).toFixed(1)+'px,'+(K.k.y-y-K.KH/2).toFixed(1)+'px,0) scale('+s.toFixed(4)+')';
+      kstage.style.opacity=shown?op.toFixed(3):'0';
+      kstage.style.visibility=op<=0?'hidden':'';
+      var h=op<=0;if(h!==hidden){hidden=h;window.qdKnotHidden=h;dispatchEvent(new Event('qd:knot'));}
+    };
+    var tick=false;
+    addEventListener('scroll',function(){if(tick)return;tick=true;requestAnimationFrame(function(){tick=false;placeKnot(false);});},{passive:true});
+    var relayK=function(){plan();placeKnot(true);};
+    addEventListener('resize',(window.qdOnResize?qdOnResize(relayK):relayK),{passive:true});
+    addEventListener('qd:langchange',function(){setTimeout(relayK,120);});
+    var kStart=function(){plan();shown=true;placeKnot(true);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(relayK);};
+    (function wait(){if(document.body.classList.contains('ready'))kStart();else setTimeout(wait,120);})();
+  }
+
+  /* ---------- QD hub landing ---------- */
+  if(!land||!host||!document.createElementNS)return;
   var NS='http://www.w3.org/2000/svg';
   var ICONS=[
     '<rect x="-6.5" y="-5" width="13" height="10" rx="2"/><path d="M-6.5 -1.6h13"/><circle class="f" cx="-4.4" cy="-3.3" r=".65"/><circle class="f" cx="-2.5" cy="-3.3" r=".65"/>',
@@ -2192,93 +2259,41 @@ if(document.readyState==='complete')qdGLWhenIdle();else addEventListener('load',
     '<path d="M-6.5 5.5h13"/><path d="M-4.2 3v-3.4"/><path d="M0 3v-8"/><path d="M4.2 3v-5.4"/>',
     '<rect x="-6.5" y="-4.8" width="13" height="9.6" rx="1.6"/><path d="M-6 -4l6 4.6 6 -4.6"/>'
   ];
-  /* section in view → which service the pulse points at (website, booking/NFC, AI chat, dashboard, events) */
-  var SECTIONS=['build','how','work','faq','contact'];
-  var N=5,nodes=[],G={},built=false;
+  var N=5,nodes=[],G,svg;
   function el(tag,attrs){var e=document.createElementNS(NS,tag);for(var k in attrs)e.setAttribute(k,attrs[k]);return e;}
-  /* stage geometry (stage px; hub at the centre) */
-  function geom(){
-    var desk=innerWidth>769,SW=desk?720:360,SH=desk?540:280;
-    return {SW:SW,SH:SH,cx:SW/2,cy:SH/2,rx:SW*.455,ry:SH*.17,tilt:(desk?-9:-6)*Math.PI/180,nr:desk?22:15,hr:desk?40:27,knotR:SH*.31};
-  }
+  function geom(){var desk=innerWidth>769,SW=desk?760:360,SH=desk?400:270;return {desk:desk,SW:SW,SH:SH,cx:SW/2,cy:SH/2,rx:SW*(desk?.44:.43),ry:SH*(desk?.22:.17),tilt:(desk?-8:-6)*Math.PI/180,nr:desk?22:15,hr:desk?40:27};}
   function build(){
-    G=geom();
-    var svg=el('svg',{focusable:'false','aria-hidden':'true',viewBox:'0 0 '+G.SW+' '+G.SH});
+    G=geom();nodes=[];if(svg)svg.remove();
+    svg=el('svg',{focusable:'false','aria-hidden':'true',viewBox:'0 0 '+G.SW+' '+G.SH,preserveAspectRatio:'xMidYMid meet'});
     var ct=Math.cos(G.tilt),st=Math.sin(G.tilt),ax=G.rx*ct,ay=G.rx*st,deg=(G.tilt*180/Math.PI).toFixed(2);
     var ring='M'+(G.cx+ax)+' '+(G.cy+ay)+'A'+G.rx+' '+G.ry+' '+deg+' 1 1 '+(G.cx-ax)+' '+(G.cy-ay)+'A'+G.rx+' '+G.ry+' '+deg+' 1 1 '+(G.cx+ax)+' '+(G.cy+ay);
+    var c='cx="'+G.cx+'" cy="'+G.cy+'"';
     svg.innerHTML='<defs>'+
       '<radialGradient id="onFill" cx=".34" cy=".28" r=".85"><stop offset="0" stop-color="#3b3e46"/><stop offset=".55" stop-color="#1e2025"/><stop offset="1" stop-color="#121316"/></radialGradient>'+
       '<linearGradient id="onRim" x1="0" y1="0" x2=".6" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".65"/><stop offset=".5" stop-color="#fff" stop-opacity=".14"/><stop offset="1" stop-color="#fff" stop-opacity=".34"/></linearGradient>'+
       '<radialGradient id="onHalo"><stop offset="0" stop-color="#e6eaf2" stop-opacity=".34"/><stop offset=".45" stop-color="#e6eaf2" stop-opacity=".1"/><stop offset="1" stop-color="#e6eaf2" stop-opacity="0"/></radialGradient>'+
-      '<clipPath id="qdHubClip"><circle cx="'+G.cx+'" cy="'+G.cy+'" r="'+(G.hr-1)+'"/></clipPath>'+
-      '</defs><path class="on-ring" d="'+ring+'"/><g class="on-lines"></g>'+
-      /* the QD mark: the brand logo (dark JPEG) clipped into a silver-rimmed disc, with two slow breathing rings */
-      '<g class="qd-hub"><circle class="qd-hubring" cx="'+G.cx+'" cy="'+G.cy+'" r="'+G.hr+'"/><circle class="qd-hubring r2" cx="'+G.cx+'" cy="'+G.cy+'" r="'+G.hr+'"/>'+
-      '<circle class="qd-hubdisc" cx="'+G.cx+'" cy="'+G.cy+'" r="'+G.hr+'"/>'+
-      '<image class="qd-hubmark" href="assets/qd-logo.jpeg" x="'+(G.cx-G.hr*1.12)+'" y="'+(G.cy-G.hr*1.12)+'" width="'+(G.hr*2.24)+'" height="'+(G.hr*2.24)+'" clip-path="url(#qdHubClip)" preserveAspectRatio="xMidYMid slice"/>'+
-      '<circle cx="'+G.cx+'" cy="'+G.cy+'" r="'+G.hr+'" fill="none" stroke="url(#onRim)" stroke-width="1.2"/></g>'+
-      '<g class="on-nodes"></g>';
+      '<clipPath id="qdHubClip"><circle '+c+' r="'+(G.hr-1)+'"/></clipPath></defs>'+
+      '<path class="on-ring" pathLength="1" d="'+ring+'"/><g class="on-lines"></g>'+
+      '<circle class="qd-ripple" '+c+' r="'+G.hr+'"/><circle class="qd-ripple r2" '+c+' r="'+G.hr+'"/>'+
+      '<g class="qd-hub"><circle class="qd-hubring" '+c+' r="'+G.hr+'"/><circle class="qd-hubring r2" '+c+' r="'+G.hr+'"/>'+
+      '<circle class="qd-hubdisc" '+c+' r="'+G.hr+'"/>'+
+      '<image href="assets/qd-logo.jpeg" x="'+(G.cx-G.hr*1.12)+'" y="'+(G.cy-G.hr*1.12)+'" width="'+(G.hr*2.24)+'" height="'+(G.hr*2.24)+'" clip-path="url(#qdHubClip)" preserveAspectRatio="xMidYMid slice"/>'+
+      '<circle '+c+' r="'+G.hr+'" fill="none" stroke="url(#onRim)" stroke-width="1.2"/></g><g class="on-nodes"></g>';
     var gl=svg.querySelector('.on-lines'),gn=svg.querySelector('.on-nodes');
     for(var i=0;i<N;i++){
       var line=el('line',{'class':'on-line'}),pulse=el('line',{'class':'on-pulse',pathLength:'1'});
+      line.style.transitionDelay=(1.2+i*.13)+'s';
       gl.appendChild(line);gl.appendChild(pulse);
-      var g=el('g',{'class':'on-node'}),body=el('g',{'class':'on-body'});
+      var g=el('g',{'class':'on-node'}),pop=el('g',{'class':'on-pop'}),body=el('g',{'class':'on-body'});
+      pop.style.animationDelay=(1.05+i*.13)+'s';
       body.innerHTML='<circle class="on-halo" r="40"/><circle class="on-disc" r="16"/><g class="on-ic">'+ICONS[i]+'</g>';
-      g.appendChild(body);gn.appendChild(g);
-      nodes.push({g:g,body:body,line:line,pulse:pulse,pulseT:null,lit:0});
+      pop.appendChild(body);g.appendChild(pop);gn.appendChild(g);
+      nodes.push({g:g,line:line,pulse:pulse,pulseT:null,lit:0});
     }
     host.appendChild(svg);
-    glow.style.setProperty('--gs',Math.round(G.hr*5.5)+'px');
-    built=true;
+    draw();
   }
-  /* two phases, never on screen together:
-     1) hero — ONLY the 3D knot, in the free space (above the kicker on phones, beside the copy on desktop); it scrolls
-        with the content (so it can never slide over the copy) and fades out across the hero; when gone it stops rendering.
-     2) after the hero — ONLY the QD hub + orbit, a dim fixed background layer; it fades in once the knot is below ~10%. */
-  var P={};
-  function plan(){
-    var vw=innerWidth,vh=innerHeight,desk=vw>769,rtl=document.documentElement.dir==='rtl';
-    var y0=scrollY,hr=hero.getBoundingClientRect();
-    var kick=hero.querySelector('.hero-kicker'),col=hero.querySelector('.hero-col');
-    var nav=document.querySelector('body>nav'),navB=nav?Math.max(0,nav.getBoundingClientRect().top)+nav.getBoundingClientRect().height:64;
-    var KW=desk?840:360,KH=desk?640:280,kR=KH*.31+6; /* knot radius in its stage */
-    var k;
-    if(!desk||!col||col.getBoundingClientRect().width>vw*.7){
-      var kt=kick?kick.getBoundingClientRect().top+y0:hr.top+y0+260;
-      var top=navB+6,bot=kt-14;
-      k={x:vw/2,y:(top+bot)/2,s:Math.min(1,(bot-top)/(2*kR),(vw-8)/KW*1.6)};
-    }else{
-      var cr=col.getBoundingClientRect();
-      var lo=rtl?24:cr.right+40,hi=rtl?cr.left-40:vw-24,t0=navB+20,b0=Math.min(vh,hr.bottom+y0)-40;
-      k={x:(lo+hi)/2,y:(t0+b0)/2,s:Math.min(1,(hi-lo)/(2*kR),(b0-t0)/(2*kR))};
-    }
-    /* hub scene, background role */
-    var halfW=G.rx+G.nr+6,halfH=Math.max(G.hr*1.9,G.ry+G.nr)+4,b1;
-    if(!desk){b1={x:vw/2,y:vh*.42,s:Math.min(1.05,(vw-12)/(2*halfW)),o:.3};}
-    else{var s1=Math.min(.95,(vw*.5)/(2*halfW),(vh*.8)/(2*halfH));var off=halfW*s1+24;b1={x:rtl?off:vw-off,y:vh*.42,s:s1,o:.26};}
-    P={k:k,KW:KW,KH:KH,b1:b1,vh:vh,heroH:Math.max(hr.height,vh*.8)};
-  }
-  function cl(v){return v<0?0:v>1?1:v;}
-  var cur={},shown=false,hubOp=0,knotHidden=false;
-  function place(force){
-    var y=scrollY,H=P.heroH;
-    var kOp=1-cl((y-.15*H)/(.45*H));                        /* knot: 1 → 0 between 15% and 60% of the hero */
-    var hOp=kOp<.1?cl((y-.62*H)/(.25*H)):0;                   /* hub: 0 → 1 between 62% and 87%, only once the knot is (nearly) gone */
-    var k=P.k,ks=k.s*(1-.08*cl(y/H)),b=P.b1,drift=rm?0:Math.sin(y/1100)*12*hOp;
-    var key=y+'|'+(force?Math.random():0);
-    if(key===cur.key)return;cur.key=key;
-    kstage.style.transform='translate3d('+(k.x-P.KW/2).toFixed(1)+'px,'+(k.y-y-P.KH/2).toFixed(1)+'px,0) scale('+ks.toFixed(4)+')';
-    kstage.style.opacity=shown?kOp.toFixed(3):'0';
-    kstage.style.visibility=kOp<=0?'hidden':'';
-    stage.style.transform='translate3d('+(b.x-G.SW/2).toFixed(1)+'px,'+(b.y+drift-G.SH/2).toFixed(1)+'px,0) scale('+b.s.toFixed(4)+')';
-    stage.style.opacity=shown?(hOp*b.o).toFixed(3):'0';
-    stage.style.visibility=hOp<=0?'hidden':'';
-    hubOp=hOp;bgRole=hOp>0;
-    var kh=kOp<=0;if(kh!==knotHidden){knotHidden=kh;window.qdKnotHidden=kh;dispatchEvent(new Event('qd:knot'));}
-  }
-  /* orbit + pulses */
-  var ang=-Math.PI/2+0.45,SPEED=(Math.PI*2)/64,PULSE=0.9,clock=0,next=1.2,turn=0,px=0,py=0,bgRole=false,active=-1;
-  function fire(i){var n=nodes[i];n.pulseT=0;}
+  var ang=-Math.PI/2+0.62,SPEED=(Math.PI*2)/64,PULSE=.9,clock=0,next=.4,turn=0,px=0,py=0;
   function draw(dt){
     var s=G.nr/16,ct=Math.cos(G.tilt),st=Math.sin(G.tilt);
     if(fine&&!rm&&typeof mx!=='undefined'){px+=((mx-.5)*12-px)*.05;py+=((my-.5)*8-py)*.05;}
@@ -2286,12 +2301,10 @@ if(document.readyState==='complete')qdGLWhenIdle();else addEventListener('load',
       var n=nodes[i],a=ang+i*Math.PI*2/N,ex=G.rx*Math.cos(a),ey=G.ry*Math.sin(a),k=.5+.5*Math.sin(a),par=.4+.6*k;
       var x=G.cx+ex*ct-ey*st+px*par,y=G.cy+ex*st+ey*ct+py*par;
       n.g.setAttribute('transform','translate('+x.toFixed(1)+' '+y.toFixed(1)+') scale('+(s*(.84+.16*k)).toFixed(3)+')');
-      n.body.style.opacity=(.5+.5*k).toFixed(3);
-      var dx=x-G.cx,dy=y-G.cy,d=Math.sqrt(dx*dx+dy*dy)||1,ux=dx/d,uy=dy/d;
-      var r0=Math.min(G.hr*1.15,d*.5),x1=G.cx+ux*r0,y1=G.cy+uy*r0,x2=x-ux*G.nr*1.05,y2=y-uy*G.nr*1.05;
-      var at={x1:x1.toFixed(1),y1:y1.toFixed(1),x2:x2.toFixed(1),y2:y2.toFixed(1)};
+      n.g.style.opacity=(.55+.45*k).toFixed(3);
+      var dx=x-G.cx,dy=y-G.cy,d=Math.sqrt(dx*dx+dy*dy)||1,ux=dx/d,uy=dy/d,r0=Math.min(G.hr*1.15,d*.5);
+      var at={x1:(G.cx+ux*r0).toFixed(1),y1:(G.cy+uy*r0).toFixed(1),x2:(x-ux*G.nr*1.05).toFixed(1),y2:(y-uy*G.nr*1.05).toFixed(1)};
       for(var q in at){n.line.setAttribute(q,at[q]);n.pulse.setAttribute(q,at[q]);}
-      n.line.style.opacity=(i===active?1:.45+.55*k).toFixed(3);
       if(n.pulseT!=null&&dt!=null){
         n.pulseT+=dt;var p=Math.min(1,n.pulseT/PULSE),e=1-Math.pow(1-p,3);
         n.pulse.style.strokeDashoffset=(.16-e*1.18).toFixed(3);
@@ -2300,55 +2313,34 @@ if(document.readyState==='complete')qdGLWhenIdle();else addEventListener('load',
       }
     }
   }
-  function setActive(i){
-    if(i===active)return;active=i;
-    nodes.forEach(function(n,j){n.g.classList.toggle('is-active',j===i);});
-    if(rm&&i>=0){/* static: show the matching spoke lit */nodes.forEach(function(n,j){n.pulse.style.strokeDashoffset=j===i?'-.5':'';n.pulse.style.strokeDasharray=j===i?'1 0':'';});}
-  }
-  var running=false,last=0,visible=!document.hidden,frameN=0,mobile=innerWidth<=768;
+  var landed=false,live=false,inView=false,visible=!document.hidden,running=false,last=0;
   function frame(now){
     if(!running)return;requestAnimationFrame(frame);
     var dt=Math.min(.05,(now-(last||now))/1000);last=now;
-    place(false);
-    if(!bgRole)return; /* hub hidden (hero phase): nothing to animate */
-    /* on phones, 30fps is plenty for a dim background */
-    frameN++;if(mobile&&(frameN&1))return;
-    if(mobile&&bgRole)dt*=2;
     ang+=SPEED*dt;clock+=dt;
-    if(clock>=next){
-      if(active>=0){next=clock+2.6;fire(active);}
-      else{next=clock+1.9;fire(turn%N);turn++;}
-    }
+    if(clock>=next){next=clock+1.9;nodes[turn%N].pulseT=0;turn++;}
     draw(dt);
   }
   function sync(){
-    var want=built&&visible&&!rm;
-    layer.classList.toggle('is-paused',!visible);
-    if(want&&!running){running=true;last=0;requestAnimationFrame(frame);}
-    else if(!want)running=false;
+    var want=live&&inView&&visible&&!rm;
+    land.classList.toggle('is-paused',!(inView&&visible));
+    if(want&&!running){running=true;last=0;requestAnimationFrame(frame);}else if(!want)running=false;
   }
-  function relayout(){var g=geom();if(g.SW!==G.SW){/* crossed the phone/desktop size: rebuild */host.innerHTML='';nodes=[];built=false;build();}mobile=innerWidth<=768;plan();place(true);draw();}
-  function start(){
-    if(built)return;build();plan();place(true);draw();
-    if(rm){addEventListener('scroll',function(){place(false);},{passive:true});}
-    else addEventListener('scroll',function(){if(!running)place(false);},{passive:true});
-    requestAnimationFrame(function(){shown=true;place(true);});
-    addEventListener('resize',(window.qdOnResize?qdOnResize(relayout):relayout),{passive:true});
-    addEventListener('qd:langchange',function(){setTimeout(relayout,120);});
-    if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){plan();place(true);});
-    if('IntersectionObserver' in window){
-      var seen={};
-      var io=new IntersectionObserver(function(es){es.forEach(function(e){seen[e.target.id]=e.isIntersecting?e.intersectionRatio:0;});
-        var best=-1,bv=0;SECTIONS.forEach(function(id,i){if((seen[id]||0)>bv){bv=seen[id];best=i;}});if(scrollY<innerHeight*.5)best=-1;setActive(best);},{threshold:[0,.15,.3,.5,.7]});
-      SECTIONS.forEach(function(id){var s=document.getElementById(id);if(s)io.observe(s);});
-    }
-    sync();
+  function doLand(){
+    if(landed)return;
+    if(!document.body.classList.contains('ready')){setTimeout(doLand,200);return;} /* never under the intro */
+    landed=true;land.classList.add('is-landed');
+    if(rm){nodes[0].g.classList.add('is-lit');return;}
+    setTimeout(function(){live=true;land.classList.add('is-live');sync();},1900);
   }
+  build();
+  addEventListener('resize',(window.qdOnResize?qdOnResize(function(){if(geom().SW!==G.SW)build();}):function(){}),{passive:true});
   document.addEventListener('visibilitychange',function(){visible=!document.hidden;sync();});
-  var began=false;
-  function go(){if(began)return;began=true;setTimeout(start,rm?0:350);}
-  function whenReady(){if(document.body.classList.contains('ready')){go();return;}setTimeout(whenReady,150);}
-  requestAnimationFrame(function(){setTimeout(whenReady,300);});
+  if('IntersectionObserver' in window){
+    new IntersectionObserver(function(es){inView=es[0].isIntersecting;sync();},{rootMargin:'40px 0px'}).observe(land);
+    var lio=new IntersectionObserver(function(es){if(es[0].isIntersecting){doLand();lio.disconnect();}},{threshold:.55});
+    lio.observe(land);
+  }else doLand();
 })();
 </script>
 </body>
