@@ -25,6 +25,8 @@ service cloud.firestore {
 */
 
 import { auth, db, storage } from './firebase.js';
+import { activeAttentionItems } from '/app/lib/admin-attention.js';
+import { prepareBankSound, playBankSound, showBankFeedback } from '/app/lib/bank-feedback.js';
 import {
   browserLocalPersistence,
   onAuthStateChanged,
@@ -150,7 +152,7 @@ const demoStatusLabels = {
   expired: 'Expired',
   disabled: 'Disabled'
 };
-const adminTabs = new Set(['overview', 'dashboard', 'cards', 'demos', 'activity', 'invitations', 'outreach', 'pricing', 'payments', 'collections']);
+const adminTabs = new Set(['overview', 'dashboard', 'cards', 'demos', 'activity', 'outreach', 'pricing', 'payments', 'collections']);
 const initialAdminTab = new URLSearchParams(window.location.search).get('tab');
 const dashboardSections = new Set(['overview', 'pipeline', 'archive']);
 const initialDashboardSection = new URLSearchParams(window.location.search).get('section');
@@ -278,6 +280,12 @@ const state = {
   selectedId: null,
   drawerDraft: null,
   quotesBySubmissionId: {},
+  overviewQuotesAwaiting: 0,
+  sharedLedger: null,
+  sharedLedgerError: '',
+  sharedLedgerBusy: false,
+  bankActivityPage: 0,
+  bankFlow: { step: 0, type: '', amount: '', note: '', due: '', monthly: false },
   quoteDrawer: { open: false, quote: null, original: null, dirty: false },
   quoteToast: '',
   paymentLookup: {
@@ -3320,7 +3328,7 @@ const adminSectionMeta = {
   dashboard: { label: 'Pipeline', group: 'Sales', description: 'Project requests from the website, from first contact to delivery.' },
   outreach: { label: 'Outreach', group: 'Sales', description: 'Cold outreach contacts, follow-ups and meetings.', primary: { label: 'Add lead', action: 'open-outreach-create' } },
   payments: { label: 'Quotations', group: 'Money', description: 'Every quote, its status and what has been paid.' },
-  collections: { label: 'Collections', group: 'Money', description: 'Money due: overdue, today and the next 7 days.' },
+  collections: { label: 'Shared bank', group: 'Money', description: 'Track your shared money, expenses and partner shares.' },
   pricing: { label: 'Pricing', group: 'Money', description: 'Build an estimate and turn it into a quote.' },
   demos: { label: 'Demos', group: 'Delivery', description: 'Protected client previews and their expiry.', primary: { label: 'Create demo', action: 'open-demo-create' } },
   cards: { label: 'Smart Cards', group: 'Delivery', description: 'QR and NFC profile cards for the team.', primary: { label: 'Create card', action: 'open-card-create' } },
@@ -3332,7 +3340,7 @@ const adminNavGroups = [
   { label: '', items: ['overview'] },
   { label: 'Sales', items: ['dashboard', 'outreach', 'chat'] },
   { label: 'Money', items: ['payments', 'collections', 'pricing'] },
-  { label: 'Delivery', items: ['demos', 'cards', 'invitations'] },
+  { label: 'Delivery', items: ['demos', 'cards'] },
   { label: 'System', items: ['activity'] }
 ];
 
@@ -3348,7 +3356,7 @@ const isSameLocalDay = (value, reference = new Date()) => {
 // Derived purely from data that is already loaded in state; no network calls.
 const getAdminAttentionCounts = () => {
   const newLeads = state.submissions.filter((item) => item.status === 'New').length;
-  const quotesAwaiting = Object.values(state.quotesBySubmissionId || {}).filter((quote) => String(quote?.status || '').toLowerCase() === 'sent').length;
+  const quotesAwaiting = state.overviewQuotesAwaiting;
   const buckets = state.collections.data?.buckets || null;
   const overdue = buckets ? (buckets.overdue?.items || []).length : 0;
   const dueToday = buckets ? (buckets.dueToday?.items || []).length : 0;
@@ -3399,8 +3407,9 @@ const renderAdminTabs = () => {
       <div class="qd-admin-sidebar-head">
         <div class="qd-admin-brand">
           <img src="assets/qd-logo.jpeg" alt="" width="32" height="32">
-          <span class="qd-admin-brand-name">QD OS<small>Admin</small></span>
+          <span class="qd-admin-brand-name">QDsystem<small>Admin</small></span>
         </div>
+        ${renderThemeToggle()}
         <button class="qd-nav-close" type="button" data-action="toggle-admin-nav" aria-label="Close menu">${adminIcon('close')}</button>
       </div>
       <nav class="qd-admin-tabs qd-side-nav" aria-label="Admin sections">
@@ -3412,7 +3421,7 @@ const renderAdminTabs = () => {
         `).join('')}
       </nav>
       <div class="qd-admin-sidebar-foot">
-        ${email ? `<span class="qd-admin-user-badge" title="${escapeHtml(email)}">${escapeHtml(email)}</span>` : ''}
+        ${email ? `<span class="qd-admin-user-badge" title="${escapeHtml(email)}">${escapeHtml(adminDisplayName(email))}</span>` : ''}
         <button class="qd-nav-item qd-nav-logout" type="button" data-action="logout">${adminIcon('logout')}<span class="qd-nav-label">Log out</span></button>
       </div>
     </aside>
@@ -3458,6 +3467,11 @@ const renderAdminBottomBar = () => {
   `;
 };
 
+const renderThemeToggle = () => {
+  const light = document.body.classList.contains('qd-admin-light');
+  return `<button class="qd-admin-theme-toggle" type="button" data-action="toggle-theme" aria-label="${light ? 'Switch to dark theme' : 'Switch to light theme'}">${light ? '☾ Dark mode' : '☀ Light mode'}</button>`;
+};
+
 const renderAdminPageHeader = () => {
   const meta = adminSectionMeta[state.activeTab] || adminSectionMeta.overview;
   return `
@@ -3471,6 +3485,71 @@ const renderAdminPageHeader = () => {
     </header>
   `;
 };
+
+const bankActivityDate = (value) => { const date = new Date(value); return Number.isNaN(date.getTime()) ? 'Date unavailable' : new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Dubai' }).format(date); };
+const bankActivityType = (type) => ({ deposit: 'Deposit', withdraw: 'Withdrawal', expense: 'Expense' })[type] || 'Transaction';
+const sharedBankMoney = (fils) => `AED ${(Number(fils || 0) / 100).toFixed(2)}`;
+const sharedBankPartners = ['mohammedqudaih107@gmail.com', 'mdaya0089@gmail.com'];
+const adminDisplayName = (email) => ({ 'mohammedqudaih107@gmail.com': 'Shadi', 'mdaya0089@gmail.com': 'Daya' })[String(email || '').toLowerCase()] || email || 'Admin';
+const bankFlowLabels = { deposit: 'Deposit', expense: 'Expense paid', withdraw: 'Withdraw', bill: 'Payment reminder' };
+function focusBankFlow() { root.querySelector(state.bankFlow.step === 1 ? "#bank-amount" : state.bankFlow.step === 2 ? "#bank-note" : ".qd-bank-flow h3")?.focus({ preventScroll: true }); }
+function renderBankFlow() {
+  const f = state.bankFlow;
+  const title = bankFlowLabels[f.type] || '';
+  if (f.step === 0) return `<section class="qd-bank-panel qd-bank-flow"><div class="qd-flow-head"><span class="qd-flow-eyebrow">SHARED BANK</span><h3>What would you like to do?</h3><p>Choose an action to get started.</p></div><div class="qd-flow-choices">${[['deposit','＋','Deposit','Add money to the shared pot'],['withdraw','↗','Withdraw','Take from your available share'],['expense','−','Record an expense','Log something already paid'],['bill','◷','Set a reminder','Keep track of a payment due']].map(([key, icon, label, text]) => `<button type="button" class="qd-flow-choice" data-action="bank-flow-start" data-type="${key}"><span class="qd-flow-icon" aria-hidden="true">${icon}</span><span><strong>${label}</strong><small>${text}</small></span><span aria-hidden="true">→</span></button>`).join('')}</div></section>`;
+  const heading = f.step === 1 ? 'How much?' : f.step === 2 ? (f.type === 'bill' ? 'Set the reminder' : 'Add a note') : 'Review your entry';
+  const content = f.step === 1 ? `<label for="bank-amount">Amount in AED</label><div class="qd-flow-amount"><span>AED</span><input id="bank-amount" name="amount" type="number" min="0.01" step="0.01" inputmode="decimal" value="${escapeHtml(f.amount)}" placeholder="0.00" required></div>${f.type === 'withdraw' ? '<p class="qd-flow-hint">You can withdraw up to your available share.</p>' : ''}` : f.step === 2 ? `<label for="bank-note">${f.type === 'bill' ? 'What is this payment for?' : 'What is this for? (optional)'}</label><input class="qd-admin-input" id="bank-note" name="note" maxlength="120" value="${escapeHtml(f.note)}" placeholder="Add a short description" ${f.type === 'bill' ? 'required' : ''}>${f.type === 'bill' ? `<label for="bank-due">Due date</label><input class="qd-admin-input" id="bank-due" name="due" type="date" value="${escapeHtml(f.due)}" required><label class="qd-bank-check"><input name="monthly" type="checkbox" ${f.monthly ? 'checked' : ''}> Repeat reminder monthly</label>` : ''}` : `<div class="qd-flow-review"><div><span>Action</span><strong>${escapeHtml(title)}</strong></div><div><span>Amount</span><strong>${sharedBankMoney(Math.round(Number(f.amount)*100))}</strong></div><div><span>Description</span><strong>${escapeHtml(f.note || 'No note')}</strong></div>${f.type === 'bill' ? `<div><span>Due</span><strong>${escapeHtml(f.due)}${f.monthly ? ' · Monthly' : ''}</strong></div>` : ''}</div><p class="qd-flow-hint">${f.type === 'bill' ? 'The balance changes only when this reminder is marked paid.' : 'This records money that has already moved.'}</p>`;
+  return `<section class="qd-bank-panel qd-bank-flow"><div class="qd-flow-head"><span class="qd-flow-eyebrow">${escapeHtml(title.toUpperCase())} · STEP ${f.step} OF 3</span><h3 tabindex="-1">${heading}</h3><p>${f.step === 3 ? 'Check everything before saving.' : 'One small step at a time.'}</p></div><form id="shared-bank-form" class="qd-flow-form" data-step="${f.step}">${content}<div class="qd-flow-actions"><button class="qd-flow-back" data-action="bank-flow-back" type="button">← Back</button><button class="qd-btn qd-admin-action-primary qd-flow-next" type="submit" ${state.sharedLedgerBusy ? 'disabled' : ''}>${f.step === 3 ? 'Confirm and save' : 'Continue →'}</button></div></form></section>`;
+}
+function renderSharedBank() {
+  const ledger = state.sharedLedger;
+  if (!ledger) return `<section class="qd-bank"><p>${state.sharedLedgerError ? escapeHtml(state.sharedLedgerError) : 'Loading shared bank…'}</p><button class="qd-btn qd-admin-action-secondary" data-action="bank-reload" type="button">Refresh</button></section>`;
+  const shares = ledger.shares || [0, 0];
+  const balance = shares[0] + shares[1];
+  const myIndex = sharedBankPartners.indexOf((state.user?.email || '').toLowerCase());
+  const bills = (ledger.bills || []).filter(b => !b.paid);
+  const entries = ledger.entries || [];
+  const pageCount = Math.max(1, Math.ceil(entries.length / 6));
+  const page = Math.min(state.bankActivityPage, pageCount - 1);
+  const visibleEntries = entries.slice(page * 6, page * 6 + 6);
+  return `<section class="qd-bank">
+    ${state.sharedLedgerError ? `<div class="qd-admin-alert qd-bank-error" role="alert"><span>${escapeHtml(state.sharedLedgerError)}</span>${state.sharedLedgerError === 'Withdrawal exceeds your available share.' && state.bankFlow.type === 'withdraw' && Math.round(Number(state.bankFlow.amount) * 100) <= balance ? '<button type="button" class="qd-bank-override" data-action="bank-override">Exceed my share</button>' : ''}</div>` : ''}
+    <div class="qd-bank-toolbar"><button class="qd-btn qd-admin-action-secondary" data-action="bank-reload" type="button">↻ Refresh balance</button></div><div class="qd-bank-top"><div class="qd-bank-balance-group"><div class="qd-bank-wallet" aria-hidden="true"><svg viewBox="0 0 80 80" fill="none"><rect x="9" y="24" width="62" height="43" rx="11" fill="currentColor" opacity=".18"/><path d="M13 28V23c0-6 5-10 11-10h34v12M18 25h42c6 0 10 4 10 10v22c0 6-4 10-10 10H20c-6 0-10-4-10-10V35c0-6 3-10 8-10Z" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M71 39H56a7 7 0 0 0 0 14h15" stroke="currentColor" stroke-width="3"/><circle cx="57" cy="46" r="2.5" fill="currentColor"/><path d="m53 5 2 5m9-1-3 4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></div><div class="qd-bank-total"><p class="qd-bank-label">YOUR SHARED POT</p><h2>${sharedBankMoney(balance)}</h2><p>Recorded balance · AED</p></div></div><div class="qd-bank-right"><div class="qd-bank-shares">${shares.map((v,i)=>`<div class="qd-share-person"><span class="qd-share-avatar qd-share-avatar-${i === 0 ? 'shadi' : 'daya'}" aria-hidden="true">${i === 0 ? 'S' : 'D'}</span><span class="qd-share-name">${escapeHtml(adminDisplayName(sharedBankPartners[i]))}</span><span>${i === myIndex ? 'Your share' : 'Partner’s share'}</span><strong>${sharedBankMoney(v)}</strong></div>`).join('')}</div></div></div>
+    <div class="qd-bank-grid">${renderBankFlow()}
+    <section class="qd-bank-panel qd-bank-reminders"><div class="qd-reminders-head"><div><h3>Payment reminders</h3><p>Mark a reminder paid to deduct it from the pot.</p></div><span class="qd-reminders-count">${bills.length} due</span></div>${bills.length ? bills.map(b=>`<div class="qd-bank-row"><div><strong>${escapeHtml(b.note)}</strong><small>Due ${escapeHtml(b.due)} · ${sharedBankMoney(b.amount)}</small></div><button class="qd-btn qd-admin-action-secondary" type="button" data-action="bank-pay" data-id="${escapeHtml(b.id)}" data-due="${escapeHtml(b.due)}">Mark paid</button></div>`).join('') : '<p class="qd-bank-empty">No upcoming reminders yet.</p>'}</section></div>
+    <section class="qd-bank-panel qd-bank-history"><h3>Activity</h3><p>Every deposit, expense and withdrawal stays on the record.</p>${entries.length ? visibleEntries.map(e=>`<div class="qd-bank-row"><div><strong>${escapeHtml(e.note || e.type)}</strong><small class="qd-activity-meta"><span class="qd-activity-type ${e.type === 'deposit' ? 'is-incoming' : 'is-outgoing'}">${escapeHtml(bankActivityType(e.type))}</span><span>By ${escapeHtml(adminDisplayName(e.actor))}</span><span>${escapeHtml(bankActivityDate(e.at))}</span>${e.overShare ? `<span>Includes ${sharedBankMoney(e.takenFromPartner)} from partner’s share</span>` : ''}</small></div><b class="qd-bank-activity-amount ${e.type === 'deposit' ? 'is-incoming' : 'is-outgoing'}">${e.type === 'deposit' ? '+' : '−'} ${sharedBankMoney(e.amount)}</b></div>`).join('') : '<p class="qd-bank-empty">Your first entry will appear here.</p>'}${entries.length > 6 ? `<div class="qd-bank-pagination"><span>Page ${page + 1} of ${pageCount}</span><div><button type="button" data-action="bank-activity-prev" ${page === 0 ? 'disabled' : ''} aria-label="Previous activity page">←</button><button type="button" data-action="bank-activity-next" ${page >= pageCount - 1 ? 'disabled' : ''} aria-label="Next activity page">→</button></div></div>` : ''}</section>
+  </section>`;
+}
+async function sharedBankRequest(options = {}) {
+  const token = await getAdminIdToken();
+  const response = await fetch('/api/shared-ledger', { ...options, headers: {Authorization: `Bearer ${token}`, ...(options.body ? {'Content-Type':'application/json'} : {})} });
+  const data = await response.json(); if (!response.ok) throw new Error(data.error || 'Could not load shared bank.'); return data;
+}
+async function loadSharedBank(feedback = false) {
+  const audio = feedback ? prepareBankSound() : null; let success = false;
+  try { state.sharedLedger = await sharedBankRequest(); state.sharedLedgerError = ''; success = true; } catch(e) { state.sharedLedgerError = e.message; }
+  render();
+  if (success && feedback) { showBankFeedback(root, 'refresh'); playBankSound(audio, 'refresh'); }
+  else if (audio) audio.close().catch(() => {});
+}
+function bankTap() { const audio = prepareBankSound(); playBankSound(audio, 'tap'); }
+async function submitSharedBank(data) {
+  if (state.sharedLedgerBusy) return;
+  const audible = ['deposit', 'withdraw', 'expense', 'bill', 'pay-bill'].includes(data.type);
+  const paidBill = data.type === 'pay-bill' ? state.sharedLedger?.bills?.find(b => b.id === data.id) : null;
+  const feedbackAmount = paidBill ? paidBill.amount / 100 : data.amount;
+  const audio = audible ? prepareBankSound() : null;
+  let success = false;
+  state.sharedLedgerBusy = true;
+  try { state.sharedLedger = await sharedBankRequest({method:'POST', body:JSON.stringify(data)}); state.sharedLedgerError = ''; success = true; }
+  catch(e) { state.sharedLedgerError = e.message; }
+  finally { state.sharedLedgerBusy = false; }
+  render();
+  if (success && data.type !== 'pay-bill') state.bankFlow = {step:0, type:'', amount:'', note:'', due:'', monthly:false};
+  if (success && data.type !== 'pay-bill') render();
+  if (success && audible) { showBankFeedback(root, data.type, feedbackAmount); playBankSound(audio, data.type); }
+  else if (audio) audio.close().catch(() => {});
+}
 
 const renderOverviewManager = () => {
   const counts = getAdminAttentionCounts();
@@ -3488,7 +3567,7 @@ const renderOverviewManager = () => {
   const greeting = greetingHour < 12 ? 'Good morning' : greetingHour < 18 ? 'Good afternoon' : 'Good evening';
   const dateLabel = today.toLocaleDateString('en-AE', { weekday: 'long', day: 'numeric', month: 'long' });
 
-  const attention = [
+  const attention = activeAttentionItems([
     {
       key: 'new', count: counts.newLeads, label: 'New leads to review', note: 'Website requests waiting for a first look',
       attrs: 'data-action="overview-open" data-tab="dashboard" data-summary="new"', tone: counts.newLeads ? 'warn' : ''
@@ -3514,7 +3593,7 @@ const renderOverviewManager = () => {
         key: 'collections', count: null, label: 'Money due', note: 'Open Collections to check overdue and upcoming payments',
         attrs: 'data-action="overview-open" data-tab="collections"', tone: ''
       }
-  ];
+  ]);
 
   const snapshot = [
     ['dashboard', 'Active leads', activeLeads],
@@ -3531,12 +3610,15 @@ const renderOverviewManager = () => {
         <h2 class="qd-overview-heading" id="qd-overview-attention">Needs attention</h2>
         <div class="qd-overview-list">
           ${attention.map((item) => `
-            <button class="qd-overview-row" type="button" ${item.attrs} ${item.tone ? `data-tone="${item.tone}"` : ''} ${item.count === 0 ? 'data-empty' : ''}>
-              <span class="qd-overview-count">${item.count === null ? adminIcon('collections') : escapeHtml(String(item.count))}</span>
+            <button class="qd-overview-row" type="button" ${item.attrs} ${item.tone ? `data-tone="${item.tone}"` : ''}>
+              <span class="qd-overview-count">${escapeHtml(String(item.count))}</span>
               <span class="qd-overview-copy"><strong>${escapeHtml(item.label)}</strong><small>${escapeHtml(item.note)}</small></span>
               <span class="qd-overview-go">${adminIcon('arrow')}</span>
             </button>
           `).join('')}
+          ${!attention.length && !state.collections.loading && !state.collections.error ? '<p class="qd-overview-empty">Nothing needs your attention right now.</p>' : ''}
+          ${state.collections.loading && !counts.collectionsLoaded ? '<p class="qd-overview-empty">Checking payments due…</p>' : ''}
+          ${state.collections.error ? '<p class="qd-overview-empty" role="status">Could not check payments due. Open Collections to retry.</p>' : ''}
         </div>
       </section>
       <section class="qd-overview-panel" aria-labelledby="qd-overview-snapshot">
@@ -4870,6 +4952,21 @@ const renderDrawer = () => {
   `;
 };
 
+try { document.body.classList.toggle('qd-admin-light', localStorage.getItem('qd-admin-theme') === 'light'); } catch {}
+const updateThemeToggle = () => {
+  const toggle = root.querySelector('[data-action="toggle-theme"]');
+  if (!toggle) return;
+  const light = document.body.classList.contains('qd-admin-light');
+  toggle.textContent = light ? '☾  Dark mode' : '☀  Light mode';
+  toggle.setAttribute('aria-label', light ? 'Switch to dark theme' : 'Switch to light theme');
+};
+
+window.addEventListener('storage', (event) => {
+  if (event.key !== 'qd-admin-theme' && event.key !== null) return;
+  document.body.classList.toggle('qd-admin-light', event.newValue === 'light');
+  updateThemeToggle();
+});
+
 const renderAppShell = (content) => {
   const userBadge = state.user?.email
     ? `<span class="qd-admin-user-badge">${escapeHtml(state.user.email)}</span>`
@@ -4879,7 +4976,6 @@ const renderAppShell = (content) => {
       ${renderDrawer()}
       ${renderCardEditor()}
       ${renderDemoEditor()}
-      ${renderInvitationEditor()}
       ${renderOutreachEditor()}
       ${renderQuoteDrawer()}
       ${renderQuotationDetailSheet()}
@@ -4913,6 +5009,7 @@ const renderAppShell = (content) => {
           </div>
 
           <div class="qd-admin-topbar-actions">
+            ${renderThemeToggle()}
             ${userBadge}
             ${state.user ? '<button class="qd-btn qd-btn-ghost qd-btn-sm" type="button" data-action="logout">Logout</button>' : ''}
           </div>
@@ -4940,7 +5037,10 @@ const renderLogin = () => renderAppShell(`
 
         <div class="qd-admin-field">
           <label for="admin-password">Password</label>
-          <input id="admin-password" class="qd-admin-input" name="password" type="password" placeholder="**********" required>
+          <div class="qd-admin-password-wrap">
+            <input id="admin-password" class="qd-admin-input" name="password" type="password" placeholder="**********" autocomplete="current-password" required>
+            <button class="qd-admin-password-toggle" type="button" data-action="toggle-password" aria-label="Show password" aria-pressed="false">Show</button>
+          </div>
         </div>
 
         <button class="qd-btn qd-btn-primary qd-btn-md" type="submit" ${state.isLoggingIn ? 'disabled' : ''}>
@@ -5021,8 +5121,6 @@ const render = () => {
     ? renderCardsManager()
     : state.activeTab === 'demos'
       ? renderDemosManager()
-    : state.activeTab === 'invitations'
-      ? renderInvitationsManager()
     : state.activeTab === 'outreach'
       ? renderOutreachManager()
     : state.activeTab === 'pricing'
@@ -5030,7 +5128,7 @@ const render = () => {
     : state.activeTab === 'payments'
       ? renderPaymentsManager()
     : state.activeTab === 'collections'
-      ? renderCollectionsManager()
+      ? renderSharedBank()
     : state.activeTab === 'activity'
       ? renderActivityManager()
     : state.activeTab === 'overview'
@@ -6991,6 +7089,44 @@ const handleDocumentClick = async (event) => {
 
   const action = actionTarget.dataset.action;
 
+  if (action === 'toggle-theme') {
+    const light = !document.body.classList.contains('qd-admin-light');
+    document.body.classList.toggle('qd-admin-light', light);
+    try { localStorage.setItem('qd-admin-theme', light ? 'light' : 'dark'); } catch {}
+    updateThemeToggle();
+    return;
+  }
+
+  if (action === 'toggle-password') {
+    const input = document.getElementById('admin-password');
+    if (!input) return;
+    const visible = input.type === 'password';
+    input.type = visible ? 'text' : 'password';
+    actionTarget.textContent = visible ? 'Hide' : 'Show';
+    actionTarget.setAttribute('aria-label', visible ? 'Hide password' : 'Show password');
+    actionTarget.setAttribute('aria-pressed', String(visible));
+    return;
+  }
+
+  if (action === 'bank-flow-start') { bankTap(); state.bankFlow = {step:1, type:actionTarget.dataset.type, amount:'', note:'', due:'', monthly:false}; render(); focusBankFlow(); return; }
+  if (action === 'bank-flow-back') { bankTap(); state.bankFlow.step = Math.max(0, state.bankFlow.step - 1); render(); if (state.bankFlow.step) focusBankFlow(); else root.querySelector('[data-action=bank-flow-start]')?.focus({preventScroll:true}); return; }
+  if (action === 'bank-override') {
+    bankTap();
+    const f = state.bankFlow;
+    const shares = [...(state.sharedLedger?.shares || [])];
+    const index = sharedBankPartners.indexOf((state.user?.email || '').toLowerCase());
+    const amount = Math.round(Number(f.amount) * 100);
+    if (index < 0 || shares.length !== 2 || amount <= shares[index] || amount > shares[0] + shares[1]) return;
+    const fromPartner = sharedBankMoney(amount - shares[index]);
+    if (!window.confirm(`This withdrawal uses ${fromPartner} of your partner’s share. Continue?`)) return;
+    if (!window.confirm(`Confirm again: record a ${sharedBankMoney(amount)} withdrawal, including ${fromPartner} from your partner’s share?`)) return;
+    await submitSharedBank({type:'withdraw', amount:f.amount, note:f.note, allowOverShare:true, expectedShares:shares});
+    return;
+  }
+  if (action === 'bank-activity-prev' || action === 'bank-activity-next') { bankTap(); const max = Math.max(0, Math.ceil((state.sharedLedger?.entries?.length || 0) / 6) - 1); state.bankActivityPage = Math.max(0, Math.min(max, state.bankActivityPage + (action === 'bank-activity-next' ? 1 : -1))); render(); return; }
+  if (action === 'bank-reload') { await loadSharedBank(true); return; }
+  if (action === 'bank-pay') { await submitSharedBank({type:'pay-bill', id:actionTarget.dataset.id, due:actionTarget.dataset.due}); return; }
+
   if (action === 'logout') {
     await handleLogout();
     return;
@@ -7029,7 +7165,8 @@ const handleDocumentClick = async (event) => {
       }
     }
     if (state.activeTab === 'payments') await loadQuotesList();
-    if (state.activeTab === 'collections') await loadCollections();
+    if (state.activeTab === 'collections') await loadSharedBank();
+    if (state.activeTab === 'overview') await loadCollections();
     return;
   }
 
@@ -8138,6 +8275,8 @@ document.addEventListener('change', async (event) => {
 });
 
 document.addEventListener('input', (event) => {
+  if (event.target.closest('#shared-bank-form') && ['amount','note','due'].includes(event.target.name)) state.bankFlow[event.target.name] = event.target.value;
+  if (event.target.closest('#shared-bank-form') && event.target.name === 'monthly') { state.bankFlow.monthly = event.target.checked; bankTap(); }
   if (event.target.matches('[data-collection-search]')) {
     state.collections.search = event.target.value || '';
     render();
@@ -8261,6 +8400,15 @@ document.addEventListener('change', (event) => {
 });
 
 document.addEventListener('submit', async (event) => {
+  if (event.target.id === 'shared-bank-form') {
+    event.preventDefault();
+    const values = Object.fromEntries(new FormData(event.target));
+    Object.assign(state.bankFlow, values);
+    if (state.bankFlow.step === 2 && state.bankFlow.type === 'bill') state.bankFlow.monthly = values.monthly === 'on';
+    if (state.bankFlow.step < 3) { bankTap(); state.bankFlow.step += 1; render(); focusBankFlow(); }
+    else { const f = state.bankFlow; await submitSharedBank({type:f.type, amount:f.amount, note:f.note, due:f.due, monthly:f.monthly ? 'on' : ''}); }
+    return;
+  }
   if (event.target.id === 'quotation-search-form') {
     event.preventDefault();
     state.paymentLookup.search = event.target.elements.q?.value || '';
@@ -8383,11 +8531,15 @@ const subscribeToQuotes = () => {
     quotesRef,
     (snap) => {
       const map = {};
+      let awaiting = 0;
       snap.forEach((d) => {
         const data = d.data();
+        if (String(data.status || '').toLowerCase() === 'sent') awaiting += 1;
         if (data.submissionId) map[data.submissionId] = { id: d.id, ...data };
       });
       state.quotesBySubmissionId = map;
+      state.overviewQuotesAwaiting = awaiting;
+      if (state.activeTab === 'overview' && !state.collections.loading) loadCollections();
       if (state.quoteDrawer.open && state.quoteDrawer.quote?.id) {
         const d = state.quoteDrawer;
         const fresh = Object.values(map).find((q) => q.id === d.quote.id);
@@ -9155,7 +9307,7 @@ async function loadCollections() {
     state.collections = { ...state.collections, loading: false, error: '', data: payload };
     render();
   } catch (error) {
-    state.collections = { ...state.collections, loading: false, error: error.message || 'Could not load collections.' };
+    state.collections = { ...state.collections, loading: false, data: null, error: error.message || 'Could not load collections.' };
     render();
   }
 }
@@ -10365,10 +10517,10 @@ onAuthStateChanged(auth, async (user) => {
     subscribeToQuotes();
     subscribeToCards();
     subscribeToDemos();
-    subscribeToInvitations();
     subscribeToOutreachLeads();
     if (state.activeTab === 'payments') loadQuotesList();
-    if (state.activeTab === 'collections') loadCollections();
+    if (state.activeTab === 'collections') loadSharedBank();
+    if (state.activeTab === 'overview') loadCollections();
     if (state.pendingLoginAudit) {
       await logAdminActivity({
         action: 'login',
@@ -10412,6 +10564,7 @@ onAuthStateChanged(auth, async (user) => {
     state.activityLogs = [];
     state.submissionActivityLogs = [];
     state.quotesBySubmissionId = {};
+    state.overviewQuotesAwaiting = 0;
     state.quoteDrawer = { open: false, quote: null, original: null, dirty: false };
     state.paymentLookup = {
       quoteRef: '',

@@ -1,0 +1,148 @@
+.qd-admin-password-wrap { position: relative; }
+.qd-admin-password-wrap .qd-admin-input { width: 100%; padding-right: 78px; }
+.qd-admin-password-toggle, .qd-admin-theme-toggle { cursor: pointer; font: inherit; }
+.qd-admin-password-toggle { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); border: 0; border-radius: 8px; padding: 7px 10px; background: transparent; color: var(--fg2); font-size: 13px; font-weight: 700; }
+.qd-admin-password-toggle:hover { background: rgba(130,145,160,.16); }
+.qd-admin-theme-toggle { border: 1px solid var(--qd-admin-border-strong); border-radius: 999px; padding: 9px 14px; background: var(--qd-admin-panel-soft); color: var(--fg1); font-size: 13px; font-weight: 600; white-space: nowrap; }
+.qd-admin-theme-toggle:focus-visible, .qd-admin-password-toggle:focus-visible { outline: 3px solid #5d91da; outline-offset: 2px; }
+body.qd-admin-page.qd-admin-light {
+  --fg1: #172d3d; --fg2: #435f6b; --fg3: #5c7580;
+  --bone: #172d3d; --bone-2: #435f6b; --steel: #607984;
+  --acid: #116e72; --acid-deep: #285f65;
+  --border-1: rgba(39, 88, 99, .12); --border-2: rgba(39, 88, 99, .2); --border-3: rgba(39, 88, 99, .3);
+  --qd-admin-panel: #ffffff; --qd-admin-panel-soft: #f2f8f7;
+  --qd-admin-border: rgba(43, 96, 106, .15); --qd-admin-border-strong: rgba(43, 96, 106, .28);
+  --qd-admin-shadow: 0 16px 45px rgba(43, 85, 96, .09);
+  --qd-admin-glass: linear-gradient(140deg, rgba(255,255,255,.95), rgba(247,252,251,.9));
+  background: radial-gradient(circle at 8% 2%, #d5eee9, transparent 30%), radial-gradient(circle at 95% 20%, #e1eaff, transparent 28%), #f4f8f7;
+  color: var(--fg1);
+}
+.qd-admin-light .qd-admin-shell::before { background: rgba(71, 181, 162, .16); }
+.qd-admin-light .qd-admin-shell::after { background: rgba(116, 156, 225, .14); }
+.qd-admin-light .qd-admin-input, .qd-admin-light .qd-admin-textarea, .qd-admin-light select.qd-admin-input { background: #fff; color: #172d3d; border-color: #b9ced0; }
+.qd-admin-light .qd-admin-input::placeholder, .qd-admin-light .qd-admin-textarea::placeholder { color: #718991; }
+.qd-admin-light .qd-admin-tab { color: #46626e; background: #fff; border-color: #cfdfdf; }
+.qd-admin-light .qd-admin-tab.is-active { color: #fff; background: #176f72; border-color: #176f72; }
+.qd-admin-light .qd-admin-theme-toggle { color: #176166; background: #e5f3ef; }
+.qd-admin-light .qd-admin-user-badge { color: #435f6b; background: #edf6f4; border-color: #c9dfda; }
+.qd-admin-light .qd-admin-login-panel .qd-btn-primary { color: #fff; background: #176f72; border-color: #176f72; }
+.qd-admin-light .qd-admin-alert { color: #992d36; background: #fff0ee; }
+.qd-admin-light .qd-admin-kicker { color: #137477; }
+.qd-admin-light .qd-admin-row-button { color: #245f68; }
+.qd-admin-light .qd-admin-outreach-location-link { color: #176f91; }
+/* Tokens for the redesigned navigation and quotation screens. */
+body.qd-admin-page.qd-admin-light {
+  --qd-bg: #f3f8f7; --qd-surface: #fff; --qd-surface-2: #edf5f4; --qd-surface-hover: #e5f1ef;
+  --qd-line: rgba(39, 88, 99, .12); --qd-line-2: rgba(39, 88, 99, .2); --qd-line-3: rgba(39, 88, 99, .3);
+  --qd-text-1: #172d3d; --qd-text-2: #435f6b; --qd-text-3: #5c7580;
+  --qd-silver: #176f72; --qd-silver-grad: linear-gradient(140deg, #176f72, #397e82);
+  --qd-warn: #87560e; --qd-ok: #116448; --qd-danger: #a22e38; --qd-info: #315f94;
+}
+.qd-admin-light .qd-admin-sidebar { background: #f8fcfb; border-color: #d5e5e2; }
+.qd-admin-light .qd-nav-item.is-active, .qd-admin-light .qd-nav-item:hover { background: #e1f1ed; color: #155e63; }
+.qd-admin-light .qd-admin-mobilebar, .qd-admin-light .qd-admin-bottombar { background: #f8fcfb; border-color: #d5e5e2; }
+.qd-admin-light .qd-page-actions .qd-admin-theme-toggle { color: #176166; background: #e5f3ef; }
+.qd-page-actions { display: flex; align-items: center; gap: 10px; }
+@media (max-width: 767px) {
+  .qd-page-actions .qd-admin-theme-toggle { position: fixed; right: 12px; bottom: 76px; z-index: 15; box-shadow: 0 4px 18px rgba(25,65,75,.14); }
+}
+.qd-admin-light .qd-collection-empty-line { color: #5c7580; border-color: #dce9e7; }
+.qd-admin-light .qd-admin-view :is(.qd-collection-filters, .qd-quotation-status-filter) .qd-admin-action-primary { color: #155e63 !important; background: #dcefeb !important; border-color: #b9dad3 !important; }
+.qd-admin-light .qd-chat-admin-tabs, .qd-admin-light .qd-chat-admin-detail, .qd-admin-light .qd-chat-admin-item { background: #fff; border-color: #d4e4e1; }
+.qd-admin-light .qd-chat-admin-tab.is-active { background: #176f72; color: #fff; }
+.qd-admin-light .qd-chat-admin-item.is-selected { background: #e5f3ef; border-color: #77aaa3; }
+.qd-admin-light .qd-chat-admin-field { border-color: #dce9e7; }
+.qd-admin-light .qd-chat-admin-convo { background: #eef6f4; border-color: #d4e4e1; }
+.qd-admin-light .qd-chat-admin-bubble-user { background: #d9ede9; border-color: #beddd6; }
+.qd-admin-light .qd-chat-admin-bubble-assistant { background: #fff; border-color: #d4e4e1; }
+.qd-admin-light .qd-chat-admin-actions a { border-color: #bfd7d3; }
+.qd-admin-light .qd-chat-admin-actions a.is-primary { color: #fff; }
+.qd-admin-light .qd-chat-admin-actions a.is-danger { color: #a22e38; }
+.qd-overview-empty { margin: 0; padding: 20px 24px; color: var(--qd-text-2); font-size: 14px; }
+.qd-admin-sidebar-head .qd-admin-theme-toggle { padding: 7px 8px; font-size: 11px; margin-left: auto; }
+.qd-bank { display:grid; gap:22px; max-width:1200px; }
+.qd-bank-top { display:flex; justify-content:space-between; align-items:center; gap:20px; padding:32px; border:1px solid var(--qd-line-2); border-radius:18px; background:var(--qd-surface); }
+.qd-bank-top h2 { font-size:clamp(34px,5vw,60px); letter-spacing:-.05em; line-height:1.1; color:var(--qd-text-1); }
+.qd-bank-top p,.qd-bank-panel p { color:var(--qd-text-2); font-size:14px; }
+.qd-bank-label { font-weight:700; letter-spacing:.12em; font-size:11px!important; color:#1b8281!important; }
+.qd-bank-shares { display:flex; gap:40px; margin-top:24px; }.qd-bank-shares div { display:grid; gap:4px; }.qd-bank-shares span,.qd-bank-row small { font-size:12px; color:var(--qd-text-3); }.qd-bank-shares strong { color:var(--qd-text-1); font-size:18px; }
+.qd-bank-grid { display:grid; grid-template-columns:1fr 1fr; gap:22px; }.qd-bank-panel { background:var(--qd-surface); border:1px solid var(--qd-line-2); border-radius:18px; padding:24px; }.qd-bank-panel h3 { font-size:19px; color:var(--qd-text-1); }.qd-bank-panel h3 span { color:var(--qd-text-3); font-size:14px; }.qd-bank-form { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:20px; }.qd-bank-form label { display:grid; gap:6px; font-size:13px; color:var(--qd-text-2); }.qd-bank-form .qd-admin-input { width:100%; }.qd-bank-check { display:flex!important; align-items:center; grid-column:1/-1; }.qd-bank-form button { grid-column:1/-1; }.qd-bank-foot { margin-top:14px; }.qd-bank-row { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:14px 0; border-bottom:1px solid var(--qd-line); color:var(--qd-text-1); }.qd-bank-row div { display:grid; gap:4px; overflow-wrap:anywhere; }.qd-bank-empty { padding:20px 0; }.qd-bank-history { margin-bottom:30px; }
+@media(max-width:700px){.qd-bank-grid{grid-template-columns:1fr}.qd-bank-top{padding:20px}.qd-bank-wallet{width:70px;height:70px;flex-shrink:0}.qd-bank-shares{gap:15px;flex-wrap:wrap}.qd-bank-form{grid-template-columns:1fr}}
+.qd-bank-form .qd-admin-action-primary { color:#fff !important; background:#176f72 !important; border-color:#176f72 !important; }
+/* Shared bank: a wallet motif and color-coded transaction feedback. */
+.qd-bank-top { position:relative; flex-wrap:wrap; }
+.qd-bank-top h2, .qd-bank-shares strong { color:#167a4e; }
+.qd-admin-page:not(.qd-admin-light) .qd-bank-top h2, .qd-admin-page:not(.qd-admin-light) .qd-bank-shares strong { color:#7cdda8; }
+.qd-bank-right { display:flex; align-items:center; justify-content:flex-end; gap:28px; margin-left:auto; }
+.qd-bank-wallet { width:94px; height:94px; color:#1b9368; display:grid; place-items:center; border-radius:28px; background:#def3e9; transform:rotate(-8deg); }
+.qd-bank-wallet svg { width:75%; height:75%; }
+.qd-admin-page:not(.qd-admin-light) .qd-bank-wallet { background:#173a2e; color:#8be2b1; }
+.qd-bank-shares { margin-top:0; gap:28px; }
+.qd-bank-feedback { position:absolute; right:24px; top:20px; z-index:2; padding:11px 16px; border-radius:12px; font-size:14px; font-weight:700; box-shadow:0 10px 28px rgba(0,0,0,.12); animation:qd-bank-feedback-in 420ms cubic-bezier(.2,.8,.2,1) both; }
+.qd-bank-feedback.is-deposit { color:#095c39; background:#dbf7e6; border:1px solid #a9e1bd; }
+.qd-bank-feedback.is-withdraw { color:#9a2634; background:#ffebeb; border:1px solid #f2b7bd; }
+@keyframes qd-bank-feedback-in { from { opacity:0; transform:translateY(12px) scale(.97); } to { opacity:1; transform:translateY(0) scale(1); } }
+@media(max-width:700px) { .qd-bank-right { width:100%; margin-left:0; justify-content:space-between; gap:14px; } .qd-bank-wallet { width:64px; height:64px; border-radius:20px; } .qd-bank-shares { gap:14px; } .qd-bank-feedback { right:12px; top:12px; font-size:12px; } }
+@media(prefers-reduced-motion:reduce) { .qd-bank-feedback { animation:none; } }
+.qd-bank-flow { min-height:350px; }
+.qd-flow-head h3 { margin:8px 0 5px; font-size:23px; letter-spacing:-.025em; }
+.qd-flow-eyebrow { color:#14765f; font-size:11px; font-weight:700; letter-spacing:.1em; }
+.qd-admin-page:not(.qd-admin-light) .qd-flow-eyebrow { color:#8be2b1; }
+.qd-flow-choices { display:grid; gap:9px; margin-top:23px; }
+.qd-flow-choice { display:grid; grid-template-columns:42px 1fr auto; align-items:center; gap:13px; width:100%; padding:12px; border:1px solid var(--qd-line-2); border-radius:13px; background:var(--qd-surface); color:var(--qd-text-1); text-align:left; cursor:pointer; transition:background 160ms cubic-bezier(.2,.8,.2,1),border-color 160ms cubic-bezier(.2,.8,.2,1),transform 160ms cubic-bezier(.2,.8,.2,1); }
+.qd-flow-choice:hover { border-color:#64ac94; background:var(--qd-surface-2); transform:translateX(3px); }
+.qd-flow-choice span:nth-child(2) { display:grid; gap:2px; }.qd-flow-choice strong { font-size:14px; }.qd-flow-choice small { color:var(--qd-text-3); font-size:12px; }.qd-flow-icon { width:40px;height:40px;display:grid;place-items:center;border-radius:12px;background:#e2f3ec;color:#137554;font-size:23px; }.qd-admin-page:not(.qd-admin-light) .qd-flow-icon { background:#173a2e;color:#8be2b1; }
+.qd-flow-form { display:grid; gap:12px; margin-top:24px; animation:qd-flow-in 200ms cubic-bezier(.2,.8,.2,1) both; }.qd-flow-form label { color:var(--qd-text-2);font-size:13px; }.qd-flow-form .qd-admin-input { width:100%; }.qd-flow-amount { display:flex; align-items:center; gap:12px; padding:8px 0; border-bottom:1px solid var(--qd-line-3); color:var(--qd-text-3); }.qd-flow-amount input { min-width:0;width:100%;border:0;outline:0;background:transparent;color:var(--qd-text-1);font:600 36px var(--font-display); }.qd-flow-amount:focus-within { border-color:#168866; }.qd-flow-amount input::placeholder { color:var(--qd-text-3);opacity:.7; }.qd-flow-hint { color:var(--qd-text-3)!important;font-size:12px!important; }.qd-flow-actions { display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:16px; }.qd-flow-back { background:none;border:0;color:var(--qd-text-2);cursor:pointer;padding:12px 0; }.qd-flow-next { background:#176f72!important;color:#fff!important;border-color:#176f72!important;min-width:140px; }.qd-flow-review { display:grid;gap:0; }.qd-flow-review div { display:flex;justify-content:space-between;gap:20px;padding:11px 0;border-bottom:1px solid var(--qd-line);font-size:14px; }.qd-flow-review span { color:var(--qd-text-3); }.qd-flow-review strong { color:var(--qd-text-1);text-align:right;overflow-wrap:anywhere; }
+@keyframes qd-flow-in { from { opacity:0;transform:translateY(6px); } to { opacity:1;transform:translateY(0); } }
+@media(prefers-reduced-motion:reduce) { .qd-flow-form { animation:none; }.qd-flow-choice { transition:none; }.qd-flow-choice:hover { transform:none; } }
+.qd-bank-error { display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+.qd-bank-override { border:1px solid currentColor; border-radius:9px; background:transparent; color:inherit; padding:8px 12px; font:600 13px var(--font-body); cursor:pointer; }
+.qd-bank-override:focus-visible { outline:3px solid #c05b5b; outline-offset:3px; }
+.qd-bank :is(button, input[type="checkbox"]) { transition:transform 140ms cubic-bezier(.2,.8,.2,1), background-color 140ms cubic-bezier(.2,.8,.2,1), border-color 140ms cubic-bezier(.2,.8,.2,1); }
+.qd-bank :is(button, input[type="checkbox"]):active { transform:scale(.97); }
+@media(prefers-reduced-motion:reduce) { .qd-bank :is(button, input[type="checkbox"]) { transition:none; } .qd-bank :is(button, input[type="checkbox"]):active { transform:none; } }
+.qd-bank-shares .qd-share-person { display:grid; justify-items:start; align-content:start; gap:3px; }
+.qd-bank-shares .qd-share-avatar { display:grid; place-items:center; width:34px; height:34px; margin-bottom:5px; border-radius:12px; font:700 15px var(--font-display); }
+.qd-bank-shares .qd-share-avatar-shadi { color:#14644d; background:#d5f0e2; border:1px solid #acd9c2; }
+.qd-bank-shares .qd-share-avatar-daya { color:#59468a; background:#ece5fa; border:1px solid #d3c5ef; border-radius:50%; }
+.qd-bank-shares .qd-share-name { color:var(--qd-text-1); font-size:13px; font-weight:700; }
+.qd-admin-page:not(.qd-admin-light) .qd-share-avatar-shadi { color:#a1ecc8; background:#174a39; border-color:#286a50; }
+.qd-admin-page:not(.qd-admin-light) .qd-share-avatar-daya { color:#decfff; background:#43375b; border-color:#6e5b90; }
+/* Transaction confirmations have their own row beneath the balance, never over the shares. */
+.qd-bank-feedback { position:static; justify-self:start; display:flex; align-items:center; gap:12px; max-width:100%; padding:11px 16px; box-shadow:none; border-radius:14px; font-size:14px; }
+.qd-bank-feedback-icon { display:grid; place-items:center; flex:0 0 36px; height:36px; border-radius:11px; font-size:20px; line-height:1; background:rgba(255,255,255,.6); }
+.qd-bank-feedback-content { display:flex; flex-wrap:wrap; align-items:baseline; gap:3px 14px; min-width:0; }
+.qd-bank-feedback-content strong { font-size:14px; }
+.qd-bank-feedback-content span { font-size:13px; font-weight:600; font-variant-numeric:tabular-nums; }
+.qd-admin-page:not(.qd-admin-light) .qd-bank-feedback.is-deposit { color:#a2edc5; background:#173b2d; border-color:#286e4e; }
+.qd-admin-page:not(.qd-admin-light) .qd-bank-feedback.is-withdraw { color:#ffc0c1; background:#482629; border-color:#8c494c; }
+.qd-admin-page:not(.qd-admin-light) .qd-bank-feedback-icon { background:rgba(255,255,255,.08); }
+@media(max-width:700px) { .qd-bank-feedback { justify-self:stretch; font-size:13px; } }
+.qd-bank-toolbar { display:flex; justify-content:flex-end; }
+.qd-bank-reminders { align-self:start; }
+.qd-reminders-head { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; padding-bottom:16px; border-bottom:1px solid var(--qd-line); }
+.qd-reminders-count { flex-shrink:0; padding:5px 10px; border:1px solid var(--qd-line-2); border-radius:99px; font-size:12px; color:var(--qd-text-2); }
+.qd-bank-reminders .qd-bank-row { padding:16px 0; }
+.qd-bank-reminders .qd-bank-row strong { font-size:15px; }
+.qd-bank-pagination { display:flex; justify-content:space-between; align-items:center; gap:12px; padding-top:18px; color:var(--qd-text-3); font-size:13px; }
+.qd-bank-pagination div { display:flex; gap:8px; }
+.qd-bank-pagination button { width:38px; height:36px; border:1px solid var(--qd-line-2); border-radius:10px; background:var(--qd-surface-2); color:var(--qd-text-1); cursor:pointer; }
+.qd-bank-pagination button:disabled { opacity:.35; cursor:default; }
+.qd-bank-activity-amount.is-incoming { color:#147a4b; }
+.qd-bank-activity-amount.is-outgoing { color:#b52e3d; }
+.qd-admin-page:not(.qd-admin-light) .qd-bank-activity-amount.is-incoming { color:#81dfac; }
+.qd-admin-page:not(.qd-admin-light) .qd-bank-activity-amount.is-outgoing { color:#ff9ba3; }
+.qd-bank-history .qd-bank-row { gap:20px; padding:17px 0; }
+.qd-bank-history .qd-bank-row > div { gap:8px; min-width:0; }
+.qd-bank-history .qd-bank-row strong { font-size:15px; line-height:1.4; }
+.qd-bank-history .qd-activity-meta { display:flex; flex-wrap:wrap; align-items:center; gap:6px 12px; color:var(--qd-text-2); font-size:13px; line-height:1.5; }
+.qd-bank-history .qd-activity-type { border-radius:6px; padding:2px 7px; font-weight:700; font-size:11px; }
+.qd-bank-history .qd-activity-type.is-incoming { background:#e0f4e8; color:#14663f; }
+.qd-bank-history .qd-activity-type.is-outgoing { background:#fcebea; color:#a92b3b; }
+.qd-admin-page:not(.qd-admin-light) .qd-bank-history .qd-activity-type.is-incoming { background:#173b2d; color:#9ce7bd; }
+.qd-admin-page:not(.qd-admin-light) .qd-bank-history .qd-activity-type.is-outgoing { background:#482629; color:#ffc0c1; }
+.qd-bank-history .qd-bank-activity-amount { flex-shrink:0; font-size:15px; font-variant-numeric:tabular-nums; }
+@media(max-width:500px) { .qd-bank-history .qd-bank-row { align-items:flex-start; } .qd-bank-history .qd-bank-activity-amount { font-size:13px; } }
+.qd-bank-balance-group { display:flex; align-items:center; gap:24px; min-width:0; }
+@media(max-width:700px) { .qd-bank-balance-group { gap:14px; } .qd-bank-right { justify-content:flex-end; } }
+@media(max-width:420px) { .qd-bank-balance-group .qd-bank-wallet { width:50px; height:50px; border-radius:15px; } .qd-bank-balance-group { gap:10px; } .qd-bank-top h2 { font-size:clamp(25px, 7vw, 34px); overflow-wrap:anywhere; } }

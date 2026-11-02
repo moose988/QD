@@ -258,6 +258,23 @@ async function importLeadToSubmissions(lead) {
   return submissionRef.id;
 }
 
+const themeKey = 'qd-admin-theme';
+try { document.body.classList.toggle('qd-admin-light', localStorage.getItem(themeKey) === 'light'); } catch {}
+
+function updateChatThemeToggle() {
+  const toggle = root.querySelector('[data-action="toggle-theme"]');
+  if (!toggle) return;
+  const light = document.body.classList.contains('qd-admin-light');
+  toggle.textContent = light ? '☾ Dark mode' : '☀ Light mode';
+  toggle.setAttribute('aria-label', light ? 'Switch to dark theme' : 'Switch to light theme');
+}
+
+window.addEventListener('storage', (event) => {
+  if (event.key !== themeKey && event.key !== null) return;
+  document.body.classList.toggle('qd-admin-light', event.newValue === 'light');
+  updateChatThemeToggle();
+});
+
 function renderShell(content) {
   const userBadge = state.user?.email
     ? `<span class="qd-admin-user-badge">${escapeHtml(state.user.email)}</span>`
@@ -270,6 +287,7 @@ function renderShell(content) {
             <img src="assets/qd-logo.jpeg" alt="QD Systems">
           </div>
           <div class="qd-admin-topbar-actions">
+            <button class="qd-admin-theme-toggle" type="button" data-action="toggle-theme" aria-label="${document.body.classList.contains('qd-admin-light') ? 'Switch to dark theme' : 'Switch to light theme'}">${document.body.classList.contains('qd-admin-light') ? '☾ Dark mode' : '☀ Light mode'}</button>
             <a class="qd-admin-link" href="${backHref}">${backLabel}</a>
             ${userBadge}
             ${state.user ? '<button class="qd-btn qd-btn-ghost qd-btn-sm" type="button" data-action="logout">Logout</button>' : ''}
@@ -441,7 +459,12 @@ root.addEventListener('click', async (e) => {
   if (!t) return;
   const action = t.dataset.action;
 
-  if (action === 'logout') {
+  if (action === 'toggle-theme') {
+    const light = !document.body.classList.contains('qd-admin-light');
+    document.body.classList.toggle('qd-admin-light', light);
+    try { localStorage.setItem(themeKey, light ? 'light' : 'dark'); } catch {}
+    updateChatThemeToggle();
+  } else if (action === 'logout') {
     await signOut(auth);
   } else if (action === 'tab') {
     state.tab = t.dataset.tab;
