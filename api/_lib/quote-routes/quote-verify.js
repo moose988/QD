@@ -6,6 +6,9 @@ import { verifyPasscode } from '../quote-id.js';
 import { sanitizePublicQuote } from '../quote-admin.js';
 
 
+const MAX_FAILS = 10;
+const LOCK_MS = 15 * 60 * 1000;
+
 const BRAND = {
   name: 'QD Systems',
   phone: '+971 50 461 1123',
@@ -19,6 +22,7 @@ function sanitize(quote) {
 
 export default async function handler(req, res) {
   console.log('[quote-verify] hit', { method: req.method, url: req.url });
+  res.setHeader('Cache-Control', 'no-store');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -34,7 +38,6 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Invalid JSON' });
       }
     }
-    console.log('[quote-verify] parsed body', body);
 
     const id = (body?.id || '').toString().trim();
     const passcode = (body?.passcode || '').toString().trim();
@@ -46,15 +49,32 @@ export default async function handler(req, res) {
     if (!snap.exists) return res.status(404).json({ error: 'Quote not found' });
 
     const quote = snap.data();
+    const now = Date.now();
+    if (Number(quote.verifyLockUntil) > now) {
+      res.setHeader('Retry-After', String(Math.ceil((Number(quote.verifyLockUntil) - now) / 1000)));
+      return res.status(429).json({ error: 'Too many attempts. Please try again in a few minutes.' });
+    }
     if (!verifyPasscode(passcode, quote.passcodeHash)) {
-      console.warn('[quote-verify] incorrect passcode for quote:', id);
+      const fails = (Number(quote.verifyFails) || 0) + 1;
+      const locked = fails >= MAX_FAILS;
+      await snap.ref.update(locked
+        ? { verifyFails: 0, verifyLockUntil: now + LOCK_MS }
+        : { verifyFails: fails }).catch(() => {});
+      console.warn('[quote-verify] incorrect passcode for quote:', id, locked ? '(locked)' : '');
+      if (locked) {
+        res.setHeader('Retry-After', String(Math.ceil(LOCK_MS / 1000)));
+        return res.status(429).json({ error: 'Too many attempts. Please try again in a few minutes.' });
+      }
       return res.status(401).json({ error: 'Incorrect passcode' });
+    }
+    if (quote.verifyFails || quote.verifyLockUntil) {
+      await snap.ref.update({ verifyFails: 0, verifyLockUntil: 0 }).catch(() => {});
     }
 
     console.log('[quote-verify] passcode verified:', id);
     return res.status(200).json({ id, ...sanitize(quote), brand: BRAND });
   } catch (error) {
     console.error('[quote-verify] unhandled error:', error);
-    return res.status(500).json({ error: error.message || 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }

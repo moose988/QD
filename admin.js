@@ -53,7 +53,8 @@ import {
   ref as storageRef,
   uploadBytes
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js';
-import { CATALOG, catalogToLineItem } from '/app/lib/quote-catalog.js';
+import { CATALOG, CATALOG_GROUPS, PACKAGE_GROUPS, PICKER_CATALOG, catalogToLineItem, getCatalogItem } from '/app/lib/quote-catalog.js';
+import { resolveQuoteCareForEditing } from '/app/lib/quote-care.js';
 import { computeTotals, formatAED } from '/app/lib/quote-totals.js';
 import { normalizeQuoteForTemplate, renderQuoteTemplate } from '/app/lib/quote-template.js';
 import {
@@ -149,7 +150,7 @@ const demoStatusLabels = {
   expired: 'Expired',
   disabled: 'Disabled'
 };
-const adminTabs = new Set(['dashboard', 'cards', 'demos', 'activity', 'invitations', 'outreach', 'pricing', 'payments', 'collections']);
+const adminTabs = new Set(['overview', 'dashboard', 'cards', 'demos', 'activity', 'invitations', 'outreach', 'pricing', 'payments', 'collections']);
 const initialAdminTab = new URLSearchParams(window.location.search).get('tab');
 const dashboardSections = new Set(['overview', 'pipeline', 'archive']);
 const initialDashboardSection = new URLSearchParams(window.location.search).get('section');
@@ -231,7 +232,8 @@ const state = {
   saveError: '',
   copyFeedback: '',
   adminToast: '',
-  activeTab: adminTabs.has(initialAdminTab) ? initialAdminTab : 'dashboard',
+  activeTab: adminTabs.has(initialAdminTab) ? initialAdminTab : 'overview',
+  navOpen: false,
   dashboardSection: dashboardSections.has(initialDashboardSection) ? initialDashboardSection : 'overview',
   pipelineAttentionOnly: false,
   pipelineAnalyticsOpen: false,
@@ -382,6 +384,7 @@ let unsubscribeSubmissionActivitySnapshot = null;
 let copyFeedbackTimeout = null;
 let adminToastTimeout = null;
 let isModalOpen = false;
+let lastRenderedAdminTab = null;
 let lastModalOpenedAt = 0;
 let currentSubmissionActivityTargetId = null;
 let currentInvitationRsvpsTargetId = null;
@@ -2751,7 +2754,7 @@ const renderOutreachManager = () => {
             aria-pressed="${state.outreachFilters.starredOnly ? 'true' : 'false'}"
             title="Show starred leads only"
           >★ Starred${starredCount ? ` (${starredCount})` : ''}</button>
-          <button class="qd-btn qd-btn-sm qd-admin-action-primary" type="button" data-action="open-outreach-create">Add Lead</button>
+          <!-- "Add Lead" lives in the page header (data-action="open-outreach-create") -->
         </div>
 
         <div class="qd-admin-table-wrap qd-admin-outreach-table-wrap">
@@ -2950,34 +2953,61 @@ function renderPaymentsTable(payments = []) {
 
 function renderQuotationRows(quotes = []) {
   if (state.paymentLookup.quotesLoading && !quotes.length) {
-    return `<tr><td colspan="8"><div class="qd-admin-empty"><strong>Loading quotations</strong>Fetching the latest quote records.</div></td></tr>`;
+    return `<tr><td colspan="7"><div class="qd-admin-empty"><strong>Loading quotations</strong>Fetching the latest quote records.</div></td></tr>`;
   }
   if (!quotes.length) {
-    return `<tr><td colspan="8"><div class="qd-admin-empty"><strong>No quotations found</strong>Try a different reference, client, or status filter.</div></td></tr>`;
+    return `<tr><td colspan="7"><div class="qd-admin-empty"><strong>No quotations found</strong>Try a different reference, client, or status filter.</div></td></tr>`;
+  }
+  const selectedId = state.paymentLookup.quote?.id || '';
+  return quotes.map((quote) => `
+    <tr class="qd-ql-row ${selectedId === quote.id ? 'is-selected' : ''}" data-action="open-quotation" data-ref="${escapeHtml(quote.id)}">
+      <td>
+        <button class="qd-admin-row-button qd-quotation-ref-button qd-ql-ref" type="button" data-action="open-quotation" data-ref="${escapeHtml(quote.id)}">
+          <strong>${escapeHtml(quote.businessName || 'No client name')}</strong>
+          <small>${escapeHtml(quote.quoteNumber || quote.id)} · ${escapeHtml(formatAdminDate(quote.createdAt))}</small>
+        </button>
+      </td>
+      <td><div class="qd-ql-chips">${renderWorkflowStatusChip(quote.status)}${renderPaymentStatusChip(quote.paymentStatus || getPaymentStatusFromAmounts(quote.paid, quote.balance))}</div></td>
+      <td class="qd-ql-num">AED ${escapeHtml(formatPaymentAED(quote.total))}</td>
+      <td class="qd-ql-num">AED ${escapeHtml(formatPaymentAED(quote.paid))}</td>
+      <td class="qd-ql-num ${Number(quote.balance) > 0 ? 'is-due' : ''}">AED ${escapeHtml(formatPaymentAED(quote.balance))}</td>
+      <td>${escapeHtml(formatAdminDate(quote.lastSentAt))}</td>
+      <td class="qd-ql-open" aria-hidden="true">${adminIcon('arrow')}</td>
+    </tr>
+  `).join('');
+}
+
+function renderQuotationCards(quotes = []) {
+  if (!quotes.length) {
+    return state.paymentLookup.quotesLoading
+      ? '<div class="qd-admin-empty"><strong>Loading quotations</strong>Fetching the latest quote records.</div>'
+      : '<div class="qd-admin-empty"><strong>No quotations found</strong>Try a different reference, client, or status filter.</div>';
   }
   return quotes.map((quote) => `
-    <tr>
-      <td><button class="qd-admin-row-button qd-quotation-ref-button" type="button" data-action="open-quotation" data-ref="${escapeHtml(quote.id)}">${escapeHtml(quote.quoteNumber || quote.id)}</button></td>
-      <td>${escapeHtml(quote.businessName || '—')}</td>
-      <td>${escapeHtml(formatAdminDate(quote.createdAt))}</td>
-      <td>AED ${escapeHtml(formatPaymentAED(quote.total))}</td>
-      <td>${renderWorkflowStatusChip(quote.status)}</td>
-      <td>AED ${escapeHtml(formatPaymentAED(quote.paid))}</td>
-      <td>AED ${escapeHtml(formatPaymentAED(quote.balance))}</td>
-      <td>${escapeHtml(formatAdminDate(quote.lastSentAt))}</td>
-    </tr>
+    <button type="button" class="qd-ql-card" data-action="open-quotation" data-ref="${escapeHtml(quote.id)}">
+      <span class="qd-ql-card-head">
+        <span><strong>${escapeHtml(quote.businessName || 'No client name')}</strong><small>${escapeHtml(quote.quoteNumber || quote.id)} · ${escapeHtml(formatAdminDate(quote.createdAt))}</small></span>
+        <span class="qd-ql-chips">${renderWorkflowStatusChip(quote.status)}</span>
+      </span>
+      <span class="qd-ql-card-figures">
+        <span><small>Total</small><strong>AED ${escapeHtml(formatPaymentAED(quote.total))}</strong></span>
+        <span><small>Paid</small><strong>AED ${escapeHtml(formatPaymentAED(quote.paid))}</strong></span>
+        <span class="${Number(quote.balance) > 0 ? 'is-due' : ''}"><small>Outstanding</small><strong>AED ${escapeHtml(formatPaymentAED(quote.balance))}</strong></span>
+      </span>
+    </button>
   `).join('');
 }
 
 function renderQuotationDetail(quote) {
   if (!quote) {
+    if (state.paymentLookup.loading) {
+      return `<div class="qd-admin-empty"><strong>Opening quote</strong>Loading ${escapeHtml(state.paymentLookup.quoteRef || '')}…</div>`;
+    }
     return `
-      <article class="qd-admin-card qd-payment-empty-card">
-        <div class="qd-admin-empty">
-          <strong>No quotation selected</strong>
-          Open a row or jump directly to a quote ref.
-        </div>
-      </article>
+      <div class="qd-admin-empty">
+        <strong>No quotation selected</strong>
+        ${state.paymentLookup.error ? escapeHtml(state.paymentLookup.error) : 'Open a row or jump directly to a quote ref.'}
+      </div>
     `;
   }
   const summary = {
@@ -2990,114 +3020,149 @@ function renderQuotationDetail(quote) {
   const clientUrl = `${location.origin}/q/${quote.id}`;
   const goLiveDate = quote.goLiveDate || todayInputValue();
   const milestones = Array.isArray(quote.milestones) ? quote.milestones : [];
+  const careOutstanding = Number(quote.careOutstanding) || 0;
 
   return `
-    <article class="qd-admin-card qd-payment-detail-card qd-quotation-detail-card">
-      <div class="qd-payment-detail-head">
+    <article class="qd-payment-detail-card qd-quotation-detail-card qd-qd-detail">
+      <header class="qd-qd-head">
         <div>
-          <span class="qd-admin-kicker">QUOTE DETAIL</span>
-          <h2>${escapeHtml(quote.quoteRef || quote.quoteNumber || quote.id)}</h2>
-          <p>${escapeHtml(quote.customer?.businessName || 'No customer name')} · Created ${escapeHtml(formatAdminDate(quote.createdAt))}</p>
+          <div class="qd-qd-eyebrow">${escapeHtml(quote.quoteRef || quote.quoteNumber || quote.id)} · Created ${escapeHtml(formatAdminDate(quote.createdAt))}</div>
+          <h2 id="qd-qd-title">${escapeHtml(quote.customer?.businessName || 'No customer name')}</h2>
+          <div class="qd-quotation-status-stack">
+            ${renderWorkflowStatusChip(workflowStatus)}
+            ${renderPaymentStatusChip(summary.status)}
+          </div>
         </div>
-        <div class="qd-quotation-status-stack">
-          ${renderWorkflowStatusChip(workflowStatus)}
-          ${renderPaymentStatusChip(summary.status)}
-        </div>
-      </div>
-      ${renderPaymentSummaryCards(summary)}
+        <button type="button" class="qd-quote-close qd-qd-close" data-action="quote-detail-close" aria-label="Close quote details">${adminIcon('close')}</button>
+      </header>
 
-      <div class="qd-quotation-actions">
+      ${renderPaymentSummaryCards(summary)}
+      ${careOutstanding > 0 ? `<p class="qd-qd-note">Care outstanding: AED ${escapeHtml(formatPaymentAED(careOutstanding))}</p>` : ''}
+
+      <div class="qd-quotation-actions qd-qd-actions">
+        <button class="qd-btn qd-admin-action-primary" type="button" data-action="quote-edit-selected">Edit quote</button>
+        <button class="qd-btn qd-admin-action-secondary" type="button" data-action="quote-copy-client-link">Copy link + passcode</button>
+        <button class="qd-btn qd-admin-action-secondary" type="button" data-action="quote-mark-sent">Mark as sent</button>
+        <a class="qd-btn qd-admin-action-secondary" href="${escapeHtml(clientUrl)}" target="_blank" rel="noreferrer noopener">View / Print</a>
+      </div>
+
+      <section class="qd-qd-section">
+        <h3>Status &amp; remarks</h3>
         <form id="quote-workflow-form" class="qd-quotation-inline-form">
           <label class="qd-admin-field">
             <span>Status</span>
             <select class="qd-admin-select" name="status">
-              ${quoteWorkflowStatuses.map((status) => `<option value="${status}" ${workflowStatus === status ? 'selected' : ''}>${status}</option>`).join('')}
+              ${quoteWorkflowStatuses.map((status) => `<option value="${status}" ${workflowStatus === status ? 'selected' : ''}>${status[0].toUpperCase()}${status.slice(1)}</option>`).join('')}
             </select>
           </label>
-          <button class="qd-btn qd-admin-action-primary" type="submit">Save status</button>
+          <button class="qd-btn qd-admin-action-secondary" type="submit">Save status</button>
         </form>
-        <button class="qd-btn qd-admin-action-secondary" type="button" data-action="quote-mark-sent">Mark as sent</button>
-        <button class="qd-btn qd-admin-action-secondary" type="button" data-action="quote-copy-client-link">Copy client link</button>
-        <button class="qd-btn qd-admin-action-secondary" type="button" data-action="quote-edit-selected">Edit quote</button>
-        <button class="qd-btn qd-admin-action-danger" type="button" data-action="quote-delete-selected">Delete quote</button>
-        <a class="qd-btn qd-admin-action-secondary" href="${escapeHtml(clientUrl)}" target="_blank" rel="noreferrer noopener">View / Print</a>
-      </div>
-
-      <form id="quote-remarks-form" class="qd-quotation-remarks-form">
-        <label class="qd-admin-field">
-          <span>Remarks</span>
-          <textarea class="qd-admin-textarea" name="remarks" placeholder="Paid 30%, follow up Monday">${escapeHtml(quote.remarks || '')}</textarea>
-        </label>
-        <button class="qd-btn qd-admin-action-primary" type="submit">Save remarks</button>
-      </form>
-
-      <div class="qd-quotation-billing-grid">
-        <form id="quote-golive-form" class="qd-quotation-inline-form">
+        <form id="quote-remarks-form" class="qd-quotation-remarks-form">
           <label class="qd-admin-field">
-            <span>Go-live date</span>
-            <input class="qd-admin-input" type="date" name="goLiveDate" value="${escapeHtml(goLiveDate)}">
+            <span>Remarks</span>
+            <textarea class="qd-admin-textarea" name="remarks" rows="3" placeholder="Paid 30%, follow up Monday">${escapeHtml(quote.remarks || '')}</textarea>
           </label>
-          <button class="qd-btn qd-admin-action-secondary" type="submit">Mark go-live</button>
+          <button class="qd-btn qd-admin-action-secondary" type="submit">Save remarks</button>
         </form>
-        <label class="qd-admin-field qd-admin-checkbox-field">
-          <span>First month of care free</span>
-          <input type="checkbox" data-action="quote-first-month-free" ${quote.firstMonthFree ? 'checked' : ''}>
-        </label>
-        <form id="quote-milestones-form" class="qd-quotation-milestones-form">
-          ${milestones.map((milestone) => `
-            <label class="qd-admin-field">
-              <span>${escapeHtml(milestone.label || milestone.key)} due</span>
-              <input class="qd-admin-input" type="date" name="${escapeHtml(milestone.key)}" value="${escapeHtml(milestone.dueDate || '')}">
-            </label>
-          `).join('')}
-          <button class="qd-btn qd-admin-action-secondary" type="submit">Save due dates</button>
-        </form>
-      </div>
+      </section>
 
-      <div class="qd-quote-section-label qd-payment-section-label">PAYMENTS</div>
-      ${renderQuoteSchedule(quote.schedule || [])}
-      ${renderPaymentsTable(quote.payments || [])}
-      ${renderQuotePaymentForm(state.paymentLookup.form || {}, state.paymentLookup.saving, quote.schedule || [])}
+      <section class="qd-qd-section">
+        <h3>Payments</h3>
+        ${renderQuoteSchedule(quote.schedule || [])}
+        ${renderPaymentsTable(quote.payments || [])}
+        <details class="qd-qd-disclosure" ${state.paymentLookup.saving ? 'open' : ''}>
+          <summary>Log a payment</summary>
+          ${renderQuotePaymentForm(state.paymentLookup.form || {}, state.paymentLookup.saving, quote.schedule || [])}
+        </details>
+      </section>
+
+      <section class="qd-qd-section">
+        <h3>Go-live &amp; billing</h3>
+        <div class="qd-quotation-billing-grid">
+          <form id="quote-golive-form" class="qd-quotation-inline-form">
+            <label class="qd-admin-field">
+              <span>Go-live date</span>
+              <input class="qd-admin-input" type="date" name="goLiveDate" value="${escapeHtml(goLiveDate)}">
+            </label>
+            <button class="qd-btn qd-admin-action-secondary" type="submit">Mark go-live</button>
+          </form>
+          <label class="qd-admin-field qd-admin-checkbox-field">
+            <input type="checkbox" data-action="quote-first-month-free" ${quote.firstMonthFree ? 'checked' : ''}>
+            <span>First month of care free</span>
+          </label>
+          ${milestones.length ? `
+            <form id="quote-milestones-form" class="qd-quotation-milestones-form">
+              ${milestones.map((milestone) => `
+                <label class="qd-admin-field">
+                  <span>${escapeHtml(milestone.label || milestone.key)} due</span>
+                  <input class="qd-admin-input" type="date" name="${escapeHtml(milestone.key)}" value="${escapeHtml(milestone.dueDate || '')}">
+                </label>
+              `).join('')}
+              <button class="qd-btn qd-admin-action-secondary" type="submit">Save due dates</button>
+            </form>
+          ` : ''}
+        </div>
+      </section>
+
+      <section class="qd-qd-section qd-qd-danger">
+        <h3>Delete</h3>
+        <p>Removes this quote permanently. You will be asked to confirm.</p>
+        <button class="qd-btn qd-admin-action-danger" type="button" data-action="quote-delete-selected">Delete quote</button>
+      </section>
     </article>
   `;
 }
 
+// Detail opens as a side sheet (rendered outside the view so it can sit above
+// the navigation). Closing it only clears the selection.
+let lastRenderedDetailSheetKey = '';
+const renderQuotationDetailSheet = () => {
+  const lookup = state.paymentLookup;
+  if (state.activeTab !== 'payments' || (!lookup.quote && !lookup.loading)) {
+    lastRenderedDetailSheetKey = '';
+    return '';
+  }
+  // Slide in only when the sheet first appears, not on each re-render.
+  const entering = !lastRenderedDetailSheetKey;
+  lastRenderedDetailSheetKey = lookup.quote?.id || lookup.quoteRef || 'loading';
+  return `
+    <div class="qd-qd-scrim ${entering ? 'is-entering' : ''}" data-action="quote-detail-close" aria-hidden="true"></div>
+    <aside class="qd-qd-sheet ${entering ? 'is-entering' : ''}" role="dialog" aria-modal="false" aria-labelledby="qd-qd-title" data-keep-scroll="qd-detail">
+      ${renderQuotationDetail(lookup.quote)}
+    </aside>
+  `;
+};
+
 function renderPaymentsManager() {
   const lookup = state.paymentLookup;
   const status = lookup.status || 'All';
+  const quotes = lookup.quotes || [];
   return `
-    <section class="qd-admin-dashboard qd-payment-dashboard">
-      <article class="qd-admin-card qd-payment-lookup-card">
-        <div class="qd-admin-section-head qd-payment-head">
-          <div>
-            <span class="qd-admin-kicker">QUOTATIONS</span>
-            <h2>Quote follow-up</h2>
-            <p>Track every quote, sent status, remarks, paid amount, and balance.</p>
+    <section class="qd-admin-dashboard qd-payment-dashboard qd-ql">
+      <article class="qd-admin-card qd-payment-lookup-card qd-admin-table-card">
+        <div class="qd-ql-toolbar">
+          <form id="quotation-search-form" class="qd-payment-lookup-form qd-ql-search" role="search">
+            <input class="qd-admin-input" name="q" type="search" value="${escapeHtml(lookup.search || '')}" placeholder="Search client or quote ref" autocomplete="off" aria-label="Search quotations">
+            <button class="qd-btn qd-admin-action-secondary qd-payment-open-btn" type="submit">${lookup.quotesLoading ? 'Searching…' : 'Search'}</button>
+          </form>
+          <div class="qd-quotation-status-filter" role="group" aria-label="Filter by status">
+            ${['All', ...quoteWorkflowStatuses].map((item) => `
+              <button class="qd-btn qd-btn-sm ${status === item ? 'qd-admin-action-primary' : 'qd-admin-action-secondary'}" type="button" data-action="quote-status-filter" data-status="${escapeHtml(item)}" aria-pressed="${status === item}">${escapeHtml(item[0].toUpperCase() + item.slice(1))}</button>
+            `).join('')}
           </div>
         </div>
-        <form id="quotation-search-form" class="qd-admin-form-grid qd-payment-lookup-form">
-          <label class="qd-admin-field">
-            <span>Search</span>
-            <input class="qd-admin-input" name="q" value="${escapeHtml(lookup.search || '')}" placeholder="Quote ref or client name" autocomplete="off">
-          </label>
-          <button class="qd-btn qd-admin-action-primary qd-payment-open-btn" type="submit">${lookup.quotesLoading ? 'Searching...' : 'Search'}</button>
-        </form>
-        <div class="qd-quotation-status-filter">
-          ${['All', ...quoteWorkflowStatuses].map((item) => `
-            <button class="qd-btn qd-btn-sm ${status === item ? 'qd-admin-action-primary' : 'qd-admin-action-secondary'}" type="button" data-action="quote-status-filter" data-status="${escapeHtml(item)}">${escapeHtml(item[0].toUpperCase() + item.slice(1))}</button>
-          `).join('')}
-        </div>
         ${lookup.quotesError ? `<div class="qd-admin-alert">${escapeHtml(lookup.quotesError)}</div>` : ''}
+        ${lookup.error ? `<div class="qd-admin-alert" role="alert">${escapeHtml(lookup.error)}</div>` : ''}
         <div class="qd-admin-table-wrap qd-quotations-table-wrap">
-          <table class="qd-admin-table">
+          <table class="qd-admin-table qd-ql-table">
             <thead>
-              <tr><th>Ref</th><th>Client</th><th>Date</th><th>Total</th><th>Status</th><th>Paid</th><th>Balance</th><th>Last sent</th></tr>
+              <tr><th>Client &amp; quote</th><th>Status</th><th class="qd-ql-num">Total</th><th class="qd-ql-num">Paid</th><th class="qd-ql-num">Outstanding</th><th>Last sent</th><th><span class="qd-visually-hidden">Open</span></th></tr>
             </thead>
-            <tbody>${renderQuotationRows(lookup.quotes || [])}</tbody>
+            <tbody>${renderQuotationRows(quotes)}</tbody>
           </table>
         </div>
+        <div class="qd-admin-mobile-list qd-ql-cards">${renderQuotationCards(quotes)}</div>
       </article>
-      ${renderQuotationDetail(lookup.quote)}
     </section>
   `;
 }
@@ -3225,20 +3290,270 @@ function renderCollectionsManager() {
   `;
 }
 
-const renderAdminTabs = () => `
-  <nav class="qd-admin-tabs" aria-label="Admin sections">
-    <button class="qd-admin-tab ${state.activeTab === 'dashboard' ? 'is-active' : ''}" type="button" data-action="set-admin-tab" data-tab="dashboard">Pipeline</button>
-    <button class="qd-admin-tab ${state.activeTab === 'outreach' ? 'is-active' : ''}" type="button" data-action="set-admin-tab" data-tab="outreach">Outreach</button>
-    <a class="qd-admin-tab qd-admin-tab-link" href="chat-admin.html?returnTo=${escapeHtml(state.activeTab)}">Chat Leads</a>
-    <button class="qd-admin-tab ${state.activeTab === 'demos' ? 'is-active' : ''}" type="button" data-action="set-admin-tab" data-tab="demos">Demos</button>
-    <button class="qd-admin-tab ${state.activeTab === 'cards' ? 'is-active' : ''}" type="button" data-action="set-admin-tab" data-tab="cards">Smart Cards</button>
-    <button class="qd-admin-tab ${state.activeTab === 'invitations' ? 'is-active' : ''}" type="button" data-action="set-admin-tab" data-tab="invitations">Invitations</button>
-    <button class="qd-admin-tab ${state.activeTab === 'pricing' ? 'is-active' : ''}" type="button" data-action="set-admin-tab" data-tab="pricing">Pricing</button>
-    <button class="qd-admin-tab ${state.activeTab === 'payments' ? 'is-active' : ''}" type="button" data-action="set-admin-tab" data-tab="payments">Quotations</button>
-    <button class="qd-admin-tab ${state.activeTab === 'collections' ? 'is-active' : ''}" type="button" data-action="set-admin-tab" data-tab="collections">Collections${state.collections.data?.count ? ` ${state.collections.data.count}` : ''}</button>
-    <button class="qd-admin-tab ${state.activeTab === 'activity' ? 'is-active' : ''}" type="button" data-action="set-admin-tab" data-tab="activity">Activity</button>
-  </nav>
-`;
+// ── Admin navigation shell ──────────────────────────────────────
+// Presentation only: every nav item reuses the existing
+// data-action="set-admin-tab" / data-tab contract.
+const adminIconPaths = {
+  overview: '<path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-4.5v-6h-5v6H5a1 1 0 0 1-1-1z"/>',
+  dashboard: '<path d="M4 5h16M4 12h16M4 19h10"/>',
+  outreach: '<path d="M6.6 3.5h2.6l1.4 4-2 1.3a11 11 0 0 0 6.6 6.6l1.3-2 4 1.4v2.6a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 4.6 5.7a2 2 0 0 1 2-2.2z"/>',
+  chat: '<path d="M5 18.5V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H8.5z"/>',
+  payments: '<path d="M7 3.5h7l4 4V20a.5.5 0 0 1-.5.5h-10A.5.5 0 0 1 7 20zM14 3.5V8h4M9.5 12.5h5M9.5 16h5"/>',
+  collections: '<path d="M4 7.5A1.5 1.5 0 0 1 5.5 6H19a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H5.5A1.5 1.5 0 0 1 4 17.5zM4 7.5 16 4v2M16.5 12.5h.01"/>',
+  pricing: '<path d="M6 3.5h12a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-15a1 1 0 0 1 1-1zM8 7h8M8.5 11.5h.01M12 11.5h.01M15.5 11.5h.01M8.5 15h.01M12 15h.01M15.5 15h.01"/>',
+  demos: '<path d="M3.5 5.5a1 1 0 0 1 1-1h15a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-15a1 1 0 0 1-1-1zM9 20.5h6M12 16.5v4"/>',
+  cards: '<path d="M3.5 6.5a1 1 0 0 1 1-1h15a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-15a1 1 0 0 1-1-1zM7 10h4M7 13.5h6M15.5 10.5h1.5"/>',
+  invitations: '<path d="M3.5 6.5a1 1 0 0 1 1-1h15a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-15a1 1 0 0 1-1-1zM4 7l8 6 8-6"/>',
+  activity: '<path d="M12 7.5V12l3 2M20.5 12a8.5 8.5 0 1 1-17 0 8.5 8.5 0 0 1 17 0z"/>',
+  menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
+  close: '<path d="M6 6l12 12M18 6 6 18"/>',
+  logout: '<path d="M14 4.5h4a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-4M10 16l-4-4 4-4M6 12h9"/>',
+  external: '<path d="M14 5h5v5M19 5l-8 8M17 14v4.5a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H10"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>'
+};
+
+const adminIcon = (name) => `<svg class="qd-nav-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${adminIconPaths[name] || ''}</svg>`;
+
+const adminSectionMeta = {
+  overview: { label: 'Overview', group: 'Today', description: 'What needs your attention right now.' },
+  dashboard: { label: 'Pipeline', group: 'Sales', description: 'Project requests from the website, from first contact to delivery.' },
+  outreach: { label: 'Outreach', group: 'Sales', description: 'Cold outreach contacts, follow-ups and meetings.', primary: { label: 'Add lead', action: 'open-outreach-create' } },
+  payments: { label: 'Quotations', group: 'Money', description: 'Every quote, its status and what has been paid.' },
+  collections: { label: 'Collections', group: 'Money', description: 'Money due: overdue, today and the next 7 days.' },
+  pricing: { label: 'Pricing', group: 'Money', description: 'Build an estimate and turn it into a quote.' },
+  demos: { label: 'Demos', group: 'Delivery', description: 'Protected client previews and their expiry.', primary: { label: 'Create demo', action: 'open-demo-create' } },
+  cards: { label: 'Smart Cards', group: 'Delivery', description: 'QR and NFC profile cards for the team.', primary: { label: 'Create card', action: 'open-card-create' } },
+  invitations: { label: 'Invitations', group: 'Delivery', description: 'Wedding invitation links and RSVPs.', primary: { label: 'Create invitation', action: 'open-invitation-create' } },
+  activity: { label: 'Activity', group: 'System', description: 'Audit trail of admin actions.' }
+};
+
+const adminNavGroups = [
+  { label: '', items: ['overview'] },
+  { label: 'Sales', items: ['dashboard', 'outreach', 'chat'] },
+  { label: 'Money', items: ['payments', 'collections', 'pricing'] },
+  { label: 'Delivery', items: ['demos', 'cards', 'invitations'] },
+  { label: 'System', items: ['activity'] }
+];
+
+const isSameLocalDay = (value, reference = new Date()) => {
+  if (!value) return false;
+  const date = typeof value?.toDate === 'function' ? value.toDate() : new Date(value);
+  if (!date || Number.isNaN(date.getTime())) return false;
+  return date.getFullYear() === reference.getFullYear()
+    && date.getMonth() === reference.getMonth()
+    && date.getDate() === reference.getDate();
+};
+
+// Derived purely from data that is already loaded in state; no network calls.
+const getAdminAttentionCounts = () => {
+  const newLeads = state.submissions.filter((item) => item.status === 'New').length;
+  const quotesAwaiting = Object.values(state.quotesBySubmissionId || {}).filter((quote) => String(quote?.status || '').toLowerCase() === 'sent').length;
+  const buckets = state.collections.data?.buckets || null;
+  const overdue = buckets ? (buckets.overdue?.items || []).length : 0;
+  const dueToday = buckets ? (buckets.dueToday?.items || []).length : 0;
+  return {
+    newLeads,
+    quotesAwaiting,
+    collectionsLoaded: Boolean(buckets),
+    overdue,
+    dueToday,
+    collectionsDue: overdue + dueToday
+  };
+};
+
+const renderAdminNavBadge = (count, tone = '') => (count > 0
+  ? `<span class="qd-nav-badge" ${tone ? `data-tone="${tone}"` : ''}>${count > 99 ? '99+' : count}</span>`
+  : '');
+
+const renderAdminNavItem = (key, counts) => {
+  if (key === 'chat') {
+    return `
+      <a class="qd-admin-tab qd-admin-tab-link qd-nav-item" href="chat-admin.html?returnTo=${escapeHtml(state.activeTab)}">
+        ${adminIcon('chat')}<span class="qd-nav-label">Chat leads</span>
+        <span class="qd-nav-external" title="Opens the chatbot admin">${adminIcon('external')}</span>
+      </a>
+    `;
+  }
+  const meta = adminSectionMeta[key];
+  const active = state.activeTab === key;
+  const badge = key === 'dashboard'
+    ? renderAdminNavBadge(counts.newLeads)
+    : key === 'payments'
+      ? renderAdminNavBadge(counts.quotesAwaiting)
+      : key === 'collections'
+        ? renderAdminNavBadge(counts.collectionsDue, counts.overdue ? 'danger' : 'warn')
+        : '';
+  return `
+    <button class="qd-admin-tab qd-nav-item ${active ? 'is-active' : ''}" type="button" data-action="set-admin-tab" data-tab="${key}" ${active ? 'aria-current="page"' : ''}>
+      ${adminIcon(key)}<span class="qd-nav-label">${escapeHtml(meta.label)}</span>${badge}
+    </button>
+  `;
+};
+
+const renderAdminTabs = () => {
+  const counts = getAdminAttentionCounts();
+  const email = state.user?.email || '';
+  return `
+    <aside class="qd-admin-sidebar ${state.navOpen ? 'is-open' : ''}" id="qd-admin-sidebar" aria-label="Admin navigation">
+      <div class="qd-admin-sidebar-head">
+        <div class="qd-admin-brand">
+          <img src="assets/qd-logo.jpeg" alt="" width="32" height="32">
+          <span class="qd-admin-brand-name">QD OS<small>Admin</small></span>
+        </div>
+        <button class="qd-nav-close" type="button" data-action="toggle-admin-nav" aria-label="Close menu">${adminIcon('close')}</button>
+      </div>
+      <nav class="qd-admin-tabs qd-side-nav" aria-label="Admin sections">
+        ${adminNavGroups.map((group) => `
+          <div class="qd-nav-group">
+            ${group.label ? `<div class="qd-nav-group-label">${escapeHtml(group.label)}</div>` : ''}
+            ${group.items.map((key) => renderAdminNavItem(key, counts)).join('')}
+          </div>
+        `).join('')}
+      </nav>
+      <div class="qd-admin-sidebar-foot">
+        ${email ? `<span class="qd-admin-user-badge" title="${escapeHtml(email)}">${escapeHtml(email)}</span>` : ''}
+        <button class="qd-nav-item qd-nav-logout" type="button" data-action="logout">${adminIcon('logout')}<span class="qd-nav-label">Log out</span></button>
+      </div>
+    </aside>
+    <div class="qd-admin-nav-scrim" data-action="toggle-admin-nav" aria-hidden="true"></div>
+  `;
+};
+
+const renderAdminPrimaryAction = (meta, { compact = false } = {}) => {
+  if (!meta?.primary) return '';
+  return `<button class="qd-btn qd-admin-action-primary qd-page-primary ${compact ? 'is-compact' : ''}" type="button" data-action="${meta.primary.action}" ${compact ? `aria-label="${escapeHtml(meta.primary.label)}"` : ''}>${adminIcon('plus')}<span>${escapeHtml(meta.primary.label)}</span></button>`;
+};
+
+const renderAdminMobileBar = () => {
+  const meta = adminSectionMeta[state.activeTab] || adminSectionMeta.overview;
+  return `
+    <header class="qd-admin-mobilebar">
+      <button class="qd-nav-toggle" type="button" data-action="toggle-admin-nav" aria-label="Open menu" aria-controls="qd-admin-sidebar" aria-expanded="${state.navOpen ? 'true' : 'false'}">${adminIcon('menu')}</button>
+      <div class="qd-admin-mobilebar-title">${escapeHtml(meta.label)}</div>
+      ${renderAdminPrimaryAction(meta, { compact: true })}
+    </header>
+  `;
+};
+
+const renderAdminBottomBar = () => {
+  const counts = getAdminAttentionCounts();
+  const items = [
+    ['overview', 'Home', ''],
+    ['dashboard', 'Pipeline', renderAdminNavBadge(counts.newLeads)],
+    ['payments', 'Quotes', ''],
+    ['collections', 'Money', renderAdminNavBadge(counts.collectionsDue, counts.overdue ? 'danger' : 'warn')]
+  ];
+  return `
+    <nav class="qd-admin-bottombar" aria-label="Quick sections">
+      ${items.map(([key, label, badge]) => `
+        <button class="qd-bottom-item ${state.activeTab === key ? 'is-active' : ''}" type="button" data-action="set-admin-tab" data-tab="${key}" ${state.activeTab === key ? 'aria-current="page"' : ''}>
+          <span class="qd-bottom-icon">${adminIcon(key)}${badge}</span><span>${label}</span>
+        </button>
+      `).join('')}
+      <button class="qd-bottom-item" type="button" data-action="toggle-admin-nav" aria-controls="qd-admin-sidebar" aria-expanded="${state.navOpen ? 'true' : 'false'}">
+        <span class="qd-bottom-icon">${adminIcon('menu')}</span><span>More</span>
+      </button>
+    </nav>
+  `;
+};
+
+const renderAdminPageHeader = () => {
+  const meta = adminSectionMeta[state.activeTab] || adminSectionMeta.overview;
+  return `
+    <header class="qd-page-header">
+      <div class="qd-page-heading">
+        <div class="qd-page-eyebrow">${escapeHtml(meta.group)}</div>
+        <h1 class="qd-page-title">${escapeHtml(meta.label)}</h1>
+        <p class="qd-page-description">${escapeHtml(meta.description)}</p>
+      </div>
+      ${meta.primary ? `<div class="qd-page-actions">${renderAdminPrimaryAction(meta)}</div>` : ''}
+    </header>
+  `;
+};
+
+const renderOverviewManager = () => {
+  const counts = getAdminAttentionCounts();
+  const analytics = getAnalytics(state.submissions);
+  const followUp = analytics.agingBuckets.find(([label]) => label === '8+ days')?.[1] || 0;
+  const archived = analytics.counts.Archived || 0;
+  const activeLeads = Math.max(0, analytics.counts.total - archived);
+  const today = new Date();
+  const meetingsToday = state.submissions.filter((item) => item.status !== 'Archived' && isSameLocalDay(getSubmissionMeetingDate(item), today)).length
+    + state.outreachLeads.filter((lead) => isSameLocalDay(lead.meetingDateTime, today)).length;
+  const outreachOpen = state.outreachLeads.filter((lead) => !['declined', 'confirmed'].includes(lead.status)).length;
+  const activeDemos = state.demos.filter((demo) => getDemoStatus(demo) === 'active').length;
+  const activeCards = state.cards.filter((card) => card.active !== false).length;
+  const greetingHour = today.getHours();
+  const greeting = greetingHour < 12 ? 'Good morning' : greetingHour < 18 ? 'Good afternoon' : 'Good evening';
+  const dateLabel = today.toLocaleDateString('en-AE', { weekday: 'long', day: 'numeric', month: 'long' });
+
+  const attention = [
+    {
+      key: 'new', count: counts.newLeads, label: 'New leads to review', note: 'Website requests waiting for a first look',
+      attrs: 'data-action="overview-open" data-tab="dashboard" data-summary="new"', tone: counts.newLeads ? 'warn' : ''
+    },
+    {
+      key: 'followup', count: followUp, label: 'Leads needing follow-up', note: 'Open leads with no movement for 8+ days',
+      attrs: 'data-action="overview-open" data-tab="dashboard" data-summary="followup"', tone: followUp ? 'warn' : ''
+    },
+    {
+      key: 'meetings', count: meetingsToday, label: 'Meetings today', note: 'From the pipeline and outreach',
+      attrs: 'data-action="overview-open" data-tab="dashboard" data-summary="active"', tone: ''
+    },
+    {
+      key: 'quotes', count: counts.quotesAwaiting, label: 'Quotes awaiting a reply', note: 'Sent to the client, not yet accepted',
+      attrs: 'data-action="overview-open" data-tab="payments" data-quote-status="sent"', tone: ''
+    },
+    counts.collectionsLoaded
+      ? {
+        key: 'collections', count: counts.collectionsDue, label: counts.overdue ? 'Payments overdue or due today' : 'Payments due today', note: counts.overdue ? `${counts.overdue} overdue · ${counts.dueToday} due today` : 'Nothing overdue',
+        attrs: 'data-action="overview-open" data-tab="collections"', tone: counts.overdue ? 'danger' : counts.dueToday ? 'warn' : ''
+      }
+      : {
+        key: 'collections', count: null, label: 'Money due', note: 'Open Collections to check overdue and upcoming payments',
+        attrs: 'data-action="overview-open" data-tab="collections"', tone: ''
+      }
+  ];
+
+  const snapshot = [
+    ['dashboard', 'Active leads', activeLeads],
+    ['outreach', 'Outreach in progress', outreachOpen],
+    ['demos', 'Live demos', activeDemos],
+    ['cards', 'Active smart cards', activeCards]
+  ];
+
+  return `
+    <section class="qd-admin-dashboard qd-overview">
+      ${state.dataError ? `<div class="qd-admin-alert" role="alert">${escapeHtml(state.dataError)}</div>` : ''}
+      <p class="qd-overview-greeting">${escapeHtml(greeting)}. <span>${escapeHtml(dateLabel)}</span></p>
+      <section class="qd-overview-panel" aria-labelledby="qd-overview-attention">
+        <h2 class="qd-overview-heading" id="qd-overview-attention">Needs attention</h2>
+        <div class="qd-overview-list">
+          ${attention.map((item) => `
+            <button class="qd-overview-row" type="button" ${item.attrs} ${item.tone ? `data-tone="${item.tone}"` : ''} ${item.count === 0 ? 'data-empty' : ''}>
+              <span class="qd-overview-count">${item.count === null ? adminIcon('collections') : escapeHtml(String(item.count))}</span>
+              <span class="qd-overview-copy"><strong>${escapeHtml(item.label)}</strong><small>${escapeHtml(item.note)}</small></span>
+              <span class="qd-overview-go">${adminIcon('arrow')}</span>
+            </button>
+          `).join('')}
+        </div>
+      </section>
+      <section class="qd-overview-panel" aria-labelledby="qd-overview-snapshot">
+        <h2 class="qd-overview-heading" id="qd-overview-snapshot">At a glance</h2>
+        <div class="qd-overview-stats">
+          ${snapshot.map(([tab, label, value]) => `
+            <button class="qd-overview-stat" type="button" data-action="set-admin-tab" data-tab="${tab}">
+              <span class="qd-overview-stat-icon">${adminIcon(tab)}</span>
+              <strong>${escapeHtml(String(value))}</strong>
+              <small>${escapeHtml(label)}</small>
+            </button>
+          `).join('')}
+        </div>
+      </section>
+    </section>
+  `;
+};
 
 const renderCardsRows = (items) => {
   if (state.cardsLoading && !items.length) {
@@ -3440,7 +3755,7 @@ const renderCardsManager = () => `
           <p>Create slug-driven digital business cards, download print-ready QR codes, and track live views from one place.</p>
         </div>
         <div class="qd-admin-cards-toolbar">
-          <button class="qd-btn qd-btn-sm qd-admin-action-primary" type="button" data-action="open-card-create">Create card</button>
+          <!-- "Create card" lives in the page header (data-action="open-card-create") -->
         </div>
       </div>
 
@@ -3704,7 +4019,7 @@ const renderDemosManager = () => {
             <select class="qd-admin-select" data-demo-field="status">
               ${['All', 'Active', 'Draft', 'Expired', 'Disabled'].map((option) => `<option value="${escapeHtml(option)}" ${state.demoFilters.status === option ? 'selected' : ''}>${escapeHtml(option === 'All' ? 'All statuses' : option)}</option>`).join('')}
             </select>
-            <button class="qd-btn qd-btn-sm qd-admin-action-primary" type="button" data-action="open-demo-create">Create demo</button>
+            <!-- "Create demo" lives in the page header (data-action="open-demo-create") -->
           </div>
         </div>
 
@@ -4058,7 +4373,7 @@ const renderInvitationsManager = () => `
           <p>Create luxurious bilingual invitation pages with countdowns, RSVP flows, theme presets, cover media, and WhatsApp-ready sharing.</p>
         </div>
         <div class="qd-admin-cards-toolbar">
-          <button class="qd-btn qd-btn-sm qd-admin-action-primary" type="button" data-action="open-invitation-create">Create invitation</button>
+          <!-- "Create invitation" lives in the page header (data-action="open-invitation-create") -->
         </div>
       </div>
 
@@ -4559,6 +4874,35 @@ const renderAppShell = (content) => {
   const userBadge = state.user?.email
     ? `<span class="qd-admin-user-badge">${escapeHtml(state.user.email)}</span>`
     : '';
+  const overlays = `
+      ${state.adminToast ? `<div class="qd-admin-toast" role="status" aria-live="polite">${escapeHtml(state.adminToast)}</div>` : ''}
+      ${renderDrawer()}
+      ${renderCardEditor()}
+      ${renderDemoEditor()}
+      ${renderInvitationEditor()}
+      ${renderOutreachEditor()}
+      ${renderQuoteDrawer()}
+      ${renderQuotationDetailSheet()}
+  `;
+
+  if (state.user && isAllowedAdminUser(state.user)) {
+    const tabChanged = lastRenderedAdminTab !== state.activeTab;
+    lastRenderedAdminTab = state.activeTab;
+    return `
+      <div class="qd-admin-shell has-nav ${state.navOpen ? 'is-nav-open' : ''}" data-active-tab="${escapeHtml(state.activeTab)}">
+        ${renderAdminTabs()}
+        <div class="qd-admin-main">
+          ${renderAdminMobileBar()}
+          <main class="qd-admin-frame qd-admin-view ${tabChanged ? 'is-entering' : ''}" id="qd-admin-main" tabindex="-1">
+            ${renderAdminPageHeader()}
+            ${content}
+          </main>
+        </div>
+        ${renderAdminBottomBar()}
+        ${overlays}
+      </div>
+    `;
+  }
 
   return `
     <div class="qd-admin-shell">
@@ -4574,16 +4918,9 @@ const renderAppShell = (content) => {
           </div>
         </header>
 
-        ${state.user ? renderAdminTabs() : ''}
         ${content}
       </div>
-      ${state.adminToast ? `<div class="qd-admin-toast" role="status" aria-live="polite">${escapeHtml(state.adminToast)}</div>` : ''}
-      ${renderDrawer()}
-      ${renderCardEditor()}
-      ${renderDemoEditor()}
-      ${renderInvitationEditor()}
-      ${renderOutreachEditor()}
-      ${renderQuoteDrawer()}
+      ${overlays}
     </div>
   `;
 };
@@ -4645,6 +4982,7 @@ const render = () => {
     document.body.classList.toggle('qd-modal-open', nextModalOpen);
     isModalOpen = nextModalOpen;
   }
+  document.body.classList.toggle('qd-admin-nav-locked', Boolean(state.navOpen && state.user));
 
   if (state.authLoading) {
     root.innerHTML = renderLoading('Authenticating', 'Checking your Firebase session and restoring persistence.');
@@ -4671,6 +5009,14 @@ const render = () => {
     return;
   }
 
+  const keptScroll = [...root.querySelectorAll('[data-keep-scroll]')].map((el) => [el.dataset.keepScroll, el.scrollTop]);
+  const focused = document.activeElement;
+  const focusKey = focused && root.contains(focused)
+    ? ['qline', 'qfield', 'qterm'].map((key) => (focused.dataset?.[key] != null ? `[data-${key}="${focused.dataset[key]}"]` : '')).find(Boolean)
+      || (focused.matches?.('[data-qe-picker-search]') ? '[data-qe-picker-search]' : '')
+    : '';
+  const focusSelection = focusKey && typeof focused.selectionStart === 'number' ? [focused.selectionStart, focused.selectionEnd] : null;
+
   const content = state.activeTab === 'cards'
     ? renderCardsManager()
     : state.activeTab === 'demos'
@@ -4687,8 +5033,23 @@ const render = () => {
       ? renderCollectionsManager()
     : state.activeTab === 'activity'
       ? renderActivityManager()
+    : state.activeTab === 'overview'
+      ? renderOverviewManager()
       : renderDashboard();
   root.innerHTML = renderAppShell(content);
+  keptScroll.forEach(([key, top]) => {
+    const el = root.querySelector(`[data-keep-scroll="${key}"]`);
+    if (el) el.scrollTop = top;
+  });
+  if (focusKey) {
+    const next = root.querySelector(`#qd-quote-drawer ${focusKey}`) || root.querySelector(focusKey);
+    if (next) {
+      next.focus({ preventScroll: true });
+      if (focusSelection) {
+        try { next.setSelectionRange(focusSelection[0], focusSelection[1]); } catch { /* number inputs */ }
+      }
+    }
+  }
   syncActivitySubscriptions();
   mountInvitationQrPreview();
 };
@@ -4733,6 +5094,14 @@ const closeDrawer = () => {
   state.saveError = '';
   state.copyFeedback = '';
   render();
+};
+
+const setAdminNavOpen = (open) => {
+  state.navOpen = Boolean(open);
+  render();
+  if (state.navOpen) {
+    root.querySelector('.qd-admin-sidebar .qd-nav-item.is-active, .qd-admin-sidebar .qd-nav-item')?.focus({ preventScroll: true });
+  }
 };
 
 const showLoginError = (message) => {
@@ -6627,14 +6996,38 @@ const handleDocumentClick = async (event) => {
     return;
   }
 
-  if (action === 'set-admin-tab') {
+  if (action === 'toggle-admin-nav') {
+    setAdminNavOpen(!state.navOpen);
+    return;
+  }
+
+  if (action === 'set-admin-tab' || action === 'overview-open') {
+    const previousTab = state.activeTab;
     state.activeTab = actionTarget.dataset.tab || 'dashboard';
+    state.navOpen = false;
+    if (action === 'overview-open' && state.activeTab === 'dashboard' && actionTarget.dataset.summary) {
+      // Same filter logic as the pipeline summary buttons.
+      const summary = actionTarget.dataset.summary;
+      state.pipelineAttentionOnly = summary === 'followup';
+      state.dashboardSection = 'pipeline';
+      state.filters.status = summary === 'new' ? 'New' : 'All';
+      state.pipelinePage = 0;
+    }
+    if (action === 'overview-open' && state.activeTab === 'payments' && actionTarget.dataset.quoteStatus) {
+      state.paymentLookup.status = actionTarget.dataset.quoteStatus;
+    }
     if (state.activeTab === 'activity') {
       state.activityLoading = true;
       state.activityError = '';
     }
     syncAdminTabUrl();
     render();
+    if (previousTab !== state.activeTab) {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+      if (event.detail === 0) {
+        root.querySelector(`.qd-admin-sidebar [data-tab="${state.activeTab}"]`)?.focus({ preventScroll: true });
+      }
+    }
     if (state.activeTab === 'payments') await loadQuotesList();
     if (state.activeTab === 'collections') await loadCollections();
     return;
@@ -7191,7 +7584,7 @@ const handleDocumentClick = async (event) => {
     const idx = Number(actionTarget.dataset.idx);
     if (!state.quoteDrawer.quote) return;
     state.quoteDrawer.quote.lineItems.splice(idx, 1);
-    state.quoteDrawer.dirty = true;
+    markQuoteDirty();
     render();
     return;
   }
@@ -7203,7 +7596,7 @@ const handleDocumentClick = async (event) => {
     const nextIdx = action === 'quote-move-line-up' ? idx - 1 : idx + 1;
     if (nextIdx < 0 || nextIdx >= q.lineItems.length) return;
     [q.lineItems[idx], q.lineItems[nextIdx]] = [q.lineItems[nextIdx], q.lineItems[idx]];
-    state.quoteDrawer.dirty = true;
+    markQuoteDirty();
     render();
     return;
   }
@@ -7215,7 +7608,7 @@ const handleDocumentClick = async (event) => {
     if (!Array.isArray(q.lineItems[idx].includes)) q.lineItems[idx].includes = [];
     q.lineItems[idx].includes.push('New included item');
     q.lineItems[idx].includedGroups = [];
-    state.quoteDrawer.dirty = true;
+    markQuoteDirty();
     render();
     return;
   }
@@ -7228,7 +7621,7 @@ const handleDocumentClick = async (event) => {
     if (!Array.isArray(q.lineItems[idx].includes)) q.lineItems[idx].includes = [];
     q.lineItems[idx].includes.splice(includeIdx, 1);
     q.lineItems[idx].includedGroups = [];
-    state.quoteDrawer.dirty = true;
+    markQuoteDirty();
     render();
     return;
   }
@@ -7239,7 +7632,7 @@ const handleDocumentClick = async (event) => {
     if (!q.terms || typeof q.terms !== 'object') q.terms = { en: [], ar: [] };
     if (!Array.isArray(q.terms.en)) q.terms.en = quoteTermsToEditable(q.terms).en;
     q.terms.en.push('New term.');
-    state.quoteDrawer.dirty = true;
+    markQuoteDirty();
     render();
     return;
   }
@@ -7250,7 +7643,7 @@ const handleDocumentClick = async (event) => {
     if (!q) return;
     if (!Array.isArray(q.terms?.en)) q.terms = quoteTermsToEditable(q.terms);
     q.terms.en.splice(idx, 1);
-    state.quoteDrawer.dirty = true;
+    markQuoteDirty();
     render();
     return;
   }
@@ -7265,7 +7658,7 @@ const handleDocumentClick = async (event) => {
       qty: 1,
       unitPrice: 0
     });
-    state.quoteDrawer.dirty = true;
+    markQuoteDirty();
     render();
     return;
   }
@@ -7275,7 +7668,197 @@ const handleDocumentClick = async (event) => {
     return;
   }
 
+  if (action === 'quote-picker-toggle') {
+    if (!state.quoteDrawer.quote) return;
+    const ui = getQuoteEditorUi();
+    ui.pickerOpen = !ui.pickerOpen;
+    render();
+    if (ui.pickerOpen) root.querySelector('[data-qe-picker-search]')?.focus({ preventScroll: true });
+    return;
+  }
+
+  if (action === 'quote-picker-group') {
+    getQuoteEditorUi().pickerGroup = actionTarget.dataset.group || 'all';
+    render();
+    return;
+  }
+
+  if (action === 'quote-picker-add') {
+    const q = state.quoteDrawer.quote;
+    if (!q) return;
+    const { kind, key } = actionTarget.dataset;
+    let label = '';
+    if (kind === 'package') {
+      const pkg = getPackage(key);
+      if (pkg) {
+        q.lineItems.push(packageToQuoteLine(pkg));
+        label = pkg.name.en;
+      }
+    } else if (kind === 'care') {
+      const plan = getCarePlan(key);
+      if (plan) {
+        applyQuoteChange('carePlanName', plan.name.en);
+        applyQuoteChange('careMonthly', plan.monthly);
+        label = `${plan.name.en} care plan`;
+      }
+    } else {
+      const line = catalogToLineItem(key);
+      if (line) {
+        q.lineItems.push(line);
+        label = line.name.en;
+      }
+    }
+    if (!label) return;
+    markQuoteDirty();
+    showToast(`Added: ${label}`);
+    return;
+  }
+
+  if (action === 'quote-editor-toggle-section') {
+    const ui = getQuoteEditorUi();
+    const id = actionTarget.dataset.section;
+    ui.collapsed = { ...(ui.collapsed || {}), [id]: !ui.collapsed?.[id] };
+    render();
+    return;
+  }
+
+  if (action === 'quote-editor-jump') {
+    const ui = getQuoteEditorUi();
+    const id = actionTarget.dataset.section;
+    ui.view = 'edit';
+    if (ui.collapsed?.[id]) {
+      ui.collapsed = { ...ui.collapsed, [id]: false };
+      render();
+    }
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    root.querySelector(`#qd-qe-section-${id}`)?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    return;
+  }
+
+  if (action === 'quote-editor-view') {
+    getQuoteEditorUi().view = actionTarget.dataset.view === 'preview' ? 'preview' : 'edit';
+    render();
+    return;
+  }
+
+  if (action === 'quote-editor-lang') {
+    if (!state.quoteDrawer.quote) return;
+    const next = actionTarget.dataset.lang === 'ar' ? 'ar' : 'en';
+    if ((state.quoteDrawer.quote.language || 'en') === next) return;
+    applyQuoteChange('language', next);
+    render();
+    return;
+  }
+
+  if (action === 'quote-editor-copy-link') {
+    const q = state.quoteDrawer.quote;
+    if (!q || !guardQuoteSendAction()) return;
+    const text = `Your quotation from QD Systems:\n${getQuoteClientUrl(q)}\nPasscode: ${getQuotePasscode(q) || '(check admin)'}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast(state.quoteDrawer.dirty ? 'Link copied. Save first so the client sees your latest changes.' : 'Link and passcode copied.');
+    } catch {
+      prompt('Copy this client link:', text);
+    }
+    return;
+  }
+
+  if (action === 'quote-editor-mark-sent') {
+    if (!guardQuoteSendAction()) return;
+    await saveQuoteDrawer({ markSent: true, copy: false });
+    return;
+  }
+
+  if (action === 'quote-editor-retry') {
+    const d = state.quoteDrawer;
+    if (!d?.open) return;
+    d.retryCount = 0;
+    clearTimeout(quoteRetryTimer);
+    const saved = await saveQuoteDrawer({ silent: false });
+    if (saved && d.closeFailed && state.quoteDrawer === d) await closeQuoteDrawer();
+    return;
+  }
+
+  if (action === 'quote-editor-discard') {
+    const d = state.quoteDrawer;
+    if (!d?.open) return;
+    if (!window.confirm('Discard your unsaved changes to this quote? This cannot be undone.')) return;
+    clearQuoteLocalCopy(d.quote?.id);
+    await closeQuoteDrawer({ autosave: false });
+    return;
+  }
+
+  if (action === 'quote-editor-load-latest') {
+    const d = state.quoteDrawer;
+    const latest = getServerQuoteDoc(d?.quote?.id);
+    if (!d?.open || !latest) return;
+    if (!window.confirm('Load the latest saved version? Your unsaved changes will be discarded.')) return;
+    clearQuoteLocalCopy(d.quote.id);
+    d.quote = prepareQuoteForEditing({ ...latest, lineItems: [...(latest.lineItems || [])] });
+    d.original = deepCloneForLog(getQuoteLogState(latest));
+    d.dirty = false;
+    d.saveState = 'saved';
+    d.baseUpdatedMs = timestampMs(latest.updatedAt) || d.baseUpdatedMs;
+    render();
+    return;
+  }
+
+  if (action === 'quote-editor-keep-mine') {
+    await saveQuoteDrawer({ silent: false, force: true });
+    return;
+  }
+
+  if (action === 'quote-editor-restore') {
+    const d = state.quoteDrawer;
+    const local = readQuoteLocalCopy(d?.quote?.id);
+    if (!d?.open || !local) return;
+    QUOTE_LOCAL_FIELDS.forEach((key) => {
+      if (local.fields[key] !== undefined) d.quote[key] = deepCloneForLog(local.fields[key]);
+    });
+    d.restoreOffer = null;
+    markQuoteDirty();
+    render();
+    showToast('Unsaved changes restored. Save to keep them.');
+    return;
+  }
+
+  if (action === 'quote-editor-restore-discard') {
+    const d = state.quoteDrawer;
+    if (!d?.open) return;
+    clearQuoteLocalCopy(d.quote?.id);
+    d.restoreOffer = null;
+    render();
+    return;
+  }
+
+  if (action === 'quote-editor-set-status') {
+    const q = state.quoteDrawer.quote;
+    const select = root.querySelector('#qd-quote-drawer [data-qe-status]');
+    if (!q || !select || !guardQuoteSendAction()) return;
+    await setQuoteWorkflowStatusFromEditor(select.value);
+    return;
+  }
+
+  if (action === 'quote-editor-open-detail') {
+    const q = state.quoteDrawer.quote;
+    if (!q) return;
+    const id = q.id;
+    if (!(await closeQuoteDrawer())) return;
+    state.activeTab = 'payments';
+    syncAdminTabUrl();
+    render();
+    await openQuotationDetail(id);
+    await loadQuotesList({ keepDetail: true });
+    return;
+  }
+
+  if (action === 'quote-detail-close') {
+    closeQuotationDetail();
+    return;
+  }
+
   if (action === 'quote-save-and-copy') {
+    if (!guardQuoteSendAction()) return;
     await saveQuoteDrawer({ markSent: true, copy: true });
     return;
   }
@@ -7492,7 +8075,7 @@ const handleDocumentInput = (event) => {
       if (q) {
         if (!Array.isArray(q.terms?.en)) q.terms = quoteTermsToEditable(q.terms);
         q.terms.en[Number(qterm)] = String(value || '').trim();
-        state.quoteDrawer.dirty = true;
+        markQuoteDirty();
       }
     } else {
       applyQuoteChange(qfield || qline, value);
@@ -7562,6 +8145,10 @@ document.addEventListener('input', (event) => {
 });
 
 document.addEventListener('input', (event) => {
+  if (event.target.matches?.('[data-qe-picker-search]')) {
+    filterQuotePicker(event.target.value);
+    return;
+  }
   if (event.target.dataset && event.target.dataset.pricingFilter !== undefined) {
     applyPricingAddonFilter(event.target.value);
     return;
@@ -7638,13 +8225,23 @@ document.addEventListener('change', (event) => {
     return;
   }
 
+  if (event.target.matches?.('[data-qe-care-plan]')) {
+    const plan = getCarePlan(event.target.value);
+    if (plan && state.quoteDrawer.quote) {
+      applyQuoteChange('carePlanName', plan.name.en);
+      applyQuoteChange('careMonthly', plan.monthly);
+      render();
+    }
+    return;
+  }
+
   if (event.target.dataset.qaction === 'add-from-catalog') {
     const key = event.target.value;
     if (!key || !state.quoteDrawer.quote) return;
     const line = catalogToLineItem(key);
     if (line) {
       state.quoteDrawer.quote.lineItems.push(line);
-      state.quoteDrawer.dirty = true;
+      markQuoteDirty();
       event.target.value = '';
       render();
     }
@@ -7655,14 +8252,8 @@ document.addEventListener('change', (event) => {
     if (!pkgId || !state.quoteDrawer.quote) return;
     const pkg = getPackage(pkgId);
     if (pkg) {
-      state.quoteDrawer.quote.lineItems.push({
-        catalogKey: pkg.id,
-        name: { en: pkg.name.en, ar: pkg.name.ar },
-        description: { en: pkg.includes.join(' · '), ar: '' },
-        qty: 1,
-        unitPrice: pkg.oneTime
-      });
-      state.quoteDrawer.dirty = true;
+      state.quoteDrawer.quote.lineItems.push(packageToQuoteLine(pkg));
+      markQuoteDirty();
       event.target.value = '';
       render();
     }
@@ -7741,6 +8332,11 @@ document.addEventListener('submit', async (event) => {
 });
 
 document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && state.navOpen) {
+    setAdminNavOpen(false);
+    root.querySelector('.qd-nav-toggle')?.focus({ preventScroll: true });
+    return;
+  }
   if (event.key === 'Escape') {
     if (state.demoEditor.open) {
       closeDemoEditor();
@@ -7762,7 +8358,11 @@ document.addEventListener('keydown', (event) => {
       closeQuoteDrawer();
       return;
     }
-    if (state.selectedId) closeDrawer();
+    if (state.selectedId) {
+      closeDrawer();
+      return;
+    }
+    if (state.activeTab === 'payments' && (state.paymentLookup.quote || state.paymentLookup.loading)) closeQuotationDetail();
   }
 });
 
@@ -7789,10 +8389,20 @@ const subscribeToQuotes = () => {
       });
       state.quotesBySubmissionId = map;
       if (state.quoteDrawer.open && state.quoteDrawer.quote?.id) {
-        const fresh = Object.values(map).find((q) => q.id === state.quoteDrawer.quote.id);
-        if (fresh && !state.quoteDrawer.dirty) {
-          state.quoteDrawer.quote = { ...fresh, lineItems: [...(fresh.lineItems || [])] };
-          state.quoteDrawer.original = deepCloneForLog(getQuoteLogState(fresh));
+        const d = state.quoteDrawer;
+        const fresh = Object.values(map).find((q) => q.id === d.quote.id);
+        const freshMs = timestampMs(fresh?.updatedAt);
+        if (!fresh || d.saving) {
+          // our own save is in flight; its response sets the new base version
+        } else if (!d.dirty) {
+          d.quote = prepareQuoteForEditing({ ...fresh, lineItems: [...(fresh.lineItems || [])] });
+          d.original = deepCloneForLog(getQuoteLogState(fresh));
+          if (freshMs) d.baseUpdatedMs = freshMs;
+        } else if (!d.baseUpdatedMs) {
+          d.baseUpdatedMs = freshMs;
+        } else if (freshMs > d.baseUpdatedMs) {
+          d.saveState = 'conflict';
+          clearTimeout(quoteAutosaveTimer);
         }
       }
       render();
@@ -7821,7 +8431,7 @@ const goToQuotationDetail = async (quote) => {
   state.paymentLookup.search = quote.quoteNumber || '';
   syncAdminTabUrl();
   render();
-  await openQuotationDetail(quote.id || quote.quoteNumber);
+  await openQuotationDetail(quote.id || quote.quoteNumber, { edit: true });
   await loadQuotesList({ keepDetail: true });
 };
 
@@ -7907,37 +8517,83 @@ const prepareQuoteForEditing = (quote = {}) => {
           : []),
       includedGroups: []
     }));
-  const legacyCare = (quote.lineItems || []).find((line) => line?.catalogKey === 'monthly-care');
+  // No care field -> "No monthly plan" (AED 0) until the admin picks one.
+  const care = resolveQuoteCareForEditing(quote);
   return {
     ...quote,
     vatInclusive: quote.vatInclusive !== false,
     vatPercent: quote.vatInclusive === false ? Number(quote.vatPercent) || 5 : 0,
-    careMonthly: Number(quote.careMonthly) || Number(quote.estimateSnapshot?.monthly?.amount) || 149,
-    carePlanName: quote.carePlanName || quote.estimateSnapshot?.monthly?.planName || legacyCare?.name?.en || 'Care Basic',
+    careMonthly: care.careMonthly,
+    carePlanName: care.carePlanName,
     lineItems,
     terms: quoteTermsToEditable(quote.terms),
+    notes: typeof quote.notes === 'string' ? { en: quote.notes, ar: '' } : (quote.notes || { en: '', ar: '' }),
     pages: { ...(quote.pages || {}), price: Number(quote.pages?.price) || 0 }
   };
 };
 
 const openQuoteDrawer = (quote) => {
   lastModalOpenedAt = Date.now();
-  const editableQuote = prepareQuoteForEditing(quote);
+  clearTimeout(quoteAutosaveTimer);
+  clearTimeout(quoteRetryTimer);
+  const serverDoc = getServerQuoteDoc(quote?.id);
+  // The payment view has no carePlanName; take it from the realtime quote doc
+  // so a Care Lite quote does not open labelled "Care Basic".
+  const editableQuote = prepareQuoteForEditing({ ...quote, carePlanName: quote?.carePlanName ?? serverDoc?.carePlanName });
+  const baseUpdatedMs = timestampMs(quote?.updatedAt) || timestampMs(serverDoc?.updatedAt) || 0;
+  const local = readQuoteLocalCopy(editableQuote.id);
+  let restoreOffer = null;
+  if (local) {
+    const same = JSON.stringify(local.fields) === JSON.stringify(pickQuoteEditableFields(editableQuote));
+    if (same) clearQuoteLocalCopy(editableQuote.id);
+    else restoreOffer = { savedAt: Number(local.savedAt) || Date.now(), serverNewer: Boolean(baseUpdatedMs && baseUpdatedMs > (Number(local.savedAt) || 0)) };
+  }
   state.quoteDrawer = {
     open: true,
     quote: editableQuote,
     original: deepCloneForLog(getQuoteLogState(quote)),
-    dirty: false
+    dirty: false,
+    ui: createQuoteEditorUi(),
+    rev: 0,
+    saving: false,
+    saveState: 'saved',
+    saveError: '',
+    lastSavedAt: 0,
+    baseUpdatedMs,
+    retryCount: 0,
+    closeFailed: false,
+    restoreOffer,
+    enterAnim: true
   };
   render();
+  // Play the entrance animation once, not on every re-render.
+  state.quoteDrawer.enterAnim = false;
 };
 
-const closeQuoteDrawer = ({ autosave = true } = {}) => {
-  if (autosave && state.quoteDrawer.dirty) {
-    saveQuoteDrawer({ markSent: false, copy: false, silent: true });
+// Returns true when the editor closed. If the save on close fails, the editor
+// stays open with Retry / Discard so nothing is lost silently.
+const closeQuoteDrawer = async ({ autosave = true } = {}) => {
+  const d = state.quoteDrawer;
+  if (autosave && d?.open) {
+    if (d.saving && quoteSaveInFlight) await quoteSaveInFlight;
+    if (state.quoteDrawer !== d) return true;
+    if (d.dirty) {
+      showToast('Saving your changes…');
+      const saved = await saveQuoteDrawer({ markSent: false, copy: false, silent: true });
+      if (state.quoteDrawer !== d) return true;
+      if (!saved) {
+        d.closeFailed = true;
+        render();
+        showToast('Not saved yet. Your changes are still here.');
+        return false;
+      }
+    }
   }
+  clearTimeout(quoteAutosaveTimer);
+  clearTimeout(quoteRetryTimer);
   state.quoteDrawer = { open: false, quote: null, original: null, dirty: false };
   render();
+  return true;
 };
 
 const shouldIgnoreImmediateModalClose = (actionTarget) => {
@@ -7987,8 +8643,206 @@ const applyQuoteChange = (path, value) => {
       cur[last] = (last === 'validDays' || last === 'vatPercent' || last === 'careMonthly' || path === 'pages.price') ? Number(value) || 0 : value;
     }
   }
-  state.quoteDrawer.dirty = true;
+  markQuoteDirty();
 };
+
+// ── Quote editor save safety ───────────────────────────────────────────
+// Debounced background autosave (draft quotes only), a local safety copy of
+// the editable fields, conflict detection from the realtime quotes snapshot
+// (no extra requests), retry with backoff on network failure, and no silent
+// loss on close. The save itself still goes through saveQuoteDrawer.
+const QUOTE_AUTOSAVE_DELAY = 2500;
+const QUOTE_RETRY_DELAYS = [2000, 4000, 8000, 16000, 30000];
+const QUOTE_LOCAL_PREFIX = 'qd-admin-quote-draft:';
+// Only the fields the editor can change. Never the passcode, hash, payments,
+// schedule or any other server-owned field.
+const QUOTE_LOCAL_FIELDS = ['customer', 'lineItems', 'pages', 'terms', 'notes', 'validDays', 'vatInclusive', 'vatPercent', 'careMonthly', 'carePlanName', 'language'];
+
+let quoteAutosaveTimer = 0;
+let quoteRetryTimer = 0;
+let quoteLocalCopyTimer = 0;
+let quoteSaveInFlight = null;
+
+const timestampMs = (value) => {
+  if (!value) return 0;
+  if (typeof value.toMillis === 'function') return value.toMillis();
+  if (typeof value.toDate === 'function') return value.toDate().getTime();
+  if (typeof value === 'object') {
+    const seconds = value._seconds ?? value.seconds;
+    if (Number.isFinite(Number(seconds))) return Number(seconds) * 1000 + Math.floor((Number(value._nanoseconds ?? value.nanoseconds) || 0) / 1e6);
+  }
+  const parsed = new Date(value).getTime();
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const getServerQuoteDoc = (id) => Object.values(state.quotesBySubmissionId || {}).find((item) => item?.id === id) || null;
+
+const pickQuoteEditableFields = (q = {}) => {
+  const fields = {};
+  QUOTE_LOCAL_FIELDS.forEach((key) => {
+    if (q[key] !== undefined) fields[key] = deepCloneForLog(q[key]);
+  });
+  return fields;
+};
+
+const readQuoteLocalCopy = (id) => {
+  if (!id) return null;
+  try {
+    const raw = window.localStorage.getItem(QUOTE_LOCAL_PREFIX + id);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return parsed && parsed.fields && typeof parsed.fields === 'object' ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+
+const writeQuoteLocalCopy = () => {
+  const d = state.quoteDrawer;
+  if (!d?.open || !d.quote?.id || !d.dirty) return;
+  try {
+    window.localStorage.setItem(QUOTE_LOCAL_PREFIX + d.quote.id, JSON.stringify({
+      savedAt: Date.now(),
+      baseUpdatedMs: d.baseUpdatedMs || 0,
+      fields: pickQuoteEditableFields(d.quote)
+    }));
+  } catch {
+    /* storage full or blocked: the in-memory edits still exist */
+  }
+};
+
+const clearQuoteLocalCopy = (id) => {
+  if (!id) return;
+  clearTimeout(quoteLocalCopyTimer);
+  try { window.localStorage.removeItem(QUOTE_LOCAL_PREFIX + id); } catch { /* ignore */ }
+};
+
+const isQuoteSaveBlocked = (d = state.quoteDrawer) => Boolean(d?.saving || d?.saveState === 'failed' || d?.saveState === 'conflict');
+
+const isQuoteAutosaveEligible = (d = state.quoteDrawer) => Boolean(
+  d?.open && d.quote?.id && d.dirty && !d.saving && d.saveState !== 'conflict' && getQuoteWorkflowValue(d.quote) === 'draft'
+);
+
+const scheduleQuoteAutosave = (delay = QUOTE_AUTOSAVE_DELAY) => {
+  clearTimeout(quoteAutosaveTimer);
+  if (!isQuoteAutosaveEligible()) return;
+  quoteAutosaveTimer = setTimeout(() => {
+    if (isQuoteAutosaveEligible()) saveQuoteDrawer({ silent: true, background: true });
+  }, delay);
+};
+
+const scheduleQuoteRetry = (d) => {
+  clearTimeout(quoteRetryTimer);
+  const attempt = d.retryCount || 0;
+  if (attempt >= QUOTE_RETRY_DELAYS.length) return;
+  d.retryCount = attempt + 1;
+  quoteRetryTimer = setTimeout(() => {
+    if (state.quoteDrawer === d && d.dirty && !d.saving && d.saveState === 'failed') {
+      saveQuoteDrawer({ silent: true, background: true, isRetry: true });
+    }
+  }, QUOTE_RETRY_DELAYS[attempt]);
+};
+
+// Called for every edit (replaces the old `state.quoteDrawer.dirty = true`).
+const markQuoteDirty = () => {
+  const d = state.quoteDrawer;
+  if (!d?.open || !d.quote) return;
+  d.dirty = true;
+  d.rev = (d.rev || 0) + 1;
+  if (d.saveState !== 'conflict' && d.saveState !== 'failed') d.saveState = d.saving ? 'saving' : 'dirty';
+  clearTimeout(quoteLocalCopyTimer);
+  quoteLocalCopyTimer = setTimeout(writeQuoteLocalCopy, 400);
+  scheduleQuoteAutosave();
+  refreshQuoteSaveUi();
+};
+
+const formatQuoteSaveTime = (ms) => (ms
+  ? new Date(ms).toLocaleTimeString('en-AE', { hour: '2-digit', minute: '2-digit' })
+  : '');
+
+const renderQuoteSaveStatus = () => {
+  const d = state.quoteDrawer || {};
+  const isDraft = getQuoteWorkflowValue(d.quote) === 'draft';
+  if (d.saving || d.saveState === 'saving') {
+    return '<span class="qd-qe-dirty is-saving" data-qe-dirty role="status">Saving…</span>';
+  }
+  if (d.saveState === 'failed') {
+    return '<span class="qd-qe-dirty is-failed" data-qe-dirty role="status">Save failed <button type="button" class="qd-qe-status-btn" data-action="quote-editor-retry">Retry</button></span>';
+  }
+  if (d.saveState === 'conflict') {
+    return '<span class="qd-qe-dirty is-failed" data-qe-dirty role="status">Changed elsewhere</span>';
+  }
+  if (d.dirty) {
+    return `<span class="qd-qe-dirty is-dirty" data-qe-dirty role="status">Unsaved changes${isDraft ? ' · autosaves' : ''}</span>`;
+  }
+  return `<span class="qd-qe-dirty" data-qe-dirty role="status">${d.lastSavedAt ? `Saved ${escTxt(formatQuoteSaveTime(d.lastSavedAt))}` : 'All changes saved'}</span>`;
+};
+
+const renderQuoteEditorBanner = () => {
+  const d = state.quoteDrawer || {};
+  let body = '';
+  if (d.saveState === 'conflict') {
+    body = `
+      <p><strong>This quote was saved somewhere else after you opened it.</strong> Autosave is paused so nothing is overwritten.</p>
+      <div class="qd-qe-banner-actions">
+        <button type="button" class="qd-btn qd-admin-action-secondary" data-action="quote-editor-load-latest">Load latest (discard mine)</button>
+        <button type="button" class="qd-btn qd-admin-action-primary" data-action="quote-editor-keep-mine">Keep mine and save</button>
+      </div>`;
+  } else if (d.saveState === 'failed' || d.closeFailed) {
+    body = `
+      <p><strong>Your changes are not saved yet.</strong> ${escTxt(d.saveError || 'The server could not be reached.')} A copy is kept on this device${d.retryCount && d.retryCount < QUOTE_RETRY_DELAYS.length ? ' and it will retry automatically' : ''}.</p>
+      <div class="qd-qe-banner-actions">
+        <button type="button" class="qd-btn qd-admin-action-primary" data-action="quote-editor-retry">Retry now</button>
+        <button type="button" class="qd-btn qd-admin-action-danger" data-action="quote-editor-discard">Discard changes and close</button>
+      </div>`;
+  } else if (d.restoreOffer) {
+    body = `
+      <p><strong>Unsaved changes from ${escTxt(new Date(d.restoreOffer.savedAt).toLocaleString('en-AE', { dateStyle: 'medium', timeStyle: 'short' }))} were found on this device.</strong>${d.restoreOffer.serverNewer ? ' The quote was saved again after that, so check before restoring.' : ''}</p>
+      <div class="qd-qe-banner-actions">
+        <button type="button" class="qd-btn qd-admin-action-primary" data-action="quote-editor-restore">Restore unsaved changes</button>
+        <button type="button" class="qd-btn qd-admin-action-secondary" data-action="quote-editor-restore-discard">Discard them</button>
+      </div>`;
+  }
+  return `<div class="qd-qe-banner ${body ? 'is-visible' : ''} ${d.saveState === 'failed' || d.saveState === 'conflict' || d.closeFailed ? 'is-warning' : ''}" data-qe-banner role="${body ? 'alert' : 'presentation'}">${body}</div>`;
+};
+
+// Patch the status, banner and send-button states without a full render, so
+// typing is never interrupted by a background save.
+const refreshQuoteSaveUi = () => {
+  const drawer = document.getElementById('qd-quote-drawer');
+  if (!drawer) return;
+  const status = drawer.querySelector('[data-qe-dirty]');
+  if (status) status.outerHTML = renderQuoteSaveStatus();
+  const banner = drawer.querySelector('[data-qe-banner]');
+  if (banner) banner.outerHTML = renderQuoteEditorBanner();
+  const blocked = isQuoteSaveBlocked();
+  drawer.querySelectorAll('[data-qe-needs-clean]').forEach((button) => {
+    button.disabled = blocked;
+    button.title = blocked ? 'Available once your changes are saved' : '';
+  });
+};
+
+const guardQuoteSendAction = () => {
+  if (!isQuoteSaveBlocked()) return true;
+  const d = state.quoteDrawer;
+  showToast(d.saving ? 'Wait for the save to finish.' : 'Save your changes first so the client never sees an older version.');
+  return false;
+};
+
+window.addEventListener('beforeunload', (event) => {
+  const d = state.quoteDrawer;
+  if (d?.open && (d.dirty || d.saving)) {
+    event.preventDefault();
+    event.returnValue = '';
+  }
+});
+
+window.addEventListener('online', () => {
+  const d = state.quoteDrawer;
+  if (d?.open && d.dirty && !d.saving && d.saveState === 'failed') {
+    d.retryCount = 0;
+    saveQuoteDrawer({ silent: true, background: true, isRetry: true });
+  }
+});
 
 const updateQuoteTotalsPreview = () => {
   const q = state.quoteDrawer.quote;
@@ -8006,68 +8860,175 @@ const updateQuoteTotalsPreview = () => {
   if (strip) strip.outerHTML = renderQuoteAdminStrip(q);
   const paymentPreview = document.querySelector('#qd-quote-drawer .qd-quote-payment-panel');
   if (paymentPreview) paymentPreview.outerHTML = renderQuoteDrawerPaymentSummary(q);
+  scheduleQuoteEditorRefresh();
 };
 
-const saveQuoteDrawer = async ({ markSent = false, copy = false, silent = false } = {}) => {
-  const q = state.quoteDrawer.quote;
-  if (!q) return;
-  try {
-    const user = auth.currentUser;
-    if (!user) { if (!silent) showToast('Not signed in.'); return; }
-    const token = await user.getIdToken();
-    const cleanLineItems = (q.lineItems || [])
-      .filter((line) => line?.catalogKey !== 'monthly-care')
-      .map((line) => ({
-        ...line,
-        qty: Number(line.qty) || 0,
-        unitPrice: Number(line.unitPrice) || 0,
-        includes: Array.isArray(line.includes) ? line.includes.map((item) => String(item || '').trim()).filter(Boolean) : [],
-        includedGroups: []
-      }));
-    const updates = {
-      customer: q.customer,
-      lineItems: cleanLineItems,
-      pages: q.pages,
-      terms: quoteTermsToEditable(q.terms),
-      notes: q.notes,
-      validDays: q.validDays,
-      vatInclusive: q.vatInclusive !== false,
-      vatPercent: q.vatInclusive === false ? Number(q.vatPercent) || 0 : 0,
-      careMonthly: Number(q.careMonthly) || 0,
-      carePlanName: q.carePlanName || 'Care Basic',
-      language: q.language || 'en'
-    };
-    console.log('[quote-save] requesting API', { id: q.id, markSent, endpoint: '/api/quote-save', updates });
-    const res = await fetch('/api/quote-save', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ id: q.id, updates, markSent })
+// Coalesce keystrokes into one preview/totals refresh per frame (no full render,
+// so the field being typed in keeps focus).
+let quoteEditorRefreshFrame = 0;
+const scheduleQuoteEditorRefresh = () => {
+  if (quoteEditorRefreshFrame) return;
+  quoteEditorRefreshFrame = requestAnimationFrame(() => {
+    quoteEditorRefreshFrame = 0;
+    const q = state.quoteDrawer.quote;
+    const drawer = document.getElementById('qd-quote-drawer');
+    if (!q || !drawer) return;
+    const totals = drawer.querySelector('#qd-qe-totals');
+    if (totals) totals.innerHTML = renderQuoteEditorTotals(q);
+    const doc = drawer.querySelector('#qd-qe-preview-doc');
+    if (doc) doc.innerHTML = renderQuoteEditorPreviewDoc(q);
+    (q.lineItems || []).forEach((line, idx) => {
+      const cell = drawer.querySelector(`[data-qe-line-total="${idx}"]`);
+      if (cell) cell.textContent = `AED ${formatAED((Number(line.qty) || 0) * (Number(line.unitPrice) || 0))}`;
     });
-    console.log('[quote-save] response status', res.status, res.statusText);
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      console.error('[quote-save] API failure payload:', err);
-      if (!silent) showToast(`Save failed: ${err.error || res.status}`);
-      return;
-    }
-    state.quoteDrawer.dirty = false;
-    const afterState = getQuoteLogState(q);
-    state.quoteDrawer.original = deepCloneForLog(afterState);
-    if (copy) {
-      const url = `${location.origin}/q/${q.id}`;
-      const text = `Your quotation from QD Systems:\n${url}\nPasscode: ${q._passcodePlain || '(check admin)'}`;
+    refreshQuoteSaveUi();
+    const vatInput = drawer.querySelector('.qd-qe-form [data-qfield="vatPercent"]');
+    if (vatInput) vatInput.disabled = q.vatInclusive !== false;
+  });
+};
+
+// Payload and endpoint are unchanged (PATCH /api/quote-save, whitelisted
+// fields). Adds: in-flight tracking, conflict check, edit-revision tracking so
+// edits typed during a save stay dirty, and retry with backoff on network errors.
+const saveQuoteDrawer = async ({ markSent = false, copy = false, silent = false, background = false, force = false, isRetry = false } = {}) => {
+  const d = state.quoteDrawer;
+  const q = d?.quote;
+  if (!q) return false;
+  if (d.saving) {
+    if (background) { d.pendingAutosave = true; return false; }
+    if (quoteSaveInFlight) await quoteSaveInFlight;
+    if (state.quoteDrawer !== d) return false;
+  }
+  clearTimeout(quoteAutosaveTimer);
+
+  // Conflict: the realtime snapshot shows a newer server version than the one
+  // this editor started from. Never overwrite it silently.
+  const serverMs = timestampMs(getServerQuoteDoc(q.id)?.updatedAt);
+  if (!force && d.baseUpdatedMs && serverMs > d.baseUpdatedMs) {
+    d.saveState = 'conflict';
+    refreshQuoteSaveUi();
+    if (background) return false;
+    if (!window.confirm('This quote was saved somewhere else after you opened it. Replace that version with yours?')) return false;
+  }
+
+  const rev0 = d.rev || 0;
+  d.saving = true;
+  d.saveState = 'saving';
+  refreshQuoteSaveUi();
+
+  const attempt = (async () => {
+    let retryable = false;
+    try {
+      const user = auth.currentUser;
+      if (!user) throw Object.assign(new Error('Not signed in.'), { retryable: false });
+      const token = await user.getIdToken();
+      const cleanLineItems = (q.lineItems || [])
+        .filter((line) => line?.catalogKey !== 'monthly-care')
+        .map((line) => ({
+          ...line,
+          qty: Number(line.qty) || 0,
+          unitPrice: Number(line.unitPrice) || 0,
+          includes: Array.isArray(line.includes) ? line.includes.map((item) => String(item || '').trim()).filter(Boolean) : [],
+          includedGroups: []
+        }));
+      const updates = {
+        customer: q.customer,
+        lineItems: cleanLineItems,
+        pages: q.pages,
+        terms: quoteTermsToEditable(q.terms),
+        notes: q.notes,
+        validDays: q.validDays,
+        vatInclusive: q.vatInclusive !== false,
+        vatPercent: q.vatInclusive === false ? Number(q.vatPercent) || 0 : 0,
+        careMonthly: Number(q.careMonthly) || 0,
+        carePlanName: q.carePlanName || 'Care Basic',
+        language: q.language || 'en'
+      };
+      // Log field names only: no client data, passcode or token in the console.
+      console.log('[quote-save] requesting API', { id: q.id, markSent, background, fields: Object.keys(updates) });
+      let res;
       try {
-        await navigator.clipboard.writeText(text);
-        showToast('Link copied — paste into WhatsApp.');
-      } catch {
-        prompt('Copy this link manually:', text);
+        res = await fetch('/api/quote-save', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ id: q.id, updates, markSent })
+        });
+      } catch (networkError) {
+        throw Object.assign(new Error(navigator.onLine === false ? 'You are offline.' : 'The server could not be reached.'), { retryable: true });
       }
-    } else if (!silent) {
-      showToast('Saved.');
+      console.log('[quote-save] response status', res.status);
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        console.error('[quote-save] API failure:', body?.error || res.status);
+        throw Object.assign(new Error(body?.error ? `Save failed: ${body.error}` : `Save failed (${res.status}).`), { retryable: res.status >= 500 || res.status === 408 || res.status === 429 });
+      }
+
+      d.saving = false;
+      d.retryCount = 0;
+      d.closeFailed = false;
+      d.saveError = '';
+      d.lastSavedAt = Date.now();
+      d.baseUpdatedMs = timestampMs(body?.updatedAt) || Math.max(d.baseUpdatedMs || 0, serverMs || 0);
+      if ((d.rev || 0) === rev0) {
+        d.dirty = false;
+        d.saveState = 'saved';
+        clearQuoteLocalCopy(q.id);
+      } else {
+        d.saveState = 'dirty';
+      }
+      if (markSent) {
+        q.status = 'sent';
+        q.workflowStatus = 'sent';
+      }
+      d.original = deepCloneForLog(getQuoteLogState(q));
+      if (state.quoteDrawer === d) {
+        if (background) refreshQuoteSaveUi();
+        else render();
+      }
+      if (d.dirty || d.pendingAutosave) {
+        d.pendingAutosave = false;
+        scheduleQuoteAutosave();
+      }
+      if (!background && state.activeTab === 'payments') {
+        queueMicrotask(() => {
+          loadQuotesList({ keepDetail: true });
+          if (state.paymentLookup.quote?.id === q.id) openQuotationDetail(q.id);
+        });
+      }
+      if (copy) {
+        const url = `${location.origin}/q/${q.id}`;
+        const text = `Your quotation from QD Systems:\n${url}\nPasscode: ${getQuotePasscode(q) || '(check admin)'}`;
+        try {
+          await navigator.clipboard.writeText(text);
+          showToast('Link copied — paste into WhatsApp.');
+        } catch {
+          prompt('Copy this link manually:', text);
+        }
+      } else if (!silent) {
+        showToast(markSent ? 'Saved and marked as sent.' : 'Saved.');
+      }
+      return true;
+    } catch (error) {
+      retryable = Boolean(error?.retryable);
+      d.saving = false;
+      d.saveState = 'failed';
+      d.saveError = error?.message || 'Save failed.';
+      if (!d.dirty) d.dirty = true;
+      writeQuoteLocalCopy();
+      if (retryable) scheduleQuoteRetry(d);
+      if (state.quoteDrawer === d) refreshQuoteSaveUi();
+      if (!silent || (background && !isRetry && (d.retryCount || 0) <= 1)) {
+        showToast(retryable ? `${d.saveError} Retrying automatically.` : d.saveError);
+      }
+      return false;
     }
-  } catch (e) {
-    console.error('[quote-save] error:', e);
-    if (!silent) showToast(`Error: ${e.message}`);
+  })();
+
+  quoteSaveInFlight = attempt;
+  try {
+    return await attempt;
+  } finally {
+    if (quoteSaveInFlight === attempt) quoteSaveInFlight = null;
   }
 };
 
@@ -8124,7 +9085,7 @@ async function loadQuotesList({ keepDetail = true } = {}) {
   }
 }
 
-async function openQuotationDetail(quoteRef) {
+async function openQuotationDetail(quoteRef, { edit = false } = {}) {
   const cleanRef = String(quoteRef || '').trim();
   if (!cleanRef) {
     state.paymentLookup.error = 'Quote ref is required.';
@@ -8149,7 +9110,8 @@ async function openQuotationDetail(quoteRef) {
       loading: false,
       error: ''
     };
-    openQuoteDrawer(quote);
+    // Rows open the detail panel; the editor opens only when asked for.
+    if (edit) openQuoteDrawer(quote);
     render();
   } catch (error) {
     state.paymentLookup = {
@@ -8329,6 +9291,68 @@ const showToast = (msg) => {
   }, 2600);
 };
 
+// Same line shape the old "Add QD package" select produced.
+const packageToQuoteLine = (pkg) => ({
+  catalogKey: pkg.id,
+  name: { en: pkg.name.en, ar: pkg.name.ar },
+  description: { en: pkg.includes.join(' · '), ar: '' },
+  qty: 1,
+  unitPrice: pkg.oneTime
+});
+
+// Same /api/quote-update { id, status } call the detail panel's status form makes.
+async function setQuoteWorkflowStatusFromEditor(status) {
+  const q = state.quoteDrawer.quote;
+  if (!q?.id) return;
+  if (state.quoteDrawer.dirty) {
+    const saved = await saveQuoteDrawer({ markSent: false, copy: false, silent: true });
+    if (!saved) { showToast('Save failed, status not changed.'); return; }
+  }
+  try {
+    const token = await getAdminIdToken();
+    const res = await fetch('/api/quote-update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ id: q.id, status })
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.error || `Quote update failed: ${res.status}`);
+    q.status = status;
+    q.workflowStatus = status;
+    showToast('Status updated.');
+    if (state.activeTab === 'payments') {
+      await loadQuotesList({ keepDetail: true });
+      if (state.paymentLookup.quote?.id === q.id) await openQuotationDetail(q.id);
+    }
+  } catch (error) {
+    showToast(error.message || 'Could not update status.');
+  }
+}
+
+const filterQuotePicker = (value) => {
+  const ui = getQuoteEditorUi();
+  ui.pickerSearch = value || '';
+  const needle = ui.pickerSearch.trim().toLowerCase();
+  const list = document.querySelector('#qd-quote-drawer .qd-qe-picker-list');
+  if (!list) return;
+  let visible = 0;
+  list.querySelectorAll('[data-qe-picker-text]').forEach((item) => {
+    const match = !needle || item.dataset.qePickerText.includes(needle);
+    item.hidden = !match;
+    if (match) visible += 1;
+  });
+  list.querySelectorAll('[data-qe-picker-group]').forEach((group) => {
+    group.hidden = !group.querySelector('[data-qe-picker-text]:not([hidden])');
+  });
+  const empty = list.querySelector('[data-qe-picker-empty]');
+  if (empty) empty.hidden = visible > 0;
+};
+
+const closeQuotationDetail = () => {
+  state.paymentLookup = { ...state.paymentLookup, quote: null, quoteRef: '', loading: false, error: '' };
+  render();
+};
+
 const renderQuoteDrawerPaymentSummary = (quote) => {
   const summary = getQuotePaymentSummary(quote);
   return `
@@ -8366,45 +9390,374 @@ const renderQuoteAdminStrip = (quote) => {
   `;
 };
 
+// ── Quote editor (sectioned form + live document preview) ─────────────
+// Presentation only. Field paths reuse the existing data-qfield / data-qline /
+// data-qterm contract handled by applyQuoteChange, and totals come from
+// normalizeQuoteForTemplate -> computeTotals. Save payload is unchanged.
+const QE_SECTIONS = [
+  ['client', 'Client'],
+  ['services', 'Services & items'],
+  ['pages', 'Pages & care'],
+  ['terms', 'Terms & notes'],
+  ['payments', 'Payments'],
+  ['send', 'Send']
+];
+
+const getQuoteEditorUi = () => {
+  if (!state.quoteDrawer.ui) state.quoteDrawer.ui = createQuoteEditorUi();
+  return state.quoteDrawer.ui;
+};
+
+function createQuoteEditorUi() {
+  const phone = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 760px)').matches;
+  return {
+    view: 'edit',
+    collapsed: phone ? { pages: true, terms: true, payments: true, send: true } : {},
+    pickerOpen: false,
+    pickerGroup: 'all',
+    pickerSearch: ''
+  };
+}
+
+const getQuotePasscode = (q) => q?._passcodePlain || q?.passcodePlain || '';
+const getQuoteClientUrl = (q) => `${location.origin}/q/${q?.id || ''}`;
+const getQuoteWorkflowValue = (q) => {
+  const value = String(q?.workflowStatus || q?.status || 'draft').toLowerCase();
+  if (value === 'active') return 'sent';
+  return quoteWorkflowStatuses.includes(value) ? value : 'draft';
+};
+
+const formatPickerPrice = (amount, { from = false, monthly = false } = {}) => {
+  if (!(Number(amount) > 0)) return 'Scope-based';
+  return `${from ? 'from ' : ''}AED ${formatAED(amount)}${monthly ? '/mo' : ''}`;
+};
+
+const getQuotePickerEntries = () => {
+  const entries = [];
+  PACKAGES.forEach((pkg) => {
+    entries.push({
+      kind: 'package', key: pkg.id, group: PACKAGE_GROUPS[pkg.id] || 'websites',
+      name: pkg.name.en, nameAr: pkg.name.ar || '', price: formatPickerPrice(pkg.oneTime, { from: pkg.from }),
+      hint: 'Package'
+    });
+  });
+  PICKER_CATALOG.forEach((item) => {
+    entries.push({
+      kind: 'catalog', key: item.key, group: item.group || 'addons',
+      name: item.name.en, nameAr: item.name.ar || '', price: formatPickerPrice(item.defaultPrice),
+      hint: item.defaultPrice > 0 ? '' : (item.scopeNote || 'Price agreed per project')
+    });
+  });
+  CARE_PLANS.filter((plan) => plan.id !== 'none').forEach((plan) => {
+    entries.push({
+      kind: 'care', key: plan.id, group: 'care',
+      name: plan.name.en, nameAr: plan.name.ar || '', price: formatPickerPrice(plan.monthly, { monthly: true }),
+      hint: 'Sets the monthly care plan'
+    });
+  });
+  return entries;
+};
+
+const quotePickerMatches = (entry, search) => {
+  const needle = String(search || '').trim().toLowerCase();
+  if (!needle) return true;
+  return `${entry.name} ${entry.nameAr} ${entry.hint}`.toLowerCase().includes(needle);
+};
+
+const renderQuotePicker = () => {
+  const ui = getQuoteEditorUi();
+  if (!ui.pickerOpen) {
+    return `
+      <div class="qd-qe-add-row">
+        <button type="button" class="qd-btn qd-admin-action-primary qd-qe-add-btn" data-action="quote-picker-toggle">${adminIcon('plus')}<span>Add service</span></button>
+        <button type="button" class="qd-btn qd-admin-action-secondary" data-action="quote-add-custom-line">Custom line</button>
+      </div>
+    `;
+  }
+  const entries = getQuotePickerEntries();
+  const groups = CATALOG_GROUPS.filter((group) => ui.pickerGroup === 'all' || ui.pickerGroup === group.id);
+  return `
+    <div class="qd-qe-picker" role="region" aria-label="Add service">
+      <div class="qd-qe-picker-head">
+        <input class="qd-admin-input qd-qe-picker-search" type="search" data-qe-picker-search placeholder="Search services, e.g. NFC, booking, RSVP" value="${escAttr(ui.pickerSearch)}" aria-label="Search services" autocomplete="off">
+        <button type="button" class="qd-btn qd-admin-action-secondary" data-action="quote-picker-toggle">Done</button>
+      </div>
+      <div class="qd-qe-picker-groups" role="group" aria-label="Service groups">
+        <button type="button" class="qd-qe-chip ${ui.pickerGroup === 'all' ? 'is-active' : ''}" data-action="quote-picker-group" data-group="all" aria-pressed="${ui.pickerGroup === 'all'}">All</button>
+        ${CATALOG_GROUPS.map((group) => `<button type="button" class="qd-qe-chip ${ui.pickerGroup === group.id ? 'is-active' : ''}" data-action="quote-picker-group" data-group="${group.id}" aria-pressed="${ui.pickerGroup === group.id}">${escTxt(group.label.en)}</button>`).join('')}
+      </div>
+      <div class="qd-qe-picker-list" data-keep-scroll="qe-picker">
+        ${groups.map((group) => {
+          const items = entries.filter((entry) => entry.group === group.id);
+          if (!items.length) return '';
+          const anyMatch = items.some((entry) => quotePickerMatches(entry, ui.pickerSearch));
+          return `
+            <section class="qd-qe-picker-group" data-qe-picker-group ${anyMatch ? '' : 'hidden'}>
+              <h4>${escTxt(group.label.en)}</h4>
+              ${items.map((entry) => `
+                <button type="button" class="qd-qe-picker-item" data-action="quote-picker-add" data-kind="${entry.kind}" data-key="${escAttr(entry.key)}" data-qe-picker-text="${escAttr(`${entry.name} ${entry.nameAr} ${entry.hint}`.toLowerCase())}" ${quotePickerMatches(entry, ui.pickerSearch) ? '' : 'hidden'}>
+                  <span class="qd-qe-picker-name"><strong>${escTxt(entry.name)}</strong>${entry.hint ? `<small>${escTxt(entry.hint)}</small>` : ''}</span>
+                  <span class="qd-qe-picker-price">${escTxt(entry.price)}</span>
+                  <span class="qd-qe-picker-plus" aria-hidden="true">${adminIcon('plus')}</span>
+                </button>
+              `).join('')}
+            </section>
+          `;
+        }).join('')}
+        <p class="qd-qe-picker-empty" data-qe-picker-empty ${entries.some((entry) => (ui.pickerGroup === 'all' || entry.group === ui.pickerGroup) && quotePickerMatches(entry, ui.pickerSearch)) ? 'hidden' : ''}>No service matches. Try another word or add a custom line.</p>
+      </div>
+    </div>
+  `;
+};
+
+const renderQuoteLineCard = (line, idx, count) => {
+  const catalogItem = line?.catalogKey ? getCatalogItem(line.catalogKey) : null;
+  const lineTotal = (Number(line?.qty) || 0) * (Number(line?.unitPrice) || 0);
+  const includes = Array.isArray(line?.includes) ? line.includes : [];
+  const isNoteLine = Boolean(line?.billingNote);
+  const scopeHint = catalogItem?.scopeNote && !(Number(line?.unitPrice) > 0)
+    ? `<p class="qd-qe-hint">${escTxt(catalogItem.scopeNote)} Enter the agreed price.</p>`
+    : '';
+  return `
+    <article class="qd-qe-line" data-qe-line="${idx}">
+      <header class="qd-qe-line-head">
+        <span class="qd-qe-line-index">${idx + 1}</span>
+        <label class="qd-qe-field qd-qe-grow">
+          <span>Item name (EN)</span>
+          <input class="qd-admin-input" data-qline="${idx}.name.en" value="${escAttr(line?.name?.en || '')}" placeholder="Service name">
+        </label>
+        <div class="qd-qe-line-tools">
+          <button type="button" class="qd-qe-icon-btn" data-action="quote-move-line-up" data-idx="${idx}" aria-label="Move item up" ${idx === 0 ? 'disabled' : ''}>↑</button>
+          <button type="button" class="qd-qe-icon-btn" data-action="quote-move-line-down" data-idx="${idx}" aria-label="Move item down" ${idx === count - 1 ? 'disabled' : ''}>↓</button>
+          <button type="button" class="qd-qe-icon-btn is-danger" data-action="quote-remove-line" data-idx="${idx}" aria-label="Remove item">${adminIcon('close')}</button>
+        </div>
+      </header>
+      <label class="qd-qe-field">
+        <span>Item name (AR)</span>
+        <input class="qd-admin-input" dir="rtl" data-qline="${idx}.name.ar" value="${escAttr(line?.name?.ar || '')}" placeholder="اسم الخدمة">
+      </label>
+      <div class="qd-qe-money-row">
+        <label class="qd-qe-field qd-qe-qty"><span>Qty</span><input class="qd-admin-input" type="number" min="0" step="1" inputmode="numeric" data-qline="${idx}.qty" value="${escAttr(line?.qty ?? 1)}"></label>
+        <label class="qd-qe-field"><span>Unit price (AED)</span><input class="qd-admin-input" type="number" min="-999999" step="1" inputmode="numeric" data-qline="${idx}.unitPrice" value="${escAttr(line?.unitPrice ?? 0)}"></label>
+        <div class="qd-qe-line-total"><span>Line total</span><strong data-qe-line-total="${idx}">AED ${escTxt(formatAED(lineTotal))}</strong></div>
+      </div>
+      ${scopeHint}
+      ${isNoteLine ? `
+        <label class="qd-qe-field"><span>Billing note (shown instead of an amount)</span><input class="qd-admin-input" data-qline="${idx}.billingNote" value="${escAttr(line.billingNote)}"></label>
+      ` : `
+        <div class="qd-qe-includes">
+          <div class="qd-qe-subhead">Included</div>
+          ${includes.length ? includes.map((item, includeIdx) => `
+            <div class="qd-qe-include-row">
+              <input class="qd-admin-input" data-qline="${idx}.includes.${includeIdx}" value="${escAttr(item)}" aria-label="Included item ${includeIdx + 1}">
+              <button type="button" class="qd-qe-icon-btn" data-action="quote-remove-include" data-idx="${idx}" data-include-idx="${includeIdx}" aria-label="Remove included item">${adminIcon('close')}</button>
+            </div>
+          `).join('') : `
+            <label class="qd-qe-field"><span>Short description (shown when nothing is listed)</span><input class="qd-admin-input" data-qline="${idx}.description.en" value="${escAttr(typeof line?.description === 'object' ? line.description?.en || '' : line?.description || '')}"></label>
+          `}
+          <button type="button" class="qd-qe-text-btn" data-action="quote-add-include" data-idx="${idx}">+ Add included item</button>
+        </div>
+      `}
+    </article>
+  `;
+};
+
+const renderQuoteEditorSection = (id, title, body, { summary = '' } = {}) => {
+  const ui = getQuoteEditorUi();
+  const collapsed = Boolean(ui.collapsed?.[id]);
+  return `
+    <section class="qd-qe-section ${collapsed ? 'is-collapsed' : ''}" id="qd-qe-section-${id}" data-qe-section="${id}">
+      <h3 class="qd-qe-section-title">
+        <button type="button" data-action="quote-editor-toggle-section" data-section="${id}" aria-expanded="${collapsed ? 'false' : 'true'}" aria-controls="qd-qe-body-${id}">
+          <span>${escTxt(title)}</span>
+          ${summary ? `<small>${summary}</small>` : ''}
+          <span class="qd-qe-chevron" aria-hidden="true"></span>
+        </button>
+      </h3>
+      <div class="qd-qe-section-body" id="qd-qe-body-${id}" ${collapsed ? 'hidden' : ''}>${body}</div>
+    </section>
+  `;
+};
+
+const renderQuoteEditorTotals = (q) => {
+  const normalized = normalizeQuoteForTemplate(q);
+  const totals = normalized.totals;
+  const care = Number(q.careMonthly) || 0;
+  return `
+    <div class="qd-qe-totals-grid">
+      <div><span>Subtotal</span><strong>AED ${escTxt(formatAED(totals.subtotal))}</strong></div>
+      <div><span>${normalized.vatInclusive ? 'VAT' : `VAT ${escTxt(normalized.vatPercent)}%`}</span><strong>${normalized.vatInclusive ? 'Included' : `AED ${escTxt(formatAED(totals.vat))}`}</strong></div>
+      <div class="is-total"><span>Total</span><strong>AED ${escTxt(formatAED(totals.grandTotal))}</strong></div>
+      <div><span>Advance 30%</span><strong>AED ${escTxt(formatAED(normalized.paymentSchedule[0]?.amount || 0))}</strong></div>
+      <div><span>Final 70%</span><strong>AED ${escTxt(formatAED(normalized.paymentSchedule[1]?.amount || 0))}</strong></div>
+      <div><span>Care</span><strong>${care > 0 ? `AED ${escTxt(formatAED(care))}/mo` : 'None'}</strong></div>
+    </div>
+  `;
+};
+
+const renderQuoteEditorPreviewDoc = (q) => renderQuoteTemplate(q, { editable: false, lang: q.language || 'en', quoteUrl: getQuoteClientUrl(q) });
+
 const renderQuoteDrawer = () => {
   if (!state.quoteDrawer.open || !state.quoteDrawer.quote) {
-    return state.quoteToast ? `<div class="qd-quote-toast">${escTxt(state.quoteToast)}</div>` : '';
+    return state.quoteToast ? `<div class="qd-quote-toast" role="status">${escTxt(state.quoteToast)}</div>` : '';
   }
   const q = state.quoteDrawer.quote;
-  const statusLabel = q.status === 'active' ? 'View / Edit' : 'Edit';
+  const ui = getQuoteEditorUi();
+  const lang = q.language === 'ar' ? 'ar' : 'en';
+  const workflow = getQuoteWorkflowValue(q);
+  const passcode = getQuotePasscode(q);
+  const clientUrl = getQuoteClientUrl(q);
+  const lines = Array.isArray(q.lineItems) ? q.lineItems : [];
+  const normalized = normalizeQuoteForTemplate(q);
+  const terms = Array.isArray(q.terms?.en) ? q.terms.en : quoteTermsToEditable(q.terms).en;
+  const notes = q.notes && typeof q.notes === 'object' ? q.notes : { en: String(q.notes || ''), ar: '' };
+  const carePlanId = (CARE_PLANS.find((plan) => plan.name.en === q.carePlanName && Number(plan.monthly) === Number(q.careMonthly)) || {}).id || 'custom';
 
+  const clientBody = `
+    <div class="qd-qe-grid">
+      <label class="qd-qe-field qd-qe-span-2"><span>Business / client name</span><input class="qd-admin-input" data-qfield="customer.businessName" value="${escAttr(q.customer?.businessName || '')}" autocomplete="off"></label>
+      <label class="qd-qe-field"><span>Email</span><input class="qd-admin-input" type="email" data-qfield="customer.email" value="${escAttr(q.customer?.email || '')}" autocomplete="off"></label>
+      <label class="qd-qe-field"><span>Phone</span><input class="qd-admin-input" type="tel" data-qfield="customer.phone" value="${escAttr(q.customer?.phone || '')}" autocomplete="off"></label>
+      <label class="qd-qe-field"><span>Valid for (days)</span><input class="qd-admin-input" type="number" min="1" data-qfield="validDays" value="${escAttr(q.validDays ?? 30)}"></label>
+      <div class="qd-qe-field">
+        <span>VAT</span>
+        <div class="qd-qe-vat">
+          <label class="qd-qe-check"><input type="checkbox" data-qfield="vatInclusive" ${q.vatInclusive !== false ? 'checked' : ''}> Prices include VAT</label>
+          <label class="qd-qe-inline"><input class="qd-admin-input" type="number" min="0" max="100" data-qfield="vatPercent" value="${escAttr(q.vatPercent ?? 0)}" ${q.vatInclusive !== false ? 'disabled' : ''} aria-label="VAT percent"> %</label>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const servicesBody = `
+    ${lines.length ? `<div class="qd-qe-lines">${lines.map((line, idx) => renderQuoteLineCard(line, idx, lines.length)).join('')}</div>` : '<div class="qd-qe-empty"><strong>No items yet</strong><span>Add a package or service to start the quote.</span></div>'}
+    ${renderQuotePicker()}
+  `;
+
+  const pagesBody = `
+    <div class="qd-qe-grid">
+      <label class="qd-qe-field"><span>Additional pages price (AED)</span><input class="qd-admin-input" type="number" min="0" step="1" data-qfield="pages.price" value="${escAttr(q.pages?.price ?? 0)}"></label>
+      <label class="qd-qe-field"><span>Pages description</span><input class="qd-admin-input" data-qfield="pages.en" value="${escAttr(q.pages?.en || '')}" placeholder="Additional page design and setup"></label>
+    </div>
+    <div class="qd-qe-subhead">Monthly care</div>
+    <div class="qd-qe-grid">
+      <label class="qd-qe-field qd-qe-span-2"><span>Care plan</span>
+        <select class="qd-admin-select" data-qe-care-plan>
+          ${CARE_PLANS.map((plan) => `<option value="${escAttr(plan.id)}" ${carePlanId === plan.id ? 'selected' : ''}>${escTxt(plan.name.en)}${plan.monthly ? ` · AED ${formatAED(plan.monthly)}/mo` : ''}</option>`).join('')}
+          <option value="custom" ${carePlanId === 'custom' ? 'selected' : ''}>Custom plan</option>
+        </select>
+      </label>
+      <label class="qd-qe-field"><span>Plan name on quote</span><input class="qd-admin-input" data-qfield="carePlanName" value="${escAttr(q.carePlanName || '')}"></label>
+      <label class="qd-qe-field"><span>Monthly amount (AED)</span><input class="qd-admin-input" type="number" min="0" step="1" data-qfield="careMonthly" value="${escAttr(q.careMonthly ?? 0)}"></label>
+    </div>
+  `;
+
+  const termsBody = `
+    <div class="qd-qe-grid">
+      <label class="qd-qe-field qd-qe-span-2"><span>Scope summary (EN)</span><textarea class="qd-admin-textarea" rows="3" data-qfield="notes.en">${escTxt(notes.en || '')}</textarea></label>
+      <label class="qd-qe-field qd-qe-span-2"><span>Scope summary (AR)</span><textarea class="qd-admin-textarea" rows="3" dir="rtl" data-qfield="notes.ar">${escTxt(notes.ar || '')}</textarea></label>
+    </div>
+    <div class="qd-qe-subhead">Terms &amp; conditions</div>
+    ${terms.length ? `
+      <ol class="qd-qe-terms">
+        ${terms.map((term, idx) => `
+          <li class="qd-qe-include-row">
+            <textarea class="qd-admin-textarea" rows="2" data-qterm="${idx}" aria-label="Term ${idx + 1}">${escTxt(term)}</textarea>
+            <button type="button" class="qd-qe-icon-btn" data-action="quote-remove-term" data-term-idx="${idx}" aria-label="Remove term ${idx + 1}">${adminIcon('close')}</button>
+          </li>
+        `).join('')}
+      </ol>
+    ` : '<p class="qd-qe-hint">The standard QD terms are used (see the preview). Adding a term replaces the standard list with your own.</p>'}
+    <button type="button" class="qd-qe-text-btn" data-action="quote-add-term">+ Add term</button>
+  `;
+
+  const paymentsBody = `
+    ${renderQuoteDrawerPaymentSummary(q)}
+    <div class="qd-qe-schedule">
+      ${normalized.paymentSchedule.map((item) => `<div><span>${escTxt(item.label)} <small>${escTxt(item.when)}</small></span><strong>AED ${escTxt(formatAED(item.amount))}</strong></div>`).join('')}
+    </div>
+    <button type="button" class="qd-btn qd-admin-action-secondary" data-action="quote-editor-open-detail">Log payments, due dates and go-live</button>
+  `;
+
+  const sendBody = `
+    <div class="qd-qe-send">
+      <div class="qd-qe-copy-field">
+        <span>Client link</span>
+        <code>${escTxt(clientUrl)}</code>
+      </div>
+      <div class="qd-qe-copy-field">
+        <span>Passcode</span>
+        <code>${passcode ? escTxt(passcode) : 'Not available here (see the quote record)'}</code>
+      </div>
+      <div class="qd-qe-send-actions">
+        <button type="button" class="qd-btn qd-admin-action-secondary" data-action="quote-editor-copy-link" data-qe-needs-clean ${isQuoteSaveBlocked() ? 'disabled' : ''}>Copy link + passcode</button>
+        <button type="button" class="qd-btn qd-admin-action-secondary" data-action="quote-editor-mark-sent" data-qe-needs-clean ${isQuoteSaveBlocked() ? 'disabled' : ''}>Save and mark as sent</button>
+        <button type="button" class="qd-btn qd-admin-action-primary" data-action="quote-save-and-copy" data-qe-needs-clean ${isQuoteSaveBlocked() ? 'disabled' : ''}>Save, mark sent and copy link</button>
+        <a class="qd-btn qd-admin-action-secondary" href="${escAttr(clientUrl)}" target="_blank" rel="noreferrer noopener">Open client view</a>
+      </div>
+      <div class="qd-qe-status-row">
+        <label class="qd-qe-field"><span>Workflow status</span>
+          <select class="qd-admin-select" data-qe-status>
+            ${quoteWorkflowStatuses.map((status) => `<option value="${status}" ${workflow === status ? 'selected' : ''}>${status[0].toUpperCase()}${status.slice(1)}</option>`).join('')}
+          </select>
+        </label>
+        <button type="button" class="qd-btn qd-admin-action-secondary" data-action="quote-editor-set-status" data-qe-needs-clean ${isQuoteSaveBlocked() ? 'disabled' : ''}>Update status</button>
+      </div>
+    </div>
+  `;
+
+  const lineCount = lines.length;
   return `
     <div class="qd-quote-overlay" data-action="close-quote-drawer"></div>
-    <aside class="qd-quote-drawer" id="qd-quote-drawer" role="dialog" aria-modal="true" aria-label="Quote editor">
-      <header class="qd-quote-head">
-        <h2>${statusLabel} Quote · ${escTxt(q.quoteNumber)}</h2>
-        <button type="button" class="qd-quote-close" data-action="close-quote-drawer" aria-label="Close">×</button>
+    <aside class="qd-quote-drawer qd-qe ${state.quoteDrawer.enterAnim ? 'is-entering' : ''}" id="qd-quote-drawer" role="dialog" aria-modal="true" aria-labelledby="qd-qe-title" data-view="${ui.view}">
+      <header class="qd-qe-head">
+        <div class="qd-qe-title-block">
+          <h2 id="qd-qe-title">${escTxt(q.quoteNumber || 'Quote')} <span>${escTxt(q.customer?.businessName || 'No client name')}</span></h2>
+          <div class="qd-qe-meta">${renderWorkflowStatusChip(workflow)} ${renderQuoteSaveStatus()}</div>
+        </div>
+        <div class="qd-qe-head-actions">
+          <div class="qd-qe-lang" role="group" aria-label="Quote language">
+            <button type="button" class="${lang === 'en' ? 'is-active' : ''}" data-action="quote-editor-lang" data-lang="en" aria-pressed="${lang === 'en'}">EN</button>
+            <button type="button" class="${lang === 'ar' ? 'is-active' : ''}" data-action="quote-editor-lang" data-lang="ar" aria-pressed="${lang === 'ar'}">AR</button>
+          </div>
+          <button type="button" class="qd-btn qd-admin-action-secondary qd-qe-hide-sm" data-action="quote-editor-copy-link" data-qe-needs-clean ${isQuoteSaveBlocked() ? 'disabled' : ''}>Copy link</button>
+          <button type="button" class="qd-btn qd-admin-action-secondary qd-qe-hide-sm" data-action="quote-editor-mark-sent" data-qe-needs-clean ${isQuoteSaveBlocked() ? 'disabled' : ''}>Mark as sent</button>
+          <button type="button" class="qd-btn qd-admin-action-primary" data-action="quote-save-draft">Save</button>
+          <button type="button" class="qd-quote-close" data-action="close-quote-drawer" aria-label="Close editor">${adminIcon('close')}</button>
+        </div>
       </header>
 
-      <div class="qd-quote-body">
-        ${renderQuoteAdminStrip(q)}
-        ${renderQuoteDrawerPaymentSummary(q)}
-        <div class="qd-quote-adders">
-          <select class="qd-quote-input qd-quote-catalog" data-qaction="add-package" style="flex:1">
-            <option value="">+ Add QD package…</option>
-            ${PACKAGES.map((pkg) => `<option value="${escAttr(pkg.id)}">${escTxt(pkg.name.en)} — ${pkg.from ? 'from ' : ''}AED ${formatAED(pkg.oneTime)}</option>`).join('')}
-          </select>
-          <select class="qd-quote-input qd-quote-catalog" data-qaction="add-from-catalog" style="flex:1">
-            <option value="">+ Add feature…</option>
-            ${CATALOG.map((c) => `<option value="${escAttr(c.key)}">${escTxt(c.name.en)}${c.defaultPrice > 0 ? ` — AED ${formatAED(c.defaultPrice)}` : ' — scope-based'}</option>`).join('')}
-          </select>
-          <button type="button" class="qd-btn qd-btn-sm qd-admin-action-secondary" data-action="quote-add-custom-line">+ Custom</button>
-        </div>
-        ${renderQuoteTemplate(q, { editable: true, lang: q.language || 'en', quoteUrl: `${location.origin}/q/${q.id}` })}
+      ${renderQuoteEditorBanner()}
 
+      <div class="qd-qe-viewtabs" role="tablist" aria-label="Editor view">
+        <button type="button" role="tab" class="${ui.view === 'edit' ? 'is-active' : ''}" aria-selected="${ui.view === 'edit'}" data-action="quote-editor-view" data-view="edit">Edit</button>
+        <button type="button" role="tab" class="${ui.view === 'preview' ? 'is-active' : ''}" aria-selected="${ui.view === 'preview'}" data-action="quote-editor-view" data-view="preview">Preview</button>
       </div>
 
-      <footer class="qd-quote-foot">
-        <button type="button" class="qd-btn qd-btn-sm qd-admin-action-secondary" data-action="quote-save-draft">Save draft</button>
-        <button type="button" class="qd-btn qd-btn-sm qd-admin-action-primary" data-action="quote-save-and-copy">Save + Copy link</button>
-      </footer>
+      <div class="qd-qe-body">
+        <div class="qd-qe-form-col">
+          <nav class="qd-qe-jump" aria-label="Quote sections">
+            ${QE_SECTIONS.map(([id, label]) => `<button type="button" class="qd-qe-chip" data-action="quote-editor-jump" data-section="${id}">${escTxt(label)}</button>`).join('')}
+          </nav>
+          <div class="qd-qe-form" data-keep-scroll="qe-form">
+            ${renderQuoteEditorSection('client', 'Client', clientBody, { summary: escTxt(q.customer?.businessName || '') })}
+            ${renderQuoteEditorSection('services', 'Services & items', servicesBody, { summary: `${lineCount} item${lineCount === 1 ? '' : 's'}` })}
+            ${renderQuoteEditorSection('pages', 'Pages & care', pagesBody, { summary: Number(q.careMonthly) > 0 ? `${escTxt(q.carePlanName || 'Care')} · AED ${escTxt(formatAED(q.careMonthly))}/mo` : 'No care' })}
+            ${renderQuoteEditorSection('terms', 'Terms & notes', termsBody, { summary: terms.length ? `${terms.length} custom terms` : 'Standard terms' })}
+            ${renderQuoteEditorSection('payments', 'Payments', paymentsBody)}
+            ${renderQuoteEditorSection('send', 'Send', sendBody)}
+          </div>
+          <div class="qd-qe-totals" id="qd-qe-totals" aria-live="polite">${renderQuoteEditorTotals(q)}</div>
+        </div>
+        <div class="qd-qe-preview-col" aria-label="Live document preview">
+          <div class="qd-qe-preview-label">Live preview · what the client sees${lang === 'ar' ? ' (Arabic)' : ''}</div>
+          <div class="qd-qe-preview" data-keep-scroll="qe-preview">
+            <div class="qd-qe-preview-doc" id="qd-qe-preview-doc">${renderQuoteEditorPreviewDoc(q)}</div>
+          </div>
+        </div>
+      </div>
     </aside>
-    ${state.quoteToast ? `<div class="qd-quote-toast">${escTxt(state.quoteToast)}</div>` : ''}
+    ${state.quoteToast ? `<div class="qd-quote-toast" role="status">${escTxt(state.quoteToast)}</div>` : ''}
   `;
 };
 

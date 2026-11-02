@@ -2,32 +2,57 @@
 <html lang="en" dir="ltr">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#070708">
+  <meta name="color-scheme" content="dark light">
   <title>Quotation · QD Systems</title>
   <link rel="icon" href="/assets/qd-logo.jpeg" type="image/jpeg">
   <link rel="apple-touch-icon" href="/assets/qd-logo.jpeg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="/q/quote.css">
 </head>
-<body>
+<body class="qp">
   <main id="quote-root">
     <section class="passcode-gate" id="passcode-gate">
+      <div class="gate-glow" aria-hidden="true"></div>
+      <div class="gate-lang" role="group" aria-label="Language">
+        <button type="button" class="gate-lang-btn" data-gate-lang="en" lang="en">EN</button>
+        <button type="button" class="gate-lang-btn" data-gate-lang="ar" lang="ar">ع</button>
+      </div>
       <div class="passcode-card">
-        <img src="/assets/qd-logo.jpeg" alt="QD Systems" class="passcode-logo">
-        <h1 class="passcode-prompt" data-l="passcodePrompt"></h1>
-        <form id="passcode-form" autocomplete="off">
-          <input
-            type="text"
-            inputmode="numeric"
-            pattern="[0-9]{6}"
-            maxlength="6"
-            id="passcode-input"
-            class="passcode-input"
-            placeholder="••••••"
-            required>
-          <button type="submit" class="passcode-submit" data-l="unlock"></button>
+        <img src="/assets/qd-logo.jpeg" alt="QD Systems" class="passcode-logo" width="88" height="88">
+        <p class="gate-eyebrow" data-l="gateEyebrow"></p>
+        <h1 class="gate-title" data-l="gateTitle"></h1>
+        <p class="passcode-prompt" id="passcode-hint" data-l="gateHint"></p>
+        <form id="passcode-form" autocomplete="off" novalidate>
+          <label for="passcode-input" class="sr-only" data-l="passcodeLabel"></label>
+          <div class="pc-field" id="pc-field">
+            <input
+              type="text"
+              inputmode="numeric"
+              autocomplete="one-time-code"
+              pattern="[0-9]{6}"
+              maxlength="6"
+              id="passcode-input"
+              class="passcode-input"
+              aria-describedby="passcode-hint passcode-error"
+              dir="ltr"
+              required>
+            <div class="pc-cells" aria-hidden="true">
+              <span class="pc-cell"></span><span class="pc-cell"></span><span class="pc-cell"></span>
+              <span class="pc-cell"></span><span class="pc-cell"></span><span class="pc-cell"></span>
+            </div>
+          </div>
+          <button type="submit" class="passcode-submit" id="passcode-submit">
+            <span class="btn-spinner" aria-hidden="true"></span>
+            <span class="btn-label" data-l="unlock"></span>
+          </button>
         </form>
-        <p class="passcode-error" id="passcode-error" hidden></p>
+        <p class="passcode-error" id="passcode-error" role="alert" aria-live="assertive" hidden></p>
+        <a class="gate-help" id="gate-help" href="https://wa.me/971504611123" target="_blank" rel="noopener" data-l="needHelp"></a>
       </div>
     </section>
   </main>

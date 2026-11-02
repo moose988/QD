@@ -1,7 +1,7 @@
 // GET /api/collections-digest?secret=... - Vercel Cron daily internal collections digest.
 
+import { timingSafeEqual } from 'node:crypto';
 import { getDb } from '../firebase.js';
-import { getQueryParam } from '../quote-admin.js';
 import { buildCollectionsSummary, todayIso } from '../collections.js';
 import { escapeHtml, getAdminRecipients, safeError, sendZohoMail } from '../zoho-mail.js';
 
@@ -10,12 +10,13 @@ export const config = { runtime: 'nodejs', maxDuration: 15 };
 function getSecret(req) {
   const authorization = String(req.headers.authorization || req.headers.Authorization || '').trim();
   if (authorization.startsWith('Bearer ')) return authorization.slice('Bearer '.length).trim();
-  return String(
-    req.headers['x-cron-secret']
-    || req.headers['X-Cron-Secret']
-    || getQueryParam(req, 'secret')
-    || ''
-  ).trim();
+  return String(req.headers['x-cron-secret'] || req.headers['X-Cron-Secret'] || '').trim();
+}
+
+function secretsMatch(provided, expected) {
+  const a = Buffer.from(String(provided));
+  const b = Buffer.from(String(expected));
+  return a.length === b.length && timingSafeEqual(a, b);
 }
 
 function assertCronSecret(req) {
@@ -25,7 +26,7 @@ function assertCronSecret(req) {
     error.status = 503;
     throw error;
   }
-  if (getSecret(req) !== expected) {
+  if (!secretsMatch(getSecret(req), expected)) {
     const error = new Error('Unauthorized');
     error.status = 401;
     throw error;
@@ -100,7 +101,7 @@ function buildDigest(summary) {
 }
 
 export default async function handler(req, res) {
-  console.log('[collections-digest] hit', { method: req.method, url: req.url });
+  console.log('[collections-digest] hit', { method: req.method });
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
   try {

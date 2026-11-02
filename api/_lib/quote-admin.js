@@ -27,7 +27,10 @@ const PUBLIC_INTERNAL_FIELDS = new Set([
   'careOutstanding',
   'outstanding',
   'quoteNumberLower',
-  'businessNameLower'
+  'businessNameLower',
+  'submissionSnapshot',
+  'verifyFails',
+  'verifyLockUntil'
 ]);
 
 export function parseJsonBody(req) {

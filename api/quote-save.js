@@ -47,7 +47,7 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Invalid JSON' });
       }
     }
-    console.log('[quote-save] parsed body', body);
+    console.log('[quote-save] parsed body keys', Object.keys(body || {}));
 
     const id = (body?.id || '').toString().trim();
     const updates = body?.updates || {};

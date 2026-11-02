@@ -39,7 +39,7 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Invalid JSON' });
       }
     }
-    console.log('[quote-create] parsed body', body);
+    console.log('[quote-create] parsed body keys', Object.keys(body || {}));
 
     const hasEstimateSelection = body?.selection && typeof body.selection === 'object';
     if (hasEstimateSelection) {
