@@ -10,7 +10,7 @@ import {
 const DEFAULT_TERMS = {
   en: [
     'Validity. This quotation is valid for 30 days from the issue date.',
-    'Payment. 30% advance on acceptance to commence work; 70% on completion prior to go-live. Payable by bank transfer; details provided on the invoice.',
+    'Payment. 50% advance on acceptance to commence work; 50% on completion prior to handover. Payable by bank transfer; details provided on the invoice.',
     'Scope. Pricing covers the items listed above. Additional pages, features or systems are quoted separately.',
     'Third-party services. Payment gateway, delivery integrations, messaging (WhatsApp/SMS) and hosting beyond the included setup are billed at cost.',
     'Timeline. Work begins on receipt of the advance payment; a delivery schedule is confirmed at kickoff.',
@@ -20,7 +20,7 @@ const DEFAULT_TERMS = {
   ],
   ar: [
     'الصلاحية. هذا العرض صالح لمدة 30 يوماً من تاريخ الإصدار.',
-    'الدفع. 30% عند القبول لبدء العمل؛ 70% عند الإنجاز قبل الإطلاق. يتم الدفع عبر التحويل البنكي وتُرسل التفاصيل في الفاتورة.',
+    'الدفع. 50% عند القبول لبدء العمل؛ 50% عند الإنجاز قبل التسليم. يتم الدفع عبر التحويل البنكي وتُرسل التفاصيل في الفاتورة.',
     'النطاق. يغطي السعر البنود المذكورة أعلاه فقط. الصفحات أو المزايا أو الأنظمة الإضافية تُسعر بشكل منفصل.',
     'خدمات الطرف الثالث. بوابات الدفع وتكاملات التوصيل والرسائل (واتساب/SMS) والاستضافة خارج الإعداد المشمول تُحسب بالتكلفة.',
     'الجدول الزمني. يبدأ العمل بعد استلام الدفعة المقدمة ويتم تأكيد جدول التسليم عند الانطلاق.',

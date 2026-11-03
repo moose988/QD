@@ -8,15 +8,18 @@ export function changeLedger(ledger, { type, amount, actor, allowOverShare = fal
     if (index < 0) throw new Error('Unknown partner.');
     if (amount > shares[index] && !allowOverShare) throw new Error('Withdrawal exceeds your available share.');
     if (amount > shares[0] + shares[1]) throw new Error('Withdrawal exceeds the total shared balance.');
-    const fromOwn = Math.min(amount, shares[index]);
+    const fromOwn = Math.min(amount, Math.max(0, shares[index]));
     shares[index] -= fromOwn;
     shares[1 - index] -= amount - fromOwn;
   } else if (type === 'expense') {
-    const total = shares[0] + shares[1];
-    if (amount > total) throw new Error('Insufficient shared balance.');
-    // Existing shares absorb expenses in proportion to the money each still has in the pot.
-    const first = Math.min(shares[0], Math.round(amount * shares[0] / total));
-    shares[0] -= first; shares[1] -= amount - first;
+    // Spend available shares proportionally, then split any shortfall equally.
+    const available = shares.map(value => Math.max(0, value));
+    const total = available[0] + available[1];
+    const covered = Math.min(amount, total);
+    const first = total ? Math.min(available[0], Math.round(covered * available[0] / total)) : 0;
+    shares[0] -= first; shares[1] -= covered - first;
+    const shortfall = amount - covered;
+    shares[0] -= Math.ceil(shortfall / 2); shares[1] -= Math.floor(shortfall / 2);
   } else throw new Error('Unknown transaction type.');
   return { ...ledger, shares };
 }

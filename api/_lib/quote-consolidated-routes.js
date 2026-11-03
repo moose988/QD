@@ -6,6 +6,7 @@ import collectionsHandler from './quote-routes/collections.js';
 import collectionsCollectHandler from './quote-routes/collections-collect.js';
 import collectionsDigestHandler from './quote-routes/collections-digest.js';
 import quoteCreateHandler from './quote-routes/quote-create.js';
+import quoteTranslateHandler from './quote-routes/quote-translate.js';
 import quoteVerifyHandler from './quote-routes/quote-verify.js';
 
 const ROUTES = new Map([
@@ -16,7 +17,8 @@ const ROUTES = new Map([
   ['collections-collect', collectionsCollectHandler],
   ['collections-digest', collectionsDigestHandler],
   ['quote-create', quoteCreateHandler],
-  ['quote-verify', quoteVerifyHandler]
+  ['quote-verify', quoteVerifyHandler],
+  ['quote-translate', quoteTranslateHandler]
 ]);
 
 export function getConsolidatedQuoteRoute(req) {

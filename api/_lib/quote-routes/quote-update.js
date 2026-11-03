@@ -114,7 +114,7 @@ export default async function handler(req, res) {
     const milestoneDueDates = applyMilestoneDueDates({ ...existing, ...safe }, body.milestoneDueDates);
     if (milestoneDueDates) safe.milestones = milestoneDueDates;
     if (!safe.milestones && !Array.isArray(existing.milestones)) {
-      safe.milestones = buildDefaultMilestones(getQuoteTotal(existing));
+      safe.milestones = buildDefaultMilestones(getQuoteTotal(existing), [], existing.paymentSplit === 50 ? 50 : 30);
     }
 
     safe.updatedAt = admin.firestore.FieldValue.serverTimestamp();

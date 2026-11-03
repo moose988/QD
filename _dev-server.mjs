@@ -85,6 +85,7 @@ const API_REWRITES = new Map([
   ['quote-create', 'quote-create'],
   ['quote-from-estimate', 'quote-create'],
   ['quote-verify', 'quote-verify'],
+  ['quote-translate', 'quote-translate'],
 ]);
 
 // Client-demo endpoints share one function (api/demo.js), like vercel.json's rewrites.
@@ -123,7 +124,9 @@ const server = http.createServer(async (req, res) => {
     shimRes(res);
     try {
       if (req.method !== 'GET' && req.method !== 'OPTIONS') req.body = await readBody(req);
-      const mod = await import(pathToFileURL(file).href + '?t=' + Date.now()); // cache-bust for hot reload
+      // Route modules are dependencies of quote-save and would otherwise remain cached.
+      const routeFile = consolidatedRoute ? path.join(ROOT, 'api', '_lib', 'quote-routes', consolidatedRoute + '.js') : file;
+      const mod = await import(pathToFileURL(routeFile).href + '?t=' + Date.now());
       await mod.default(req, res);
     } catch (e) {
       console.error('[handler error]', e);

@@ -55,12 +55,12 @@ export function getQuoteBuildTotal(quote = {}) {
   return roundMoney(computeTotals(oneTimeLines, vatPercent, quote.pages?.price).grandTotal);
 }
 
-export function buildDefaultMilestones(total, existing = []) {
+export function buildDefaultMilestones(total, existing = [], percent = 30) {
   const quoteTotal = roundMoney(total);
-  const advance = Math.round(quoteTotal * 0.3);
+  const advance = Math.round(quoteTotal * percent / 100);
   const defaults = [
-    { key: 'advance', itemKey: 'milestone:advance', label: 'Advance 30%', amount: advance, dueDate: '', paidAmount: 0, collectedAt: '' },
-    { key: 'final', itemKey: 'milestone:final', label: 'Final 70%', amount: roundMoney(quoteTotal - advance), dueDate: '', paidAmount: 0, collectedAt: '' }
+    { key: 'advance', itemKey: 'milestone:advance', label: `Advance ${percent}%`, amount: advance, dueDate: '', paidAmount: 0, collectedAt: '' },
+    { key: 'final', itemKey: 'milestone:final', label: `Final ${100-percent}%`, amount: roundMoney(quoteTotal - advance), dueDate: '', paidAmount: 0, collectedAt: '' }
   ];
   return defaults.map((base) => {
     const found = existing.find((item) => item?.key === base.key || item?.itemKey === base.itemKey) || {};
@@ -121,7 +121,7 @@ function withScheduleDerived(item) {
 }
 
 function baseMilestones(quote = {}) {
-  return buildDefaultMilestones(getQuoteBuildTotal(quote), Array.isArray(quote.milestones) ? quote.milestones : []);
+  return buildDefaultMilestones(getQuoteBuildTotal(quote), Array.isArray(quote.milestones) ? quote.milestones : [], quote.paymentSplit === 50 ? 50 : 30);
 }
 
 function baseCareItems(quote = {}, on = new Date().toISOString().slice(0, 10)) {
@@ -291,6 +291,9 @@ export function buildQuotePaymentView(id, quote = {}, options = {}) {
     quoteRef: String(quote.quoteNumber || quote.ref || quote.quoteRef || id || '').trim(),
     quoteNumber: quote.quoteNumber || '',
     customer: quote.customer || null,
+    serviceType: quote.serviceType || '',
+    ...(typeof quote.showClientLink === 'boolean' ? {showClientLink:quote.showClientLink} : {}),
+    paymentSplit: quote.paymentSplit === 50 ? 50 : 30,
     language: quote.language || 'en',
     lineItems: Array.isArray(quote.lineItems) ? quote.lineItems : [],
     pages: quote.pages || null,
@@ -348,13 +351,24 @@ export function applyPaymentToQuote(id, quote = {}, paymentInput = {}, options =
     error.status = 400;
     throw error;
   }
-  if (payment.amount > target.remaining) {
-    const error = new Error('payment amount exceeds remaining item balance');
+  const candidates = payment.itemKey.startsWith('milestone:')
+    ? [target, ...view.schedule.filter(item => item.itemKey.startsWith('milestone:') && item.itemKey !== target.itemKey)]
+    : [target];
+  const available = roundMoney(candidates.reduce((sum, item) => sum + item.remaining, 0));
+  if (payment.amount > available) {
+    const error = new Error('Payment exceeds the remaining quotation balance.');
     error.status = 400;
     throw error;
   }
-
-  const payments = [...view.payments, payment];
+  let left = payment.amount;
+  const allocations = [];
+  for (const item of candidates) {
+    const amount = roundMoney(Math.min(left, item.remaining));
+    if (amount > 0) allocations.push({ ...payment, itemKey:item.itemKey, amount });
+    left = roundMoney(left - amount);
+    if (left <= 0) break;
+  }
+  const payments = [...view.payments, ...allocations];
   const nextQuote = { ...quote, payments };
   return {
     ...nextQuote,

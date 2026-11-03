@@ -27,6 +27,7 @@ export async function createQuoteFromEstimate(body, adminUser) {
 
   const quote = {
     quoteNumber,
+    paymentSplit: 50,
     status: 'draft',
     language: draft.language,
     validDays: draft.validDays,
@@ -76,7 +77,7 @@ export async function createQuoteFromEstimate(body, adminUser) {
   };
   Object.assign(quote, buildQuotePaymentFields(id, quote));
   Object.assign(quote, buildQuoteSearchFields(quote));
-  quote.milestones = buildDefaultMilestones(quote.balance);
+  quote.milestones = buildDefaultMilestones(quote.balance, [], 50);
 
   const db = getDb();
   await db.collection('quotes').doc(id).set(quote);

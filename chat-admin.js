@@ -49,7 +49,7 @@ import {
   limit as fsLimit,
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-const root = document.getElementById('qd-chat-admin-root');
+let root = document.getElementById('qd-chat-admin-root');
 const returnToTab = new URLSearchParams(window.location.search).get('returnTo') === 'cards' ? 'cards' : 'dashboard';
 const backHref = `admin.html?tab=${returnToTab}`;
 const backLabel = returnToTab === 'cards' ? 'Back to Smart Cards' : 'Back to Pipeline';
@@ -441,6 +441,7 @@ function renderApp() {
 
 // ─── Render ───────────────────────────────────────────────────────────────
 function render() {
+  if (!root || !root.isConnected) return;
   if (state.authLoading) {
     root.innerHTML = renderShell('<section style="display:grid;place-items:center;height:60vh;color:var(--fg3);font-family:var(--font-mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase">Loading…</section>');
     return;
@@ -454,7 +455,7 @@ function render() {
 }
 
 // ─── Event delegation ─────────────────────────────────────────────────────
-root.addEventListener('click', async (e) => {
+async function handleChatClick(e) {
   const t = e.target.closest('[data-action]');
   if (!t) return;
   const action = t.dataset.action;
@@ -523,7 +524,15 @@ root.addEventListener('click', async (e) => {
       window.alert('Could not delete this conversation. Check the console for details.');
     }
   }
-});
+}
+
+export function mountChatAdmin(element) {
+  root = element;
+  if (!root) return;
+  if (!root.dataset.chatBound) { root.addEventListener('click', handleChatClick); root.dataset.chatBound = 'true'; }
+  render();
+}
+if (root) mountChatAdmin(root);
 
 // ─── Auth + data ──────────────────────────────────────────────────────────
 async function handleLogin(e) {

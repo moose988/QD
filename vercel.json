@@ -20,6 +20,7 @@
     { "source": "/api/collections-digest", "destination": "/api/quote-save?__quoteRoute=collections-digest" },
     { "source": "/api/quote-from-estimate", "destination": "/api/quote-save?__quoteRoute=quote-create" },
     { "source": "/api/quote-create", "destination": "/api/quote-save?__quoteRoute=quote-create" },
+    { "source": "/api/quote-translate", "destination": "/api/quote-save?__quoteRoute=quote-translate" },
     { "source": "/api/quote-verify", "destination": "/api/quote-save?__quoteRoute=quote-verify" },
     { "source": "/api/demo-deploy", "destination": "/api/demo?__demoRoute=deploy" },
     { "source": "/api/demo-get", "destination": "/api/demo?__demoRoute=get" },

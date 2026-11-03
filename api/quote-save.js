@@ -9,7 +9,7 @@ import { getConsolidatedQuoteRoute, handleConsolidatedQuoteRoute } from './_lib/
 import { buildQuotePaymentFields } from './_lib/quote-payments.js';
 import { logQuoteAudit } from './_lib/audit-log.js';
 
-export const config = { runtime: 'nodejs', maxDuration: 10 };
+export const config = { runtime: 'nodejs', maxDuration: 30 };
 
 // Fields the admin is allowed to update directly. Everything else is locked.
 const ALLOWED = new Set([
@@ -84,7 +84,7 @@ export default async function handler(req, res) {
     Object.assign(safe, buildQuotePaymentFields(id, nextQuote));
     Object.assign(safe, buildQuoteSearchFields(nextQuote));
     if (!Array.isArray(existingQuote.milestones)) {
-      safe.milestones = buildDefaultMilestones(safe.balance);
+      safe.milestones = buildDefaultMilestones(safe.balance, [], existingQuote.paymentSplit === 50 ? 50 : 30);
     }
 
     console.log('[quote-save] writing merged updates');

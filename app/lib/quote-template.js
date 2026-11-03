@@ -86,20 +86,20 @@ function lineAmount(lineItem, idx, editable) {
   `;
 }
 
-function normalizeIncludes(lineItem = {}) {
+function normalizeIncludes(lineItem = {}, lang = 'en') {
   const groups = Array.isArray(lineItem.includedGroups) ? lineItem.includedGroups : [];
   const fromGroups = groups.flatMap((group) => (group.includes || []).map((item) => (
     group.label ? `${group.label}: ${item}` : item
   )));
-  const direct = Array.isArray(lineItem.includes) ? lineItem.includes : [];
+  const direct = lang === 'ar' && Array.isArray(lineItem.includesAr) && lineItem.includesAr.length === lineItem.includes?.length ? lineItem.includesAr : Array.isArray(lineItem.includes) ? lineItem.includes : [];
   if (direct.length) return direct.map(String);
   if (fromGroups.length) return fromGroups.map(String);
-  const description = pickQuoteText(lineItem.description, 'en');
+  const description = pickQuoteText(lineItem.description, lang);
   return description ? [description] : [];
 }
 
 function renderIncludedRows(lineItem, idx, lang, editable) {
-  const rows = normalizeIncludes(lineItem);
+  const rows = normalizeIncludes(lineItem, lang);
   return rows.map((label, includeIdx) => `
     <tr class="sub" data-quote-include="${idx}:${includeIdx}">
       <td>
@@ -107,7 +107,7 @@ function renderIncludedRows(lineItem, idx, lang, editable) {
           ? `<button type="button" class="q-mini-btn" data-action="quote-remove-include" data-idx="${idx}" data-include-idx="${includeIdx}" aria-label="Remove inclusion">-</button>${editableText(label, `${idx}.includes.${includeIdx}`, { kind: 'qline', className: 'q-edit q-edit-include' })}`
           : escapeHtml(label)}
       </td>
-      <td class="inc">Included</td>
+      <td class="inc">${lang === 'ar' ? 'مشمول' : 'Included'}</td>
     </tr>
   `).join('');
 }
@@ -161,13 +161,13 @@ function renderPagesLine(pages, lang, editable) {
       <td>${editable ? editableText(label, 'pages.en', { className: 'q-edit q-edit-title' }) : escapeHtml(label)}</td>
       <td class="amt">${editable ? `AED ${editableMoney(price, 'pages.price', { kind: 'qfield' })}` : `AED ${formatAED(price)}`}</td>
     </tr>
-    <tr class="sub"><td>${editable ? editableText(pickQuoteText(pages, lang) || 'Additional page design and setup', 'pages.en', { className: 'q-edit q-edit-include' }) : escapeHtml(pickQuoteText(pages, lang) || 'Additional page design and setup')}</td><td class="inc">Included</td></tr>
+    <tr class="sub"><td>${editable ? editableText(pickQuoteText(pages, lang) || 'Additional page design and setup', 'pages.en', { className: 'q-edit q-edit-include' }) : escapeHtml(pickQuoteText(pages, lang) || 'Additional page design and setup')}</td><td class="inc">${lang === 'ar' ? 'مشمول' : 'Included'}</td></tr>
     <tr class="div"><td colspan="2"></td></tr>
   `;
 }
 
 function normalizeTerms(terms, lang = 'en') {
-  const value = terms && typeof terms === 'object' ? terms[lang] || terms.en || terms.ar : terms;
+  const value = terms && typeof terms === 'object' ? terms[lang] : terms;
   if (Array.isArray(value)) return value.map(String).filter(Boolean);
   return String(value || '')
     .split(/\n+/)
@@ -175,10 +175,11 @@ function normalizeTerms(terms, lang = 'en') {
     .filter(Boolean);
 }
 
-function defaultTerms(validDays) {
+export function defaultTerms(validDays, eventQuote = false, percent = 30) {
+  if (eventQuote) return [`Validity. This quotation is valid for ${validDays} days from the issue date.`, 'Scope. The quotation covers the services and deliverables listed above. Additional work is quoted separately.', `Payment. ${percent}% is due on acceptance and ${100-percent}% on completion. Event-specific delivery dates will be agreed with the client.`, 'Changes. Changes requested after approval may affect the delivery date and price.'];
   return [
     `Validity. This quotation is valid for ${validDays} days from the issue date.`,
-    'Payment. 30% advance on acceptance to commence work; 70% on completion prior to go-live. Payable by bank transfer; details provided on the invoice.',
+    `Payment. ${percent}% advance on acceptance to commence work; ${100-percent}% on completion prior to handover. Payable by bank transfer; details provided on the invoice.`,
     'Scope. Pricing covers the items listed above. Additional pages, features or systems are quoted separately.',
     'Third-party services. Payment gateway, delivery integrations, messaging (WhatsApp/SMS) and hosting beyond the included setup are billed at cost.',
     'Timeline. Work begins on receipt of the advance payment; a delivery schedule is confirmed at kickoff.',
@@ -196,7 +197,10 @@ function renderTermText(item) {
 
 function renderTerms(data, lang, editable) {
   const custom = normalizeTerms(data.terms, lang);
-  const terms = custom.length ? custom : defaultTerms(Number(data.validDays) || 30);
+  const eventQuote = /wedding|celebration|engagement|invitation|event|photo bucket|photo book|gender reveal/i.test(data.serviceType || data.notes?.en || '');
+  const percent = data.paymentSplit === 50 ? 50 : 30;
+  const arabicTerms = [`الصلاحية: عرض السعر صالح لمدة ${Number(data.validDays) || 30} يوماً من تاريخ الإصدار.`, 'النطاق: يشمل العرض الخدمات والمخرجات المذكورة أعلاه، وتُسعّر الأعمال الإضافية بشكل منفصل.', `الدفع: تستحق دفعة مقدمة ${percent}٪ عند الموافقة والرصيد ${100-percent}٪ عند الإنجاز.`, 'التغييرات: قد تؤثر التعديلات بعد الموافقة على السعر وموعد التسليم.'];
+  const terms = custom.length || data.terms?.custom === true ? custom : lang === 'ar' ? arabicTerms : defaultTerms(Number(data.validDays) || 30, eventQuote, percent);
   return terms.map((item, idx) => `
     <li>
       ${editable
@@ -206,11 +210,11 @@ function renderTerms(data, lang, editable) {
   `).join('');
 }
 
-export function paymentSchedule(total) {
-  const advance = Math.round(total * 0.3);
+export function paymentSchedule(total, percent = 30) {
+  const advance = Math.round(total * percent / 100);
   return [
-    { label: '30% on acceptance', when: 'to begin work', amount: advance },
-    { label: '70% on completion', when: 'before go-live', amount: total - advance }
+    { label: `${percent}% on acceptance`, when: 'to begin work', amount: advance },
+    { label: `${100-percent}% on completion`, when: 'before go-live', amount: total - advance }
   ];
 }
 
@@ -236,7 +240,7 @@ export function normalizeQuoteForTemplate(data = {}, options = {}) {
     scope: pickQuoteText(data.notes, lang) || pickQuoteText(data.pages, lang) || FALLBACK_SCOPE,
     careMonthly: Number(data.careMonthly) || 0,
     carePlanName: String(data.carePlanName || data.estimateSnapshot?.monthly?.planName || 'Care Basic').trim(),
-    paymentSchedule: paymentSchedule(totals.grandTotal)
+    paymentSchedule: paymentSchedule(totals.grandTotal, data.paymentSplit === 50 ? 50 : 30)
   };
 }
 
@@ -244,36 +248,36 @@ export function renderQuoteTemplate(data = {}, options = {}) {
   const editable = options.editable === true;
   const lang = options.lang || data.language || 'en';
   const q = normalizeQuoteForTemplate(data, { lang });
-  const quoteUrl = options.quoteUrl || '';
+  const quoteUrl = options.quoteUrl && !/localhost|127\.0\.0\.1/i.test(options.quoteUrl) ? options.quoteUrl : '';
+  const nonWebsite = /wedding|celebration|engagement|invitation|event|photo bucket|photo book|gender reveal/i.test(q.serviceType || q.notes?.en || '');
+  const ar = lang === 'ar';
+  const t = (en, arabic) => ar ? arabic : en;
   const monthlyLabel = q.careMonthly > 0 ? ` · + AED ${formatAED(q.careMonthly)} / month care plan` : '';
-  const monthlyText = q.careMonthly > 0 ? `${escapeHtml(q.carePlanName)} · AED ${formatAED(q.careMonthly)}/mo` : 'No recurring care selected';
-  const thirdPartyNote = q.careMonthly > 0
-    ? `Monthly care plan (AED ${formatAED(q.careMonthly)}/mo) billed from go-live. Prices are inclusive of VAT. Third-party costs (payment gateway, delivery, WhatsApp/SMS) billed at cost - no markup.`
+  const monthlyText = q.careMonthly > 0 ? `${escapeHtml(q.carePlanName)} · AED ${formatAED(q.careMonthly)}/mo` : t('No recurring care selected','لا توجد رعاية شهرية');
+  const thirdPartyNote = ar ? 'تُحسب تكاليف الجهات الخارجية بالتكلفة ما لم تُذكر ضمن العرض.' : q.careMonthly > 0
+    ? `${t('Monthly care','الرعاية الشهرية')} plan (AED ${formatAED(q.careMonthly)}/mo) billed from go-live. Prices are inclusive of VAT. Third-party costs (payment gateway, delivery, WhatsApp/SMS) billed at cost - no markup.`
     : 'Prices are inclusive of VAT. Third-party costs (payment gateway, delivery, WhatsApp/SMS) billed at cost - no markup.';
   return `
-    <div class="sheet ${editable ? 'quote-editable' : ''}" data-quote-template>
+    <div dir="${ar ? 'rtl' : 'ltr'}" lang="${lang}" class="sheet ${editable ? 'quote-editable' : ''}" data-quote-template>
       <div class="topbar"></div>
       <div class="pad">
         <header class="head">
           <div class="brand">
-            <div class="mono">QD</div>
-            <div><h1>${QD_BRAND.name}</h1><div class="sub">Websites & digital systems · Dubai, UAE</div></div>
+            <div class="mono"><img src="/assets/qd-logo.jpeg" alt="QD Systems" style="width:100%;height:100%;object-fit:cover;border-radius:10px"></div>
+            <div><h1>${QD_BRAND.name}</h1><div class="sub">${t('Websites & digital systems · Dubai, UAE','المواقع والأنظمة الرقمية · دبي، الإمارات')}</div></div>
           </div>
           <div class="docmeta">
-            <div class="title">QUOTATION</div>
-            <div class="metarow"><span class="k">Issue date</span><span class="v">${escapeHtml(q.issued)}</span></div>
-            <div class="metarow"><span class="k">Valid until</span><span class="v">${escapeHtml(q.validUntil)}</span></div>
+            <div class="title">${t('QUOTATION','عرض سعر')}</div>
+            <div class="metarow"><span class="k">${t('Issue date','تاريخ الإصدار')}</span><span class="v">${escapeHtml(q.issued)}</span></div>
+            <div class="metarow"><span class="k">${t('Valid until','صالح حتى')}</span><span class="v">${escapeHtml(q.validUntil)}</span></div>
             <div class="refpill">REF ${escapeHtml(q.quoteNumberDisplay)}</div>
           </div>
         </header>
 
         <section class="parties">
-          <div class="box"><div class="lbl">From</div><div class="name">${QD_BRAND.name}</div><div>${QD_BRAND.place}</div><div>${QD_BRAND.email}</div><div>${QD_BRAND.site}</div></div>
-          <div class="box"><div class="lbl">Prepared for</div><div class="name">${editable ? editableText(q.customerName, 'customer.businessName') : escapeHtml(q.customerName)}</div><div>${editable ? editableText(q.customer?.email || '', 'customer.email') : escapeHtml(q.customer?.email || '')}</div><div>${editable ? editableText(q.customer?.phone || '', 'customer.phone') : escapeHtml(q.customer?.phone || '')}</div></div>
+          <div class="box"><div class="lbl">${t('From','من')}</div><div class="name">${QD_BRAND.name}</div><div>${QD_BRAND.place}</div><div>${QD_BRAND.email}</div><div>${QD_BRAND.phone}</div><div>${QD_BRAND.site}</div></div>
+          <div class="box"><div class="lbl">${t('Prepared for','مقدم إلى')}</div><div class="name">${editable ? editableText(q.customerName, 'customer.businessName') : escapeHtml(q.customerName)}</div><div>${editable ? editableText(q.customer?.email || '', 'customer.email') : escapeHtml(q.customer?.email || '')}</div><div>${editable ? editableText(q.customer?.phone || '', 'customer.phone') : escapeHtml(q.customer?.phone || '')}</div></div>
         </section>
-
-        <div class="scope"><b>Scope:</b> ${editable ? editableText(q.scope, 'notes.en', { className: 'q-edit q-edit-scope' }) : escapeHtml(q.scope)}</div>
-        <p class="intro">Thank you for the opportunity to work with ${escapeHtml(q.customerName)}. Please find the detailed quotation below.</p>
 
         <table class="items"><tbody>
           ${q.lineItems.map((lineItem, idx) => renderLineItem(lineItem, idx, lang, editable)).join('')}
@@ -281,32 +285,33 @@ export function renderQuoteTemplate(data = {}, options = {}) {
         </tbody></table>
         ${editable ? '<button type="button" class="q-add-line" data-action="quote-add-custom-line">+ Line item</button>' : ''}
 
-        <div class="tot"><span class="l">One-time total <span class="mo">${monthlyLabel}</span></span><span class="r">AED ${formatAED(q.totals.grandTotal)}</span></div>
-        ${q.vatInclusive ? '<div class="anchor">Prices are inclusive of VAT.</div>' : `<div class="anchor">VAT ${escapeHtml(q.vatPercent)}%: AED ${formatAED(q.totals.vat)}</div>`}
+        ${q.vatInclusive ? `<div class="anchor">${t('Prices include VAT.','الأسعار تشمل ضريبة القيمة المضافة.')}</div>` : `<div class="anchor">${t('VAT','ضريبة القيمة المضافة')} ${escapeHtml(q.vatPercent)}%: AED ${formatAED(q.totals.vat)}</div>`}
+        <div class="tot"><span class="l">${t('One-time total','الإجمالي لمرة واحدة')} <span class="mo">${monthlyLabel}</span></span><span class="r">AED ${formatAED(q.totals.grandTotal)}</span></div>
 
-        <h4 class="sec">Payment schedule</h4>
+        <h4 class="sec">${t('Payment schedule','جدول الدفع')}</h4>
         <table class="pay"><tbody>
-          ${q.paymentSchedule.map((item) => `<tr><td>${escapeHtml(item.label)} <span class="when">- ${escapeHtml(item.when)}</span></td><td>AED ${formatAED(item.amount)}</td></tr>`).join('')}
+          ${q.paymentSchedule.map((item) => `<tr><td>${ar ? (item.label.includes('acceptance') ? `${q.paymentSplit === 50 ? 50 : 30}٪ عند الموافقة` : `${q.paymentSplit === 50 ? 50 : 70}٪ عند الإنجاز`) : escapeHtml(item.label)} <span class="when">${ar ? '' : `- ${escapeHtml(item.when)}`}</span></td><td>AED ${formatAED(item.amount)}</td></tr>`).join('')}
         </tbody></table>
         <div class="note">${escapeHtml(thirdPartyNote)}</div>
 
-        <h4 class="sec">Monthly care</h4>
+        ${!nonWebsite ? `<h4 class="sec">${t('Monthly care','الرعاية الشهرية')}</h4>
         <div class="care-box">
           <div><strong>${editable ? editableText(q.carePlanName, 'carePlanName') : escapeHtml(q.carePlanName)}</strong></div>
           <div>${editable ? `AED ${editableMoney(q.careMonthly, 'careMonthly', { kind: 'qfield' })}/mo` : escapeHtml(monthlyText)}</div>
         </div>
-        <div class="note">Third-party costs are billed at cost unless explicitly included in the quotation.</div>
+        <div class="note">${t('Third-party costs are billed at cost unless explicitly included in the quotation.','تُحسب تكاليف الجهات الخارجية بالتكلفة ما لم تُذكر ضمن العرض.')}</div>
 
-        <h4 class="sec">Terms & conditions</h4>
+        ` : ''}
+        <h4 class="sec">${t('Terms & conditions','الشروط والأحكام')}</h4>
         <ol class="terms">${renderTerms(q, lang, editable)}</ol>
         ${editable ? '<button type="button" class="q-add-inline" data-action="quote-add-term">+ Term</button>' : ''}
 
-        <h4 class="sec">Acceptance</h4>
+        <h4 class="sec">${t('Acceptance','الموافقة')}</h4>
         <div class="accept">
-          <div>To proceed, please sign below and return with the 30% advance payment.</div>
+          <div>${t(`To proceed, please sign below and return with the ${q.paymentSplit === 50 ? 50 : 30}% advance payment.`,`للمتابعة، يرجى التوقيع أدناه وإعادة العرض مع الدفعة المقدمة بنسبة ${q.paymentSplit === 50 ? 50 : 30}٪.`)}</div>
           <div class="row">
-            <div class="sig"><div class="ln"></div><div class="cap">Client signature - ${escapeHtml(q.customerName)}</div></div>
-            <div class="sig"><div class="ln"></div><div class="cap">Date</div></div>
+            <div class="sig"><div class="ln"></div><div class="cap">${t('Client signature','توقيع العميل')} - ${escapeHtml(q.customerName)}</div></div>
+            <div class="sig"><div class="ln"></div><div class="cap">${t('Date','التاريخ')}</div></div>
           </div>
         </div>
 

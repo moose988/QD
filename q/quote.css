@@ -908,3 +908,22 @@ body.qp--open { padding-bottom: calc(92px + env(safe-area-inset-bottom)); }
   .qp-doc .items tr, .qp-doc .pay tr, .qp-doc ol.terms li, .qp-doc .accept, .qp-doc .tot { break-inside: avoid; page-break-inside: avoid; }
   .qp-doc h4.sec { break-after: avoid; page-break-after: avoid; }
 }
+
+/* Quotation document: quiet hierarchy, clear pricing, print-friendly. */
+.sheet[data-quote-template] { color:#18313a; background:#fff; }
+.sheet[data-quote-template] .topbar { height:5px; background:#16756d; }
+.sheet[data-quote-template] .pad { padding:44px 48px; }
+.sheet[data-quote-template] .head { border-bottom:1px solid #d8e6e3; padding-bottom:24px; }
+.sheet[data-quote-template] .docmeta .title { font-size:22px; letter-spacing:.08em; color:#173d3a; }
+.sheet[data-quote-template] .refpill { background:#e9f5f1; color:#166b5d; border-radius:6px; letter-spacing:.04em; }
+.sheet[data-quote-template] .parties { margin:26px 0 28px; gap:36px; }
+.sheet[data-quote-template] .parties .box { line-height:1.65; font-size:12px; }
+.sheet[data-quote-template] .parties .name { font-size:15px; color:#152f35; }
+.sheet[data-quote-template] .items { border-top:1px solid #d8e6e3; }
+.sheet[data-quote-template] .items .grp td { padding-top:16px; }
+.sheet[data-quote-template] .tot { margin-top:22px; padding:17px 18px; border:0; border-radius:8px; background:#eaf5f1; color:#123f38; }
+.sheet[data-quote-template] h4.sec { border-bottom:1px solid #d8e6e3; color:#315b55; letter-spacing:.09em; }
+.sheet[data-quote-template] .accept { background:#f8fbfa; border-color:#d8e6e3; }
+.sheet[data-quote-template] .foot { border-top:1px solid #d8e6e3; }
+@media(max-width:768px) { .sheet[data-quote-template] .pad { padding:28px 20px; } }
+@media print { .sheet[data-quote-template] { margin:0; box-shadow:none; border-radius:0; } .sheet[data-quote-template] .pad { padding:12mm 10mm; } .sheet[data-quote-template] tr,.sheet[data-quote-template] .tot,.sheet[data-quote-template] .accept { break-inside:avoid; } }
